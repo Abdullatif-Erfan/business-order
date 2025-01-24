@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Home\HomeController;
 
 
 // Route::get('/', function () {
@@ -15,8 +16,15 @@ use App\Http\Controllers\Auth\UserController;
 // });
 
 Route::get('/',[LoginController::class,'login'])->name('login');
-// Route::middleware(['custom_auth'])->group(function () {
-//     Route::get('/role',[RoleController::class,'index'])->name('role');
-// });
+Route::post('/loginMe',[LoginController::class,'loginMe'])->name('loginMe');
+/**
+ * Create a demo user by visiting this route
+ * http://127.0.0.1:8000/createUser
+ */
+Route::get('/createUser',[UserController::class,'createUser'])->name('createUser');
 
-Route::get('/role',[RoleController::class,'index'])->name('role');
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/role',[RoleController::class,'index'])->name('role');
+    Route::get('/home',[HomeController::class,'index'])->name('home');
+});

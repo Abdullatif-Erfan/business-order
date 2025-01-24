@@ -34,7 +34,7 @@
         </div>
         <div class="card">
             <div class="body">
-                <form action="{{ route('login') }}" method="POST">
+                <form action="{{ route('loginMe') }}" method="POST">
                     @csrf
                     <center><h4>ورود به سیســتم</h4></center>
                     <div class="input-group">
@@ -42,16 +42,23 @@
                             <i class="fa fa-user"></i>
                         </span>
                         <div class="form-line">
-                            <input type="text" class="form-control" name="username" placeholder="نام کاربری" required autofocus>
+                            <input type="text" class="form-control" name="user_name" placeholder="نام کاربری" value="erfan" required autofocus>
                         </div>
+                          @error('user_name')
+                            <small class="text-danger">{{ $message }}</small>
+                            @enderror
                     </div>
                     <div class="input-group">
                         <span class="input-group-addon">
                             <i class="fa fa-lock"></i>
                         </span>
                         <div class="form-line">
-                            <input type="password" class="form-control" name="password" placeholder="رمز عبور" required>
+                            <input type="password" value="password123" class="form-control" name="password" placeholder="رمز عبور" required>
                         </div>
+
+                        @error('password')
+                        <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
 
                     <div class="col-md-12 col-sm-12 col-xs-12">
