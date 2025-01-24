@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Auth;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TableRoles extends Model
+class Login extends Model
 {
     //
 }
