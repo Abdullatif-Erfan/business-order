@@ -1,0 +1,137 @@
+﻿.popover {
+    /* min-width: 330px !important; */
+    /* max-width: 240px !important; */
+}
+
+[data-name="md-datetimepicker-popovercontent"] {
+    padding: 10px 6px !important;
+}
+
+    [data-name="md-datetimepicker-popovercontent"] a[data-name="go-today"] {
+        color: #333 !important;
+        width: 100% !important;
+        display: block !important;
+        text-decoration: none !important;
+    }
+
+[data-name="md-datetimepicker-title"] {
+    direction: rtl !important;
+    text-align: center !important;
+    font-family: Tahoma !important;
+    font-size: 14px !important;
+}
+[data-name="md-datetimepicker-title"][data-isgregorian="true"] {
+    direction: ltr !important;
+}
+
+[data-name="md-persiandatetimepicker"] {
+}
+
+    [data-name="md-persiandatetimepicker"] button {
+        font-size: 12px !important;
+        font-weight: normal !important;
+        border-radius: 0px !important;
+        padding: 0px 6px;
+    }
+
+    [data-name="md-persiandatetimepicker"] table.table-striped {
+        margin-bottom: 0 !important;
+        direction: rtl !important;
+    }
+
+    [data-name="md-persiandatetimepicker"][data-isgregorian="true"] table.table-striped {
+        direction: ltr !important;
+    }
+
+    [data-name="md-persiandatetimepicker"] table.table td {
+        text-align: center !important;
+        padding: 2px !important;
+        font-size: 14px !important;
+    }
+
+    [data-name="md-persiandatetimepicker"] table[data-name="md-persiandatetimepicker-timepicker"].table,
+    [data-name="md-persiandatetimepicker"] table[data-name="md-persiandatetimepicker-headertable"].table {
+        width: 100% !important;
+        margin: 0 auto !important;
+        direction: ltr !important;
+    }
+
+    [data-name="md-persiandatetimepicker"] table[data-name="md-persiandatetimepicker-headertable"] .dropdown-menu[aria-labelledby="dropdownMenuPersianYear"] {
+        height: 200px !important;
+        overflow: auto !important;
+    }
+
+    [data-name="md-persiandatetimepicker"] table[data-name="md-persiandatetimepicker-headertable"] .dropdown-menu li{
+        text-align: center !important;
+    }
+
+    [data-name="md-persiandatetimepicker"] table[data-name="md-persiandatetimepicker-timepicker"].table td,
+    [data-name="md-persiandatetimepicker"] table[data-name="md-persiandatetimepicker-headertable"].table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+        border: 0 !important;
+    }
+
+[data-name="md-persiandatetimepicker-titlemonth"],
+[data-name="md-persiandatetimepicker-titleyear"] {
+    width: 100% !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border: none !important;
+    font-weight: bold !important;
+}
+
+[aria-labelledby="dropdownMenuPersianmonths"] li > a,
+[aria-labelledby="dropdownMenuPersianyear"] li > a {
+    margin: 0 !important;
+    padding: 0 10px 0 10px !important;
+    text-align: center !important;
+}
+
+[aria-labelledby="dropdownMenuPersianmonths"] .divider {
+    margin: 1px !important;
+    padding: 0 !important;
+}
+
+[data-name="md-persiandatetimepicker"] table.table tr[data-name="md-persiandatetimepicker-weekdaysnames"] td {
+    font-size: 13px !important;
+    font-weight: bold !important;
+}
+
+[data-name="disabled-day"] {
+    color: #ccc !important;
+}
+
+[data-name="day"], [data-name="today"] {
+    cursor: pointer !important;
+    padding: 2px !important;
+}
+
+    [data-name="day"]:not([class^="text"]) {
+        color: #333 !important;
+    }
+
+    [data-name="day"]:hover {
+        background: #eee !important;
+    }
+
+    [data-name="today"]:hover {
+        background: #73acdc !important;
+    }
+
+[data-name="md-persiandatetimepicker-timepicker"] [data-name="clock-hour"],
+[data-name="md-persiandatetimepicker-timepicker"] [data-name="clock-minute"],
+[data-name="md-persiandatetimepicker-timepicker"] [data-name="clock-second"] {
+    font-size: 12px !important;
+    width: 50px !important;
+    padding: 2px !important;
+    direction: ltr !important;
+    text-align: center !important;
+    height: auto !important;
+    display: inline-block !important;
+}
+
+/* by Sina-Soltani66 */
+.zIndexCorrected {
+    z-index: 100000 !important;
+}
