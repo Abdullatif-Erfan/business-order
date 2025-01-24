@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Auth;
-
+use App\Http\Controllers\Controller; 
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -11,7 +11,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        
+        return ['role' => 'is working'];
     }
 
     /**

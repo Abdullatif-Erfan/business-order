@@ -15,9 +15,8 @@ use App\Http\Controllers\Auth\UserController;
 // });
 
 Route::get('/',[LoginController::class,'login'])->name('login');
-Route::middleware('auth:sanctum')->group(function () { 
-    Route::get('/role',[RoleController::class,'index'])->name('role');
-});
+// Route::middleware(['custom_auth'])->group(function () {
+//     Route::get('/role',[RoleController::class,'index'])->name('role');
+// });
 
-
-
+Route::get('/role',[RoleController::class,'index'])->name('role');
