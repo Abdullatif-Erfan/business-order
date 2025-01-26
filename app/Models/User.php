@@ -5,8 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Auth\Role;
+
 
 class User extends Authenticatable
 {
@@ -57,6 +59,29 @@ class User extends Authenticatable
     public function roleRelationName()
     {
         return $this->belongsTo(Role::class, 'roleId', 'roleId');  // 'roleId' is the foreign key
+    }
+
+    public function hasAccess($module, $option)
+    {
+        $accessInfo = Session::get('accessInfo', []);
+        $isAdmin = Session::get('isAdmin', false);
+
+        // Admins have access to everything
+        if ($isAdmin) {
+            return true;
+        }
+
+        // Check if module and option exist in accessInfo
+        if (isset($accessInfo[$module])) {
+            if (!empty($accessInfo[$module][$option]) && $accessInfo[$module][$option] == 1) {
+                return true;
+            }
+            if (!empty($accessInfo[$module]['total_access']) && $accessInfo[$module]['total_access'] == 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

@@ -1,5 +1,5 @@
 <div class="col-12">
-        <?php echo form_open('home', array('id'=>'myForm')); ?>
+        <form id="myForm"  action="home" method="post">
         <div class="row">
 
         <div class="col-md-3 col-sm-6 col-xs-6">
@@ -48,5 +48,5 @@
         </div>
 
     </div>
-    <?php echo form_close(); ?>
-    </div>
+   </form>
+ </div>

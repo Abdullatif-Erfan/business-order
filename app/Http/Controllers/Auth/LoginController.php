@@ -82,8 +82,8 @@ class LoginController extends Controller
             Session::put([
                 'userId' => $user->id,
                 'role' => $user->roleId,
-                'roleText' => $user->roleRelationName->name,
-                'name' => $user->name,
+                'roleText' => $user->roleRelationName->role,
+                'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
@@ -190,14 +190,6 @@ class LoginController extends Controller
     /**
      * Build access information for roles
      */
-    // private function accessInfo($roleId)
-    // {
-    //     $role = Role::find($roleId);
-    //     $accessMatrix = json_decode($role->access ?? '{}', true);
-
-    //     return $accessMatrix;
-    // }
-
     public function accessInfo($roleId)
     {
         // Fetch the role access matrix from the database using Eloquent
@@ -244,12 +236,25 @@ class LoginController extends Controller
                 'isLoggedIn' => true,
             ]);
 
-            Session::put('lang', 'dr');
-            Session::put('comein', 'business@kawoshgaran');
+            // Session::put('lang', 'dr');
+            // Session::put('comein', 'business@kawoshgaran');
 
             return redirect()->route('home');
         } else {
             abort(403, "The role doesn't exist or is inactive");
         }
     }
+
+    public function logout(Request $request)
+    {
+        // Clear all session data
+        Session::flush();
+
+        // Log the user out using Laravel's auth system
+        auth()->logout();
+
+        // Redirect to the login page
+        return redirect()->route('login')->with('success', 'شما با موفقیت خارج شدید');
+    }
+
 }
