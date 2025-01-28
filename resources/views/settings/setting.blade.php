@@ -22,9 +22,6 @@
                             <div class="tab-content">
                                 <!-- branch -->
                                  <div id="branch" class="tab-pane fade in active">
-                                        <br>
-                                        @include('settings.branch.add')
-                                        <br>
                                         @include('settings.branch.list')
                                     </div> 
                                 <!-- / branch -->
@@ -60,52 +57,34 @@
 <!-- / main content -->
 
 <script>
+
+function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
+    var content = {};
+    content.message = '<span style="font-size:16px;">' + message + '</span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    
+    if (style === "withicon") {
+        content.icon = 'fa fa-bell';
+    } else {
+        content.icon = 'none';
+    }
+    content.url = '#';
+    content.target = '_blank';
+
+    $.notify(content, {
+        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        placement: {
+            from: from, // top, bottom
+            align: align // right, center, left
+        },
+        time: 500
+    });
+}
+
+
 $(document).ready(function() {
     // When the submit button is clicked
-    $('#submitBtn').on('click', function() {
-        var name = $('#name').val();
-        var nameError = $('#nameError');
-        var loading = $('#loading');
-        
-        // Reset error messages
-        nameError.text('');
-        
-        // Show loading spinner
-        loading.show();
-        
-        // Send AJAX request
-        $.ajax({
-            url: "{{ route('addData') }}",
-            type: 'POST',
-            data: {
-                name: name,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                // Hide loading spinner
-                loading.hide();
-                
-                // Show success message
-                alert(response.message);
-                
-                // Close the modal
-                $('#addModal').modal('hide');
-                
-                // Optionally, you can reset the form
-                $('#branchForm')[0].reset();
-            },
-            error: function(xhr) {
-                // Hide loading spinner
-                loading.hide();
-                
-                // Handle validation errors
-                var errors = xhr.responseJSON.errors;
-                if (errors.name) {
-                    nameError.text(errors.name[0]);
-                }
-            }
-        });
-    });
+   
 });
 </script>
 

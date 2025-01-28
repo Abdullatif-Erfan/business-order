@@ -6,10 +6,10 @@ use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session; // Import Session facade
 use Illuminate\Support\Facades\Auth; // Import Auth facade
-use App\Helpers\ManagementHelper;
-use App\Helpers\FunctionHelper;
-use Illuminate\Support\Facades\DB;
-use App\Models\Setting\Branch;
+// use App\Helpers\ManagementHelper;
+// use App\Helpers\FunctionHelper;
+// use Illuminate\Support\Facades\DB;
+// use App\Models\Setting\Branch;
 
 class SettingController extends BaseController
 {
@@ -44,20 +44,10 @@ class SettingController extends BaseController
      */
     public function store(Request $request)
     {
-        // Validate the request
-         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
 
-        // Create new branch
-        Branch::create([
-            'name' => $validated['name'],
-        ]);
-
-        // Return success response
-        return response()->json(['message' => 'New Record added successfully.']);
     }
 
+ 
     /**
      * Display the specified resource.
      */
@@ -85,8 +75,8 @@ class SettingController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+       
     }
 }
