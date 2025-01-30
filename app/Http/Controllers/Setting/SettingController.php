@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Auth; // Import Auth facade
 // use App\Helpers\ManagementHelper;
 // use App\Helpers\FunctionHelper;
 // use Illuminate\Support\Facades\DB;
-// use App\Models\Setting\Branch;
+use App\Models\Setting\Branch;
+use Yajra\DataTables\Facades\DataTables;
 
 class SettingController extends BaseController
 {
@@ -23,10 +24,37 @@ class SettingController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        // dd($request->ajax());
+        if($request->ajax())
+        {
+            $branchs = Branch::query()->orderBy('id', 'DESC');
+            return  DataTables::eloquent($branchs)
 
+            // ->addColumn('edit', function($branch) {
+            //     return '<a href="'.route('branch.edit', $branch->id).'" data-id="'.$branch->id.'">
+            //        <i class="fas fa-pen-square editBranch" style="font-size:20px;"></i>
+            //     </a>';
+            // })
+
+            // Add Index Column
+            ->addIndexColumn()
+
+            ->addColumn('edit', function($branch) {
+                return '<i class="fas fa-pen-square editBranch" data-id="'.$branch->id.'" style="font-size:20px;"></i>';
+            })
+            ->addColumn('delete', function($branch) {
+                return '<i class="fas fa-trash-alt deleteBranch" data-id="'.$branch->id.'" style="font-size:20px; color:red;"></i>';
+            })
+            ->rawColumns(['edit','delete'])
+            ->make(true);
+            // dd($branch); 
+        }
+         
         $global_data = ['global' => $this->global];
+        // $branchs = Branch::all();
+
         // ManagementHelper::pre($global_data);
         return view('settings.setting', compact('global_data'));
     }

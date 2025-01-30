@@ -123,8 +123,11 @@ class BranchController extends BaseController
     public function destroy($id)
     {
         $branch = Branch::findOrFail($id);
-        $branch->delete();
-
-        return response()->json(['message' => 'موفقانه حذف گردید']);
+        if($branch) 
+        {
+            $branch->delete();
+            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+        }
+        return response()->json(['status' => 'failed', 'message' => ' حذف نگردید']);
     }
 }

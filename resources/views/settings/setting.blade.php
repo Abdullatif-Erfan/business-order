@@ -1,4 +1,4 @@
-@include('component.header')
+@include('component.header3')
 @include('component.sidebar')
 
 @php
@@ -89,4 +89,4 @@ $(document).ready(function() {
 </script>
 
 
-@include('component.footer')
+@include('component.footer3')

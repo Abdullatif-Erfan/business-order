@@ -8,4 +8,5 @@ class Branch extends Model
 {
     //
     protected $fillable = ['name'];
+    
 }
