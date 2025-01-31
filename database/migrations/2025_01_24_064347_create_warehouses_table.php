@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('warehouses', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 255);
-            $table->integer('branch_id');
+            $table->foreignId('branch_id');
             $table->string('responsible', 100);
             $table->string('address', 255);
             $table->timestamps();

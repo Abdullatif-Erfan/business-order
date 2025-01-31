@@ -1,4 +1,5 @@
-@extends('component.master')
+@extends('layouts.app')
+@section('title', 'داشبورد')
 
 @section('content')
 <script>

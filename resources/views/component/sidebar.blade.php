@@ -106,7 +106,7 @@
                         </a>
                         <div class="collapse" id="items">
                             <ul class="nav nav-collapse">
-                                @foreach(\App\Models\Warehouse::all() as $warehouse)
+                                @foreach(\App\Models\Setting\Warehouse::all() as $warehouse)
                                     <li>
                                         <a href="{{ $base_url }}/warehouseItems/{{ $warehouse->id }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                             <span class="sub-item">{{ $warehouse->name }}</span>

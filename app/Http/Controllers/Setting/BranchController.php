@@ -4,12 +4,9 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
-// use Illuminate\Support\Facades\Session; // Import Session facade
-use Illuminate\Support\Facades\Auth; // Import Auth facade
-// use App\Helpers\ManagementHelper;
-// use App\Helpers\FunctionHelper;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Setting\Branch;
+use Yajra\DataTables\Facades\DataTables;
 
 
 class BranchController extends BaseController
@@ -24,19 +21,39 @@ class BranchController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::latest()->paginate(10); // Adjust pagination size as needed
-        return response()->json($branches);
+        // $branches = Branch::latest()->paginate(10); // Adjust pagination size as needed
+        // return response()->json($branches);
+        if($request->ajax())
+        {
+            $branchs = Branch::query()->orderBy('id', 'DESC');
+            return  DataTables::eloquent($branchs)
+
+            // ->addColumn('edit', function($branch) {
+            //     return '<a href="'.route('branch.edit', $branch->id).'" data-id="'.$branch->id.'">
+            //        <i class="fas fa-pen-square editBranch" style="font-size:20px;"></i>
+            //     </a>';
+            // })
+
+            // Add Index Column
+            ->addIndexColumn()
+
+            ->addColumn('edit', function($branch) {
+                return '<i class="fas fa-pen-square editBranch" data-id="'.$branch->id.'" style="font-size:20px;"></i>';
+            })
+            ->addColumn('delete', function($branch) {
+                return '<i class="fas fa-trash-alt deleteBranch" data-id="'.$branch->id.'" style="font-size:20px; color:red;"></i>';
+            })
+            ->rawColumns(['edit','delete'])
+            ->make(true);
+            // dd($branch); 
+        }
+
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -78,13 +95,6 @@ class BranchController extends BaseController
         return response()->json(['message' => 'یافت نگردید'],404);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.

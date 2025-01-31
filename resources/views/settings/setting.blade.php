@@ -1,9 +1,11 @@
-@include('component.header3')
-@include('component.sidebar')
+@extends('layouts.app')
+@section('title', 'تنظیمات')
 
 @php
     $packageId = \App\Helpers\ManagementHelper::activePackageId();
 @endphp
+
+@section('content')
 <!-- main content -->
 <div class="main-panel">
     <div class="content">
@@ -15,8 +17,9 @@
                             <!-- card-body -->
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
-                                <li class="active"><a data-toggle="tab" href="#branch">شعبه</a></li>
-                                <li><a data-toggle="tab" data-id="0" href="#warehouse">گدام</a></li>
+                                <li class="active"><a data-toggle="tab"  href="#branch">شعبه</a></li>
+                                <li><a data-toggle="tab" data-id="0"  href="#warehouse">گدام</a></li>
+                                
                             </ul>
 
                             <div class="tab-content">
@@ -82,11 +85,20 @@ function showNotification(message, type = 'info', from = 'top', align = 'center'
 }
 
 
-$(document).ready(function() {
-    // When the submit button is clicked
-   
+$(document).ready(function () {
+    // Initialize default tab's DataTable
+    fetchBranchList();
+
+    // Ensure correct tab is initialized on click
+    $('#myTab2 li a').on('click', function () {
+        const target = $(this).attr('href');
+        if (target === '#branch') {
+            fetchBranchList();
+        } else if (target === '#warehouse') {
+            fetchWarehouseList();
+        }
+    });
 });
 </script>
+@endsection
 
-
-@include('component.footer3')

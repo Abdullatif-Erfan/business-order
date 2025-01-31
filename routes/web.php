@@ -7,7 +7,7 @@ use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Home\HomeController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\Setting\BranchController;
-
+use App\Http\Controllers\Setting\WarehouseController;
 
 
 // Route::get('/', function () {
@@ -41,13 +41,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // setting
     Route::get('setting',[SettingController::class,'index'])->name('setting');
+
+    // Branch
     Route::get('/branches', [BranchController::class, 'index'])->name('branches.list');
     Route::post('/branches', [BranchController::class, 'store'])->name('branches');
     Route::get('/branches/{id}', [BranchController::class, 'show'])->name('branches.show');
     Route::patch('/branches/{id}', [BranchController::class, 'update'])->name('branches.update'); 
     Route::delete('/branches/{id}', [BranchController::class, 'destroy'])->name('branches.destroy');
 
-
-
+    // Warehouse
+    Route::get('/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
+    Route::get('/warehouses/create', [WarehouseController::class, 'create'])->name('warehouses.create');
+    Route::post('/warehouses/store', [WarehouseController::class, 'store'])->name('warehouses.store');
+    Route::get('/warehouses/{warehouse}', [WarehouseController::class, 'show'])->name('warehouses.show');
+    Route::patch('/warehouses/update', [WarehouseController::class, 'update'])->name('warehouses.update');
+    Route::delete('/warehouses/{id}', [WarehouseController::class, 'destroy'])->name('warehouses.destroy');
 
 });
