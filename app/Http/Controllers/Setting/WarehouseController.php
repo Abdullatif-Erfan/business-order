@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting\Warehouse;
 use App\Models\Setting\Branch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -13,8 +14,30 @@ class WarehouseController extends Controller
 {
     public function index(Request $request)
     {
+
+         $sessionData = Session::all();
+        // $sessionData = Session::get('isAdmin');
+ 
+         // Debugging: Display login status, user, and session data
+        //  dd([
+        //      'sessionData' => $sessionData,
+        //     //  'isAdmin' => $sessionData['isAdmin'] === 1 ? "yes" : "no"
+        //  ]);
+
         if ($request->ajax()) {
-            $warehouses = Warehouse::with('branch')->orderBy('id', 'DESC');
+
+            if($sessionData['isAdmin']){
+                $warehouses = Warehouse::with('branch')->orderBy('id', 'DESC');
+            } 
+            else
+             {
+                $warehouses = Warehouse::with('branch')
+                ->whereHas('branch', function ($query) {
+                    $query->where('id', $sessionData['branchId']); // Replace `1` with the desired branch ID
+                })
+                ->orderBy('id', 'DESC');
+             }
+
             return DataTables::eloquent($warehouses)
                 ->addIndexColumn()
                 ->addColumn('edit', function ($warehouse) {

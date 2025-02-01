@@ -18,15 +18,21 @@
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
                                 <li class="active"><a data-toggle="tab"  href="#branch">شعبه</a></li>
-                                <li><a data-toggle="tab" data-id="0"  href="#warehouse">گدام</a></li>
-                                
+                                <li><a data-toggle="tab"   href="#warehouse">گدام</a></li>
+                                <li><a data-toggle="tab"  href="#unit">واحد اجناس</a></li>
+                                <li><a data-toggle="tab"  href="#currency">واحد پولی</a></li>
                             </ul>
 
                             <div class="tab-content">
                                 <!-- branch -->
                                  <div id="branch" class="tab-pane fade in active">
-                                        @include('settings.branch.list')
-                                    </div> 
+                                      <br> 
+                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+									       @include('settings.branch.add')
+                                       @endif
+								       <br>
+                                       @include('settings.branch.list')
+                                 </div> 
                                 <!-- / branch -->
 
                                 <!-- warehouse -->
@@ -41,6 +47,30 @@
                                     @include('settings.warehouse.list')
                                 </div>
                                 <!-- / warehouse -->
+
+
+                                <!-- unit -->
+                                <div id="unit" class="tab-pane fade"> 
+                                       <br> 
+                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+									       @include('settings.unit.add')
+                                        @endif
+								       <br>  
+                                       @include('settings.unit.list')      
+								</div>
+						        <!-- / unit -->
+                             
+                            <!-- currency -->
+                              <div id="currency" class="tab-pane fade">
+                                  <br> 
+                                    @if(auth()->user()->hasAccess('settings','create_records')) 
+									    @include('settings.currency.add')
+                                    @endif
+                                    <br>  
+                                    @include('settings.currency.list') 
+
+								</div>
+						<!-- /currency -->
 
                               
                             </div>
@@ -96,6 +126,10 @@ $(document).ready(function () {
             fetchBranchList();
         } else if (target === '#warehouse') {
             fetchWarehouseList();
+        } else if (target === '#unit') {
+            fetchUnitList();
+        } else if (target === '#currency') {
+            fetchCurrencyList();
         }
     });
 });

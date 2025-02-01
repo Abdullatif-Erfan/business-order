@@ -1,9 +1,3 @@
-<br />
-<!-- Button to trigger the modal -->
-<button type="button" class="btn btn-primary btn-sm m-l-10 m-b-10" data-toggle="modal" data-target="#addModal">
-    <span class="btn-label"><i class="fa fa-plus"></i></span> ثبت جدید
-</button>
-
 <div class="table-responsive" style="padding:5px;">
     <div id="loading" style="display: none; text-align: center;">
         <span>Loading...</span>
@@ -57,7 +51,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm " data-dismiss="modal">بستن</button>
-                <button type="button" class="btn btn-success btn-sm m-r-10" id="submitBtn">ثبت</button>
+                <button type="button" class="btn btn-success btn-sm m-r-10" id="submitBtnBranch">ثبت</button>
             </div>
         </div>
     </div>
@@ -66,10 +60,10 @@
 <script type="text/javascript">
 $(document).ready(function () {
     // Initialize DataTable
-    // var table = fetchBranchList();
+    var table = fetchBranchList();
 
     // Add or Update Branch
-    $('#submitBtn').click(function () {
+    $('#submitBtnBranch').click(function () {
         addOrUpdateBranch(table);
     });
 
@@ -106,7 +100,8 @@ $(document).ready(function () {
                 data: { _token: '{{ csrf_token() }}' },
                 success: (response) => {
                     if(response.status === 'success') {
-                        table.ajax.reload(null, false); // callaback, boolean
+                        // table.ajax.reload(null, false); // callaback, boolean
+                        fetchBranchList();
                         showNotification(response.message, 'success', 'top', 'right', 'withicon');
                     } else {
                        showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
@@ -165,7 +160,7 @@ const addOrUpdateBranch = (table) => {
                 $('#addModal').modal('hide');
                 $('#branchForm')[0].reset();
                 $('#branchId').val('');
-                table.ajax.reload(null, false);
+                fetchBranchList();
                 showNotification(response.message, 'success', 'top', 'right', 'withicon');
             },
             error: (xhr) => {

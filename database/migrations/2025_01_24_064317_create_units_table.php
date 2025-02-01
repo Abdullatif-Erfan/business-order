@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 255);
-            $table->tinyInteger('status')->comment('0: deletable, 1: not deletable');
             $table->timestamps();
         });
     }

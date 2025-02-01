@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('currencies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('symbol');
+            $table->string('symbols');
             $table->enum('is_base', ['yes','no'])->default('no');
             $table->string('color', 20)->nullable();
             $table->timestamps();

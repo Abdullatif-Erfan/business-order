@@ -12,7 +12,7 @@ use App\Helpers\FunctionHelper;
 use Illuminate\Support\Facades\DB;
 
 
-use App\Models\Currency;
+use App\Models\Setting\Currency;
 
 
 class HomeController extends BaseController
@@ -520,7 +520,7 @@ class HomeController extends BaseController
 
         // Get currency details
         $currencies = DB::table('currencies')
-            ->select('currencies.id as currencyId', 'currencies.name as currency_name', 'symbol', 'color')
+            ->select('currencies.id as currencyId', 'currencies.name as currency_name', 'symbols', 'color')
             ->get();
 
         // Get total paid
@@ -552,7 +552,7 @@ class HomeController extends BaseController
             return [
                 'currencyId' => $currency->currencyId,
                 'currency_name' => $currency->currency_name,
-                'symbol' => $currency->symbol,
+                'symbol' => $currency->symbols,
                 'color' => $currency->color,
                 'total_payed' => $total_payed ?? 0,
                 'total_recieved' => $total_recieved ?? 0,

@@ -3,20 +3,22 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\BaseController;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use App\Models\Setting\Branch;
 use Yajra\DataTables\Facades\DataTables;
 
 
-class BranchController extends BaseController
+class BranchController extends Controller
 {
-    protected $module;
-    public function __construct()
-    {
-        $this->isLoggedIn();
-        $this->module = 'settings';	
-    }
+    // protected $module;
+    // public function __construct()
+    // {
+    //     $this->isLoggedIn();
+    //     $this->module = 'settings';	
+    // }
 
     /**
      * Display a listing of the resource.
@@ -27,7 +29,16 @@ class BranchController extends BaseController
         // return response()->json($branches);
         if($request->ajax())
         {
-            $branchs = Branch::query()->orderBy('id', 'DESC');
+            if(Session::get('isAdmin'))
+            {
+                $branchs = Branch::query()->orderBy('id', 'DESC');
+            } 
+            else 
+            {
+                $branchs = Branch::query()->where('id',Session::get('branchId'))->orderBy('id', 'DESC');
+            }
+
+
             return  DataTables::eloquent($branchs)
 
             // ->addColumn('edit', function($branch) {

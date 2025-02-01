@@ -8,6 +8,10 @@ use App\Http\Controllers\Home\HomeController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\Setting\BranchController;
 use App\Http\Controllers\Setting\WarehouseController;
+use App\Http\Controllers\Setting\UnitController;
+use App\Http\Controllers\Setting\CurrencyController;
+
+
 
 
 // Route::get('/', function () {
@@ -56,5 +60,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/warehouses/{warehouse}', [WarehouseController::class, 'show'])->name('warehouses.show');
     Route::patch('/warehouses/update', [WarehouseController::class, 'update'])->name('warehouses.update');
     Route::delete('/warehouses/{id}', [WarehouseController::class, 'destroy'])->name('warehouses.destroy');
+
+    // unit
+    Route::get('/units', [UnitController::class, 'index'])->name('units.list');
+    Route::get('/units/create', [UnitController::class, 'create'])->name('units.create');
+    Route::post('/units/store', [UnitController::class, 'store'])->name('units.store');
+    Route::get('/units/{id}', [UnitController::class, 'show'])->name('units.show');
+    Route::patch('/units/update', [UnitController::class, 'update'])->name('units.update'); 
+    Route::delete('/units/{id}', [UnitController::class, 'destroy'])->name('units.destroy');
+
+    // Currency
+    Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.list');
+    Route::get('/currency/create', [CurrencyController::class, 'create'])->name('currency.create');
+    Route::post('/currency/store', [CurrencyController::class, 'store'])->name('currency.store');
+    Route::get('/currency/{id}', [CurrencyController::class, 'show'])->name('currency.show');
+    Route::patch('/currency/update', [CurrencyController::class, 'update'])->name('currency.update'); 
+    Route::delete('/currency/{id}', [CurrencyController::class, 'destroy'])->name('currency.destroy');
 
 });
