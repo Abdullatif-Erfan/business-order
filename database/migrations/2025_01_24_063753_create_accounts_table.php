@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('parent_code');
-            $table->string('name');
             $table->foreignId('account_type_id')->index();
+            $table->string('name');
+            $table->index('name');
+            $table->string('phone', 255)->nullable();
+            $table->string('address', 255)->nullable();
             $table->string('description', 255)->nullable();
             $table->timestamps();
         });

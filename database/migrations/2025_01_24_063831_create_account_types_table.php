@@ -15,7 +15,6 @@ return new class extends Migration
             $table->increments('id');
             $table->string('code');
             $table->string('name');
-            $table->enum('is_need_details',['yes','no'])->default('no')->nullable();
             $table->timestamps();
         });
     }

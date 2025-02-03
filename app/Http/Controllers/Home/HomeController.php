@@ -335,7 +335,7 @@ class HomeController extends BaseController
             ->where('transaction_type', 1)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
+            ->where('currency_id', $currency_id)
             ->where('journals.account_id', $khazana_account_id)
             ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
             ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
@@ -347,7 +347,7 @@ class HomeController extends BaseController
             ->where('transaction_type', 2)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
+            ->where('currency_id', $currency_id)
             ->where('journals.account_id', $khazana_account_id)
             ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
             ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
@@ -359,8 +359,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 1)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $cache)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $cache)
             ->where('journals.account_id', '!=', $khazana_account_id)
             ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
             ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
@@ -372,8 +372,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 2)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $cache)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $cache)
             ->where('journals.account_id', '!=', $khazana_account_id)
             ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
             ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
@@ -385,8 +385,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 2)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $cache)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $cache)
             ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
             ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
             ->sum('amount');
@@ -397,8 +397,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 1)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $cache)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $cache)
             ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
             ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
             ->sum('amount');
@@ -437,8 +437,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 1)
             ->where('payment_type', 2)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $banks)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $banks)
             ->where('is_cleared', 0)
             ->sum('amount');
 
@@ -448,8 +448,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 2)
             ->where('payment_type', 2)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $banks)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $banks)
             ->where('is_cleared', 0)
             ->sum('amount');
 
@@ -471,8 +471,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 1)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $banks)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $banks)
             ->sum('amount');
 
         // Total cash expenses
@@ -481,8 +481,8 @@ class HomeController extends BaseController
             ->where('transaction_type', 2)
             ->where('payment_type', 1)
             ->where('year', $year)
-            ->where('currency', $currency_id)
-            ->where('parent_code', $banks)
+            ->where('currency_id', $currency_id)
+            // ->where('parent_code', $banks)
             ->sum('amount');
 
         // Sales profit
@@ -529,7 +529,7 @@ class HomeController extends BaseController
             ->where('journals.account_id', $khazana_account_id)
             ->where('transaction_type', 2)
             ->where('payment_type', 1)
-            ->where('journals.currency', $currency_id)
+            ->where('journals.currency_id', $currency_id)
             ->where('year', $year)
             ->where('month', $month)
             ->where('day', '<=', $day)
@@ -541,7 +541,7 @@ class HomeController extends BaseController
             ->where('journals.account_id', $khazana_account_id)
             ->where('transaction_type', 1)
             ->where('payment_type', 1)
-            ->where('journals.currency', $currency_id)
+            ->where('journals.currency_id', $currency_id)
             ->where('year', $year)
             ->where('month', $month)
             ->where('day', '<=', $day)

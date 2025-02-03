@@ -18,9 +18,10 @@
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
                                 <li class="active"><a data-toggle="tab"  href="#branch">شعبه</a></li>
-                                <li><a data-toggle="tab"   href="#warehouse">گدام</a></li>
+                                <li><a data-toggle="tab"  href="#warehouse">گدام</a></li>
                                 <li><a data-toggle="tab"  href="#unit">واحد اجناس</a></li>
                                 <li><a data-toggle="tab"  href="#currency">واحد پولی</a></li>
+                                <li><a data-toggle="tab"  href="#account"> حساب  </a></li>
                             </ul>
 
                             <div class="tab-content">
@@ -62,15 +63,25 @@
                              
                             <!-- currency -->
                               <div id="currency" class="tab-pane fade">
-                                  <br> 
+                                    <br> 
                                     @if(auth()->user()->hasAccess('settings','create_records')) 
 									    @include('settings.currency.add')
                                     @endif
                                     <br>  
                                     @include('settings.currency.list') 
-
 								</div>
 						<!-- /currency -->
+
+                        <!-- account -->
+                                <div id="account" class="tab-pane fade">
+                                   <br> 
+                                    @if(auth()->user()->hasAccess('settings','create_records')) 
+									    @include('settings.account.add')
+                                    @endif
+                                    <br>  
+                                    @include('settings.account.list') 
+								</div>
+						<!-- /account -->
 
                               
                             </div>
@@ -130,6 +141,8 @@ $(document).ready(function () {
             fetchUnitList();
         } else if (target === '#currency') {
             fetchCurrencyList();
+        } else if (target === '#account') {
+            fetchAccountList();
         }
     });
 });

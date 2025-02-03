@@ -10,6 +10,8 @@ use App\Http\Controllers\Setting\BranchController;
 use App\Http\Controllers\Setting\WarehouseController;
 use App\Http\Controllers\Setting\UnitController;
 use App\Http\Controllers\Setting\CurrencyController;
+use App\Http\Controllers\Setting\AccountController;
+
 
 
 
@@ -76,5 +78,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/currency/{id}', [CurrencyController::class, 'show'])->name('currency.show');
     Route::patch('/currency/update', [CurrencyController::class, 'update'])->name('currency.update'); 
     Route::delete('/currency/{id}', [CurrencyController::class, 'destroy'])->name('currency.destroy');
+
+    // Account
+    Route::get('/account', [AccountController::class, 'index'])->name('account.list');
+    Route::get('/account/create', [AccountController::class, 'create'])->name('account.create');
+    Route::post('/account/store', [AccountController::class, 'store'])->name('account.store');
+    Route::get('/account/{id}', [AccountController::class, 'edit'])->name('account.edit');
+    Route::get('/account/show/{id}', [AccountController::class, 'show'])->name('account.show');
+    Route::patch('/account/update', [AccountController::class, 'update'])->name('account.update'); 
+    Route::delete('/account/{id}', [AccountController::class, 'destroy'])->name('account.destroy');
 
 });
