@@ -8,7 +8,7 @@ use App\Models\Journal\Journal;
 class Account extends Model
 {
     //
-    protected $fillable = ['account_type_id','name','phone','address','description'];
+    protected $fillable = ['account_type_id','branch_id','name','phone','address','description'];
 
     // an account type has many accounts
     // account is belongs to accountType

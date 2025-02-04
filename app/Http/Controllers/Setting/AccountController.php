@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
+use App\Models\Setting\Branch;
 use App\Models\Setting\AccountType;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,6 @@ class AccountController extends Controller
      */
     public function index(Request $request)
     {
-
         // $currencyes = Account::latest()->paginate(10); 
         // $accounts = Account::with(['accountType', 'journals' => function($query) {
         //     $query->select('account_id', 'amount', 'transaction_type'); // Select specific columns from journals
@@ -62,7 +62,8 @@ class AccountController extends Controller
     {
         $accountTypes = AccountType::all();
         $currencies = Currency::all();
-        return view('settings.account.addForm', compact('accountTypes','currencies'));
+        $branchs = Branch::all();
+        return view('settings.account.addForm', compact('accountTypes','currencies','branchs'));
     }
 
     /**
@@ -76,11 +77,13 @@ class AccountController extends Controller
             'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
             'name.min' => 'حداقل باید ۳ حرف باشد',
             'name.unique' => 'این نام قبلاً ثبت شده است',
+            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
         ];
 
         $validated = $request->validate([
             'account_type_id' => 'required|exists:account_types,id',
             'name' => 'required|string|max:255|min:3|unique:accounts,name',
+            'branch_id' => 'required|exists:branches,id',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
@@ -103,6 +106,7 @@ class AccountController extends Controller
                         Journal::create([
                             'code' => $newJournalCode,
                             'account_id' => $account->id,
+                            'branch_id' => $request->branch_id,
                             'amount' => $value,
                             'currency_id' => $request->currency_id[$key] ?? null,
                             'transaction_type' => $request->transaction_type[$key] ?? null,
@@ -112,7 +116,6 @@ class AccountController extends Controller
                             'month' => $jalaliDate->getMonth(),
                             'day' => $jalaliDate->getDay(),
                             'status' => 1,
-                            'branch_id' => Session::get('branchId', 0),
                             'times' => $times,
                         ]);
                     }
@@ -141,7 +144,7 @@ class AccountController extends Controller
         
         $journals = Journal::with(['currency' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
-          }])->select('amount', 'transaction_type', 'currency_id','times','code') // Select fields from the Journal model
+          }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id') // Select fields from the Journal model
           ->where('account_id', $id)
           ->get();
 
@@ -161,10 +164,11 @@ class AccountController extends Controller
         $account = Account::find($id);
         $accountTypes = AccountType::all();
         $currencies = Currency::all();
-        
+        $branchs = Branch::all();
+
         $journals = Journal::with(['currency' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
-        }])->select('amount', 'transaction_type', 'currency_id','times','code') // Select fields from the Journal model
+        }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id') // Select fields from the Journal model
           ->where('account_id', $id)
           ->get();
 
@@ -173,7 +177,7 @@ class AccountController extends Controller
             return response()->json(['status' => 'failed','message' => 'حساب یافت نگردید'], 404);
         }
 
-        return view('settings.account.editForm', compact('account', 'accountTypes','currencies','journals'));
+        return view('settings.account.editForm', compact('account', 'accountTypes','currencies','journals','branchs'));
     }
 
     /**
@@ -187,11 +191,13 @@ class AccountController extends Controller
             'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
             'name.min' => 'حداقل باید ۳ حرف باشد',
             'name.unique' => 'این نام قبلاً ثبت شده است',
+            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
         ];
 
         $validated = $request->validate([
             'account_type_id' => 'required|exists:account_types,id',
             'name' => 'required|string|max:255|min:3|unique:accounts,name,' . $request->id,
+            'branch_id' => 'required|exists:branches,id',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
@@ -211,7 +217,7 @@ class AccountController extends Controller
                 $jrnal = Journal::where('times', $request->times)->delete();
                 
                     
-                     $journalNewCode = Journal::latest()->value('code');
+                     $journalNewCode = Journal::latest('code')->value('code');
                      $newJournalCode = $journalNewCode ? $journalNewCode + 1 : 1;
                      $curTimes = time();
 
@@ -225,6 +231,7 @@ class AccountController extends Controller
                             Journal::create([
                                 'code' => $journalCode,
                                 'account_id' => $account->id,
+                                'branch_id' => $request->branch_id,
                                 'amount' => $value,
                                 'currency_id' => $request->currency_id[$key] ?? null,
                                 'transaction_type' => $request->transaction_type[$key] ?? null,
@@ -234,7 +241,6 @@ class AccountController extends Controller
                                 'month' => $jalaliDate->getMonth(),
                                 'day' => $jalaliDate->getDay(),
                                 'status' => 1,
-                                'branch_id' => Session::get('branchId', 0),
                                 'times' => $times,
                             ]);
                         }

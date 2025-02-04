@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->increments('id');
             $table->foreignId('account_type_id')->index();
+            $table->foreignId('branch_id')->index();
             $table->string('name');
             $table->index('name');
             $table->string('phone', 255)->nullable();

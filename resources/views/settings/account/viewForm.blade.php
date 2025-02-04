@@ -36,7 +36,7 @@
                     @foreach($journals as $index => $item) <!-- Loop through the data -->
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $item['amount'] }}</td>
+                            <td>{{ number_format($item['amount'],2) }}</td>
                             <td>{{ $item['transaction_type'] == 1 ? 'افزایش در حساب (طلب)' : 'کاهش از حساب (باقی)' }}</td>
                             <td>{{ $item->currency->name }}</td>
                         </tr>

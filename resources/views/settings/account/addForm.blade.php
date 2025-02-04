@@ -32,10 +32,25 @@
                 <span id="addressError" class="text-danger"></span>
             </div>
 
+            @if(count($branchs) >= 2)
+            <div class="form-group col-sm-12">
+                <label for="account_type_id"> انتخاب شعبه </label>
+                <select class="form-control"  name="branch_id" required>
+                    <option value="">انتخاب  شعبه</option>
+                    @foreach($branchs as $branch)
+                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                    @endforeach
+                </select>
+                <span id="branchError" class="text-danger"></span>
+            </div>
+            @elseif(count($branchs) == 1) 
+                <input type="hidden" value="{{ $branchs[0]->id }}" name="branch_id" required>
+            @endif
+
 
             <div class="col-12">
               <hr />
-               <h3>رسید حساب سابقه</h3>
+               <h3>رسید حساب سابقه </h3>
             </div>
            
 
