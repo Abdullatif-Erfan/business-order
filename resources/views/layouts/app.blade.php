@@ -36,7 +36,6 @@
     <link rel="stylesheet" href="{{ asset('assets/plugin/responsive_datatable/css/dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/plugin/responsive_datatable/css/responsive.bootstrap.css') }}">
     
-    
     <script>
         // window.onload = function() {
         //     $.ajax({

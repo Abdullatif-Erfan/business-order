@@ -11,6 +11,7 @@ use App\Http\Controllers\Setting\WarehouseController;
 use App\Http\Controllers\Setting\UnitController;
 use App\Http\Controllers\Setting\CurrencyController;
 use App\Http\Controllers\Setting\AccountController;
+use App\Http\Controllers\Journal\JournalController;
 
 
 
@@ -87,5 +88,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/account/show/{id}', [AccountController::class, 'show'])->name('account.show');
     Route::patch('/account/update', [AccountController::class, 'update'])->name('account.update'); 
     Route::delete('/account/{id}', [AccountController::class, 'destroy'])->name('account.destroy');
+
+    // Journal
+    Route::get('/journal',[JournalController::class, 'index'])->name('journal.index');
+    Route::get('/journal/data', [JournalController::class, 'getData'])->name('journal.data');
+    Route::get('/journal/details/{id}', [JournalController::class, 'details'])->name('journal.details');
+    Route::post('/journal',[JournalController::class, 'store'])->name('journal.store');
+    Route::get('/journal/create',[JournalController::class, 'create'])->name('journal.create');
+
+
+
+
+
 
 });

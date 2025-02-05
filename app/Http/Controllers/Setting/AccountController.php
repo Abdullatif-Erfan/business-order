@@ -96,9 +96,14 @@ class AccountController extends Controller
 
             // Handle Journal Entries (only if amount[] exists and is > 0)
             if (!empty($request->amount) && is_array($request->amount) && $request->amount[0] > 0) {
-                $journalCode = Journal::latest()->value('code');
+                $journalCode = Journal::latest('code')->value('code');
                 $newJournalCode = $journalCode ? $journalCode + 1 : 1;
                 $jalaliDate = Jalalian::now();
+                $year = $jalaliDate->getYear();
+                $month = $jalaliDate->getMonth();
+                $day = $jalaliDate->getDay();
+                $short_date = $year.'-'.$month.'-'.$day;
+
                 $times = time();
 
                 foreach ($request->amount as $key => $value) {
@@ -112,9 +117,11 @@ class AccountController extends Controller
                             'transaction_type' => $request->transaction_type[$key] ?? null,
                             'payment_type' => 1,
                             'user_id' => Session::get('userId', 0),
-                            'year' => $jalaliDate->getYear(),
-                            'month' => $jalaliDate->getMonth(),
-                            'day' => $jalaliDate->getDay(),
+                            'year' => $year,
+                            'month' => $month,
+                            'day' => $day,
+                            'inserted_short_date' => $short_date,
+                            'details' => 'رسید حساب سابقه',
                             'status' => 1,
                             'times' => $times,
                         ]);
@@ -142,7 +149,7 @@ class AccountController extends Controller
         // $accountTypes = AccountType::all();
         // $currencies = Currency::all();
         
-        $journals = Journal::with(['currency' => function($query) {
+        $journals = Journal::with(['currencyRelation' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
           }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id') // Select fields from the Journal model
           ->where('account_id', $id)
@@ -166,7 +173,7 @@ class AccountController extends Controller
         $currencies = Currency::all();
         $branchs = Branch::all();
 
-        $journals = Journal::with(['currency' => function($query) {
+        $journals = Journal::with(['currencyRelation' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
         }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id') // Select fields from the Journal model
           ->where('account_id', $id)
@@ -225,6 +232,12 @@ class AccountController extends Controller
                      $jalaliDate = Jalalian::now();
                      $times = $request->times ?? $curTimes;
 
+                    $year = $jalaliDate->getYear();
+                    $month = $jalaliDate->getMonth();
+                    $day = $jalaliDate->getDay();
+                    $short_date = $year.'-'.$month.'-'.$day;
+
+
                     foreach ($request->amount as $key => $value) {
                         if ($value > 0) {
                            
@@ -237,9 +250,11 @@ class AccountController extends Controller
                                 'transaction_type' => $request->transaction_type[$key] ?? null,
                                 'payment_type' => 1,
                                 'user_id' => Session::get('userId', 0),
-                                'year' => $jalaliDate->getYear(),
-                                'month' => $jalaliDate->getMonth(),
-                                'day' => $jalaliDate->getDay(),
+                                'year' => $year,
+                                'month' => $month,
+                                'day' => $day,
+                                'inserted_short_date' => $short_date,
+                                'details' => 'رسید حساب سابقه',
                                 'status' => 1,
                                 'times' => $times,
                             ]);

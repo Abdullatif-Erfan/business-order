@@ -52,7 +52,7 @@
 
                 @if(auth()->user()->hasAccess('journal', 'list') && $packageId >= 1)
                     <li class="nav-item">
-                        <a href="{{ $base_url }}/journals">
+                        <a href="{{ route('journal.index') }}">
                             <i class="fas fa-file-invoice-dollar"></i>
                             <p> روزنامچه / ژورنال </p>
                         </a>
