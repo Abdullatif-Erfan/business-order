@@ -2,6 +2,24 @@
 @section('title', 'روزنامچه')
 
 @section('content')
+
+
+@if(Session::has('notification'))
+    @php
+        $notification = Session::get('notification');
+    @endphp
+    <script>
+    // Show the notification using the data from the session
+    $(document).ready(function(){
+        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
+    });
+</script>
+@endif
+
+
+
+
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -177,6 +195,31 @@
 
 
 <script>
+function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
+    var content = {};
+    content.message = '<span style="font-size:16px;">' + message + '</span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    
+    if (style === "withicon") {
+        content.icon = 'fa fa-bell';
+    } else {
+        content.icon = 'none';
+    }
+    content.url = '#';
+    content.target = '_blank';
+
+    $.notify(content, {
+        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        placement: {
+            from: from, // top, bottom
+            align: align // right, center, left
+        },
+        time: 500
+    });
+}
+</script>
+
+<script>
     $(document).ready(function() {
         let table = $('#journalTable').DataTable({
             processing: true,
@@ -195,7 +238,7 @@
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'code', name: 'code' },
-                { data: 'account_relation.name', name: 'account_relation.name' },
+                { data: 'accountRelation', name: 'accountRelation' },
                 { data: 'details', name: 'details' },
                 { data: 'transaction_type_1', name: 'transaction_type_1' },
                 { data: 'transaction_type_2', name: 'transaction_type_2' },

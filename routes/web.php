@@ -92,13 +92,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Journal
     Route::get('/journal',[JournalController::class, 'index'])->name('journal.index');
     Route::get('/journal/data', [JournalController::class, 'getData'])->name('journal.data');
-    Route::get('/journal/details/{id}', [JournalController::class, 'details'])->name('journal.details');
-    Route::post('/journal',[JournalController::class, 'store'])->name('journal.store');
     Route::get('/journal/create',[JournalController::class, 'create'])->name('journal.create');
+    Route::post('/journal/store', [JournalController::class, 'store'])->name('journal.store');
+    Route::get('/journal/details/{times}', [JournalController::class, 'details'])->name('journal.details');
+    Route::patch('/journal/update', [JournalController::class, 'update'])->name('journal.update');
+    Route::patch('/journal/update_document', [JournalController::class, 'update_document'])->name('journal.update_document');
+    Route::get('/journal/print/{times}', [JournalController::class, 'print'])->name('journal.print');
+    Route::get('/journal/edit/{times}', [JournalController::class, 'edit'])->name('journal.edit');
 
-
-
-
-
+    Route::delete('/journal/destroy/{times}', [JournalController::class, 'destroy'])->name('journal.destroy');
 
 });

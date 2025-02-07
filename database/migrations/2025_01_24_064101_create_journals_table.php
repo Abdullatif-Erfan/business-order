@@ -36,6 +36,7 @@ return new class extends Migration
             $table->integer('is_cleared')->comment('0: not cleared, 1:cleared')->default(0);
             $table->integer('cleared_round')->default(0);
             $table->string('times')->default('0');
+            $table->integer('is_single_record')->default('0')->comment('0:single, 1:pair');
             $table->timestamps();
         });
        
