@@ -12,6 +12,8 @@ use App\Http\Controllers\Setting\UnitController;
 use App\Http\Controllers\Setting\CurrencyController;
 use App\Http\Controllers\Setting\AccountController;
 use App\Http\Controllers\Journal\JournalController;
+use App\Http\Controllers\Buy\BuyPreListController;
+
 
 
 
@@ -99,7 +101,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/journal/update_document', [JournalController::class, 'update_document'])->name('journal.update_document');
     Route::get('/journal/print/{times}', [JournalController::class, 'print'])->name('journal.print');
     Route::get('/journal/edit/{times}', [JournalController::class, 'edit'])->name('journal.edit');
-
     Route::delete('/journal/destroy/{times}', [JournalController::class, 'destroy'])->name('journal.destroy');
+
+
+    // BuyPreList 
+    Route::get('/buyprelist',[BuyPreListController::class, 'index'])->name('buyprelist.index');
+    Route::get('/buyprelist/data',[BuyPreListController::class, 'getData'])->name('buyprelist.data');
+    Route::get('/buyprelist/{id}',[BuyPreListController::class, 'show'])->name('buyprelist.show');
+    Route::post('/buyprelist/store',[BuyPreListController::class, 'store'])->name('buyprelist.store');
+    Route::patch('/buyprelist/update',[BuyPreListController::class, 'update'])->name('buyprelist.update');
+    Route::delete('/buyprelist/destroy/{id}',[BuyPreListController::class, 'destroy'])->name('buyprelist.destroy');
+
+
+    
 
 });

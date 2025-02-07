@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Buy;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BoughtItemPreList extends Model
+class BoughtItem extends Model
 {
     //
 }

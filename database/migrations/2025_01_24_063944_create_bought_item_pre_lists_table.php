@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('bought_item_pre_lists', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('branch_id')->index();
             $table->string('name');
             $table->timestamps();
         });

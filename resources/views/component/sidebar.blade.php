@@ -69,13 +69,13 @@
                         <div class="collapse" id="buy-chicken">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="{{ $base_url }}/showBuyingForm"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> خرید جدید</span>
+                                    <a href="{{ route('buyprelist.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> ثبت اجناس برای خرید</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ $base_url }}/buyPreList"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> ثبت اجناس برای خرید</span>
+                                    <a href="{{ $base_url }}/showBuyingForm"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> خرید جدید</span>
                                     </a>
                                 </li>
                                 <li>
