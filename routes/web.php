@@ -13,6 +13,8 @@ use App\Http\Controllers\Setting\CurrencyController;
 use App\Http\Controllers\Setting\AccountController;
 use App\Http\Controllers\Journal\JournalController;
 use App\Http\Controllers\Buy\BuyPreListController;
+use App\Http\Controllers\Buy\BoughtController;
+use App\Http\Controllers\Buy\BoughtDetailsController;
 
 
 
@@ -112,7 +114,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/buyprelist/update',[BuyPreListController::class, 'update'])->name('buyprelist.update');
     Route::delete('/buyprelist/destroy/{id}',[BuyPreListController::class, 'destroy'])->name('buyprelist.destroy');
 
+    // bought
+    Route::get('/bought',[BoughtController::class,'index'])->name('bought.index');
+    Route::get('/bought/data',[BoughtController::class,'getData'])->name('bought.data');
+    Route::get('/bought/create',[BoughtController::class,'create'])->name('bought.create');
+    Route::get('/bought/show/{times}',[BoughtController::class,'show'])->name('bought.show');
+    Route::post('/bought/store',[BoughtController::class,'store'])->name('bought.store');
+    Route::patch('/bought/update',[BoughtController::class,'update'])->name('bought.update');
+    Route::delete('/bought/destroy/{times}',[BoughtController::class,'destroy'])->name('bought.destroy');
 
-    
+    // BoughtDetailsController
+    Route::get('/boughtList',[BoughtDetailsController::class,'index'])->name('boughtList.index');
+    Route::get('/boughtList/data',[BoughtDetailsController::class,'getData'])->name('boughtList.data');
+    Route::get('/boughtList/create',[BoughtDetailsController::class,'create'])->name('boughtList.create');
+    Route::post('/boughtList/store',[BoughtDetailsController::class,'store'])->name('boughtList.store');
+    Route::get('/boughtList/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
+    Route::get('/boughtList/destroy/{times}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy');
+    Route::get('/boughtList/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit');
 
 });

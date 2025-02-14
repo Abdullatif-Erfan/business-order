@@ -41,7 +41,7 @@
 
                                         <div class="col-md-4">
                                            <div class="form-group">
-                                                <input class="form-control" id="bill_no" name="bill_no" type="number" placeholder="بل نمبر" value="{{ $journals[0]->bill_no }}" >
+                                                <input class="form-control" id="bill_no" name="bill_no" type="number" placeholder="بل نمبر" value="{{ $journals[0]->bill_no > 0 ? $journals[0]->bill_no : ''  }}" >
                                                 @error('bill_no')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div> 
                                         </div>
@@ -144,13 +144,13 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="تفصیلات حساب رسیدگی" required value="{{ $journals[0]->details }}">
+                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="تفصیلات دریافت کننده" required value="{{ $journals[0]->details }}">
                                                 @error('from_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="to_details" name="to_details" type="text" placeholder="تفصیلات حساب بردگی" required value="{{ $journals[1]->details }}">
+                                                <input class="form-control" id="to_details" name="to_details" type="text" placeholder="تفصیلات  پرداخت کننده" required value="{{ $journals[1]->details }}">
                                                 @error('to_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>

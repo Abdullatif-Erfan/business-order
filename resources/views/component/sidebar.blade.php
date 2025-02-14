@@ -74,12 +74,12 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ $base_url }}/showBuyingForm"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('boughtList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> خرید جدید</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ $base_url }}/boughtList"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> لیست خرید</span>
                                     </a>
                                 </li>

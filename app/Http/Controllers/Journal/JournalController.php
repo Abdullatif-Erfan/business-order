@@ -288,9 +288,11 @@ class JournalController extends Controller
             // Commit the transaction
             DB::commit();
     
-             // Use MessageService to return success message
-            $this->messageService->showMessage(1); // Success: 1 = موفقانه ثبت گردید
-            return redirect()->route('journal.index');
+            Session::flash('notification', [
+                'message' => 'موفقانه ثبت گردید',
+                'type' => 'success',
+            ]);
+            return redirect()->route('journal.index'); 
 
         } catch (\Exception $e) {
             // Rollback the transaction if an error occurs
@@ -299,7 +301,10 @@ class JournalController extends Controller
             \Log::error('Error storing journal entry: ' . $e->getMessage());
     
             // Use MessageService to return error message
-             $this->messageService->showMessage(2); // Error: 2 = ثبت نگردید
+            Session::flash('notification', [
+                'message' => ' ثبت نگردید',
+                'type' => 'danger',
+            ]);
              return back();
         }
     }

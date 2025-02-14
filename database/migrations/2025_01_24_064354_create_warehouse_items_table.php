@@ -23,13 +23,17 @@ return new class extends Migration
             $table->decimal('total', 10, 2);
             $table->foreignId('currency_id');
             $table->integer('notification_amount')->nullable();
-            $table->integer('inserted_by')->nullable()->comment('user_id');
+            $table->string('inserted_by')->nullable()->comment('user_name'); // Fixed varchar issue
             $table->string('expire_date', 100)->nullable();
             $table->string('inserted_short_date', 30);
             $table->integer('year')->nullable();
             $table->integer('month')->nullable();
             $table->integer('day')->nullable();
+            $table->integer('times')->nullable();
             $table->timestamps();
+            
+            // Add unique constraint
+            $table->unique(['warehouse_id', 'buy_pre_id', 'unit_id', 'times'], 'warehouse_items_unique_constraint');
         });
     }
 
@@ -38,6 +42,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('warehouse_items');
+        Schema::dropIfExists('warehouse_items'); // Properly rollback the table
     }
 };

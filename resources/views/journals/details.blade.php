@@ -118,17 +118,17 @@
                                              
                                             
                                             <!-- edit button -->
-                                            {{-- @if(isset($journals[0]) && $journals[0]->status == 2 && auth()->user()->hasAccess('journal', 'edit_records')) --}}
+                                             @if(isset($journals[0]) && $journals[0]->status == 2 && auth()->user()->hasAccess('journal', 'edit_records')) 
                                                 <a href="{{ route('journal.edit', $journals[0]->times) }}" class="hidden-print">
                                                     <button class="btn btn-primary btn-sm m-r-10">
                                                         <i class="fas fa-pen"></i> ویرایش
                                                     </button>
                                                 </a>
-                                            {{-- @endif --}}
+                                             @endif 
 
                                             
                                             <!-- delete button -->
-                                            {{--  @if(isset($journals[0]) && $journals[0]->status == 2 && auth()->user()->hasAccess('journal', 'delete_records'))--}}
+                                              @if(isset($journals[0]) && $journals[0]->status == 2 && auth()->user()->hasAccess('journal', 'delete_records'))
                                                     <form style="display:inline" action="{{ route('journal.destroy', $journals[0]->times) }}" method="POST" onsubmit="return doConfirm();">
                                                         @csrf
                                                         @method('DELETE')
@@ -136,7 +136,7 @@
                                                             <i class="fas fa-trash error"></i> حذف
                                                         </button>
                                                     </form>
-                                                    {{--   @endif --}}
+                                                     @endif
                                            
 
                                             </td>

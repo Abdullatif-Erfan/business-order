@@ -4,6 +4,8 @@ namespace App\Models\Setting;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Journal\Journal;
+use App\Models\Buy\BoughtItem;
+
 
 class Account extends Model
 {
@@ -22,5 +24,10 @@ class Account extends Model
     public function journals()
     {
         return $this->hasMany(Journal::class,'account_id');
+    }
+
+    public function boughtItems()
+    {
+        return $this->hasMany(BoughtItem::class, 'account_id');
     }
 }

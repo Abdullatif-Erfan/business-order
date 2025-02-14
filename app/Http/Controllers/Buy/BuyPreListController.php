@@ -26,7 +26,7 @@ class BuyPreListController extends Controller
     }
 
 
-       /**
+    /**
      * Show the journal data
      */
     public function getData(Request $request)
@@ -34,7 +34,7 @@ class BuyPreListController extends Controller
         $buyPreLists = BuyPreList::with('branchRelation')
         ->select('id', 'name', 'branch_id')
         ->orderBy('id', 'DESC')
-        ->get(); // Adding get() here to ensure the query returns the correct results
+        ->get();
     
         return DataTables::of($buyPreLists)
             

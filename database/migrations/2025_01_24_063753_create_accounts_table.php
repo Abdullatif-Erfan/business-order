@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone', 255)->nullable();
             $table->string('address', 255)->nullable();
             $table->string('description', 255)->nullable();
+            $table->integer('is_pre_select')->default(0);
             $table->timestamps();
         });
     }

@@ -137,13 +137,13 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="تفصیلات حساب رسیدگی" required>
+                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="تفصیلات دریافت کننده" required>
                                                 @error('from_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="to_details" name="to_details" type="text" placeholder="تفصیلات حساب بردگی" required>
+                                                <input class="form-control" id="to_details" name="to_details" type="text" placeholder="تفصیلات پرداخت کننده" required>
                                                 @error('to_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>

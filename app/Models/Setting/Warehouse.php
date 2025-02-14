@@ -17,6 +17,6 @@ class Warehouse extends Model
     public function branch()
     {
         // this (warehouse) is belongs to Branch
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Branch::class,'branch_id','id');
     }
 }
