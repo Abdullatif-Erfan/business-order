@@ -31,8 +31,7 @@ return new class extends Migration
             $table->string('times')->nullable();
             $table->timestamps();
 
-             // Add unique constraint
-             $table->unique(['customer_account_id', 'billno', 'journal_code','branch_id','times'], 'bought_items_unique_constraint');
+           
 
         });
     }

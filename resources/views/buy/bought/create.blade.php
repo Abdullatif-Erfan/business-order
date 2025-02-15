@@ -45,33 +45,31 @@ select.select2{text-align:right !important;direction:rtl !important;}
                             </h4>
                         </div>
 
-                        <form id="buyingForm">
+                        <form id="buyingForm" action="{{ route('boughtList.submit') }}" method="POST">
                         @csrf
-                        <input type="hidden" name="times" value="{{ $times; }}">
+                        <input type="hidden" name="times" value="{{ $times; }}"> 
+                        <input type="hidden" name="journal_code" value="{{ $newJournalCode; }}"> 
+
+                        <!-- {{ json_encode(auth()->user()->full_name) }} -->
+                        <!-- {{ json_encode(auth()->user()->id) }} -->
+
+                        
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                             <div class="form-body" style="padding: 0px 0px 15px !important;">
                                 <div class="row" style="padding: 10px 20px;">
 
                                      <div class="col-md-12">
-                                        <div id="loader" style="display:none; text-align: center;">
-                                            <i class="fa fa-spinner fa-spin" style="font-size:40px;"></i> 
-                                        </div>
-                                     </div>
-                                     <div class="col-md-12">
-                                       @if ($errors->any())
-                                         <div class="col-md-12 border">
+                                         <div class="col-md-12" style="display:none" id="errorWrapper">
                                             <div class="row">
-                                                <div class="alert alert-danger col-12">
-                                                    <ul>
-                                                        @foreach ($errors->all() as $error)
-                                                         <li>{{ $error }}</li>
-                                                        @endforeach
-                                                    </ul>
+                                                <!-- <div class="alert alert-danger col-12 " id="validationErrors"></div> -->
+                                                <div class="alert alert-danger col-12" id="validationErrors">
+                                                    <span class="fa fa-times close-error" style="cursor: pointer; float: left; margin-left: 10px;"></span>
                                                 </div>
                                             </div>
                                          </div>
-                                         @endif
                                      </div>
+
+                                     
 
 
                                     <!-- First Row -->
@@ -142,7 +140,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
                                                 <label for="todays_date">تعداد <span class="danger">*</span> </label>
-                                                <input class="form-control" name="amount" id="amount" type="number" oninput="recalculateEachTotal(this)" step="0.01" required>
+                                                <input class="form-control" name="amount" id="amount" type="number" step="0.01" required>
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
@@ -194,8 +192,8 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="trans_spend"> ترانسپورت </label>
-                                                <input class="form-control" name="trans_spend" id="trans_spend" value="0" type="number" step="0.01">
+                                                <label for="transport"> ترانسپورت </label>
+                                                <input class="form-control" name="transport" id="transport" value="0" type="number" step="0.01">
                                                 
                                             </div>
 
@@ -233,17 +231,23 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                      </div>
                                     <!-- /  Add to list button  -->
 
+                                    <div class="col-md-12">
+                                        <div id="loader" style="display:none; text-align: center;">
+                                            <i class="fa fa-spinner fa-spin" style="font-size:40px;"></i> 
+                                        </div>
+                                     </div>
+
+
+                                    <!-- inserted result list -->
+                                        <div class="col-12" id="insertedResult"> </div>
+                                    <!-- /inserted result list -->
+
 
                                     <!-- Submit and Cancel Buttons -->
                                     <div class="col-md-8 m-t-20">
                                         <div class="row">
-                                            <div class="col-3">
-                                                <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left">
-                                            </div>
-                                            <div class="col-3">
-                                                <a href="{{ url('boughtList.index') }}">
-                                                    <button type="button" class="form-control btn bg-danger">لغو</button>
-                                                </a>
+                                            <div class="col-12">
+                                                <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left btn-sm">
                                             </div>
                                         </div>
                                     </div>
@@ -282,7 +286,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام  </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
@@ -302,16 +306,36 @@ function showNotification(message, type = 'info', from = 'top', align = 'center'
     });
 }
 
+function updateCurPay(curPay) {
+    var payable = parseFloat($('#payable').val()) || 0;
+    var curPayVal = parseFloat(curPay) || 0;
+    
+    var result = payable - curPayVal;
+    $('#remained').val(Math.max(result, 0).toFixed(2)); // Prevent negative values
+
+    // Hide submit button if curPay is greater than payable
+    if (curPayVal > payable) {
+        $('#submit_button').hide(); // Hides the submit button
+        alert('پرداخت فعلی بیشتر از مبلغ قابل پرداخت نادرست میباشد')
+    } else {
+        $('#submit_button').show(); // Shows the submit button
+    }
+}
 
 function submiteBuyingForm()
 {
+    if (!validateWarehouseAmounts()) {
+         event.preventDefault(); // Prevent form submission
+    }
+    else 
+    {
      // Serialize form data
      var formData = $('#buyingForm').serialize();
 
-     console.log('formData',formData);
+    //  console.log('formData', JSON.parse(formData));
 
-     // Show loading state
-     $('#loading').show();
+     // Show loader state
+     $('#loader').show();
 
      // AJAX form submission
      $.ajax({
@@ -320,39 +344,78 @@ function submiteBuyingForm()
         data: formData,
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: (response) => {
-            $('#loading').hide();
-            if (response.status === 'success') {
+            $('#loader').hide();
+                $('#errorWrapper').fadeOut(10);
                 showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                $('#insertedResult').html(response);
+        },
+        error: (xhr) => {
+            $('#loader').hide();
+            $('#insertedResult').html('خطا رخ داد'); // General error message
+
+            if (xhr.status === 422) { // Laravel validation error response
+                var errors = xhr.responseJSON.errors;
+                var errorList = '<ul>';
+                
+                $.each(errors, function (key, messages) {
+                    errorList += '<li>' + messages[0] + '</li>'; // Show only the first error for each field
+                    $('#' + key + 'Error').text(messages[0]); // Display inline error message if an element exists
+                });
+
+                errorList += '</ul>';
+
+                // Add close button dynamically inside the validationErrors div
+                var errorHtml = `
+                    <span class="fa fa-times close-error" style="cursor: pointer; float: left; margin-left: 10px;"></span>
+                    ${errorList}
+                `;
+
+                $('#validationErrors').html(errorHtml).show();
+                $('#errorWrapper').fadeIn(10);
+
+                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
             } else {
                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
             }
-        },
-        error: (xhr) => {
-            $('#loading').hide();
-            showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
-            // Handle validation errors
-            // if (xhr.status === 422) { // Laravel validation error status code
-            //     var errors = xhr.responseJSON.errors;
-            //     if (errors?.name) {
-            //         $('#currencyNameError').text(errors.name[0]);
-            //     }
-            //     if (errors?.symbols) {
-            //         $('#symbolsError').text(errors.symbols[0]);
-            //     }
-            //     if (errors?.color) {
-            //         $('#colorError').text(errors.color[0]);
-            //     }
-            //     if (errors?.is_base) {
-            //         $('#isBaseError').text(errors.is_base[0]);
-            //     }
-            // } else {
-            //     // General error handling
-            //     showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
-            // }
         }
+
+    });
+ }
+}
+</script>
+
+<script>
+
+// Function to check sum validation
+function validateWarehouseAmounts() 
+{
+    let totalAmount = parseFloat($('#amount').val()) || 0;
+    let sumWarehouseAmount = 0;
+
+    $('input[name="warehouse_amount[]"]').each(function () {
+         sumWarehouseAmount += parseFloat($(this).val()) || 0;
     });
 
+    console.log('totalAmount', totalAmount);
+    console.log('warehouse_amount', sumWarehouseAmount);
+
+    if (sumWarehouseAmount > totalAmount) {
+        showNotification('مجموع تعداد انتقال به گدام بیشتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        return false;
+    } else if (sumWarehouseAmount < totalAmount) {
+        showNotification('مجموع تعداد انتقال به گدام کمتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        return false;
+    } else {
+        $('#warehouseAmountError').text(''); // Clear error if valid
+        return true;
+    }
 }
+
+$(document).ready(function () {
+    $(document).on('click', '.close-error', function () {
+        $('#errorWrapper').fadeOut();
+    });
+});
 </script>
 
 @endsection

@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignId('warehouse_id');
             $table->integer('buy_pre_id');
             $table->string('name')->nullable();
-            $table->decimal('amount', 10, 2)->nullable();
+            $table->decimal('in_amount', 10, 2)->nullable();
+            $table->decimal('out_amount', 10, 2)->nullable();
+            $table->decimal('wastage_amount', 10, 2)->nullable();
             $table->foreignId('unit_id');
             $table->decimal('bought_up', 10, 2)->nullable()->comment('buy unit price');
             $table->decimal('sell_up', 10, 2)->nullable()->comment('selling unit price');

@@ -63,7 +63,7 @@
                         </div> <!-- /filter_form -->
 
                         <div class="card-body">
-                            <div class="table_responsive" id="print_area" style="padding:5px;">
+                            <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>

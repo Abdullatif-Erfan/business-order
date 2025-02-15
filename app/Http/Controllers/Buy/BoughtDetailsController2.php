@@ -17,6 +17,7 @@ use App\Models\Buy\BoughtItem;
 use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Journal\Journal;
 use App\Models\Setting\Warehouse;
+use App\Models\Warehouse\WarehouseItem;
 
 use App\Models\Setting\Account;
 use Yajra\DataTables\Facades\DataTables;
@@ -31,6 +32,15 @@ class BoughtDetailsController2 extends Controller
     {
         // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
         // return response()->json($boughtItems);
+
+        // $insertedData = BoughtItemDetails::with(['preListRelation','unitRelation'])->get();
+        // return response()->json(['insertedData' => $insertedData]); 
+        // return view('buy.bought.curlist',compact('insertedData'));
+        
+        // return response()->json(auth()->user());
+        // return response()->json(auth()->user());
+
+
         $currencies = Currency::all();
         $branches = Branch::all();
         $orgbios = OrgBio::all();
@@ -127,10 +137,13 @@ class BoughtDetailsController2 extends Controller
         // TODO : filter by branch_id
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
+        $newJournalCode =  Journal::max('code') + 1;
+
+        $times = time();
 
 
         // return response()->json($preLists);
-        return view('buy.bought.create',compact('currencies','customers','todaysDate','ownBanks','preLists','units','warehouses'));
+        return view('buy.bought.create',compact('currencies','customers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode'));
     }
 
     /**
@@ -138,36 +151,19 @@ class BoughtDetailsController2 extends Controller
     */
     public function store(Request $request)
     {
-        // return response()->json(['data' => $request->all()]);
-        // "data": {
-        //     "_token": "wqEcKxgTEbPs8dgsBmdKRP0gNpLp1xS5gcXjVayo",
-        //     "customer_account_id": "24",
-        //     "todays_date": "1403-11-16",
-        //     "billno": "64",
-        //     "from_account_id": "22",
-        //     "pre_list_id": "8",
-        //     "amount": "65",
-        //     "unit_id": "3",
-        //     "bought_up": "8",
-        //     "expire_date": "1403-11-25",
-        //     "discount": "17",
-        //     "transport_amount": "76",
-        //     "note": "Ut animi minus aut",
-        //     "warehouse_id": [
-        //         "15",
-        //         "14"
-        //     ],
-        //     "warehouse_amount": [
-        //         "37",
-        //         "33"
-        //     ],
-        //     "warehouse_up": [
-        //         "59",
-        //         "22"
-        //     ]
-        // }
+        // return response()->json(['data' => $request->all()]); 
 
-        // 1: add data in to bought_item_details table
+        // $insertedData = BoughtItemDetails::where('times','1739588540')->get();
+        // return view('buy.bought.curlist',compact('insertedData'));
+
+        $validated = $request->validate([
+            'warehouse_id' => 'required|array',
+            'warehouse_id.*' => 'exists:warehouses,id', // or whatever validation rule is applicable
+            'warehouse_amount' => 'required|array',
+            'warehouse_amount.*' => 'numeric',
+            'warehouse_sell_up' => 'required|array',
+            'warehouse_sell_up.*' => 'numeric',
+        ]);
 
         $short_date = $request->todays_date ?? Jalalian::now()->format('Y-m-d');
         $date = explode('-', $short_date);
@@ -175,45 +171,34 @@ class BoughtDetailsController2 extends Controller
         $month = $date[1];
         $day = $date[2];
         $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
-    
-        // $journalCode = Journal::latest('code')->value('code');
-        // $newJournalCode = $journalCode ? $journalCode + 1 : 1;
-        $newJournalCode = Journal::max('code') + 1;
-        $times = time();
-
+        $times = $request->times;
         
-         $note = "Total:".$request->payable.", Paid:".$request->cur_pay.", Remained:".$request->remained."";
-         $preLists = BuyPreList::select('branch_id')->where('id',$request->pre_list_id)->first();
-         $branch_id = $preLists->branch_id;
-         // Start the transaction
-         DB::beginTransaction();
-    
-         try {
-            //  insert in to bought_items table 
-             $BoughtItem = $this->insertBoughtItems($request);
+        $preLists = BuyPreList::select('branch_id','name')->where('id',$request->pre_list_id)->first();
+        $branch_id = $preLists->branch_id;
+        $item_name = $preLists->name ?? '';
+
+        // Start the transaction
+        DB::beginTransaction();
+   
+        try {
+        
+        // 1: insert in to bought_items table
+        $BoughtItemId = $this->createBoughtItem($request, $short_date, $branch_id, $times);
+
+        // 2: insert in to bought_item_details table
+        $boughtItemDetails = $this->storeBoughtItemDetails($request, $BoughtItemId, $times);
+
+        // 3: insert in to warehouse_items
+        $this->storeWarehouseItems($request, $short_date, $item_name, $times);
+
+        DB::commit();
+
+        // 4: fetch inserted data from bought_item_details
+        $insertedData = BoughtItemDetails::with(['preListRelation','unitRelation'])->where('times',$times)->get();
              
-             // Process each row of the submitted form
-             if($BoughtItem) 
-             {
-                 foreach ($request->pre_list_id as $index => $preListId) {
-                     BoughtItemDetails::create([
-                         'billno'     => $request->billno,
-                         'bought_item_id'    => $BoughtItem->id,
-                         'pre_list_id' => $preListId,
-                         'amount' => $request->amount[$index],
-                         'unit_id' => $request->unit_id[$index],
-                         'bought_up' => $request->bought_up[$index],
-                         'total' => $request->total[$index],
-                         'expire_date' => $request->expire_date[$index] ?? null,
-                         'is_moved' => 0,
-                         'times' => $times
-                     ]);
-                 }
-             }
 
-
-           DB::commit();
-           return response()->json(['status' => 'success'], 200);
+        //    return response()->json(['insertedData' => $insertedData]); 
+           return view('buy.bought.curlist',compact('insertedData'));
 
         } catch (\Exception $e) {
             // Rollback the transaction if an error occurs
@@ -221,27 +206,28 @@ class BoughtDetailsController2 extends Controller
             // Optionally, log the error for debugging
             \Log::error('Error storing journal entry', ['error' => $e]);
 
-            return response()->json(['status' => 'success'], 404);
-        }
-
-
-        // 2: add data in to  warehouse_items table
-        // 3: fetch inserted data from bought_item_details
-        
+            return response()->json(['status' => 'failed'], 404);
+        }        
     }
 
-    public function insertBoughtItems($request,$branch_id,$newJournalCode,)
+   
+    private function createBoughtItem($request, $short_date, $branch_id, $times)
     {
-        BoughtItem::create([
+        $date = explode('-', $short_date);
+        $year = $date[0];
+        $month = $date[1];
+        $day = $date[2];
+        $note = "Total:".$request->payable‌ ?? 0 .", Paid:".$request->cur_pay ?? 0 .", Remained:".$request->remained ?? 0 ."";
+        $BoughtItem =  BoughtItem::create([
             'customer_account_id' => $request->customer_account_id, 
             'branch_id'           => $branch_id,
             'billno'              => $request->billno,
-            'journal_code'        => $newJournalCode,
-            'total_price'         => $request->total_price,
+            'journal_code'        => $request->journal_code,
+            'total_price'         => $request->total_price ?? 0,
             'discount'            => $request->discount ?? 0,
-            'payable'             => $request->payable,
-            'cur_pay'             => $request->cur_pay,
-            'remained'            => $request->remained,
+            'payable'             => $request->payable ?? 0,
+            'cur_pay'             => $request->cur_pay ?? 0,
+            'remained'            => $request->remained ?? 0,
             'account_id'          => $request->from_account_id,
             'currency_id'         => $request->currency_id,
             'trans_spend'         => $request->trans_spend  ?? 0, 
@@ -251,9 +237,61 @@ class BoughtDetailsController2 extends Controller
             'year'                => $year, 
             'month'               => $month, 
             'day'                 => $day, 
-            'iby'                 => Session::get('name', ''), 
+            'iby'                 => auth()->user()->full_name ?? '',
             'times'               => $times
         ]); 
+        return $BoughtItem->id;
+    }
+
+    private function storeBoughtItemDetails($request, $boughtItemId, $times)
+    {
+        $BoughtItemDetails = BoughtItemDetails::create([
+            'billno' => $request->billno,
+            'bought_item_id' => $boughtItemId,
+            'pre_list_id' => $request->pre_list_id,
+            'amount' => $request->amount,
+            'unit_id' => $request->unit_id,
+            'bought_up' => $request->bought_up,
+            'discount' => $request->discount,
+            'transport' => $request->transport,
+            'total' => $request->amount * $request->bought_up,
+            'expire_date' => $request->expire_date,
+            'is_moved' => 1,
+            'times' => $times
+        ]);
+    }
+
+    private function storeWarehouseItems($request, $short_date, $item_name, $times)
+    {
+        $date = explode('-', $short_date);
+        $year = $date[0];
+        $month = $date[1];
+        $day = $date[2];
+
+        $warehouseItems = [];
+        foreach ($request->warehouse_id as $index => $warehouseId) {
+            $warehouseItems[] = [
+                'warehouse_id' => $warehouseId,
+                'buy_pre_id' => $request->pre_list_id,
+                'name' => $item_name ?? '',
+                'amount' => $request->warehouse_amount[$index],
+                'unit_id' => $request->unit_id,
+                'bought_up' => $request->bought_up,
+                'sell_up' => $request->warehouse_sell_up[$index],
+                'total' => $request->bought_up * $request->warehouse_amount[$index],
+                'currency_id' => $request->currency_id,
+                'notification_amount' => $request->notification_amount,
+                'inserted_by' => auth()->user()->full_name ?? '',
+                'expire_date' => isset($request->expire_date) ? $request->expire_date : null,
+                'inserted_short_date' => $short_date ?? null,
+                'year' => $year,
+                'month' => $month,
+                'day' => $day,
+                'times' => $times
+            ];
+        }
+
+        WarehouseItem::insert($warehouseItems);
     }
 
 
@@ -302,7 +340,7 @@ class BoughtDetailsController2 extends Controller
         $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
     
         // $journalCode = Journal::latest('code')->value('code');
-        // $newJournalCode = $journalCode ? $journalCode + 1 : 1;
+        //= $journalCode ? $journalCode + 1 : 1;
         $newJournalCode = Journal::max('code') + 1;
         $times = time();
 
@@ -698,56 +736,7 @@ class BoughtDetailsController2 extends Controller
         return BuyPreList::whereIn('id', $preListIds)->pluck('branch_id')->first();
     }
 
-    private function createBoughtItem($request, $newJournalCode, $short_date, $branch_id, $times)
-    {
-        $date = explode('-', $short_date);
-        $year = $date[0];
-        $month = $date[1];
-        $day = $date[2];
-        $note = "Total:".$request->payable.", Paid:".$request->cur_pay.", Remained:".$request->remained."";
-        $BoughtItem =  BoughtItem::create([
-            'customer_account_id' => $request->customer_account_id, 
-            'branch_id'           => $branch_id,
-            'billno'              => $request->billno,
-            'journal_code'        => $newJournalCode,
-            'total_price'         => $request->total_price,
-            'discount'            => $request->discount ?? 0,
-            'payable'             => $request->payable,
-            'cur_pay'             => $request->cur_pay,
-            'remained'            => $request->remained,
-            'account_id'          => $request->from_account_id,
-            'currency_id'         => $request->currency_id,
-            'trans_spend'         => $request->trans_spend  ?? 0, 
-            'trans_account_id'    => $request->trans_account_id ?? 0,
-            'note'                => $note,     
-            'idate'               => $short_date,    
-            'year'                => $year, 
-            'month'               => $month, 
-            'day'                 => $day, 
-            'iby'                 => auth()->user()->name ?? '',
-            'times'               => $times
-        ]); 
-    }
-
-    private function storeBoughtItemDetails($request, $boughtItemId, $times)
-    {
-        $boughtItems = [];
-        foreach ($request->pre_list_id as $index => $preListId) {
-            $boughtItems[] = [
-                'billno' => $request->billno,
-                'bought_item_id' => $boughtItemId,
-                'pre_list_id' => $preListId,
-                'amount' => $request->amount[$index],
-                'unit_id' => $request->unit_id[$index],
-                'bought_up' => $request->bought_up[$index],
-                'total' => $request->total[$index],
-                'expire_date' => $request->expire_date[$index] ?? null,
-                'is_moved' => 0,
-                'times' => $times
-            ];
-        }
-        BoughtItemDetails::insert($boughtItems);
-    }
+ 
 
     private function handleJournalEntry($request, $short_date, $full_date, $branch_id, $newJournalCode, $times)
     {
@@ -850,7 +839,7 @@ class BoughtDetailsController2 extends Controller
             'currency_id' => $request->currency_id,
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
-            'user_id' => auth()->user()->id() ?? '',
+            'user_id' => auth()->user()->id ?? '',
             'year' =>  $date[0],
             'month' =>  $date[1],
             'day' =>  $date[2],

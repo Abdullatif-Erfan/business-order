@@ -21,6 +21,8 @@ return new class extends Migration
             $table->decimal('bought_up', 10, 2)->nullable();
             $table->decimal('sell_up', 10, 2)->nullable();
             $table->integer('unit_id')->nullable();
+            $table->decimal('discount', 10, 2)->nullable();
+            $table->decimal('transport', 10, 2)->nullable();
             $table->decimal('total', 10, 2)->nullable();
             $table->integer('is_moved')->default(0)->comment('0:not moved, 1:moved');
             $table->string('expire_date')->nullable();

@@ -68,7 +68,7 @@ class JournalController extends Controller
         },'currencyRelation' => function($query){
             $query->select('id','name','symbols','color');
         }])
-        ->select('id','code','bill_no','amount','account_id','transaction_type','currency_id','details','inserted_short_date','status','times','is_single_record')
+        ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','currency_id','details','inserted_short_date','status','times','is_single_record')
         ->orderBy('id', 'DESC');
 
 
@@ -103,13 +103,43 @@ class JournalController extends Controller
             ->addColumn('accountRelation', function ($journal) {
                 return $journal->accountRelation ? $journal->accountRelation->name : '';
             })
+            
 
+            // در این حالت در رفت / قرض نشان داده شود
+            //  transaction_type == 2 and payment_type = 1 = paid cache
+            // transaction_type == 1 and payment_type = 2 = recieved loan
             ->addColumn('transaction_type_1', function ($journal) {
-                return $journal->transaction_type == 1 ? number_format($journal->amount,2) : '';
+                if ($journal->status == 1) { // رسید حساب سابق 
+                    return $journal->transaction_type == 2 ? number_format($journal->amount, 2) : '';
+                } 
+                else 
+                {
+                    // دو معامله ای
+                    if (($journal->transaction_type == 2 && $journal->payment_type == 1) || 
+                    ($journal->transaction_type == 1 && $journal->payment_type == 2)) {
+                        return number_format($journal->amount, 2);
+                    }
+                }
+                return '';
             })
+            
+            
+            // در این حالت در طلب / و آمد نشان داده شود
+            // transaction_type == 2 and payment_type = 2 = paid loan
+            // transaction_type == 1 and payment_type = 1 = recieved cache
             ->addColumn('transaction_type_2', function ($journal) {
-                return $journal->transaction_type == 2 ? number_format($journal->amount,2) : '';
+                if ($journal->status == 1) {
+                    return $journal->transaction_type == 1 ? number_format($journal->amount, 2) : '';
+                } 
+                else {
+                    if (($journal->transaction_type == 2 && $journal->payment_type == 2) || 
+                        ($journal->transaction_type == 1 && $journal->payment_type == 1)) {
+                        return number_format($journal->amount, 2);
+                    }
+                }
+                return '';
             })
+            
 
             ->addColumn('currency', function ($journal) {
                 return '<i style="font-size:14px;color:'.$journal->currencyRelation->color.'">'.$journal->currencyRelation->symbols.'</i>';

@@ -84,6 +84,7 @@ $(document).ready(function () {
             $(this).closest('.dynamic-row').remove();
         }
     });
+
 });
 
 </script>
