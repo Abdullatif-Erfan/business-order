@@ -1,7 +1,7 @@
 <div class="row dynamic-row">
     <div class="col-md-3 col-sm-4 col-xs-6">
         <label for="billno">انتخاب گدام <span class="danger">*</span></label>
-        <select class="form-control select2 warehouse-select" style="width: 100%; background-color:#ddd;" name="warehouse_id[]" required>
+        <select class="form-control select2 warehouse-select" style="width: 100%; background-color:#ddd;" name="warehouse_id[]" >
             <option value="">انتخاب گدام</option>
             @foreach($warehouses as $wh)
                 <option value="{{ $wh->id }}">{{ $wh->name }}</option>
@@ -11,12 +11,12 @@
 
     <div class="col-md-3 col-sm-4 col-xs-6">
         <label for="warehouse_amount">تعداد <span class="danger">*</span></label>
-        <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="تعداد انتقال در گدام" required>
+        <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="تعداد انتقال در گدام" >
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6">
         <label for="warehouse_sell_up">فروش فی واحد <span class="danger">*</span></label>
-        <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="قیمت فروش" required>
+        <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="قیمت فروش" >
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6">

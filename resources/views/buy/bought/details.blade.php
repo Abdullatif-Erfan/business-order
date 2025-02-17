@@ -1,6 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
+@if(Session::has('notification'))
+    @php
+        $notification = Session::get('notification');
+    @endphp
+    <script>
+    // Show the notification using the data from the session
+    $(document).ready(function(){
+        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
+    });
+</script>
+@endif
+
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -23,12 +36,13 @@
                                     <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
                                     <table style="width:100%">
                                          <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="3">
+                                            <td colspan="4">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>نام فروشنده: {{ $boughtItems->first()->customer_account_name ?? '' }}</td>
+                                            <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
+                                            <td>   واحد پولی: {{ $boughtItems->first()->currency->name ?? '' }}</td>
                                             <td>تاریخ ثبت : {{ $boughtItems->first()->idate ?? '' }}</td>
                                             <td>نمبر بل : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
                                         </tr>
@@ -39,11 +53,14 @@
                                             <thead>
                                                 <tr>
                                                     <th>شماره</th>
-                                                    <th>نوع فورم خریداری</th>
+                                                    <th>فروشنده</th>
+                                                    <th> جنس </th>
                                                     <th>تعداد خرید</th>
                                                     <th>واحد</th>
                                                     <th>قیمت فی واحد</th>
                                                     <th>قیمت مجموعی</th>
+                                                    <th>تخفیف</th>
+                                                    <th>ترانسپورت</th>
                                                     <th>تاریخ انقضا</th>
                                                 </tr>
                                             </thead>
@@ -51,11 +68,14 @@
                                                 @foreach($boughtItemDetails as $key => $detail)
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $detail->pre_list_name }}</td>
-                                                    <td>{{ $detail->amount }}</td>
-                                                    <td>{{ $detail->unit_name }}</td>
-                                                    <td>{{ $detail->bought_up }}</td>
-                                                    <td>{{ $detail->total }}</td>
+                                                    <td>{{ $detail->accountRelation->name ?? ' ' }}</td>
+                                                    <td>{{ $detail->preListRelation->name ?? ' '}}</td>
+                                                    <td>{{ number_format($detail->amount,2) }}</td>
+                                                    <td>{{ $detail->unitRelation->name }}</td>
+                                                    <td>{{ number_format($detail->bought_up,2) }}</td>
+                                                    <td>{{ number_format($detail->total,2) }}</td>
+                                                    <td>{{ number_format($detail->discount,2) }}</td>
+                                                    <td>{{ number_format($detail->transport,2) }}</td>
                                                     <td>{{ $detail->expire_date }}</td>
                                                 </tr>
                                                 @endforeach
@@ -64,31 +84,24 @@
                                     </div>
                                     <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
                                         <tr>
-                                            <td>مجموع پول</td>
-                                            <td>{{ $boughtItems->first()->total_price ?? '' }}</td>
-                                            <td>تخفیف</td>
-                                            <td>{{ $boughtItems->first()->discount ?? '' }}</td>
-                                            <td>قابل پرداخت</td>
-                                            <td>{{ $boughtItems->first()->payable ?? '' }}</td>
+                                            <td>مجموع پول &nbsp; </td>
+                                            <td>{{ number_format($boughtItems->first()->total_price) ?? '' }}</td>
+                                            <td> تخفیف </td>
+                                            <td>{{ number_format($boughtItems->first()->discount) ?? '' }}</td>
+                                            <td> مصارف ترانسپورت </td>
+                                            <td>{{ number_format($boughtItems->first()->trans_spend,2) ?? '' }}</td>
                                         </tr>
                                         <tr>
-                                            <td>پرداخت فعلی</td>
-                                            <td>{{ $boughtItems->first()->cur_pay ?? '' }}</td>
-                                            <td>باقی</td>
-                                            <td>{{ $boughtItems->first()->remained ?? '' }}</td>
-                                            <td>حساب پرداخت کننده</td>
-                                            <td>{{ $boughtItems->first()->account_name ?? '' }}</td>
+                                            <td> قابل پرداخت</td>
+                                            <td>{{ number_format($boughtItems->first()->payable,2) ?? '' }}</td>
+                                            <td> پرداخت فعلی</td>
+                                            <td>{{ number_format($boughtItems->first()->cur_pay,2) ?? '' }}</td>
+                                            <td> باقی </td>
+                                            <td>{{ number_format($boughtItems->first()->remained,2) ?? '' }}</td>
                                         </tr>
                                         <tr>
-                                            <td>واحد پولی</td>
-                                            <td>{{ $boughtItems->first()->currency_name ?? '' }}</td>
-                                            <td>مصارف ترانسپورت</td>
-                                            <td>{{ $boughtItems->first()->trans_spend ?? '' }}</td>
-                                            <td></td><td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>تفصیلات</td>
-                                            <td colspan="5">{{ $boughtItems->first()->note ?? '' }}</td>
+                                            <td>نوت</td>
+                                            <td colspan="5">{{$boughtItems->first()->note}}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -98,13 +111,14 @@
 
                                 <div class="container col-md-12 col-sm-12 col-xs-12 visible-print">
                                     <table style="width:100%">
-                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="3">
+                                       <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
+                                            <td colspan="4">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>نام فروشنده: {{ $boughtItems->first()->customer_account_name ?? '' }}</td>
+                                            <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
+                                            <td>   واحد پولی: {{ $boughtItems->first()->currency->name ?? '' }}</td>
                                             <td>تاریخ ثبت : {{ $boughtItems->first()->idate ?? '' }}</td>
                                             <td>نمبر بل : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
                                         </tr>
@@ -115,11 +129,14 @@
                                             <thead>
                                                 <tr>
                                                     <th>شماره</th>
-                                                    <th>نوع فورم خریداری</th>
+                                                    <th>فروشنده</th>
+                                                    <th> جنس </th>
                                                     <th>تعداد خرید</th>
                                                     <th>واحد</th>
                                                     <th>قیمت فی واحد</th>
                                                     <th>قیمت مجموعی</th>
+                                                    <th>تخفیف</th>
+                                                    <th>ترانسپورت</th>
                                                     <th>تاریخ انقضا</th>
                                                 </tr>
                                             </thead>
@@ -127,11 +144,14 @@
                                                 @foreach($boughtItemDetails as $key => $detail)
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $detail->pre_list_name }}</td>
-                                                    <td>{{ $detail->amount }}</td>
-                                                    <td>{{ $detail->unit_name }}</td>
-                                                    <td>{{ $detail->bought_up }}</td>
-                                                    <td>{{ $detail->total }}</td>
+                                                    <td>{{ $detail->accountRelation->name ?? ' ' }}</td>
+                                                    <td>{{ $detail->preListRelation->name ?? ' '}}</td>
+                                                    <td>{{ number_format($detail->amount,2) }}</td>
+                                                    <td>{{ $detail->unitRelation->name }}</td>
+                                                    <td>{{ number_format($detail->bought_up,2) }}</td>
+                                                    <td>{{ number_format($detail->total,2) }}</td>
+                                                    <td>{{ number_format($detail->discount,2) }}</td>
+                                                    <td>{{ number_format($detail->transport,2) }}</td>
                                                     <td>{{ $detail->expire_date }}</td>
                                                 </tr>
                                                 @endforeach
@@ -140,31 +160,24 @@
                                     </div>
                                     <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
                                         <tr>
-                                            <td>مجموع پول</td>
-                                            <td>{{ $boughtItems->first()->total_price ?? '' }}</td>
-                                            <td>تخفیف</td>
-                                            <td>{{ $boughtItems->first()->discount ?? '' }}</td>
-                                            <td>قابل پرداخت</td>
-                                            <td>{{ $boughtItems->first()->payable ?? '' }}</td>
+                                            <td>مجموع پول &nbsp; </td>
+                                            <td>{{ number_format($boughtItems->first()->total_price) ?? '' }}</td>
+                                            <td> تخفیف </td>
+                                            <td>{{ number_format($boughtItems->first()->discount) ?? '' }}</td>
+                                            <td> مصارف ترانسپورت </td>
+                                            <td>{{ number_format($boughtItems->first()->trans_spend,2) ?? '' }}</td>
                                         </tr>
                                         <tr>
-                                            <td>پرداخت فعلی</td>
-                                            <td>{{ $boughtItems->first()->cur_pay ?? '' }}</td>
-                                            <td>باقی</td>
-                                            <td>{{ $boughtItems->first()->remained ?? '' }}</td>
-                                            <td>حساب پرداخت کننده</td>
-                                            <td>{{ $boughtItems->first()->account_name ?? '' }}</td>
+                                            <td> قابل پرداخت</td>
+                                            <td>{{ number_format($boughtItems->first()->payable,2) ?? '' }}</td>
+                                            <td> پرداخت فعلی</td>
+                                            <td>{{ number_format($boughtItems->first()->cur_pay,2) ?? '' }}</td>
+                                            <td> باقی </td>
+                                            <td>{{ number_format($boughtItems->first()->remained,2) ?? '' }}</td>
                                         </tr>
                                         <tr>
-                                            <td>واحد پولی</td>
-                                            <td>{{ $boughtItems->first()->currency_name ?? '' }}</td>
-                                            <td>مصارف ترانسپورت</td>
-                                            <td>{{ $boughtItems->first()->trans_spend ?? '' }}</td>
-                                            <td></td><td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>تفصیلات</td>
-                                            <td colspan="5">{{ $boughtItems->first()->note ?? '' }}</td>
+                                            <td>نوت</td>
+                                            <td colspan="5">{{$boughtItems->first()->note}}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -179,19 +192,13 @@
                                     </button>
                                             
                                     <!-- edit button -->
-                                    <a href="{{ route('boughtList.edit', $boughtItems->first()->btimes) }}"   class="hidden-print">
+                                    <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}"   class="hidden-print">
                                         <button class="btn btn-primary btn-sm m-r-10">
                                         <i class="fas fa-pen"></i>  ویرایش 
                                         </button>
                                     </a>
 
-                                       @if(auth()->user()->hasAccess('buy','delete_records'))
-                                       <a href="{{ route('boughtList.destroy', $boughtItems->first()->btimes) }}"  onClick="return doConfirm();" class="hidden-print">
-                                            <button class="btn btn-danger btn-sm m-r-10">
-                                            <i class="fas fa-trash error "></i>  حذف 
-                                            </button>
-                                        </a>
-                                        @endif
+                                      
 
                                     </div>
                                 </div>
@@ -205,4 +212,30 @@
         </div>
     </div>
 </div>
+
+<script>
+function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
+    var content = {};
+    content.message = '<span style="font-size:16px;">' + message + '</span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    
+    if (style === "withicon") {
+        content.icon = 'fa fa-bell';
+    } else {
+        content.icon = 'none';
+    }
+    content.url = '#';
+    content.target = '_blank';
+
+    $.notify(content, {
+        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        placement: {
+            from: from, // top, bottom
+            align: align // right, center, left
+        },
+        time: 500
+    });
+}
+</script>
+
 @endsection

@@ -33,15 +33,14 @@
                             <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button>
                         </div>
 
+
                         <div class="filterForm" id="searchWrapper1">
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
-                                    <div class="col-md-3 col-sm-6 col-xs-6">
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
                                         <input type="text" id="customer_name" placeholder="فروشنده" class="form-control">
                                     </div>
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="pre_list_name" placeholder="نوع خرید" class="form-control">
-                                    </div>
+
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
                                         <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
                                             <option value="">  واحد پولی </option>
@@ -50,9 +49,45 @@
                                             @endforeach
                                         </select>
                                     </div>
+
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <input class="form-control" id="bill_number" placeholder="بل نمبر">
                                     </div>
+
+                                    <!-- <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <input type="text" id="factor" placeholder="فاکتور" class="form-control">
+                                    </div> -->
+
+                                    <div class="col-md-2">
+                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
+                                        <div class="input-group-append">
+                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
+                                            data-targetselector="#start_date" data-englishnumber="true">
+                                            <span class="fa fa-calendar"></span> 
+                                        </span>
+                                        </div>
+                                            <input class="form-control" name="start_date" id="start_date"
+                                            data-targetselector="#start_date" value="" 
+                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                        </div>
+							     	</div>
+                                
+
+                                     <div class="col-md-3">
+                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
+                                        <div class="input-group-append">
+                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
+                                            data-targetselector="#end_date" data-englishnumber="true">
+                                            <span class="fa fa-calendar"></span> 
+                                        </span>
+                                        </div>
+                                            <input class="form-control" name="end_date" id="end_date"
+                                            data-targetselector="#end_date" value="" 
+                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                        </div>
+							     	</div>
+
+
                                     <div class="col-md-1 col-sm-6 col-xs-6">
                                         <button class="btn mybtn search_btn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
@@ -62,40 +97,43 @@
                             </div>
                         </div> <!-- /filter_form -->
 
+
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                            <td colspan="11">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                            <td colspan="11">
                                                 <center> لیست خرید </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> شماره &nbsp; </th>
-                                            <th> نمبربل </th>
-                                             <th> فروشنده </th>
-                                           <th> نوع خرید </th>
-                                            <th> تعداد </th>
-                                            <th> واحد </th>
-                                            <th> فی واحد</th>
-                                            <th> قیمت <br /> مجموعی </th>
+                                            <th> بل </th>
+                                            <th> فروشنده </th>                                            
+                                            <th> مبلغ مجموعی </th>
+                                            <th> ترانسپورت </th>
+                                            <th> تخفیف </th>
+                                            <th>  قابل پرداخت  </th>
                                             <th> رسید نقد </th>
                                             <th> قرض </th>
+                                            <th> واحد پولی </th>
                                             <th> تاریخ </th>
-                                            <th> انتقال </th> 
                                             <th> جزییات </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="7">مجموع</td>
+                                            <td colspan="3">مجموع</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -166,42 +204,51 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
 </script>
 
 <script>
-
 $(document).ready(function() {
     fetchList();
+
+    // Move the filter button click event outside
+    $('#btn-filter').click(function() {
+        $('#boughtItemTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
+    });
 });
 
+
 function fetchList() {
-    const boughtItemTable = $('#boughtItemTable');
+    let boughtItemTable = $('#boughtItemTable');
 
     // Check if DataTable is already initialized
     if (!$.fn.DataTable.isDataTable(boughtItemTable)) {
-        // Initialize DataTable if not already initialized
         boughtItemTable.DataTable({
             serverSide: true,
             processing: true,
-            ajax: {
+            ajax: {  
                 url: '{{ route("boughtList.data") }}',
+                data: function (d) {
+                    d.customer_name = $('#customer_name').val();
+                    d.currency_id = $('#currency_id').val();
+                    d.bill_number = $('#bill_number').val();
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
+                }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
-                { data: 'account_name', name: 'account_name' },
-                { data: 'pre_list_name', name: 'pre_list_name' },
-                { data: 'amount', name: 'amount' },
-                { data: 'unit_name', name: 'unit_name' },
-                { data: 'bought_up', name: 'bought_up' },
-                { data: 'total', name: 'total' },
+                { data: 'customer.name', name: 'customer.name' },
+                { data: 'total_price', name: 'total_price' },
+                { data: 'trans_spend', name: 'trans_spend' },
+                { data: 'discount', name: 'discount' },
+                { data: 'payable', name: 'payable' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
+                { data: 'currency', name: 'currency' },
                 { data: 'idate', name: 'idate' },
-                { data: 'is_moved', name: 'is_moved',  orderable: false, searchable: false  },
                 { data: 'view', name: 'view', orderable: false, searchable: false }
             ],
             drawCallback: function () {
                 var api = this.api();
 
-                // Function to calculate sum for a given column index
                 function sumColumn(index) {
                     return api
                         .column(index, { page: 'current' })
@@ -211,24 +258,20 @@ function fetchList() {
                             var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
                             return numA + numB;
                         }, 0)
-                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); // Format number
+                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                // Calculate sums for columns 8 and 9
-                var sumCol7 = sumColumn(7);
-                var sumCol8 = sumColumn(8);
-                var sumCol9 = sumColumn(9);
-
-                // Update footer cells
-                $(api.column(7).footer()).html(sumCol7);
-                $(api.column(8).footer()).html(sumCol8);
-                $(api.column(9).footer()).html(sumCol9);
+                $(api.column(3).footer()).html(sumColumn(3));
+                $(api.column(4).footer()).html(sumColumn(4));
+                $(api.column(5).footer()).html(sumColumn(5));
+                $(api.column(6).footer()).html(sumColumn(6));
+                $(api.column(7).footer()).html(sumColumn(7));
+                $(api.column(8).footer()).html(sumColumn(8));
             }
-
         });
+
     } else {
-        // If already initialized, reload the data
-        boughtItemTable.DataTable().ajax.reload(null, false); // Prevent table from resetting pagination
+        boughtItemTable.DataTable().ajax.reload(null, false);
     }
 }
 </script>

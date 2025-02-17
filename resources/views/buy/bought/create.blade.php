@@ -42,6 +42,8 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                         <button class="btn mybtn bg-default"> برگشت به لیست </button>
                                     </a>
                                 </span>
+                                
+                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10"> نوت:</strong>دریک بل نمبر صرف خرید یک مشتری را ثبت نمایید</small>
                             </h4>
                         </div>
 
@@ -76,9 +78,8 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-12">
                                         <div class="row">
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <div class="form-group">
                                                     <label for="customer_account_id">انتخاب فروشنده <span class="danger">*</span></label>
-                                                    <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
+                                                    <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
                                                         <option value=""> انتخاب فروشنده </option>
                                                         @foreach($customers as $customer)
                                                             <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
@@ -87,31 +88,11 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                     @error('customer_account_id')
                                                         <span style='color:red'>{{ $message }}</span>
                                                     @enderror
-                                                </div>
                                             </div>
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="todays_date">تاریخ <span class="danger">*</span></label>
-                                                <div class="input-group mb-3" style="margin-top:10px" data-provide="datepicker">
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#exampleInput00" data-englishnumber="true">
-                                                            <span class="fa fa-calendar"></span> 
-                                                        </span>
-                                                    </div>
-                                                    <input class="form-control" name="todays_date" id="exampleInput00" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="تاریخ ثبت" data-placement="right" data-englishnumber="true">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno">نمبر بل <span class="danger">*</span></label>
-                                                <div class="form-group">
-                                                    <input type="number" class="form-control" name="billno" placeholder="نمبر بل" required>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno">  پرداخت کننده <span class="danger">*</span></label>
-                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="from_account_id" required>
+                                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                                <label for="from_account_id">   حساب شرکت <span class="danger">*</span></label>
+                                                <select class="form-control select2" tabindex="3" style="width: 100%; background-color:#ddd;" name="from_account_id" required>
                                                     <!-- <option value="">حساب پرداخت کننده</option> -->
                                                     @foreach($ownBanks as $acc)
                                                         <option value="{{ $acc->id }}">{{ $acc->name }}</option>
@@ -120,17 +101,42 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
 
+                                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                                <label for="todays_date">تاریخ <span class="danger">*</span></label>
+                                                <div class="input-group " data-provide="datepicker">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#todays_date" data-englishnumber="true">
+                                                            <span class="fa fa-calendar"></span> 
+                                                        </span>
+                                                    </div>
+                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="تاریخ ثبت" data-placement="right" data-englishnumber="true">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                                <label for="billno"> بل نمبر <span class="danger">*</span></label>
+                                                    <input type="number" tabindex="2" onkeyup="checkBillNoDuplication(this.value)" class="form-control" value="{{ $billno }}" name="billno" id="billno" placeholder=" بل نمبر" required readonly>
+                                                 <span id="successMsg" style="display:none"><div style="color:green">تایید است</div></span>
+                                                 <span id="failurMsg" style="display:none"><div style="color:red"> بل نمبر تکراری است</div></span>
+                                            </div>
+
+                                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                                <label for="factor">  فاکتور </label>
+                                                <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="شماره فاکتور" >
+                                            </div>
+
+                                            
                                         </div>
                                     </div>
                                     <!-- / first Row -->
 
                                     <!-- Second Row -->
-                                    <div class="col-md-12">
+                                    <div class="col-md-12 m-t-10">
                                         <div class="row">
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="customer_account_id">انتخاب جنس <span class="danger">*</span> </label>
-                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="pre_list_id" required>
+                                                <label for="pre_list_id">انتخاب جنس <span class="danger">*</span> </label>
+                                                <select class="form-control select2" tabindex="4" style="width: 100%; background-color:#ddd;" name="pre_list_id" id="pre_list_id">
                                                     <option value="0">انتخاب جنس</option>
                                                     @foreach($preLists as $item)
                                                         <option value="{{ $item->id }}">{{ $item->name }}</option>
@@ -139,13 +145,13 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="todays_date">تعداد <span class="danger">*</span> </label>
-                                                <input class="form-control" name="amount" id="amount" type="number" step="0.01" required>
+                                                <label for="amount">تعداد <span class="danger">*</span> </label>
+                                                <input class="form-control" name="amount" id="amount" type="number" step="0.01" >
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno"> واحد <span class="danger">*</span> </label>
-                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" required>
+                                                <label for="unit_id"> واحد <span class="danger">*</span> </label>
+                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
                                                     <option value="">واحد</option>
                                                     @foreach($units as $unitItem)
                                                         <option value="{{ $unitItem->id }}">{{ $unitItem->name }}</option>
@@ -155,8 +161,8 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno"> قیمت فی واحد <span class="danger">*</span> </label>
-                                                <input class="form-control" name="bought_up" type="number" step="0.01"  oninput="recalculateEachTotal(this)" required>
+                                                <label for="bought_up"> قیمت فی واحد <span class="danger">*</span> </label>
+                                                <input class="form-control" name="bought_up" id='bought_up' type="number" step="0.01"  oninput="recalculateEachTotal(this)" >
                                             </div>
 
                                         </div>
@@ -178,7 +184,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno"> تاریخ انقضا  </label>
+                                                <label for="expire_date"> تاریخ انقضا  </label>
                                                 <div class="input-group" style="margin-top:2px" data-provide="datepicker">&nbsp;&nbsp;
                                                     <input class="form-control"  name="expire_date" id="expire_date"  
                                                     data-targetselector="#expire_date" value="" 
@@ -198,7 +204,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="note"> مقدار هشدار </label>
+                                                <label for="notification_amount"> مقدار هشدار </label>
                                                 <input class="form-control" name="notification_amount" id="notification_amount" type="number" value="0">
                                             </div>
                                             
@@ -276,6 +282,10 @@ select.select2{text-align:right !important;direction:rtl !important;}
     $('[data-name="enable-button"]').click(function () {
         $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
     });
+
+});
+
+
 </script>
 @endpush
 
@@ -348,10 +358,27 @@ function submiteBuyingForm()
                 $('#errorWrapper').fadeOut(10);
                 showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
                 $('#insertedResult').html(response);
+
+                // ✅ Clear the form after successful submission
+                //  $('#buyingForm')[0].reset();
+                // ✅ Clear form fields manually except specific ones
+                    $('#pre_list_id').val('');
+                    $('#amount').val('');
+                    $('#unit_id').val('');
+                    $('#bought_up').val('');
+                    $('#expire_date').val('');
+                    $('#discount').val('0');
+                    $('#transport').val('0');
+                    $('#notification_amount').val('0');
+                    $('.dynamic-row').find('input, select').val('');
+                // ✅ Optionally, remove validation error messages
+                // $('.error-message').text('');
+                // $('#validationErrors').hide();
+
         },
         error: (xhr) => {
             $('#loader').hide();
-            $('#insertedResult').html('خطا رخ داد'); // General error message
+            // $('#insertedResult').html('خطا رخ داد'); // General error message
 
             if (xhr.status === 422) { // Laravel validation error response
                 var errors = xhr.responseJSON.errors;
@@ -375,7 +402,7 @@ function submiteBuyingForm()
 
                 showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
             } else {
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
             }
         }
 
@@ -416,6 +443,35 @@ $(document).ready(function () {
         $('#errorWrapper').fadeOut();
     });
 });
+
+
+function checkBillNoDuplication(billNo) 
+{
+    if (billNo == 0) {
+        $("#failurMsg").show();
+        $("#successMsg").hide();
+        return;
+    }
+
+    $.ajax({
+        url: "{{ route('boughtList.checkBillNoDuplication') }}", // Define this route in web.php
+        type: "GET",
+        data: { billno: billNo },
+        success: function(response) {
+            if (response.exists) {
+                $("#failurMsg").show();
+                $("#successMsg").hide();
+            } else {
+                $("#successMsg").show();
+                $("#failurMsg").hide();
+            }
+        },
+        error: function() {
+            console.log("Error checking bill number.");
+        }
+    });
+}
+
 </script>
 
 @endsection

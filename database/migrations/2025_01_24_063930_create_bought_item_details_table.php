@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('branch_id');
             $table->foreignId('bought_item_id');
             $table->foreignId('pre_list_id')->nullable();
+            $table->foreignId('customer_account_id')->nullable();
             $table->decimal('amount', 10, 2);
             $table->decimal('bought_up', 10, 2)->nullable();
             $table->decimal('sell_up', 10, 2)->nullable();
@@ -30,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Add unique constraint
-            $table->unique(['billno', 'bought_item_id', 'pre_list_id','times'], 'bought_item_details_unique_constraint');
+            // $table->unique(['billno', 'bought_item_id', 'pre_list_id','times'], 'bought_item_details_unique_constraint');
         });
         
     }

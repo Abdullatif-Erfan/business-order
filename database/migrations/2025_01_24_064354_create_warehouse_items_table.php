@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->decimal('in_amount', 10, 2)->nullable();
             $table->decimal('out_amount', 10, 2)->nullable();
+            $table->decimal('available_amount', 10, 2)->nullable();
             $table->decimal('wastage_amount', 10, 2)->nullable();
             $table->foreignId('unit_id');
             $table->decimal('bought_up', 10, 2)->nullable()->comment('buy unit price');
@@ -35,7 +36,7 @@ return new class extends Migration
             $table->timestamps();
             
             // Add unique constraint
-            $table->unique(['warehouse_id', 'buy_pre_id', 'unit_id', 'times'], 'warehouse_items_unique_constraint');
+            // $table->unique(['warehouse_id', 'buy_pre_id', 'unit_id', 'times'], 'warehouse_items_unique_constraint');
         });
     }
 

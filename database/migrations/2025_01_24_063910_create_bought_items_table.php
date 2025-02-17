@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('bought_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_account_id')->nullable();
-            $table->integer('billno')->nullable();
-            $table->integer('journal_code');
+            $table->integer('billno')->comment('system auto number');
+            $table->string('factor')->nullable();
+            $table->integer('journal_code')->nullable();
             $table->decimal('total_price', 10,2);
             $table->decimal('discount', 10,2)->nullable();
             $table->decimal('payable', 10,2)->nullable();
@@ -20,8 +20,8 @@ return new class extends Migration
             $table->decimal('remained', 10,2)->nullable();
             $table->foreignId('account_id'); 
             $table->foreignId('currency_id');
+            $table->foreignId('customer_currency_id');
             $table->decimal('trans_spend', 10,2)->nullable();
-            $table->foreignId('trans_account_id')->nullable();
             $table->string('note')->nullable();
             $table->string('idate')->nullable();
             $table->integer('year');
@@ -30,9 +30,6 @@ return new class extends Migration
             $table->string('iby')->nullable();
             $table->string('times')->nullable();
             $table->timestamps();
-
-           
-
         });
     }
 

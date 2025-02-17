@@ -129,11 +129,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/boughtList/create',[BoughtDetailsController::class,'create'])->name('boughtList.create');
     Route::post('/boughtList/store',[BoughtDetailsController::class,'store'])->name('boughtList.store');
     Route::post('/boughtList/submit',[BoughtDetailsController::class,'submit'])->name('boughtList.submit');
-    Route::patch('/boughtList/update',[BoughtDetailsController::class,'update'])->name('boughtList.update');
-
+    Route::post('/boughtList/update',[BoughtDetailsController::class,'update'])->name('boughtList.update');
+    Route::get('/boughtList/checkBillNoDuplication',[BoughtDetailsController::class, 'checkBillNoDuplication'])->name('boughtList.checkBillNoDuplication');
+    Route::get('/boughtList/getSingleRecordForEdit/{id}',[BoughtDetailsController::class,'getSingleRecordForEdit'])->name('boughtList.getSingleRecordForEdit');
+    Route::post('/boughtList/updateItemAndWarehouseItems',[BoughtDetailsController::class, 'updateItemAndWarehouseItems'])->name('boughtList.updateItemAndWarehouseItems');
+    Route::get('/boughtList/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
+    
     Route::get('/boughtList/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
-    Route::get('/boughtList/destroy/{times}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy');
-    Route::get('/boughtList/deleteSingleItem/{id}',[BoughtDetailsController::class,'deleteSingleItem'])->name('boughtList.deleteSingleItem');
+    Route::get('/boughtList/destroy/{billno}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy');
+    Route::post('/boughtList/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])->name('boughtList.deleteSingleItem');
     Route::get('/boughtList/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit');
 
 });
