@@ -106,9 +106,15 @@
                         </a>
                         <div class="collapse" id="items">
                             <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="{{ route('warehousesList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> ثبت موجودی گدام</span>
+                                    </a>
+                                </li>
                                 @foreach(\App\Models\Setting\Warehouse::all() as $warehouse)
                                     <li>
-                                        <a href="{{ $base_url }}/warehouseItems/{{ $warehouse->id }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <a href="{{ route('warehousesList.index') }}?id={{ $warehouse->id }}">
+                                        <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                             <span class="sub-item">{{ $warehouse->name }}</span>
                                         </a>
                                     </li>

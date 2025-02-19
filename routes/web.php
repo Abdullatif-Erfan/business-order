@@ -15,6 +15,7 @@ use App\Http\Controllers\Journal\JournalController;
 use App\Http\Controllers\Buy\BuyPreListController;
 use App\Http\Controllers\Buy\BoughtController;
 use App\Http\Controllers\Buy\BoughtDetailsController;
+use App\Http\Controllers\Warehouse\WarehouseListController;
 
 
 
@@ -67,6 +68,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/warehouses/{warehouse}', [WarehouseController::class, 'show'])->name('warehouses.show');
     Route::patch('/warehouses/update', [WarehouseController::class, 'update'])->name('warehouses.update');
     Route::delete('/warehouses/{id}', [WarehouseController::class, 'destroy'])->name('warehouses.destroy');
+
+    // WarehouseList
+    // Route::get('/warehousesList/{id?}', [WarehouseListController::class, 'index'])->name('warehousesList.index');
+    Route::get('/warehousesList', [WarehouseListController::class, 'index'])->name('warehousesList.index');
+    Route::get('/warehousesList/data', [WarehouseListController::class, 'getData'])->name('warehousesList.data');
+    Route::get('/warehousesList/details/{id}', [WarehouseListController::class, 'details'])->name('warehousesList.details');
+    Route::patch('/warehousesList/update', [WarehouseListController::class, 'update'])->name('warehousesList.update');
+    Route::get('/warehousesList/getWarehouseItemForTransfer/{id}', [WarehouseListController::class, 'getWarehouseItemForTransfer'])->name('warehousesList.getWarehouseItemForTransfer');
+    Route::post('/warehousesList/updateTransfer', [WarehouseListController::class, 'updateTransfer'])->name('warehousesList.updateTransfer');
+    Route::get('/warehousesList/create', [WarehouseListController::class, 'create'])->name('warehousesList.create');
+    Route::post('/warehousesList/store', [WarehouseListController::class, 'store'])->name('warehousesList.store');
+    Route::delete('/warehousesList/delete/{id}', [WarehouseListController::class, 'destroy'])->name('warehousesList.delete');
+
+
+
 
     // unit
     Route::get('/units', [UnitController::class, 'index'])->name('units.list');

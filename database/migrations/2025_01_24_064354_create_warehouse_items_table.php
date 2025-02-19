@@ -20,10 +20,13 @@ return new class extends Migration
             $table->decimal('out_amount', 10, 2)->nullable();
             $table->decimal('available_amount', 10, 2)->nullable();
             $table->decimal('wastage_amount', 10, 2)->nullable();
+            $table->decimal('wastage_total', 10, 2)->nullable();
             $table->foreignId('unit_id');
             $table->decimal('bought_up', 10, 2)->nullable()->comment('buy unit price');
+            $table->decimal('avg_up', 10, 2)->nullable()->comment('average unit price');
             $table->decimal('sell_up', 10, 2)->nullable()->comment('selling unit price');
-            $table->decimal('total', 10, 2);
+            $table->decimal('total', 10, 2)->comment('transfered total');
+            $table->decimal('available_total', 10, 2)->comment('Available total');
             $table->foreignId('currency_id');
             $table->integer('notification_amount')->nullable();
             $table->string('inserted_by')->nullable()->comment('user_name'); // Fixed varchar issue
