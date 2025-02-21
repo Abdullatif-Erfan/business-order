@@ -125,15 +125,15 @@
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
-                                                        <td> {{$detail->accountRelation->name}} </td>
+                                                        <td>{{$detail->accountRelation->name}} </td>
                                                         <td>{{ $detail->preListRelation->name }}</td>
-                                                        <td> {{ $detail->unitRelation->name }} </td>
-                                                        <td> {{ $detail->amount }} </td>
+                                                        <td>{{ $detail->unitRelation->name }} </td>
+                                                        <td>{{ $detail->amount }} </td>
                                                         <td>{{ number_format($detail->bought_up,2) }}</td>
                                                         <td>{{ number_format($detail->total,2) }}</td>
                                                         <td>{{ number_format($detail->discount,2) }} </td>
                                                         <td>{{ number_format($detail->transport,2) }}</td>
-                                                        <td> {{ $detail->expire_date }} </td>
+                                                        <td>{{ $detail->expire_date }} </td>
                                                     
                                                         <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>
                                                         <td class="hidden-print"><i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i></td>
@@ -341,12 +341,12 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
     }
 
     
-    function deleteThisRecord(id)
+    function deleteThisRecord(boughtItemId)
     {
         $('#deleteModal').modal('show');
         $('#loading_delete').show();
         $.ajax({
-            url: `/boughtList/getWarehouseListForDelete/${id}`,
+            url: `/boughtList/getWarehouseListForDelete/${boughtItemId}`,
             type: 'GET',
             success: (result) => {
                 $('#deleteModalContent').html(result);

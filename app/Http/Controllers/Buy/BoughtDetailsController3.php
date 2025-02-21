@@ -24,7 +24,7 @@ use App\Models\Setting\Account;
 use Yajra\DataTables\Facades\DataTables;
 
 
-class BoughtDetailsController extends Controller
+class BoughtDetailsController3 extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -817,7 +817,7 @@ class BoughtDetailsController extends Controller
             return response()->json(['error' => 'Bought Item Details not found'], 404);
         }
 
-        // \Log::info('Pre List ID:', ['pre_list_id' => $boughtItemDetails->pre_list_id]);
+        \Log::info('Pre List ID:', ['pre_list_id' => $boughtItemDetails->pre_list_id]);
 
         $warehouseItems = WarehouseItem::with('warehouseRelation')
             ->where('buy_pre_id', (int) $boughtItemDetails->pre_list_id) // Ensure correct type
@@ -869,11 +869,6 @@ class BoughtDetailsController extends Controller
                 'unit_id' => $validated['unit_id'],
                 'total' => $validated['amount'] * $validated['bought_up'],
             ]);
-
-            // Refresh the model to get the updated value
-            $boughtItemDetails->refresh();
-
-            $updated_available_total = $boughtItemDetails->available_total;
 
             // Update warehouse_items
             $insertedBy = auth()->user()->full_name ?? '';
@@ -931,7 +926,6 @@ class BoughtDetailsController extends Controller
                         $available_amount  = $WarehouseItem->available_amount + $increment_qty;
 
                         // Calculate the new weighted average price
-
                         $new_total = $WarehouseItem->total + $increment_total;
                         $new_avg_total = $WarehouseItem->available_total + $increment_total;
                         $new_avg_up = ($available_amount > 0) ? ($new_avg_total / $available_amount) : 0;
@@ -1030,7 +1024,6 @@ class BoughtDetailsController extends Controller
 
                                 // Update the bought_up and total values accordingly
                                 $new_avg_up = ($available_amount > 0) ? ($new_available_total / $available_amount) : 0;
-
                         
                                 $WarehouseItem->update([
                                     'bought_up' => $validated['bought_up'],
@@ -1153,9 +1146,9 @@ class BoughtDetailsController extends Controller
         DB::beginTransaction();
     
         try {
-            // Get BoughtItemDetails and delete based on bought_item_details_id
+            // Get BoughtItemDetails
             $boughtItemDetails = BoughtItemDetails::findOrFail($request->delete_id);
-            $boughtItemDetailsUnitId = $boughtItemDetails->unit_id ?? 0;
+            $boughtItemDetailsTotal = $boughtItemDetails->total ?? 0;
             $boughtItemDetails->delete();
     
             // Ensure the current user ID or another identifier is set for inserted_by
@@ -1165,9 +1158,9 @@ class BoughtDetailsController extends Controller
             foreach ($request->warehouse_id as $index => $warehouseId) 
             {
                 $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
-                ->where('buy_pre_id', $request->preListId)
-                ->where('unit_id', $boughtItemDetailsUnitId)
-                ->first();
+                    ->where('buy_pre_id', $request->preListId)
+                    ->where('unit_id', $boughtItemDetails->unit_id)
+                    ->first();
     
                 if (!$WarehouseItem) {
                     continue; // Skip if not found
@@ -1176,20 +1169,21 @@ class BoughtDetailsController extends Controller
                 // Handle deletion or decrement
                 if ($request->delete_amount > 0) 
                 {
-                    if ($request->decrement[$index] == $WarehouseItem->available_amount) {
+                    if ((int)$request->decrement[$index] === (int)$WarehouseItem->available) {
                         $WarehouseItem->delete(); // Delete if available matches decrement
                     } 
                     elseif ($WarehouseItem->available_amount > $request->decrement[$index]) 
                     {
                         // Adjust stock values
                         $newTotal = $WarehouseItem->total - ($WarehouseItem->bought_up * $request->decrement[$index]);
-                        $new_avg_total = $WarehouseItem->available_total - ($WarehouseItem->avg_up * $request->decrement[$index]);
-
                         $newInAmount = $WarehouseItem->in_amount - $request->decrement[$index];
                         $availableAmount = $WarehouseItem->available_amount - $request->decrement[$index];
-                  
+
+                        // TODO : this value is not exact value
+                        $new_available_total =  $availableAmount * $WarehouseItem->avg_up;
+    
                         // Ensure stock never goes negative
-                        if ($newInAmount < 0 || $new_avg_total < 0) {
+                        if ($newInAmount < 0 || $availableAmount < 0) {
                             throw new \Exception("Stock cannot be negative for warehouse ID: $warehouseId");
                         }
     
@@ -1198,7 +1192,7 @@ class BoughtDetailsController extends Controller
                             'in_amount' => $newInAmount,
                             'available_amount' => $availableAmount,
                             'total' => $newTotal,
-                            'available_total' => $new_avg_total,
+                            'available_total' => $new_available_total,
                             'inserted_by' => $insertedBy // Ensure this is defined
                         ]);
                     }

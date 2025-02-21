@@ -9,7 +9,8 @@
             <input class="form-control" name="source_warehouse_id"  type="hidden"
             value={{ $warehouseItems->first()->warehouse_id ?? 0}} >
 
-            <input class="form-control" name="item_name" id="item_name" type="text" readonly value={{ $warehouseItems->first()->name ?? ''}} >
+            <input class="form-control" name="item_name" id="item_name" type="text" readonly 
+            value={{ $warehouseItems->first()->preListRelation->name ?? ''}} >
         </div>
 
         <div class="col-md-3 col-sm-4 col-xs-6">

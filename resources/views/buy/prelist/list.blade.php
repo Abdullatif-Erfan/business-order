@@ -61,8 +61,14 @@
                                          </div>	
 
 
-                                    <div class="col-md-4 col-sm-4 col-xs-12 center m-t-10">
-                                        <button type="button" name="submit" class="btn btn-primary btn-sm m-l-10" onclick="addNewRecord()"  >
+                                    <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
+                                        <button type="button" name="submit" class="btn btn-info btn-sm m-l-10" onclick="addNewRecord(1)"  >
+                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> ثبت و ماندن
+                                        </button>
+                                    </div>
+
+                                    <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
+                                        <button type="button" name="submit" class="btn btn-primary btn-sm m-l-10" onclick="addNewRecord(2)"  >
                                           <span class="btn-label"> <i class="fa fa-save"></i> </span> ثبت
                                         </button>
                                     </div>
@@ -190,7 +196,7 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
 }
 
 // ====================== add new record =====================
-function addNewRecord()
+function addNewRecord(id)
 {
     // Serialize form data
     var formData = $('#buyPreListForm').serialize();
@@ -212,7 +218,9 @@ function addNewRecord()
 
             if (response.status === 'success') {
                 fetchList(); 
-                $('#add_form_collapse').collapse('hide');
+                if(id == 2){
+                    $('#add_form_collapse').collapse('hide');
+                }
                 $('#name').val('');
                 showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
             } else {

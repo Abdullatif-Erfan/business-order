@@ -1,4 +1,3 @@
-
     <div class="row">
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="item_name">جنس </label>
@@ -74,12 +73,18 @@
             درصورتیکه تعداد افزایش یابد تعداد افزایش را در گدام مربوطه و در بخش مربوطه شان بنویسید و در صورت کاهش تعداد کاهش شده را در بخش مربوطه شان که فعال میباشد ثبت نمایید. 
             </h5>
             <div class="alert alert-success" id="amountMessage" style="display:none"></div>
+            <!-- {{$warehouseItems->first()->warehouseRelation->name ?? ''}} -->
         </div>
         @foreach($warehouseItems as $item)
+        @php
+            $warehouseName = $item->warehouseRelation ? $item->warehouseRelation->name : 'Not Found';
+        @endphp
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="name"> گدام </label>
-            <input  name="warehouse_id[]" id="wid" type="hidden" value={{$item->warehouse_id}} >
-            <input class="form-control" name="name" id="name" type="text" readonly value={{$item->warehouseRelation->name}} >
+            <input  name="warehouse_id[]" id="wid" type="hidden" value="{{ $item->warehouse_id}} " >
+            <select  class="form-control select2" readonly disabled >
+                <option value="">{{ $warehouseName }}</option>
+            </select>
         </div>
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="available_amount"> تعداد موجود </label>

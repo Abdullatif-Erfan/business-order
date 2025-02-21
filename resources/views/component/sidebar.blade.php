@@ -88,14 +88,6 @@
                     </li>
                 @endif
 
-                @if(auth()->user()->hasAccess('transfer', 'list') && $packageId >= 1)
-                    <li class="nav-item">
-                        <a href="{{ $base_url }}/movements">
-                            <i class="fas fa-exchange-alt"></i>
-                            <p> انتقالات اجناس</p>
-                        </a>
-                    </li>
-                @endif
 
                 @if(auth()->user()->hasAccess('gudam', 'list') && $packageId >= 1)
                     <li class="nav-item">
@@ -134,12 +126,12 @@
                         <div class="collapse" id="selling">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="{{ $base_url }}/showSalesForm"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('sales.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> فروشات جدید</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ $base_url }}/salesList"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('sales.index')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> لیست فروشات</span>
                                     </a>
                                 </li>

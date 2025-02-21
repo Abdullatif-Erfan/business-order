@@ -88,11 +88,11 @@ class WarehouseListController extends Controller
             })
 
             ->addColumn('available_total', function ($WarehouseItem) {
-                return $WarehouseItem->available_total ? number_format($WarehouseItem->available_total) : '';
+                return $WarehouseItem->available_total ? number_format($WarehouseItem->available_total,2) : '';
             })
            
             ->addColumn('wastage_total', function ($WarehouseItem) {
-                return $WarehouseItem->wastage_total ? number_format($WarehouseItem->wastage_total) : '';
+                return $WarehouseItem->wastage_total ? number_format($WarehouseItem->wastage_total,2) : '';
             })
            
             ->addColumn('view', function ($WarehouseItem) {
@@ -157,7 +157,8 @@ class WarehouseListController extends Controller
         ]);
 
         DB::beginTransaction();
-        try {
+        try 
+        {
             // **Source Warehouse**
             $sourceWareHouseItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
             
@@ -179,6 +180,7 @@ class WarehouseListController extends Controller
 
             if (!$distWareHouseItem) 
             {
+                \Log::info('Create New Record in Warehouse during transfer');
                 // Create new record in destination warehouse
                 $distWareHouseItem = new WarehouseItem();
                 $distWareHouseItem->warehouse_id = $validated['distination_warehouse_id'];
@@ -208,10 +210,11 @@ class WarehouseListController extends Controller
             } 
             else 
             {
-                // Increase stock in destination warehouse
-                $distWareHouseItem->available_amount += $validated['amount'];
+                \Log::info('Increase stock in destination warehouse');
+                $total_available_amount = $distWareHouseItem->available_amount + $validated['amount'];
+                $distWareHouseItem->available_amount = $total_available_amount;
                 $distWareHouseItem->in_amount += $validated['amount'];
-                $distWareHouseItem->available_total += ($validated['amount'] * $sourceWareHouseItem->avg_up);
+                $distWareHouseItem->available_total = ($total_available_amount * $distWareHouseItem->avg_up);
                 $distWareHouseItem->save();
             }
 
@@ -269,18 +272,9 @@ class WarehouseListController extends Controller
         DB::beginTransaction();
         try 
         {
-
-          $result =  $this->createOrUpdateWarehouseItems($request);
-
-          if(!$result) {
-             DB::rollBack(); // Rollback transaction if failed
-             return response()->json([
-                 'status' => 'failed', 
-                 'message' => 'این جنس قبلا با دیگر واحد ثبت شده بودند و فقط یک نوع واحد میتوانید انتخاب نمایید'
-                ], 201); 
-          }
-
-         DB::commit();
+          $this->createOrUpdateWarehouseItems($request);
+          
+          DB::commit();
          return response()->json(['status' => 'success'], 201); 
 
         } catch (\Exception $e) {
@@ -362,6 +356,7 @@ class WarehouseListController extends Controller
         {
             $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
                 ->where('buy_pre_id', $request->pre_list_id)
+                ->where('unit_id', $request->unit_id)
                 ->first();
     
             $warehouseAmount = $request->warehouse_amount[$index];
@@ -369,36 +364,27 @@ class WarehouseListController extends Controller
     
             if ($WarehouseItem) 
             {
-                // Ensure unit_id matches before updating
-                if ($request->unit_id == $WarehouseItem->unit_id) 
-                {
-                    $available_amounts = $WarehouseItem->available_amount + $warehouseAmount;
-                    $new_avg_up = ($available_amounts > 0) ? (($WarehouseItem->available_total + $new_total) / $available_amounts) : 0;
-                    $new_available_total = $available_amounts * $new_avg_up;
-    
-                    // Update existing warehouse item
-                    $warehouseItemsToUpdate[] = [
-                        'id' => $WarehouseItem->id,
-                        'in_amount' => $WarehouseItem->in_amount + $warehouseAmount,
-                        'available_amount' => $available_amounts,
-                        'wastage_amount' => $WarehouseItem->wastage_amount,
-                        'wastage_total' => $WarehouseItem->wastage_total,
-                        'bought_up' => $request->bought_up,
-                        'avg_up' => $new_avg_up,
-                        'total' => $WarehouseItem->total + $new_total,
-                        'available_total' => $new_available_total,
-                        'sell_up' => $request->warehouse_sell_up[$index],
-                        'notification_amount' => $request->notification_amount ?? 0,
-                        'inserted_by' => $insertedBy,
-                        'expire_date' => $request->expire_date ?? null,
-                        'times' => $request->times,
-                    ];
-                } 
-                else 
-                {
-                    \Log::error("Item exists with a different unit_id for warehouse_id: $warehouseId");
-                    return false;
-                }
+                $available_amounts = $WarehouseItem->available_amount + $warehouseAmount;
+                $new_avg_up = ($available_amounts > 0) ? (($WarehouseItem->available_total + $new_total) / $available_amounts) : 0;
+                $new_available_total = $available_amounts * $new_avg_up;
+
+                // Update existing warehouse item
+                $warehouseItemsToUpdate[] = [
+                    'id' => $WarehouseItem->id,
+                    'in_amount' => $WarehouseItem->in_amount + $warehouseAmount,
+                    'available_amount' => $available_amounts,
+                    'wastage_amount' => $WarehouseItem->wastage_amount,
+                    'wastage_total' => $WarehouseItem->wastage_total,
+                    'bought_up' => $request->bought_up,
+                    'avg_up' => $new_avg_up,
+                    'total' => $WarehouseItem->total + $new_total,
+                    'available_total' => $new_available_total,
+                    'sell_up' => $request->warehouse_sell_up[$index],
+                    'notification_amount' => $request->notification_amount ?? 0,
+                    'inserted_by' => $insertedBy,
+                    'expire_date' => $request->expire_date ?? null,
+                    'times' => $request->times,
+                ];
             } 
             else 
             {

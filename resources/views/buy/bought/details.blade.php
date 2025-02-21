@@ -13,6 +13,17 @@
 </script>
 @endif
 
+<style>
+.price-section {
+    background-color: #f6f6f6;
+}
+.final-total{
+    background-color:#436fa7;
+    color: #fff;
+    font-size: 20px;
+    font-weight:bolder;
+}
+</style>
 
 <div class="main-panel">
     <div class="content">
@@ -30,10 +41,10 @@
                             </h4>
                         </div>
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
-                            <div class="form-body" style="padding: 0px 0px 15px !important;" id="print_area">
+                            <div class="form-body" style="padding: 0px 0px 15px !important;">
                            
                                 <div class="container col-md-12 col-sm-12 col-xs-12" style="padding: 10px 10px;">
-                                    <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
+                                   
                                     <table style="width:100%">
                                          <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="4">
@@ -109,18 +120,21 @@
 
                                 <div class=" visible-print" style="width:100%;margin: 35px 0px; overflow:hidden; height: 24px;color:#000"> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ </div>
 
-                                <div class="container col-md-12 col-sm-12 col-xs-12 visible-print">
+                                <div class="container col-md-12 col-sm-12 col-xs-12 visible-print" id="print_area">
+                                 <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
                                     <table style="width:100%">
                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="4">
+                                            <td colspan="2">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
-                                            <td>   واحد پولی: {{ $boughtItems->first()->currency->name ?? '' }}</td>
                                             <td>تاریخ ثبت : {{ $boughtItems->first()->idate ?? '' }}</td>
                                             <td>نمبر بل : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
+                                            <td>   کاربر : {{ $boughtItems->first()->iby ?? '' }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -137,7 +151,6 @@
                                                     <th>قیمت مجموعی</th>
                                                     <th>تخفیف</th>
                                                     <th>ترانسپورت</th>
-                                                    <th>تاریخ انقضا</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -152,34 +165,78 @@
                                                     <td>{{ number_format($detail->total,2) }}</td>
                                                     <td>{{ number_format($detail->discount,2) }}</td>
                                                     <td>{{ number_format($detail->transport,2) }}</td>
-                                                    <td>{{ $detail->expire_date }}</td>
                                                 </tr>
                                                 @endforeach
+                                                <tr>
+                                                    <td colspan="5" rowspan="7" style="padding: 40px;">
+                                                        <div class="col-md-12" style="border:2px dotted #999; min-height:80px;background-color:#f8f8f8;border-top-right-radius:10px; border-bottom-left-radius:10px; padding: 10px;">
+                                                            نوت : ...
+                                                        </div>
+                                                         <div class="col-md-12 m-t-20">
+                                                              <br>
+                                                             <strong>
+                                                                 <h3>مهر و امضا ---------------------</h3>
+                                                             </strong>
+                                                         </div>
+                                                    </td>
+                                                    <td colspan="2" class="price-section">مجموع بل</td>
+                                                    <td colspan="2" class="price-section">
+                                                        {{ number_format($boughtItems->first()->total_price) ?? '' }}
+                                                        {{ $boughtItems->first()->currency->name ?? '' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" class="price-section">  تخفیف </td>
+                                                    <td colspan="2" class="price-section">
+                                                        {{ number_format($boughtItems->first()->trans_spend,2) ?? '' }}
+                                                        {{ $boughtItems->first()->currency->name ?? '' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" class="price-section">  قابل پرداخت </td>
+                                                    <td colspan="2" class="price-section">
+                                                        {{ number_format($boughtItems->first()->cur_pay,2) ?? '' }}
+                                                        {{ $boughtItems->first()->currency->name ?? '' }}
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td colspan="2" class="price-section"> پرداخت فعلی  </td>
+                                                    <td colspan="2" class="price-section">
+                                                         {{ number_format($boughtItems->first()->payable,2) ?? '' }}
+                                                         {{ $boughtItems->first()->currency->name ?? '' }}
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td colspan="2" class="price-section">  باقی  </td>
+                                                    <td colspan="2" class="price-section">
+                                                          {{ number_format($boughtItems->first()->remained,2) ?? '' }}
+                                                          {{ $boughtItems->first()->currency->name ?? '' }}
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td colspan="2" class="price-section"> بقایای سابقه   </td>
+                                                    <td colspan="2" class="price-section">
+                                                        ???
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" class="final-total">  مجموع عمومی   </td>
+                                                    <td colspan="2" class="final-total">
+                                                        ???
+                                                    </td>
+                                                </tr>
+                                                
                                             </tbody>
                                         </table>
                                     </div>
-                                    <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
-                                        <tr>
-                                            <td>مجموع پول &nbsp; </td>
-                                            <td>{{ number_format($boughtItems->first()->total_price) ?? '' }}</td>
-                                            <td> تخفیف </td>
-                                            <td>{{ number_format($boughtItems->first()->discount) ?? '' }}</td>
-                                            <td> مصارف ترانسپورت </td>
-                                            <td>{{ number_format($boughtItems->first()->trans_spend,2) ?? '' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td> قابل پرداخت</td>
-                                            <td>{{ number_format($boughtItems->first()->payable,2) ?? '' }}</td>
-                                            <td> پرداخت فعلی</td>
-                                            <td>{{ number_format($boughtItems->first()->cur_pay,2) ?? '' }}</td>
-                                            <td> باقی </td>
-                                            <td>{{ number_format($boughtItems->first()->remained,2) ?? '' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>نوت</td>
-                                            <td colspan="5">{{$boughtItems->first()->note}}</td>
-                                        </tr>
-                                    </table>
+
+
+                               
+
+
                                 </div>
 
                                 <!-- buttons -->

@@ -74,7 +74,7 @@
 
                         <form id="editWarehouseForm" action="{{ route('warehousesList.update') }}" method="POST">
                         <input type="hidden" name="id" id="whid" value={{ $warehouseItems->first()->warehouse_id }} >
-                        <input type="hidden"  id="deleteId" name="updateId" value={{ $warehouseItems->first()->id }} >
+                        <input type="hidden"  id="warehouseItemId" name="updateId" value={{ $warehouseItems->first()->id }} >
 
                         @csrf
                         @method('PATCH') 
@@ -110,16 +110,16 @@
                                 </tr>
                                 <tr>
                                     <th> مقدار ورود</th>
-                                    <td><input type="number"  step="0.01" id="in_amount" name="in_amount" class="form-control" value="{{ $warehouseItems->first()->in_amount ?? '' }}" readonly></td>
+                                    <td><input type="number"  step="0.01" id="in_amount" name="in_amount" class="form-control" value="{{ $warehouseItems->first()->in_amount ?? '' }}" readonly min="0"></td>
                                     <th> مقدار خروج</th>
-                                    <td><input type="number"  step="0.01" id="out_amount" name="out_amount" class="form-control" value="{{ $warehouseItems->first()->out_amount ?? '' }}" readonly></td>
+                                    <td><input type="number"  step="0.01" id="out_amount" name="out_amount" class="form-control" value="{{ $warehouseItems->first()->out_amount ?? '' }}" readonly min="0"></td>
                                 </tr>
 
                                 <tr>
                                     <th> خرید آخر فی واحد</th>
-                                    <td><input type="number"  step="0.01" id="bought_up" name="bought_up" class="form-control" value="{{ $warehouseItems->first()->bought_up ?? '' }}" readonly></td>
+                                    <td><input type="number"  step="0.01" id="bought_up" name="bought_up" class="form-control" value="{{ $warehouseItems->first()->bought_up ?? '' }}" readonly min="0"></td>
                                     <th> قیمت فروش فی واحد</th>
-                                    <td><input type="number" id="sell_up"  step="0.01" name="sell_up" class="form-control" value="{{ $warehouseItems->first()->sell_up ?? '' }}" readonly></td>
+                                    <td><input type="number" id="sell_up"  step="0.01" name="sell_up" class="form-control" value="{{ $warehouseItems->first()->sell_up ?? '' }}" readonly min="0"></td>
                                 </tr>
                                 
                                 <tr>
@@ -131,7 +131,7 @@
                                 
                                 <tr>
                                     <th> مقدار هشدار</th>
-                                    <td><input type="number" id="notification_amount" name="notification_amount" class="form-control"  value="{{ $warehouseItems->first()->notification_amount ?? '' }}" readonly></td>
+                                    <td><input type="number" id="notification_amount" name="notification_amount" class="form-control"  value="{{ $warehouseItems->first()->notification_amount ?? '' }}" min="0" readonly></td>
                                     <th> تاریخ انقضا</th>
                                     <td>
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
@@ -143,7 +143,7 @@
 
                                 <tr>
                                      <th>ضایعات</th>
-                                    <td><input type="number" id="wastage_amount" name="wastage_amount" class="form-control" value="{{ $warehouseItems->first()->wastage_amount ?? '' }}" readonly></td>
+                                    <td><input type="number" id="wastage_amount" name="wastage_amount" class="form-control" value="{{ $warehouseItems->first()->wastage_amount ?? '' }}" readonly  min="0" ></td>
                                     <th>قیمت ضایعات</th>
                                     <td><input type="number" step="0.01" id="wastage_total" name="wastage_total" class="form-control" value="{{ $warehouseItems->first()->wastage_total ?? '' }}" readonly></td>
                                 </tr>
@@ -230,7 +230,7 @@
 
     function transferItems()
     {
-        var id = $('#whid').val();
+        var id = $('#warehouseItemId').val();
         $('#transferModal').modal('show');   
         $('#loading').show();
         $.ajax({
@@ -278,16 +278,24 @@
     }
 
 
+  function calculateWastagePrice(wastage_amount)
+  {
+      var available_amount = parseFloat($('#available_amount').val()) || 0;
+      var wamount = parseFloat(wastage_amount) || 0;
+      var result = available_amount - wamount;
+    //   $('#wastage_total').val(result.toFixed(2));
+     $('#available_amount').val(result.toFixed(2));
+  }
 
  //  delete an item
  function deleteAnItem()
  {
     var whid = $('#whid').val();
-    var deleteId = $('#deleteId').val();
+    var warehouseItemId = $('#warehouseItemId').val();
 
-    if (deleteId && confirm('آیا میخواهید حذف نمایید؟')) {
+    if (warehouseItemId && confirm('آیا میخواهید حذف نمایید؟')) {
             $.ajax({
-                url: `/warehousesList/delete/${deleteId}`,
+                url: `/warehousesList/delete/${warehouseItemId}`,
                 type: 'DELETE',
                 data: { _token: '{{ csrf_token() }}' },
                 success: (response) => 

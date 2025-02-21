@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('warehouse_sales', function (Blueprint $table) {
             $table->id();
             $table->integer('billno')->nullable();
+            $table->string('factor')->nullable();
             $table->foreignId('warehouse_item_id');
             $table->foreignId('account_id');
+            $table->foreignId('branch_id')->nullable();
             $table->foreignId('customer_account_id');
             $table->string('item_name');
             $table->foreignId('unit_id');

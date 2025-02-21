@@ -16,6 +16,8 @@ use App\Http\Controllers\Buy\BuyPreListController;
 use App\Http\Controllers\Buy\BoughtController;
 use App\Http\Controllers\Buy\BoughtDetailsController;
 use App\Http\Controllers\Warehouse\WarehouseListController;
+use App\Http\Controllers\Sales\SalesController;
+
 
 
 
@@ -80,9 +82,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/warehousesList/create', [WarehouseListController::class, 'create'])->name('warehousesList.create');
     Route::post('/warehousesList/store', [WarehouseListController::class, 'store'])->name('warehousesList.store');
     Route::delete('/warehousesList/delete/{id}', [WarehouseListController::class, 'destroy'])->name('warehousesList.delete');
-
-
-
 
     // unit
     Route::get('/units', [UnitController::class, 'index'])->name('units.list');
@@ -150,10 +149,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/boughtList/getSingleRecordForEdit/{id}',[BoughtDetailsController::class,'getSingleRecordForEdit'])->name('boughtList.getSingleRecordForEdit');
     Route::post('/boughtList/updateItemAndWarehouseItems',[BoughtDetailsController::class, 'updateItemAndWarehouseItems'])->name('boughtList.updateItemAndWarehouseItems');
     Route::get('/boughtList/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
-    
     Route::get('/boughtList/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
     Route::get('/boughtList/destroy/{billno}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy');
     Route::post('/boughtList/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])->name('boughtList.deleteSingleItem');
     Route::get('/boughtList/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit');
+
+    // Sales
+    Route::get('/sales',[SalesController::class,'index'])->name('sales.index');
+    Route::get('/sales/create',[SalesController::class,'create'])->name('sales.create');
+    Route::post('/sales/store',[SalesController::class,'store'])->name('sales.store');
+
 
 });

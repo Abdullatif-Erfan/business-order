@@ -7,13 +7,18 @@
             <input type="hidden" id="times" name="times" value={{ $times  }} >
 
 
-            <div class="alert alert-success"> به تعداد {{ $boughtItemDetailsAmount }} جنس از کدام گدام میخواهید کم شود ؟</div>
+            <div class="alert alert-success"> به تعداد {{ $boughtItemDetailsAmount }} {{ $units->first()->name ?? '' }} {{ $preListName ?? ''}}  از کدام گدام میخواهید کم شود ؟</div>
         </div>
         @foreach($warehouseItems as $item)
+        @php
+            $warehouseName = $item->warehouseRelation ? $item->warehouseRelation->name : 'Not Found';
+        @endphp
         <div class="col-md-4 col-sm-4 col-xs-6">
             <label for="name"> گدام </label>
-            <input  name="warehouse_id[]" id="wid" type="hidden" value={{$item->warehouse_id}} >
-            <input class="form-control" name="name" id="name" type="text" readonly value={{ $item->warehouseRelation->name }} >
+            <input  name="warehouse_id[]" id="wid" type="hidden" value="{{ $item->warehouse_id }} " >
+            <select  class="form-control select2" readonly disabled >
+                <option value="">{{ $warehouseName }}</option>
+            </select>
         </div>
         <div class="col-md-4 col-sm-4 col-xs-6">
             <label for="available_amount"> تعداد موجود </label>
