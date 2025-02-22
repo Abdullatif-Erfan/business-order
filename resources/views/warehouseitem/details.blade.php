@@ -126,7 +126,7 @@
                                     <th> نرخ اوسط فی واحد</th>
                                     <td><input type="number" id="avg_up"  step="0.01" name="avg_up" class="form-control" value="{{ $warehouseItems->first()->avg_up ?? '' }}" readonly oninput="updateAvailAbleTotal(this.value)"></td>
                                     <th> مجموع ارزش جنس موجود</th>
-                                    <td><input type="number"  step="0.01" id="available_total" name="available_total" class="form-control" value="{{ $warehouseItems->first()->available_total ?? '' }}" readonly></td>
+                                    <td><input type="number"  step="0.01" id="available_total" name="available_total" class="form-control" value="{{ $warehouseItems->first()->available_amount * $warehouseItems->first()->avg_up ?? '' }}" readonly></td>
                                 </tr>
                                 
                                 <tr>

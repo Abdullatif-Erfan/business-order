@@ -156,8 +156,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Sales
     Route::get('/sales',[SalesController::class,'index'])->name('sales.index');
+    Route::get('/sales/data',[SalesController::class,'getData'])->name('sales.data');
     Route::get('/sales/create',[SalesController::class,'create'])->name('sales.create');
     Route::post('/sales/store',[SalesController::class,'store'])->name('sales.store');
+    Route::get('/sales/details/{billno}',[SalesController::class,'details'])->name('sales.details');
+    Route::get('/sales/edit/{billno}',[SalesController::class,'edit'])->name('sales.edit');
+    Route::get('/sales/getSingleRecordForEdit/{id}',[SalesController::class,'getSingleRecordForEdit'])->name('sales.getSingleRecordForEdit');
+    Route::post('/sales/updateSalesAndWarehouseItems',[SalesController::class, 'updateSalesAndWarehouseItems'])->name('sales.updateSalesAndWarehouseItems');
+    Route::post('/sales/update',[SalesController::class,'update'])->name('sales.update');
+    Route::post('/sales/deleteSingleItem/{id}',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem');
+    Route::get('/sales/destroy/{id}',[SalesController::class,'destroy'])->name('sales.destroy');
+
+
+
+    
+
 
 
 });

@@ -207,10 +207,8 @@ class HomeController extends BaseController
             day as sold_day,
             (SELECT COALESCE(SUM(payable), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as total_sales,
             (SELECT COALESCE(SUM(cur_pay), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as cur_pay,
-            (SELECT COALESCE(SUM(remained), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as remained,
-            (SELECT COALESCE(SUM(profit), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as profit
+            (SELECT COALESCE(SUM(remained), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as remained
         ', array_merge(
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
             [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
             [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
             [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : [])
@@ -489,7 +487,7 @@ class HomeController extends BaseController
         $profit = DB::table('warehouse_sales')
             ->where('currency_id', $currency_id)
             ->where('year', $year)
-            ->sum('profit');
+            ->sum('total_price');
 
         // Return results as an array
         return [

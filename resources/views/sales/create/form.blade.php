@@ -2,6 +2,19 @@
 
 @section('content')
 
+@if(Session::has('notification'))
+    @php
+        $notification = Session::get('notification');
+    @endphp
+    <script>
+    // Show the notification using the data from the session
+    $(document).ready(function(){
+        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
+    });
+</script>
+@endif
+
+
 <style>
 
 table.new thead tr th{background-color:#fff !important; color:#000 !important;text-align:center;}
@@ -19,14 +32,15 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم خریداری  
+                            <h4 class="card-title">فورم فروشات  
                                 <span class="pull-left">
-                                    <a href="{{ url('boughtList') }}">
+                                    <a href="{{ route('sales.index') }}">
                                         <button class="btn mybtn bg-default"> برگشت به لیست </button>
                                     </a>
                                 </span>
                                 
-                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10"> نوت:</strong>دریک بل نمبر صرف خرید یک مشتری را ثبت نمایید</small>
+                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10"> 
+                                 نوت : </strong>دریک بل نمبر صرف فروش به یک مشتری را ثبت نمایید </small>
                             </h4>
                         </div>
 
@@ -40,16 +54,24 @@ select.select2{text-align:right !important;direction:rtl !important;}
                             <div class="form-body" style="padding: 0px 0px 15px !important;">
                                 <div class="row" style="padding: 10px 20px;">
 
-                                     <div class="col-md-12">
-                                         <div class="col-md-12" style="display:none" id="errorWrapper">
+                                @if ($errors->any())
+                                    <div class="col-md-12">
+                                        <div class="col-md-12">
                                             <div class="row">
-                                                <!-- <div class="alert alert-danger col-12 " id="validationErrors"></div> -->
-                                                <div class="alert alert-danger col-12" id="validationErrors">
-                                                    <span class="fa fa-times close-error" style="cursor: pointer; float: left; margin-left: 10px;"></span>
+                                                <div class="alert alert-danger col-12" role="alert">
+                                                    <button type="button" class="close pull-left" data-dismiss="alert" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                    <ul>
+                                                        @foreach ($errors->all() as $error)
+                                                            <li>{{ $error }}</li>
+                                                        @endforeach
+                                                    </ul>
                                                 </div>
                                             </div>
-                                         </div>
-                                     </div>
+                                        </div>
+                                    </div>
+                                @endif
 
                                      
 
@@ -124,7 +146,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left" >
                                             </div>
                                             <div class="col-3 col-xs-6">
-                                            <a href="salesList">
+                                            <a href="{{ route('sales.index') }}">
                                             <button type="button"  class="form-control btn bg-danger">لغو</button>
                                             </a>
                                             </div>
@@ -312,7 +334,6 @@ function submiteBuyingForm()
 </script>
 
 <script>
-
 // Function to check sum validation
 function validateWarehouseAmounts() 
 {

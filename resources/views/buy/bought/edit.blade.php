@@ -23,6 +23,12 @@
     $curPay=0;
     $count = 0;
 @endphp
+
+<style>
+.tableTdPadding td {
+    padding: 10px !important;
+}
+</style>
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -142,7 +148,7 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
+                                        <table class="table table-bordered new tableTdPadding" style="background-color:#f6f6f6; width:100%;margin-top:20px">
                                             <tr>
                                                 <td>مجموع پول &nbsp; </td>
                                                 <td><input type="number" step="0.01"  class="form-control" name="total_price" id="total_price" required readonly

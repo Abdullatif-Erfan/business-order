@@ -88,7 +88,7 @@ class WarehouseListController extends Controller
             })
 
             ->addColumn('available_total', function ($WarehouseItem) {
-                return $WarehouseItem->available_total ? number_format($WarehouseItem->available_total,2) : '';
+                return $WarehouseItem->avg_up ? number_format($WarehouseItem->avg_up * $WarehouseItem->available_amount,2) : '';
             })
            
             ->addColumn('wastage_total', function ($WarehouseItem) {

@@ -23,8 +23,13 @@
                                 data-unit-name="{{ $item->unit_name }}"
                                 data-unit-id="{{ $item->unit_id }}"
                                 data-avg-up="{{ $item->avg_up }}"
-                                data-sell-up="{{ $item->sell_up }}">
-                                {{$item->item_name}} ({{ $item->available_amount }} {{ $item->unit_name }})
+                                data-sell-up="{{ $item->sell_up }}"
+                                data-branch-id="{{ $item->branch_id }}"
+                                data-warehouse-id="{{ $item->warehouse_id }}"
+                                data-pre-list-id="{{ $item->pre_list_id }}"
+                                >
+                                {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})
+                                - {{ $item->warehouse_name }}
                             </option>
                         @endforeach
                     </select>
@@ -32,7 +37,11 @@
                 <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="تعداد" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
-                    <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>
+                    <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>
+                    <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
+                    <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly required>
+                    <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
+
                 </td>
                 <td><input name="avg_up[]" class="form-control avg-up" type="number" step="0.01" readonly required></td>
                 <td><input name="sell_up[]" class="form-control sell-up" type="number" required></td>
@@ -52,10 +61,11 @@
 </div>
 
 
+
+
 <script>
 $(document).ready(function () 
 {
-
      // Function to toggle required attribute when row is shown or hidden
      function toggleRequiredAttribute(row, isVisible) {
         row.find('.item-select, .amount, .sell-up').each(function () {
@@ -116,7 +126,7 @@ $(document).ready(function ()
             totalDiscount += parseFloat($(this).val()) || 0;
         });
 
-        $('#general_discount').val(totalDiscount.toFixed(2));
+        $('#total_discount').val(totalDiscount.toFixed(2));
         var total_price = parseFloat($('#total_price').val()) || 0;
         var payable = total_price - totalDiscount;
         $('#payable').val(payable.toFixed(2));
@@ -126,7 +136,7 @@ $(document).ready(function ()
 
     function updatePayableAmount() {
     var totalPrice = parseFloat($('#total_price').val()) || 0;
-    var totalDiscount = parseFloat($('#general_discount').val()) || 0;
+    var totalDiscount = parseFloat($('#total_discount').val()) || 0;
     var payable = totalPrice - totalDiscount;
     $('#payable').val(payable.toFixed(2));
 }
@@ -137,6 +147,10 @@ $(document).ready(function ()
 
         var unitName = selectedOption.data('unit-name');
         var unitId = selectedOption.data('unit-id');
+        var branchId = selectedOption.data('branch-id');
+        var warehouseId = selectedOption.data('warehouse-id');
+        var preListId = selectedOption.data('pre-list-id');
+
         var avgUp = selectedOption.data('avg-up');
         var sellUp = selectedOption.data('sell-up');
         var availableAmount = selectedOption.data('available-amount');
@@ -144,6 +158,9 @@ $(document).ready(function ()
         var row = $(this).closest('tr');
         row.find('.unit-name').val(unitName);
         row.find('.unit-id').val(unitId);
+        row.find('.branch-id').val(branchId);
+        row.find('.warehouse-id').val(warehouseId);
+        row.find('.pre-list-id').val(preListId);
         row.find('.avg-up').val(avgUp);
         row.find('.sell-up').val(sellUp);
         row.find('.amount').data('max', availableAmount);

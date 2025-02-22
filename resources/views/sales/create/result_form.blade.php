@@ -3,8 +3,8 @@
     <td> مبلغ مجموعی </td>
     <td><input type="number" name="total_price" id="total_price" value="0" class="form-control" step="0.01" required></td>
     <td> مجموع تخفیف </td>
-    <td><input type="number" name="general_discount" id="general_discount"  
-    step="0.01" class="form-control" required></td>
+    <td><input type="number" name="total_discount" id="total_discount"  
+    step="0.01" class="form-control" readonly required></td>
     <td> قابل پرداخت</td>
     <td><input type="number" name="payable" id="payable" class="form-control" step="0.01" required></td>
 </tr>
