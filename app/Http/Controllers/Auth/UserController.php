@@ -5,8 +5,14 @@ namespace App\Http\Controllers\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
-use App\Models\Auth\User; 
+use App\Models\User; 
+use App\Models\Auth\Role; 
+use App\Models\Setting\OrgBio;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
@@ -36,7 +42,54 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        // $users = User::with(['roleRelationName'])->orderBy('created_at','DESC')->get();
+        // return ['users' => $users];
+        $orgbios = OrgBio::all();
+        return view('management.users.list',compact('orgbios'));
+    }
+
+
+    public function getData(Request $request)
+    {
+          
+            
+          $users = User::with(['roleRelationName'])->orderBy('created_at','DESC');
+           
+            
+            return DataTables::of($users->get())
+            
+            ->addIndexColumn()
+           
+            ->addColumn('photo', function ($user) {
+                $imagePath = !empty($user->photo) && file_exists(storage_path('app/public/' . $user->photo))
+                    ? asset('storage/' . $user->photo)
+                    : asset('storage/user_photos/no_image.png');
+            
+                return '<img src="' . $imagePath . '" alt="image" class="avatar-img rounded" style="width:30px;margin:2px 0px;">';
+            })
+
+
+            ->addColumn('priviledge', function ($user) {
+                return $user->isAdmin ? 'ادمین' : $user->roleRelationName->role;
+            })
+
+            ->addColumn('relogin', function ($user) {
+                return '<a href="login/relogin/'.$user->id.'" class="hidden-print"><i class="fas fa-retweet" 
+                data-id="' . $user->id . '" style="font-size:20px;"></i></a>'; 
+            })
+
+            ->addColumn('edit', function ($user) {
+                return '<a href="user/edit/'.$user->id.'" class="hidden-print"><i class="fas fa-pen" 
+                data-id="' . $user->id . '" style="font-size:20px;"></i></a>'; 
+            })
+
+            ->addColumn('delete', function ($user) {
+                return '<a href="user/delete/'.$user->id.'" onclick="doConfirm()" class="hidden-print"><i class="fa fa-trash" 
+                data-id="' . $user->id . '" style="font-size:20px; color:red"></i></a>'; 
+            })
+            ->rawColumns(['photo','relogin','edit','delete'])
+            ->make(true);
+
     }
 
     /**
@@ -44,7 +97,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $roles = Role::all();
+        $orgbios = OrgBio::all();
+        return view('management.users.create',compact('roles','orgbios'));
     }
 
     /**
@@ -52,7 +107,34 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // return ['data' => $request->all()];
+        $validated = $request->validate([
+            'full_name' => 'required|string|min:5|max:128',
+            'user_name' => 'required|string|min:5|max:128|unique:users,user_name',
+            'email' => 'nullable|email|max:128|unique:users,email',
+            'password' => 'required|string|min:6|max:20|confirmed',
+            'roleId' => 'required|exists:roles,roleId',
+            'isAdmin' => 'required|boolean',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $user = new User();
+        $user->full_name = $validated['full_name'];
+        $user->user_name = $validated['user_name'];
+        $user->email = $validated['email'];
+        $user->password = Hash::make($validated['password']);
+        $user->roleId = $validated['roleId'];
+        $user->isAdmin = $validated['isAdmin'];
+        $user->createdBy = auth()->id();
+
+        if ($request->hasFile('photo')) {
+            $user->photo = $request->file('photo')->store('user_photos', 'public');
+        }
+
+        $user->save();
+
+        Session::flash('notification', ['message' => 'موفقانه ثبت گردید', 'type' => 'success']);
+        return redirect()->route('user.index');
     }
 
     /**
@@ -68,22 +150,82 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $roles = Role::all();
+        $orgbios = OrgBio::all();
+        $user = User::findOrFail($id);
+
+        return view('management.users.edit',compact('roles','orgbios','user'));
     }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
-    {
-        //
+    {  
+        $id = $id ?? 0;
+        // Validate the incoming data
+        $validated = $request->validate([
+            'full_name' => 'required|string|min:5|max:128',
+            'user_name' => 'required|string|min:5|max:128|unique:users,user_name,' . $id,
+            'email' => 'nullable|email|max:128|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:6|max:20|confirmed',
+            'roleId' => 'required|exists:roles,roleId',
+            'isAdmin' => 'required|boolean',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+    
+        // Find the user
+        $user = User::findOrFail($id);
+    
+        // Update the user data
+        $user->full_name = $request->input('full_name');
+        $user->user_name = $request->input('user_name');
+        $user->email = $request->input('email');
+        $user->roleId = $request->input('roleId');
+        $user->isAdmin = $request->input('isAdmin');
+    
+        // Update password if provided
+        if ($request->filled('password')) 
+        {
+            $user->password = Hash::make($request->input('password'));
+        }
+    
+        // Handle photo upload
+       
+        if ($request->hasFile('photo')) {
+            // Delete the old photo if it exists
+            if ($user->photo && Storage::exists('public/user_photos/' . $user->photo)) {
+                Storage::delete('public/user_photos/' . $user->photo);
+            }
+        
+            $user->photo = $request->file('photo')->store('user_photos', 'public');
+        }
+
+
+        // Save the updated user data
+        $user->save();
+
+        Session::flash('notification', ['message' => 'موفقانه ویرایش گردید', 'type' => 'success']);
+        return redirect()->route('user.index');
+
     }
+    
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function delete(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        if($user)
+        {
+            $user->delete();
+            Session::flash('notification', ['message' => 'موفقانه حذف گردید', 'type' => 'danger']);
+            return redirect()->route('user.index');
+        }
+
+        Session::flash('notification', ['message' => ' حذف نگردید', 'type' => 'danger']);
+        return redirect()->route('user.index');
+
     }
 }

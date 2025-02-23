@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Home;
 
-use App\Http\Controllers\Controller;
-// use App\Http\Controllers\BaseController;
+// use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session; // Import Session facade
 use Illuminate\Support\Facades\Auth; // Import Auth facade
@@ -15,12 +15,12 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Setting\Currency;
 
 
-// class HomeController extends BaseController
-class HomeController extends Controller
+class HomeControllerBkp extends BaseController
 {
     protected $module;
     public function __construct()
     {
+        $this->isLoggedIn();
         $this->module = 'dashboard';	
     }
 
@@ -37,13 +37,7 @@ class HomeController extends Controller
         //  $user = auth()->user();
  
         //  // Retrieve session data
-         $sessionData = Session::all();
-        //  return ['sessionData' => $sessionData];
-         return ['sessionData' => $sessionData['accessInfo'][$this->module]];
-
-
-        // $auth = auth()->user();
-        // return ['auth' => $auth];
+        //  $sessionData = Session::all();
  
         //  // Debugging: Display login status, user, and session data
         //  dd([
@@ -52,21 +46,85 @@ class HomeController extends Controller
         //      'sessionData' => $sessionData,
         //  ]);
 
+        // ----------------- test BaseController Variables -------------
+        // return response()->json(['global' =>$this->global]);
+        // return response()->json(['isAdmin' => $this->isAdmin]);
+        // return response()->json(['isAdmin' => $this->isAdmin()]);
+        // return response()->json(['hasListAccess' => $this->hasListAccess()]);
+        
+        // --------------------- get page data ----------------
+        
+        // $global_data = ['global' => $this->global];
+        // $page_data = ['global' => $data];
 
+        // return view('dashboard.dashboard', compact('global_data','page_data'));
+
+        if(!$this->hasListAccess())
+        {
+			// pre($this->global);
+            $this->loadThis($this->global);
+        }
+        else
+        {
+            // dd(
+            //     ['message' => 'hasListAccess']
+            // );
+
+            $data['year'] = $request->input('year', FunctionHelper::curYear()); 
+            $data['month'] = $request->input('month', FunctionHelper::curMonth()); 
+            $data['day'] = $request->input('day', FunctionHelper::curDay()); 
+
+    
+            // ------------------------- Currency --------------------------------
+            
+            $data['currency'] = Currency::select('id','name')->orderBy('id','ASC')->get()->toArray();
+            // ManagementHelper::pre($data);
+            
+			// filter by branch if submitted
+			if (request()->has('currency_id')) {
+                $data['currency_id'] = request()->input('currency_id');
+                
+                $data['cur_currency'] = Currency::select('id', 'name')
+                    ->where('id', $data['currency_id'])
+                    ->orderBy('id', 'ASC')
+                    ->get()
+                    ->toArray();
+            
+                $data['currency_name'] = $data['cur_currency'][0]->name ?? null; // Handle cases where no result is found
+            } else {
+                $data['currency_id'] = $data['currency'][0]['id'] ?? null;
+                $data['currency_name'] = $data['currency'][0]['name'] ?? null;
+            }
+            // ManagementHelper::pre($data);
+            
+             // ----------------------------- / First Tab ------------------------
+             /**
+             * transaction_type: 1: recieved , 2:paid
+             * payment_type    : 1: cache,    2:loan
+             */
+
+			 // first tab
+			 $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id']);
+			 $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id']);
+			 $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id']);
+             
+             
             if(ManagementHelper::activePackageId() >= 2) 
             {
                  $data['secondTabData'] = $this->getGeneralData4SecondTab($data['year'],$data['currency_id']);
 				 $data['cache_in_hand'] = $this->getCashInHandAmount($data['currency_id'],$data['year'],$data['month'],$data['day']);
-            }  
-             //  ManagementHelper::pre($data);
+            }
+                
+            //  ManagementHelper::pre($data);
 			
-             // $msg=$this->session->flashdata('msg');    
-             $global_data = ['global' => $this->global];
+            // $msg=$this->session->flashdata('msg');    
+            $global_data = ['global' => $this->global];
           
+
 
             return view('dashboard.dashboard', compact('global_data','data'));
             // $this->messages->showMessage($msg);
-		// }
+		}
     }
 
 

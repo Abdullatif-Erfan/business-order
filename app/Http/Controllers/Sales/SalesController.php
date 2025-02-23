@@ -15,12 +15,6 @@ use Morilog\Jalali\Jalalian;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
 
-// use App\Models\Setting\Unit;
-// use App\Models\Buy\BuyPreList;
-// use App\Models\Buy\BoughtItem;
-// use App\Models\Buy\BoughtItemDetails; 
-// use App\Models\Journal\Journal;
-// use App\Models\Setting\Warehouse;
 use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
 use App\Models\Warehouse\SalesDetails;

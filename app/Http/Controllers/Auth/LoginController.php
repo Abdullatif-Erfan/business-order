@@ -69,6 +69,9 @@ class LoginController extends Controller
         // return response()->json(['data' => $user]);
         // dd($user->roleRelationName->status);
         // dd($user->roleRelationName);
+        // return ['roleRelationName' => $user->roleRelationName];
+        // return ['user' => $user];
+
 
         if ($user && Hash::check($password, $user->password)) {
             if ($user->isAdmin != 1 && ($user->roleRelationName->status == 2 || $user->roleRelationName->isDeleted == 1)) {
@@ -247,13 +250,16 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+         // Logout the user based on the guard being used
+        Auth::guard('web')->logout(); // Replace 'web' with your actual guard if different
+
         // Clear all session data
         Session::flush();
 
-        // Log the user out using Laravel's auth system
-        auth()->logout();
+        // Regenerate session token
+        $request->session()->regenerateToken();
 
-        // Redirect to the login page
+        // Redirect to login page with a success message
         return redirect()->route('login')->with('success', 'شما با موفقیت خارج شدید');
     }
 

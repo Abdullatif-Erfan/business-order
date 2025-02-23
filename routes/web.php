@@ -42,7 +42,32 @@ Route::get('/createUser',[UserController::class,'createUser'])->name('createUser
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/role',[RoleController::class,'index'])->name('role');
+
+    Route::prefix('roles')->group(function() {
+        Route::get('/', [RoleController::class, 'index'])->name('roles.index'); 
+        Route::get('/create', [RoleController::class, 'create'])->name('roles.create'); 
+        Route::post('/store', [RoleController::class, 'store'])->name('roles.store'); 
+        Route::get('/edit/{roleId}', [RoleController::class, 'edit'])->name('roles.edit'); 
+        Route::patch('/update/{roleId}', [RoleController::class, 'update'])->name('roles.update');
+        Route::get('/destroy/{roleId}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
+
+        // permissions
+        Route::get('/permissions/{roleId}',[RoleController::class, 'permissions'])->name('roles.permissions');
+        Route::post('/permissions/store_permission', [RoleController::class, 'store_permission'])->name('roles.permissions.store_permission');
+    });
+
+
+    Route::prefix('user')->group(function(){
+        Route::get('/',[UserController::class, 'index'])->name('user.index');
+        Route::get('/data',[UserController::class, 'getData'])->name('user.data');
+        Route::get('/create',[UserController::class, 'create'])->name('user.create');
+        Route::get('/edit/{id}',[UserController::class, 'edit'])->name('user.edit');
+        Route::post('/store',[UserController::class, 'store'])->name('user.store');
+        Route::patch('/update/{id}',[UserController::class, 'update'])->name('user.update');
+        Route::get('/delete/{id}',[UserController::class, 'delete'])->name('user.delete');
+    });
+
+
     Route::get('/home',[HomeController::class,'index'])->name('home');
     Route::prefix('home')->group(function () {
         Route::post('warehouse_item_notify_amount', [HomeController::class, 'warehouseItemNotifyAmount'])->name('home.warehouse_item_notify_amount');
@@ -51,7 +76,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('get_expire_date_list',[HomeController::class,'expiredWarehouseItems'])->name('home.get_expire_date_list');
     });
 
-    Route::post('login.logout',[LoginController::class,'logout'])->name('login.logout');
+    Route::get('login.logout',[LoginController::class,'logout'])->name('login.logout');
+    Route::get('login/relogin/{id}',[LoginController::class,'relogin'])->name('login.relogin');
 
     // setting
     Route::get('setting',[SettingController::class,'index'])->name('setting');

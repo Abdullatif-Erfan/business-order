@@ -130,7 +130,6 @@
         });
     </script>
         
-
     <!-- Inject script from a view -->
     @stack('scripts')
 

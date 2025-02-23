@@ -150,12 +150,12 @@
                         <div class="collapse" id="user">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="{{ $base_url }}/management/roles"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('roles.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> رول</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ $base_url }}/management/user"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('user.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> کاربران</span>
                                     </a>
                                 </li>
