@@ -13,11 +13,16 @@
                 <th> شماره تماس </th><td>{{ $account->phone }}</td>
                 <th> آدرس </th><td>{{ $account->address }}</td>
               </tr>
+              <tr>
+                  <th>فیصدی</th><td>{{ $account->percent > 0  ? $account->percent .' % ' : '' }}</td>
+                  <th> حساب پیش فرض</th><td>{{ $account->is_pre_select == 1 ? 'بلی':'نخیر' }}</td>
+              </tr>
 
            </table>
           </div>
           
             
+            @if($journals->count() > 0)
             <div class="col-12">
               <hr />
                <h3>رسید حساب سابقه</h3>
@@ -45,6 +50,7 @@
                     </div>
                 </div>
                 <!-- /form repeater -->
+            @endif
 
 
     </div>

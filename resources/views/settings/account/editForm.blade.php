@@ -6,7 +6,7 @@
           
            <div class="form-group col-sm-6">
                 <label for="account_type_id"> انتخاب نوع حساب </label>
-                <select class="form-control"  name="account_type_id"  required>
+                <select class="form-control"  name="account_type_id"  onchange="checkAccountTypeEdit(this.value)"  required>
                     <option value="{{ $account->account_type_id }}">  {{ $account->accountType->name }} </option>
                     <option value="">انتخاب نوع حساب</option>
                     @foreach($accountTypes as $accountType)
@@ -34,9 +34,29 @@
                 <span id="addressError" class="text-danger"></span>
             </div>
 
+            @if($account->account_type_id == 5)
+            <div class="form-group col-sm-6" id="percent">
+                <label for="percent"> فیصدی </label>
+                <input type="number" class="form-control" name="percent" value="{{ $account->percent }}"  placeholder="فیصدی سهم این سهامدار را بنویسید">
+                <span id="percentError" class="text-danger"></span>
+            </div>
+            @endif
+
+            
+            @if($account->account_type_id == 1)
+            <div class="form-group col-sm-6" id="is_pre_select">
+                <label for="is_pre_select"> انتخاب حساب پیش فرض / دیفالت </label>
+                <select class="form-control" name="is_pre_select" >
+                    <option value="{{ $account->is_pre_select }}">{{ $account->is_pre_select == 1 ? 'بلی':'نخیر' }}</option>
+                    <option value="0">نخیر</option>
+                    <option value="1">بلی</option>
+                </select>
+            </div>
+            @endif
+
 
             @if(count($branchs) >= 2)
-            <div class="form-group col-sm-12">
+            <div class="form-group col-sm-6">
                 <label for="account_type_id"> انتخاب شعبه </label>
                 <select class="form-control"  name="branch_id" required>
                     <option value="">انتخاب  شعبه</option>
@@ -153,3 +173,22 @@
     
 </form>
 
+<script>
+ function checkAccountTypeEdit(account_type_id)
+ {
+     if(parseInt(account_type_id) === 5) {
+        $('#percent').fadeIn(1);
+        $('#is_pre_select').fadeOut(1);
+     } 
+     else if(parseInt(account_type_id) === 1) 
+     {
+         $('#is_pre_select').fadeIn(1);
+         $('#percent').fadeOut(1);
+     }
+     else 
+     {
+        $('#percent').fadeOut(1);
+        $('#is_pre_select').fadeOut(1);
+     }
+ }
+</script>

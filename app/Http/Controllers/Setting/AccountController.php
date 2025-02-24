@@ -87,6 +87,8 @@ class AccountController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
+            'is_pre_select' => 'nullable|numeric',
+            'percent'       => 'nullable|numeric',
         ],$messages);
 
         DB::beginTransaction();
@@ -208,6 +210,8 @@ class AccountController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
+            'is_pre_select' => 'nullable|numeric',
+            'percent'       => 'nullable|numeric',
         ],$messages);
 
         DB::beginTransaction();

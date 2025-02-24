@@ -22,6 +22,8 @@
                                 <li><a data-toggle="tab"  href="#unit">واحد اجناس</a></li>
                                 <li><a data-toggle="tab"  href="#currency">واحد پولی</a></li>
                                 <li><a data-toggle="tab"  href="#account"> حساب  </a></li>
+                                <li><a data-toggle="tab"  href="#income_type"> کتگوری عواید  </a></li>
+                                <li><a data-toggle="tab"  href="#expense_type"> کتگوری مصارف  </a></li>
                             </ul>
 
                             <div class="tab-content">
@@ -61,7 +63,7 @@
 								</div>
 						        <!-- / unit -->
                              
-                            <!-- currency -->
+                              <!-- currency -->
                               <div id="currency" class="tab-pane fade">
                                     <br> 
                                     @if(auth()->user()->hasAccess('settings','create_records')) 
@@ -70,9 +72,9 @@
                                     <br>  
                                     @include('settings.currency.list') 
 								</div>
-						<!-- /currency -->
+						       <!-- /currency -->
 
-                        <!-- account -->
+                               <!-- account -->
                                 <div id="account" class="tab-pane fade">
                                    <br> 
                                     @if(auth()->user()->hasAccess('settings','create_records')) 
@@ -81,8 +83,30 @@
                                     <br>  
                                     @include('settings.account.list') 
 								</div>
-						<!-- /account -->
+					        	<!-- /account -->
 
+                                <!-- income_type -->
+                                <div id="income_type" class="tab-pane fade"> 
+                                       <br> 
+                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+									       @include('settings.income_type.add')
+                                        @endif
+								       <br>  
+                                       @include('settings.income_type.list')      
+								</div>
+						        <!-- / income_type -->
+
+
+                                <!-- expense_type -->
+                                <div id="expense_type" class="tab-pane fade"> 
+                                       <br> 
+                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+									       @include('settings.expense_type.add')
+                                        @endif
+								       <br>  
+                                       @include('settings.expense_type.list')      
+								</div>
+						        <!-- / expense_type -->
                               
                             </div>
                         </div>
@@ -143,7 +167,12 @@ $(document).ready(function () {
             fetchCurrencyList();
         } else if (target === '#account') {
             fetchAccountList();
+        } else if (target === '#income_type') {
+            fetchIncomeTypeList();
         }
+        else if (target === '#expense_type') {
+            fetchExpenseTypeList();
+        } 
     });
 });
 </script>

@@ -10,7 +10,8 @@ use App\Models\Buy\BoughtItem;
 class Account extends Model
 {
     //
-    protected $fillable = ['account_type_id','branch_id','name','phone','address','description'];
+
+    protected $fillable = ['account_type_id','branch_id','name','phone','address','description','is_pre_select','percent'];
 
     // an account type has many accounts
     // account is belongs to accountType

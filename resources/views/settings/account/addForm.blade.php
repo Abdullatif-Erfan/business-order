@@ -5,7 +5,7 @@
           
            <div class="form-group col-sm-6">
                 <label for="account_type_id"> انتخاب نوع حساب </label>
-                <select class="form-control"  name="account_type_id" required>
+                <select class="form-control"  name="account_type_id" required onchange="checkAccountType(this.value)">
                     <option value="">انتخاب نوع حساب</option>
                     @foreach($accountTypes as $accountType)
                     <option value="{{ $accountType->id }}">{{ $accountType->name }}</option>
@@ -32,8 +32,22 @@
                 <span id="addressError" class="text-danger"></span>
             </div>
 
+            <div class="form-group col-sm-6" id="percent" style="display:none;">
+                <label for="percent"> فیصدی </label>
+                <input type="number" class="form-control" name="percent"  placeholder="فیصدی سهم این سهامدار را بنویسید">
+                <span id="percentError" class="text-danger"></span>
+            </div>
+
+            <div class="form-group col-sm-6" id="is_pre_select" style="display:none;">
+                <label for="is_pre_select"> انتخاب حساب پیش فرض / دیفالت </label>
+                <select class="form-control" name="is_pre_select" >
+                    <option value="0">نخیر</option>
+                    <option value="1">بلی</option>
+                </select>
+            </div>
+
             @if(count($branchs) >= 2)
-            <div class="form-group col-sm-12">
+            <div class="form-group col-sm-6">
                 <label for="account_type_id"> انتخاب شعبه </label>
                 <select class="form-control"  name="branch_id" required>
                     <option value="">انتخاب  شعبه</option>
@@ -101,4 +115,22 @@
 </form>
 
 
-
+<script>
+ function checkAccountType(account_type_id)
+ {
+     if(parseInt(account_type_id) === 5) {
+        $('#percent').fadeIn(1);
+        $('#is_pre_select').fadeOut(1);
+     } 
+     else if(parseInt(account_type_id) === 1) 
+     {
+         $('#is_pre_select').fadeIn(1);
+         $('#percent').fadeOut(1);
+     }
+     else 
+     {
+        $('#percent').fadeOut(1);
+        $('#is_pre_select').fadeOut(1);
+     }
+ }
+</script>
