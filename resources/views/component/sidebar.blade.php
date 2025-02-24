@@ -165,12 +165,12 @@
                 @endif
 
                 @if(!empty($packageId))
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a href="{{ $base_url }}/settings/backup">
                             <i class="fas fa-database"></i>
                             <p> نسخه پشتبان</p>
                         </a>
-                    </li>
+                    </li> -->
                 @endif
             </ul>
         </div>

@@ -20,10 +20,6 @@ use App\Http\Controllers\Sales\SalesController;
 
 
 
-
-
-
-
 // Route::get('/', function () {
 //     return 'Laravel is working!';
 // });
@@ -83,11 +79,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('setting',[SettingController::class,'index'])->name('setting');
 
     // Branch
-    Route::get('/branches', [BranchController::class, 'index'])->name('branches.list');
-    Route::post('/branches', [BranchController::class, 'store'])->name('branches');
-    Route::get('/branches/{id}', [BranchController::class, 'show'])->name('branches.show');
-    Route::patch('/branches/{id}', [BranchController::class, 'update'])->name('branches.update'); 
-    Route::delete('/branches/{id}', [BranchController::class, 'destroy'])->name('branches.destroy');
+    // Route::prefix('branches')->group(function(){
+    //     Route::get('/', [BranchController::class, 'index'])->name('branches.list')->middleware('access:settings,list');
+    //     Route::post('/', [BranchController::class, 'store'])->name('branches')->middleware('access:settings,create_records');
+    //     Route::get('/{id}', [BranchController::class, 'show'])->name('branches.show')->middleware('access:settings,list');
+    //     Route::patch('/{id}', [BranchController::class, 'update'])->name('branches.update')->middleware('access:settings,edit_records');
+    //     Route::delete('/{id}', [BranchController::class, 'destroy'])->name('branches.destroy')->middleware('access:settings,delete_records');
+    // });
+
+    Route::prefix('branches')->group(function(){
+        Route::get('/', [BranchController::class, 'index'])->name('branches.list');
+        Route::post('/', [BranchController::class, 'store'])->name('branches');
+        Route::get('/{id}', [BranchController::class, 'show'])->name('branches.show');
+        Route::patch('/{id}', [BranchController::class, 'update'])->name('branches.update');
+        Route::delete('/{id}', [BranchController::class, 'destroy'])->name('branches.destroy');
+    });
+
 
     // Warehouse
     Route::get('/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
@@ -165,20 +172,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/bought/destroy/{times}',[BoughtController::class,'destroy'])->name('bought.destroy');
 
     // BoughtDetailsController
-    Route::get('/boughtList',[BoughtDetailsController::class,'index'])->name('boughtList.index');
-    Route::get('/boughtList/data',[BoughtDetailsController::class,'getData'])->name('boughtList.data');
-    Route::get('/boughtList/create',[BoughtDetailsController::class,'create'])->name('boughtList.create');
-    Route::post('/boughtList/store',[BoughtDetailsController::class,'store'])->name('boughtList.store');
-    Route::post('/boughtList/submit',[BoughtDetailsController::class,'submit'])->name('boughtList.submit');
-    Route::post('/boughtList/update',[BoughtDetailsController::class,'update'])->name('boughtList.update');
-    Route::get('/boughtList/checkBillNoDuplication',[BoughtDetailsController::class, 'checkBillNoDuplication'])->name('boughtList.checkBillNoDuplication');
-    Route::get('/boughtList/getSingleRecordForEdit/{id}',[BoughtDetailsController::class,'getSingleRecordForEdit'])->name('boughtList.getSingleRecordForEdit');
-    Route::post('/boughtList/updateItemAndWarehouseItems',[BoughtDetailsController::class, 'updateItemAndWarehouseItems'])->name('boughtList.updateItemAndWarehouseItems');
-    Route::get('/boughtList/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
-    Route::get('/boughtList/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
-    Route::get('/boughtList/destroy/{billno}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy');
-    Route::post('/boughtList/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])->name('boughtList.deleteSingleItem');
-    Route::get('/boughtList/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit');
+    Route::prefix('boughtList')->group(function(){
+        Route::get('/',[BoughtDetailsController::class,'index'])->name('boughtList.index')->middleware('access:gen_buy,list');
+        Route::get('/data',[BoughtDetailsController::class,'getData'])->name('boughtList.data');
+        Route::get('/create',[BoughtDetailsController::class,'create'])->name('boughtList.create')->middleware('access:gen_buy,create_records');
+        Route::post('/store',[BoughtDetailsController::class,'store'])->name('boughtList.store')->middleware('access:gen_buy,create_records');
+        Route::post('/submit',[BoughtDetailsController::class,'submit'])->name('boughtList.submit')->middleware('access:gen_buy,create_records');
+        Route::post('/update',[BoughtDetailsController::class,'update'])->name('boughtList.update')->middleware('access:gen_buy,edit_records');
+        Route::get('/checkBillNoDuplication',[BoughtDetailsController::class, 'checkBillNoDuplication'])->name('boughtList.checkBillNoDuplication');
+        Route::get('/getSingleRecordForEdit/{id}',[BoughtDetailsController::class,'getSingleRecordForEdit'])->name('boughtList.getSingleRecordForEdit');
+        Route::post('/updateItemAndWarehouseItems',[BoughtDetailsController::class, 'updateItemAndWarehouseItems'])->name('boughtList.updateItemAndWarehouseItems');
+        Route::get('/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
+        Route::get('/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
+        Route::get('/destroy/{billno}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy')->middleware('access:gen_buy,delete_records');;
+        Route::post('/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])
+               ->name('boughtList.deleteSingleItem')->middleware('access:gen_buy,delete_records');
+        Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:gen_buy,edit_records');;
+    });
+
 
     // Sales
     Route::get('/sales',[SalesController::class,'index'])->name('sales.index');

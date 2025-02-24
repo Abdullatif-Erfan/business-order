@@ -24,9 +24,9 @@
                              * === در نهایت =====
                              *  سرمایه شرکت  = پول نقد + طلبات + اجناس موجود - قرضه
                              */
-                            $cache_balance  = $secondTabData[0]['banks_income'] - $secondTabData[0]['banks_outcome'];
-                            $warehouse_price = $secondTabData[0]['total_stock'] - $secondTabData[0]['total_sales'];
-                            $total_asset = (($cache_balance +  $warehouse_price + $secondTabData[0]['total_talab']) - $secondTabData[0]['total_loan']);
+                            $cache_balance  = 1000;
+                            $warehouse_price = 2000;
+                            $total_asset = 3000;
 
                             // $total_assets = $cache_balance + $secondTabData[0]['total_talab'] - $secondTabData[0]['total_loan']; 
                             echo number_format($total_asset,2);
@@ -72,7 +72,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> مفاد فروشات </p>
-                            <h4 class="card-title"><?=number_format($secondTabData[0]['profit'],2)?></h4>
+                            <h4 class="card-title">123</h4>
                         </div>
                     </div>
                 </div>
@@ -92,8 +92,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> طلبات </p>
-                            <h4 class="card-title"><?php
-                            echo    number_format($secondTabData[0]['total_talab'],2)?></h4>
+                            <h4 class="card-title">123</h4>
                         </div>
                     </div>
                 </div>
@@ -114,7 +113,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category">قرضه</p>
-                            <h4 class="card-title"><?=number_format($secondTabData[0]['total_loan'],2)?></h4>
+                            <h4 class="card-title">123</h4>
                         </div>
                     </div>
                 </div>
@@ -123,7 +122,7 @@
     </div>
     
     
-    <?php $final_result =  $secondTabData[0]['total_talab'] - $secondTabData[0]['total_loan']; ?>
+    <?php $final_result =  2 - 1; ?>
         <?php if(intval($final_result) < 0) { ?>
             <div class="col-sm-6 col-md-4">
             <div class="card card-stats card-round" style="border: 1px solid #ff6600;background: linear-gradient(45deg, #ffffff, #ffd1d1)">

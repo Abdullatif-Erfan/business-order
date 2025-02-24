@@ -57,6 +57,13 @@ class HomeControllerBkp extends BaseController
         // $global_data = ['global' => $this->global];
         // $page_data = ['global' => $data];
 
+        // $accessInfo = Session::get('accessInfo', []);
+        // return ['accessInfo' => $accessInfo];
+
+        // $auth = auth()->user();
+        // return ['auth' => $auth];
+ 
+
         // return view('dashboard.dashboard', compact('global_data','page_data'));
 
         if(!$this->hasListAccess())

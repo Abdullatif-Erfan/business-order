@@ -7,66 +7,63 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session; // Import Session facade
 use Illuminate\Support\Facades\Auth; // Import Auth facade
-use App\Helpers\ManagementHelper;
-use App\Helpers\FunctionHelper;
+// use App\Helpers\ManagementHelper;
+// use App\Helpers\FunctionHelper;
+use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
-
-
+use App\Models\Warehouse\WarehouseSales;
+use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
+use App\Models\Setting\Account;
+use App\Models\Journal\Journal;
+use App\Models\Warehouse\SalesDetails;
 
 
 // class HomeController extends BaseController
 class HomeController extends Controller
 {
-    protected $module;
-    public function __construct()
-    {
-        $this->module = 'dashboard';	
-    }
-
+    
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        // --------------- test session data and auth data ------------
-        //  // Check if user is logged in
-        //  $isLoggedIn = auth()->check();
-
-        //  // Get the currently logged-in user (if any)
-        //  $user = auth()->user();
- 
-        //  // Retrieve session data
-         $sessionData = Session::all();
-        //  return ['sessionData' => $sessionData];
-         return ['sessionData' => $sessionData['accessInfo'][$this->module]];
-
-
-        // $auth = auth()->user();
-        // return ['auth' => $auth];
- 
-        //  // Debugging: Display login status, user, and session data
-        //  dd([
-        //      'isLoggedIn' => $isLoggedIn,
-        //      'user' => $user,
-        //      'sessionData' => $sessionData,
-        //  ]);
+        $data['year'] = $request->input('year') ?? Jalalian::now()->format('Y');
+        $data['month'] = $request->input('month') ?? Jalalian::now()->format('n');
+        $data['day'] = $request->input('day') ?? Jalalian::now()->format('d');
+        $data['currency'] = Currency::select('id','name')->orderBy('id','ASC')->get()->toArray();
+        
+        if (request()->has('currency_id')) {
+            $data['currency_id'] = request()->input('currency_id');
+            
+            $data['cur_currency'] = Currency::select('id', 'name')
+                ->where('id', $data['currency_id'])
+                ->orderBy('id', 'ASC')
+                ->get()
+                ->toArray();
+        
+            $data['currency_name'] = $data['cur_currency'][0]->name ?? null; // Handle cases where no result is found
+        } else {
+            $data['currency_id'] = $data['currency'][0]['id'] ?? null;
+            $data['currency_name'] = $data['currency'][0]['name'] ?? null;
+        }
 
 
-            if(ManagementHelper::activePackageId() >= 2) 
-            {
-                 $data['secondTabData'] = $this->getGeneralData4SecondTab($data['year'],$data['currency_id']);
-				 $data['cache_in_hand'] = $this->getCashInHandAmount($data['currency_id'],$data['year'],$data['month'],$data['day']);
-            }  
-             //  ManagementHelper::pre($data);
-			
-             // $msg=$this->session->flashdata('msg');    
-             $global_data = ['global' => $this->global];
-          
+        /**
+         * transaction_type: 1: recieved , 2:paid
+         * payment_type    : 1: cache,    2:loan
+         */
 
-            return view('dashboard.dashboard', compact('global_data','data'));
-            // $this->messages->showMessage($msg);
-		// }
+        // first tab
+        $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id']);
+        $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id']);
+        $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id']);
+        
+        // Third Tab
+        // $data['cache_in_hand'] = $this->getCashInHandAmount($data['currency_id'],$data['year'],$data['month'],$data['day']);
+        // return ['data' => $data];
+
+        return view('dashboard.dashboard', compact('data'));
     }
 
 
@@ -142,223 +139,93 @@ class HomeController extends Controller
     function getTodaysSoldIncome($year, $month, $day, $currency_id)
     {
         
-        $results = DB::table('warehouse_sales')
-        ->selectRaw('
-            year as sold_year, 
-            month as sold_month, 
-            day as sold_day,
-            (SELECT COALESCE(SUM(payable), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as total_sales,
-            (SELECT COALESCE(SUM(cur_pay), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as cur_pay,
-            (SELECT COALESCE(SUM(remained), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as remained
-        ', array_merge(
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : [])
-        ))
-        ->where('currency_id', $currency_id)
-        ->where('year', $year)
-        ->when(intval($month) > 0 && intval($month) <= 12, function ($query) use ($month) {
-            $query->where('month', $month);
-        })
-        ->when(intval($day) > 0 && intval($day) <= 31, function ($query) use ($day) {
-            $query->where('day', $day);
-        })
-        ->limit(1)
-        ->get();
+        $todays_soled = WarehouseSales::selectRaw('SUM(total_price) as total_price, SUM(total_discount) as total_discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained')
+        ->where('year','=',$year)
+        ->where('month','=',$month)
+        ->where('day','=',$day)
+        ->where('currency_id','=',$currency_id)
+        ->first();
 
-        if ($results->isEmpty()) {
-            return [
-                'sold_year'    => $year,
-                'sold_month'   => $month ?: null,
-                'sold_day'     => $day ?: null,
-                'total_sales'  => 0,
-                'cur_pay'      => 0,
-                'remained'     => 0,
-                'profit'       => 0,
-            ];
-        }
+        // $todays_sold_profits = DB::table('sales_details')
+        // ->selectRaw('SUM(profit) as profit')
+        // ->join('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id') 
+        // ->where('warehouse_sales.currency_id', '=', $currency_id) 
+        // ->where('warehouse_sales.year', '=', $year)
+        // ->where('warehouse_sales.month', '=', $month)
+        // ->where('warehouse_sales.day', '=', $day)
+        // ->first();
+        
+        $todays_sold_profits = SalesDetails::whereHas('warehouseSale', function ($query) use ($currency_id, $year, $month, $day) {
+            $query->where('currency_id', $currency_id)
+                  ->where('year', $year)
+                  ->where('month', $month)
+                  ->where('day', $day);
+        })
+        ->sum('profit');
+    
+        return [
+            'total_price'     => $todays_soled->total_price ?? 0,
+            'total_discount'  => $todays_soled->total_discount ?? 0,
+            'payable'         => $todays_soled->payable ?? 0,
+            'cur_pay'         => $todays_soled->cur_pay ?? 0,
+            'remained'        => $todays_soled->remained ?? 0,
+            'profit'          => $todays_sold_profits ?? 0
+        ];
 
-        return $results;
     }
 
     function getTodaysBoughtData($year, $month, $day, $currency_id)
     {
-        $query = DB::table('bought_items')
-            ->selectRaw('
-                year as bought_year,
-                month as bought_month,
-                day as bought_day,
-                COALESCE((
-                    SELECT SUM(payable)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as total_bought',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->selectRaw('
-                COALESCE((
-                    SELECT SUM(cur_pay)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as cur_pay',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->selectRaw('
-                COALESCE((
-                    SELECT SUM(remained)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as remained',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->selectRaw('
-                COALESCE((
-                    SELECT SUM(trans_spend)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as trans_spend',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->where('currency_id', $currency_id)
-            ->where('year', $year)
-            ->when(intval($month) > 0 && intval($month) <= 12, function ($query) use ($month) {
-                $query->where('month', $month);
-            })
-            ->when(intval($day) > 0 && intval($day) <= 31, function ($query) use ($day) {
-                $query->where('day', $day);
-            })
-            ->limit(1)
-            ->get();
+        $todays_bought = BoughtItem::selectRaw('SUM(total_price) as total_price, SUM(discount) as discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained, SUM(trans_spend) as trans_spend')
+        ->where('year','=',$year)
+        ->where('month','=',$month)
+        ->where('day','=',$day)
+        ->where('currency_id','=',$currency_id)
+        ->first();
 
-        // Return the result, or an empty array if no data is found
-        return $query->isEmpty() ? [] : $query->first();
+       
+        return [
+            'total_price'     => $todays_bought->total_price ?? 0,
+            'discount'        => $todays_bought->discount ?? 0,
+            'payable'         => $todays_bought->payable ?? 0,
+            'cur_pay'         => $todays_bought->cur_pay ?? 0,
+            'remained'        => $todays_bought->remained ?? 0,
+            'trans_spend'     => $todays_bought->trans_spend ?? 0,
+        ];
+
     }
 
 
     function getCashIncomeOutcome($year, $month, $day, $currency_id)
     {
-        $cache = 1000; // تمام پول نقد به شمول خزانه ٬ صرافی و بانک ها
-        $income = 2000;
-        $expense = 3000;
-        $customers = 4000; // مشتریان و فروشندگان
-        $employees = 5000; // کارمندان
-        $khazana_account_id = 4;
 
-        $query = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('year', $year)
-            ->where('currency', $currency_id);
+        $journal_income = DB::table('journals')
+            ->selectRaw('SUM(amount) as total_income')
+            ->join('accounts', 'accounts.id', '=', 'journals.account_id') 
+            ->where('accounts.account_type_id', '=', 1) 
+            ->where('journals.year', '=', $year)
+            ->where('journals.month', '=', $month)
+            ->where('journals.day', '=', $day)
+            ->where('journals.currency_id', '=', $currency_id)
+            ->where('journals.transaction_type', '=', 1)
+            ->first(); 
 
-        if (intval($month) > 0 && intval($month) <= 12) {
-            $query->where('month', $month);
-        }
+        $journal_outcome = DB::table('journals')
+            ->selectRaw('SUM(amount) as total_outcome')
+            ->join('accounts', 'accounts.id', '=', 'journals.account_id') 
+            ->where('accounts.account_type_id', '=', 1) 
+            ->where('journals.year', '=', $year)
+            ->where('journals.month', '=', $month)
+            ->where('journals.day', '=', $day)
+            ->where('journals.currency_id', '=', $currency_id)
+            ->where('journals.transaction_type', '=', 2)
+            ->first(); 
 
-        if (intval($day) > 0 && intval($day) <= 31) {
-            $query->where('day', $day);
-        }
 
-        // Cash income to the treasury
-        $khazana_income = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->where('journals.account_id', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Cash outcome from the treasury
-        $khazana_outcome = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->where('journals.account_id', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Cash income to the banks
-        $banks_income = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->where('journals.account_id', '!=', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Cash outcome from the banks
-        $banks_outcome = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->where('journals.account_id', '!=', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Total spent cash
-        $total_spend = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Total income cash
-        $total_incomes = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Prepare the result
-        $result = [
-            'khazana_income' => $khazana_income ?? 0,
-            'khazana_outcome' => $khazana_outcome ?? 0,
-            'banks_income' => $banks_income ?? 0,
-            'banks_outcome' => $banks_outcome ?? 0,
-            'total_spend' => $total_spend ?? 0,
-            'total_incomes' => $total_incomes ?? 0,
+        return [
+            'total_income' => $journal_income->total_income ?? 0,
+            'total_outcome' => $journal_outcome->total_outcome ?? 0,
         ];
-
-        // If no data is found, return 0
-        if (empty($result)) {
-            return 0;
-        }
-
-        return $result;
     }
 
     // --------------------- SECOND TAB ---------------------------

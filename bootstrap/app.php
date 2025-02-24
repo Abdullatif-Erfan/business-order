@@ -11,7 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // $middleware->append(\App\Http\Middleware\AccessMiddleware::class);
+        $middleware->alias([
+            'access' => \App\Http\Middleware\AccessMiddleware::class,
+        ]);
+
+        // $middleware->validateCsrfTokens(except: [
+        //     'boughtList/*',
+        // ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

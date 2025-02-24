@@ -55,17 +55,8 @@
                 </div>
             </div>
         </div>
-
+   
         <!-- tab -->
-        @if(1 == 1) {{-- Replace condition with package check --}}
-        <div class="col-12 tab-wrapper">
-            @include('dashboard.first-tab.todays_search')
-            @include('dashboard.first-tab.todays_card')
-            @if(1 === 1) {{-- Replace with currency check --}}
-                @include('dashboard.first-tab.graph')
-            @endif
-        </div>
-        @elseif(2 >= 2) {{-- Replace condition with active package check --}}
         <div class="col-12 tab-wrapper">
             <ul class="nav my_nave nav-tabs" id="myTab2">
                 <li class="active"><a data-toggle="tab" href="#todaysTransaction">معاملات امروز</a></li>
@@ -76,11 +67,9 @@
             <div class="tab-content">
                 <!-- todaysTransaction -->
                 <div id="todaysTransaction" class="tab-pane fade in active">
-                    @include('dashboard.first-tab.todays_search')
-                    @include('dashboard.first-tab.todays_card')
-                    @if(1 === 1) {{-- Replace with currency check --}}
-                        @include('dashboard.first-tab.graph')
-                    @endif
+                     @include('dashboard.first-tab.todays_search')
+                     @include('dashboard.first-tab.todays_card')
+                      {{--   @include('dashboard.first-tab.graph') --}}
                 </div>
                 <!-- / todaysTransaction -->
 
@@ -99,26 +88,11 @@
                 <!-- / cache -->
             </div>
         </div>
-        @else
-        <h1>لطفا یکی از پکیج هارا انتخاب نمایید</h1>
-        @endif
+       
         <!-- / tab -->
 
     </div>
     @include('component.footer-text')
 </div>
 
-<!-- modal -->
-<div id="edit_modal" class="modal fade in" role="dialog" aria-labelledby="edit_modal" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-blue3">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h5 class="modal-title">ویرایش</h5>
-            </div>
-            <div class="modal-body" id="EditData"></div>
-        </div>
-    </div>
-</div>
-<!-- /modal -->
 @endsection

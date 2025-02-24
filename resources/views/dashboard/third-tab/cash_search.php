@@ -5,7 +5,7 @@
         <div class="col-md-3 col-sm-6 col-xs-6">
             <select  class="form-control mt-1 mb-1" 
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="year"> 
-                <option value="<?=$year?>"><?=$year?></option>
+                <option value="{{ $data['year'] }}">{{ $data['year'] }}</option>
                 <option value="">-- انتخاب سال -- </option>
                 <?php for($i=1400; $i<=1440; $i++)
                 { ?>
@@ -18,12 +18,12 @@
         <div class="col-md-3 col-sm-6  col-xs-6">
             <select  class="form-control mt-1 mb-1" 
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="month"> 
-                <option value="<?=$month?>"><?=show_this_month($month)?></option>
+                <option value="{{ $data['month'] }}">{{ $data['month'] }}</option>
                 <option value=""> -- انتخاب  ماه -- </option>
                 <option value="100"> همه </option>
                 <?php for($i=1; $i<=12; $i++)
                 { ?>
-                    <option  value="<?=$i?>"><?=show_this_month($i)?></option>
+                    <option  value="<?=$i?>"><?=$i?></option>
                 <?php } ?>
             </select>
         </div>
@@ -31,7 +31,7 @@
         <div class="col-md-3 col-sm-6  col-xs-6">
             <select  class="form-control mt-1 mb-1" 
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="day"> 
-                <option value="<?=$day?>"><?=intval($day) === 100 ? "همه" : $day?></option>
+                <option value="{{ $data['day'] }}"><?=intval($data['day'] ) === 100 ? "همه" : $data['day'] ?></option>
                 <option value=""> -- انتخاب  روز -- </option>
                 <option value="100"> همه </option>
                 <?php for($i=1; $i<=31; $i++)

@@ -8,11 +8,11 @@
                     style="width: 100%; border:1px solid #ddd !important;" 
                     aria-hidden="true" 
                     name="currency_id">
-                    <option value="<?= $currency_id ?>"><?= $currency_name ?></option>
-                    <option value="">-- انتخاب پول --</option>
-                    <?php foreach ($currency as $key => $val): ?>
-                        <option value="<?= $val['id'] ?>"><?= $val['name'] ?></option>
-                    <?php endforeach; ?>
+                    <option value="{{ $data['currency_id'] }}"> {{ $data['currency_name'] }} </option>
+                    <option value="">-- انتخاب کرنسی --</option>
+                    @foreach($data['currency'] as $key => $val)
+                        <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -22,7 +22,7 @@
                     style="width: 100%; border:1px solid #ddd !important;" 
                     aria-hidden="true" 
                     name="year">
-                    <option value="<?= $year ?>"><?= $year ?></option>
+                    <option value="{{ $data['year'] }}">{{ $data['year'] }}</option>
                     <option value="">-- انتخاب سال --</option>
                     <?php for ($i = 1400; $i <= 1440; $i++): ?>
                         <option value="<?= $i ?>"><?= $i ?></option>

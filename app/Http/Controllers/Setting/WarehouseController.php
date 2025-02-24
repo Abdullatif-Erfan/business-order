@@ -15,7 +15,7 @@ class WarehouseController extends Controller
     public function index(Request $request)
     {
 
-         $sessionData = Session::all();
+        //  $sessionData = Session::all();
         // $sessionData = Session::get('isAdmin');
  
          // Debugging: Display login status, user, and session data
@@ -26,17 +26,17 @@ class WarehouseController extends Controller
 
         if ($request->ajax()) {
 
-            if($sessionData['isAdmin']){
+            // if($sessionData['isAdmin']){
                 $warehouses = Warehouse::with('branch')->orderBy('id', 'DESC');
-            } 
-            else
-             {
-                $warehouses = Warehouse::with('branch')
-                ->whereHas('branch', function ($query) {
-                    $query->where('id', $sessionData['branchId']); // Replace `1` with the desired branch ID
-                })
-                ->orderBy('id', 'DESC');
-             }
+            // } 
+            // else
+            //  {
+            //     $warehouses = Warehouse::with('branch')
+            //     ->whereHas('branch', function ($query) {
+            //         $query->where('id', $sessionData['branchId']); // Replace `1` with the desired branch ID
+            //     })
+            //     ->orderBy('id', 'DESC');
+            //  }
 
             return DataTables::eloquent($warehouses)
                 ->addIndexColumn()

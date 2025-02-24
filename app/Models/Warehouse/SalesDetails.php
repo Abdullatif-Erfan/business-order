@@ -35,4 +35,9 @@ class SalesDetails extends Model
     {
         return $this->belongsTo(Unit::class,'unit_id','id');
     }
+
+    public function warehouseSale()
+    {
+        return $this->belongsTo(WarehouseSales::class, 'warehouse_sales_id');
+    }
 }
