@@ -8,7 +8,7 @@ use App\Http\Controllers\Setting\CurrencyController;
 use App\Http\Controllers\Setting\AccountController;
 use App\Http\Controllers\Setting\IncomeTypeController;
 use App\Http\Controllers\Setting\ExpenseTypeController;
-
+use App\Http\Controllers\Setting\OrgProfileController;
 
 
 Route::get('setting',[SettingController::class,'index'])->name('setting');
@@ -83,3 +83,14 @@ Route::prefix('etype')->group(function(){
     Route::patch('/update', [ExpenseTypeController::class, 'update'])->name('etype.update'); 
     Route::delete('/{id}', [ExpenseTypeController::class, 'destroy'])->name('etype.destroy');
 });
+
+// Organization Profile
+Route::prefix('orgprofile')->group(function(){
+    Route::get('/', [OrgProfileController::class, 'index'])->name('orgprofile.list');
+    Route::get('/create', [OrgProfileController::class, 'create'])->name('orgprofile.create');
+    Route::post('/store', [OrgProfileController::class, 'store'])->name('orgprofile.store');
+    Route::get('/{id}', [OrgProfileController::class, 'edit'])->name('orgprofile.edit');
+    Route::post('/update', [OrgProfileController::class, 'update'])->name('orgprofile.update'); 
+    Route::delete('/{id}', [OrgProfileController::class, 'destroy'])->name('orgprofile.destroy');
+});
+

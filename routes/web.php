@@ -63,7 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::prefix('home')->group(function () {
-        Route::get('/',[HomeController::class,'index'])->name('home.index');
+        Route::get('/',[HomeController::class,'index'])->name('home');
         Route::post('warehouse_item_notify_amount', [HomeController::class, 'warehouseItemNotifyAmount'])->name('home.warehouse_item_notify_amount');
         Route::post('expired_date_notify_amount',[HomeController::class, 'expiredDateNotifyAmount'])->name('home.expired_date_notify_amount');
         Route::post('warehouse_item_list',[HomeController::class,'warehouseItemList'])->name('home.warehouse_item_list');

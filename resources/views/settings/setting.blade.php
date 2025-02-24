@@ -24,6 +24,8 @@
                                 <li><a data-toggle="tab"  href="#account"> حساب  </a></li>
                                 <li><a data-toggle="tab"  href="#income_type"> کتگوری عواید  </a></li>
                                 <li><a data-toggle="tab"  href="#expense_type"> کتگوری مصارف  </a></li>
+                                <li><a data-toggle="tab"  href="#company_profile">  پروفایل شرکت  </a></li>
+
                             </ul>
 
                             <div class="tab-content">
@@ -107,7 +109,17 @@
                                        @include('settings.expense_type.list')      
 								</div>
 						        <!-- / expense_type -->
-                              
+
+                                <!-- company_profile -->
+                                 <div id="company_profile" class="tab-pane fade"> 
+                                       <br> 
+                                        @if(auth()->user()->hasAccess('settings','list')) 
+                                          @include('settings.organization.list')      
+                                        @endif
+								</div>
+                                <!-- / company_profile -->
+
+                                
                             </div>
                         </div>
                         <!-- / card-body -->
@@ -172,6 +184,8 @@ $(document).ready(function () {
         }
         else if (target === '#expense_type') {
             fetchExpenseTypeList();
+        } else if (target === '#company_profile') {
+            fetchProfileList();
         } 
     });
 });

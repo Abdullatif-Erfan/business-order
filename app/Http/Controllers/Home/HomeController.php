@@ -62,7 +62,7 @@ class HomeController extends Controller
         // Third Tab
         // $data['cache_in_hand'] = $this->getCashInHandAmount($data['currency_id'],$data['year'],$data['month'],$data['day']);
         // return ['data' => $data];
-        $data
+
 
         return view('dashboard.dashboard', compact('data'));
     }
