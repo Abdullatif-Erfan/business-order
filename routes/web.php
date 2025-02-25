@@ -78,6 +78,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // buy
     require __DIR__ . '/v1/buy.php';
  
+    // clearance
+    require __DIR__ . '/v1/clearance.php';
+    
 
     // WarehouseList
     Route::prefix('warehousesList')->group(function(){

@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class OrgBio extends Model
 {
     protected $table = "org_bios";
-    protected $fillable = ['name', 'address', 'phone', 'header', 'logos', 'is_active'];
+    protected $fillable = ['name', 'address', 'phone', 'header', 'logos', 'is_active','note_for_print'];
 }

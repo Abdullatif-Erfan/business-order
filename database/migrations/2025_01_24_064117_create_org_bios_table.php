@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('header');
             $table->string('logos');
             $table->integer('is_active')->comment('0: not active, 1: active')->default(1);
+            $table->string('note_for_print')->nullable();
             $table->timestamps();
         });
     }

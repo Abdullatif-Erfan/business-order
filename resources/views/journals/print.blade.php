@@ -29,7 +29,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                 <div class="col-md-12 col-sm-12 col-xs-12 m-t--10">
                     <div class="card">
                         <div class="col-12" style="padding: 20px; margin-bottom: 10px">
-                            <button class="printBtn" onclick="print_page()" style="margin-left: 50px">
+                            <button class="printBtn" onclick="print_page_with_image()" style="margin-left: 50px">
                                <i class="fas fa-print"></i>
                             </button>
                             <a href="{{ route('journal.index') }}">
@@ -46,7 +46,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                     <table class="noBorder" style="width:100%">
                                         <tr>
                                             <td>
-                                                <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 98% !important;">
+                                                <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 98% !important;">
                                             </td>
                                         </tr>
                                     </table>
@@ -66,9 +66,9 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                         </tr>
                                         <tr>
                                             <td> حساب بردگی </td>
-                                            <td>{{ $journals[0]['name'] }} </td>
+                                            <td>{{ $journals[0]->accountRelation->name ?? '' }} </td>
                                             <td> حساب رسیدگی </td>
-                                            <td>{{ $journals[1]['name'] }} </td>
+                                            <td>{{ $journals[1]->accountRelation->name ?? '' }} </td>
                                         </tr>
                                         <tr>
                                             <td> مبلغ  </td>

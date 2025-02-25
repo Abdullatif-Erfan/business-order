@@ -32,9 +32,10 @@ return new class extends Migration
             $table->integer('year')->nullable();
             $table->integer('month')->nullable();
             $table->integer('day')->nullable();
+            $table->integer('day')->nullable();
+            $table->integer('is_cleared',6)->default(0)->comment('0:not cleared, 1:cleared');
             $table->timestamps();
 
-            $table->unique(['billno', 'branch_id'], 'warehouse_sales_billno_branch_unique');
         });
     }
 

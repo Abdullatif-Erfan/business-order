@@ -54,26 +54,25 @@ $(document).ready(function() {
 
     // Move the filter button click event outside
     $('#btn-filter').click(function() {
-        $('#salesTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
+        $('#clearanceTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
     });
 });
 
 
 function fetchList() {
-    let salesTable = $('#salesTable');
+    let clearanceTable = $('#clearanceTable');
 
     // Check if DataTable is already initialized
-    if (!$.fn.DataTable.isDataTable(salesTable)) {
-        salesTable.DataTable({
+    if (!$.fn.DataTable.isDataTable(clearanceTable)) {
+        clearanceTable.DataTable({
             serverSide: true,
             processing: true,
             ajax: {  
-                url: '{{ route("sales.data") }}',
+                url: '{{ route("clearance.sales.data") }}',
                 // url: '{{ route("boughtList.data") }}',
                 data: function (d) {
                     d.customer_name = $('#customer_name').val();
                     d.currency_id = $('#currency_id').val();
-                    d.bill_number = $('#bill_number').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();  
                     // alert(d.warehouse_id);
@@ -81,17 +80,13 @@ function fetchList() {
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'billno', name: 'billno' },
-                { data: 'factor', name: 'factor' },
-                { data: 'customer_name', name: 'customer_name' },
-                { data: 'total_price', name: 'total_price' },
-                { data: 'total_discount', name: 'total_discount' },
-                { data: 'payable', name: 'payable'},
-                { data: 'cur_pay', name: 'cur_pay' },
-                { data: 'remained', name: 'remained' },
-                { data: 'currency_name', name: 'currency_name' },
-                { data: 'short_date', name: 'short_date' },
-                { data: 'view', name: 'view', orderable: false, searchable: false }
+                { data: 'type', name: 'type' },
+                { data: 'to_account.name', name: 'to_account.name' },
+                { data: 'total', name: 'total' },
+                { data: 'currency.name', name: 'currency.name' },
+                { data: 'bill_numbers', name: 'bill_numbers'},
+                { data: 'clearedBy', name: 'clearedBy' },
+                { data: 'dates', name: 'dates' },
             ],
             drawCallback: function () 
             {
@@ -122,17 +117,35 @@ function fetchList() {
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                $(api.column(4).footer()).html(sumColumn(4));
-                $(api.column(5).footer()).html(sumColumn(5));
-                $(api.column(6).footer()).html(sumColumn(6));
-                $(api.column(7).footer()).html(sumColumn(7));
-                $(api.column(8).footer()).html(sumColumn(8));
+                $(api.column(3).footer()).html(sumColumn(3));
             }
 
         });
 
     } else {
-        salesTable.DataTable().ajax.reload(null, false);
+        clearanceTable.DataTable().ajax.reload(null, false);
     }
 }
+
+function showSalesModal()
+{
+    $('#salesModal').modal('show');
+}
+
+function submitSalesClearanceForm() {
+    var currency_id = parseInt($('#sales_currency_id').val()) || 0;
+    var sales_to_account_id = parseInt($('#sales_to_account_id').val()) || 0;
+
+    if (currency_id > 0 && sales_to_account_id > 0) {
+        // Use template literals to correctly form the route
+        var url = "{{ route('clearance.sales.create', ['currency_id' => '__CURRENCY_ID__', 'sales_to_account_id' => '__BUY_TO_ACCOUNT_ID__']) }}"
+            .replace('__CURRENCY_ID__', currency_id)
+            .replace('__BUY_TO_ACCOUNT_ID__', sales_to_account_id);
+
+        window.location.href = url;
+    } else {
+        alert('لطفا مشتری  و واحد پولی را انتخاب نمایید');
+    }
+}
+
 </script>

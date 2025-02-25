@@ -30,7 +30,7 @@
                             </a>
                             <span class="card-title"> لیست خرید </span>
 
-                            <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button>
+                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
 
@@ -105,7 +105,7 @@
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="12">
-                                            <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                            <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -249,6 +249,11 @@ function fetchList() {
             drawCallback: function () {
                 var api = this.api();
 
+                // Helper function for the modulo operation to check if it's an integer
+                function fmod(a, b) {
+                    return a - (b * Math.floor(a / b));
+                }
+
                 function sumColumn(index) {
                     return api
                         .column(index, { page: 'current' })
@@ -256,7 +261,15 @@ function fetchList() {
                         .reduce(function (a, b) {
                             var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
                             var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
-                            return numA + numB;
+                            var sum = numA + numB;
+
+                            // Format the sum based on whether it has decimals
+                            if (fmod(sum, 1) === 0) {
+                                return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            } else {
+                                return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
+
                         }, 0)
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }

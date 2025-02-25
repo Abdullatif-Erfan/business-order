@@ -104,20 +104,25 @@ class JournalController extends Controller
                 return $journal->accountRelation ? $journal->accountRelation->name : '';
             })
             
+         
 
             // در این حالت در رفت / قرض نشان داده شود
             //  transaction_type == 2 and payment_type = 1 = paid cache
             // transaction_type == 1 and payment_type = 2 = recieved loan
             ->addColumn('transaction_type_1', function ($journal) {
+                $amount = $journal->amount;
+                // $formattedAmount = ($amount == floor($amount)) ? $amount : number_format($amount, 2);
+                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
+
                 if ($journal->status == 1) { // رسید حساب سابق 
-                    return $journal->transaction_type == 2 ? number_format($journal->amount, 2) : '';
+                    return $journal->transaction_type == 2 ? $formattedAmount : '';
                 } 
                 else 
                 {
                     // دو معامله ای
                     if (($journal->transaction_type == 2 && $journal->payment_type == 1) || 
                     ($journal->transaction_type == 1 && $journal->payment_type == 2)) {
-                        return number_format($journal->amount, 2);
+                        return $formattedAmount;
                     }
                 }
                 return '';
@@ -128,13 +133,16 @@ class JournalController extends Controller
             // transaction_type == 2 and payment_type = 2 = paid loan
             // transaction_type == 1 and payment_type = 1 = recieved cache
             ->addColumn('transaction_type_2', function ($journal) {
+                $amount = $journal->amount;
+                $formattedAmount = ($amount == floor($amount)) ? $amount : number_format($amount, 2);
+
                 if ($journal->status == 1) {
-                    return $journal->transaction_type == 1 ? number_format($journal->amount, 2) : '';
+                    return $journal->transaction_type == 1 ? $formattedAmount : '';
                 } 
                 else {
                     if (($journal->transaction_type == 2 && $journal->payment_type == 2) || 
                         ($journal->transaction_type == 1 && $journal->payment_type == 1)) {
-                        return number_format($journal->amount, 2);
+                        return $formattedAmount;
                     }
                 }
                 return '';
@@ -231,9 +239,11 @@ class JournalController extends Controller
             'bill_no' => 'nullable|numeric|min:1',
             'from_account_id' => 'required|exists:accounts,id',
             'to_account_id' => 'required|exists:accounts,id',
-            'from_amount' => 'required|numeric|min:1',
+
+            'from_amount' => 'required|decimal:2',  // Decimal with up to 2 decimal places
             'from_currency_id' => 'required|exists:currencies,id',
-            'to_amount' => 'required|numeric|min:1',
+            'to_amount' => 'required|decimal:2',  // Decimal with up to 2 decimal places
+
             'to_currency_id' => 'required|exists:currencies,id',
             'from_details' => 'required|string|max:255',
             'to_details' => 'required|string|max:255',
@@ -276,7 +286,6 @@ class JournalController extends Controller
                 $journal1->doc = $docPath;
             }
     
-            // Fill data for "paid cache" record
             $journal1->account_id = $request->from_account_id;
             $journal1->amount = $request->from_amount;
             $journal1->currency_id = $request->from_currency_id;
@@ -397,9 +406,11 @@ class JournalController extends Controller
             'bill_no' => 'nullable|numeric|min:1',
             'from_account_id' => 'required|exists:accounts,id',
             'to_account_id' => 'required|exists:accounts,id',
-            'from_amount' => 'required|numeric|min:1',
+        
+            'from_amount' => 'required|decimal:2',  // Decimal with up to 2 decimal places
             'from_currency_id' => 'required|exists:currencies,id',
-            'to_amount' => 'required|numeric|min:1',
+            'to_amount' => 'required|decimal:2',  // Decimal with up to 2 decimal places
+
             'to_currency_id' => 'required|exists:currencies,id',
             'from_details' => 'required|string|max:255',
             'to_details' => 'required|string|max:255',

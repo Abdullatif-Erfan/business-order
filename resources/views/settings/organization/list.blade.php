@@ -47,8 +47,8 @@
 
 <!-- Update Modal -->
 <div class="modal fade" id="EditOrgProfileModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+    <div class="modal-dialog" role="document" >
+        <div class="modal-content" style="width:800px !important">
             <div class="modal-header">
                 <h5 class="modal-title"> ویرایش </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">

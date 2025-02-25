@@ -78,12 +78,39 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td>{{ number_format($detail->amount,2) }}</td>
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->amount, 1) == 0) ? 
+                                                            number_format($detail->amount, 0) : number_format($detail->amount, 2);
+                                                        @endphp
+                                                    </td>
+                                                    
                                                     <td>{{ $detail->unitRelation->name }}</td>
-                                                    <td>{{ number_format($detail->sell_up,2) }}</td>
-                                                    <td>{{ number_format($detail->discount,2) }}</td>
-                                                    <td>{{ number_format($detail->profit,2) }}</td>
-                                                    <td>{{ number_format($detail->total,2) }}</td>
+
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->sell_up, 1) == 0) ? number_format($detail->sell_up, 0) : number_format($detail->sell_up, 2);
+                                                        @endphp
+                                                    </td>
+                                                    
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->discount, 1) == 0) ? number_format($detail->discount, 0) : number_format($detail->discount, 2);
+                                                        @endphp
+                                                    </td>
+
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->profit, 1) == 0) ? number_format($detail->profit, 0) : number_format($detail->profit, 2);
+                                                        @endphp
+                                                    </td>
+
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->total, 1) == 0) ? number_format($detail->total, 0) : number_format($detail->total, 2);
+                                                        @endphp
+                                                    </td>
+
                                                 </tr>
                                                 @endforeach
                                             </tbody>
@@ -92,17 +119,46 @@
                                     <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
                                         <tr>
                                             <td> مبلغ مجموعی &nbsp; </td>
-                                            <td>{{ number_format($warehouseSales->first()->total_price) ?? '' }}</td>
+                                            <td>
+                                                @php
+                                                    echo (fmod($warehouseSales->first()->total_price, 1) == 0) ? 
+                                                    number_format($warehouseSales->first()->total_price, 0) : 
+                                                    number_format($warehouseSales->first()->total_price, 2);
+                                                @endphp
+                                            </td>
                                             <td> مجموع تخفیف </td>
-                                            <td>{{ number_format($warehouseSales->first()->discount) ?? '' }}</td>
+                                            <td>
+                                                @php
+                                                    echo (fmod($warehouseSales->first()->discount, 1) == 0) ? 
+                                                    number_format($warehouseSales->first()->discount, 0) : 
+                                                    number_format($warehouseSales->first()->discount, 2);
+                                                @endphp
+                                            </td>
                                             <td> قابل پرداخت</td>
-                                            <td>{{ number_format($warehouseSales->first()->payable,2) ?? '' }}</td>
+                                            <td>
+                                                @php
+                                                    echo (fmod($warehouseSales->first()->payable, 1) == 0) ? 
+                                                    number_format($warehouseSales->first()->payable, 0) : 
+                                                    number_format($warehouseSales->first()->payable, 2);
+                                                @endphp
+                                            </td>
                                         </tr>
                                         <tr>
-                                            <td> پرداخت فعلی</td>
-                                            <td>{{ number_format($warehouseSales->first()->cur_pay,2) ?? '' }}</td>
+                                        <td> پرداخت فعلی</td>
+                                            <td> @php
+                                                        echo (fmod($warehouseSales->first()->cur_pay, 1) == 0) ? 
+                                                        number_format($warehouseSales->first()->cur_pay, 0) : 
+                                                        number_format($warehouseSales->first()->cur_pay, 2);
+                                                    @endphp
+                                            </td>
                                             <td> باقی </td>
-                                            <td>{{ number_format($warehouseSales->first()->remained,2) ?? '' }}</td>
+                                            <td>
+                                                @php
+                                                    echo (fmod($warehouseSales->first()->remained, 1) == 0) ? 
+                                                    number_format($warehouseSales->first()->remained, 0) : 
+                                                    number_format($warehouseSales->first()->remained, 2);
+                                                @endphp
+                                            </td>
                                             <td>نوت</td>
                                             <td>{{$warehouseSales->first()->note}}</td>
                                         </tr>
@@ -117,7 +173,7 @@
                                     <table style="width:100%">
                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="2">
-                                            <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                            <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr>
@@ -148,17 +204,41 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td>{{ number_format($detail->amount,2) }}</td>
+
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->amount, 1) == 0) ? 
+                                                            number_format($detail->amount, 0) : number_format($detail->amount, 2);
+                                                        @endphp
+                                                    </td>
+                                                    
                                                     <td>{{ $detail->unitRelation->name }}</td>
-                                                    <td>{{ number_format($detail->sell_up,2) }}</td>
-                                                    <td>{{ number_format($detail->discount,2) }}</td>
-                                                    <td>{{ number_format($detail->total,2) }}</td>
+
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->sell_up, 1) == 0) ? number_format($detail->sell_up, 0) : number_format($detail->sell_up, 2);
+                                                        @endphp
+                                                    </td>
+                                                    
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->discount, 1) == 0) ? number_format($detail->discount, 0) : number_format($detail->discount, 2);
+                                                        @endphp
+                                                    </td>
+
+                                                    <td>
+                                                        @php
+                                                            echo (fmod($detail->total, 1) == 0) ? number_format($detail->total, 0) : number_format($detail->total, 2);
+                                                        @endphp
+                                                    </td>
+
+
                                                 </tr>
                                                   @endforeach
                                                 <tr>
                                                     <td colspan="4" rowspan="7" style="padding: 40px;">
                                                         <div class="col-md-12" style="border:2px dotted #999; min-height:80px;background-color:#f8f8f8;border-top-right-radius:10px; border-bottom-left-radius:10px; padding: 10px;">
-                                                            نوت : ...
+                                                            نوت :  {{ $orgbios[0]->note_for_print }}
                                                         </div>
                                                          <div class="col-md-12 m-t-20">
                                                               <br>
@@ -169,21 +249,33 @@
                                                     </td>
                                                     <td colspan="2" class="price-section">مجموع بل</td>
                                                     <td class="price-section">
-                                                        {{ number_format($warehouseSales->first()->total_price) ?? '' }}
+                                                        @php
+                                                           echo (fmod($warehouseSales->first()->total_price, 1) == 0) ? 
+                                                           number_format($warehouseSales->first()->total_price, 0) : 
+                                                           number_format($warehouseSales->first()->total_price, 2);
+                                                        @endphp
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  تخفیف </td>
                                                     <td  class="price-section">
-                                                        {{ number_format($warehouseSales->first()->trans_spend,2) ?? '' }}
+                                                        @php
+                                                           echo (fmod($warehouseSales->first()->trans_spend, 1) == 0) ? 
+                                                           number_format($warehouseSales->first()->trans_spend, 0) : 
+                                                           number_format($warehouseSales->first()->trans_spend, 2);
+                                                        @endphp
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  قابل پرداخت </td>
                                                     <td class="price-section">
-                                                        {{ number_format($warehouseSales->first()->cur_pay,2) ?? '' }}
+                                                        @php
+                                                           echo (fmod($warehouseSales->first()->cur_pay, 1) == 0) ? 
+                                                           number_format($warehouseSales->first()->cur_pay, 0) : 
+                                                           number_format($warehouseSales->first()->cur_pay, 2);
+                                                        @endphp
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -191,7 +283,11 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section"> پرداخت فعلی  </td>
                                                     <td  class="price-section">
-                                                         {{ number_format($warehouseSales->first()->payable,2) ?? '' }}
+                                                         @php
+                                                           echo (fmod($warehouseSales->first()->payable, 1) == 0) ? 
+                                                           number_format($warehouseSales->first()->payable, 0) : 
+                                                           number_format($warehouseSales->first()->payable, 2);
+                                                         @endphp
                                                          {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -199,7 +295,11 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section">  باقی  </td>
                                                     <td  class="price-section">
-                                                          {{ number_format($warehouseSales->first()->remained,2) ?? '' }}
+                                                          @php
+                                                           echo (fmod($warehouseSales->first()->remained, 1) == 0) ? 
+                                                           number_format($warehouseSales->first()->remained, 0) : 
+                                                           number_format($warehouseSales->first()->remained, 2);
+                                                          @endphp
                                                           {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -232,17 +332,18 @@
                                 <div class="row">
                                     
                                     <!-- print button -->
-                                    <button onclick="print_page()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
+                                    <button onclick="print_page_with_image()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
                                     <i class="fas fa-print"></i>  چاپ  بل 
                                     </button>
                                             
                                     <!-- edit button -->
+                                    @if($warehouseSales->first()->is_cleared == 0)
                                     <a href="{{ route('sales.edit', $warehouseSales->first()->billno) }}"   class="hidden-print">
                                         <button class="btn btn-primary btn-sm m-r-10">
                                         <i class="fas fa-pen"></i>  ویرایش 
                                         </button>
                                     </a>
-
+                                    @endif
                                       
 
                                     </div>

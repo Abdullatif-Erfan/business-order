@@ -22,8 +22,15 @@
             <div class="row">
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
-                        <div class="card-header" style="padding: 10px;">
-                            <span class="card-title">   لست فروشات  {{ $warehouse->name ?? ''}} </span>
+                        <div class="card-header" style="padding: 10px;text-align:center">
+                            
+                            <a class="pull-right"  onclick="showBuyModal()">
+                                <button class="btn mybtn bg-default">تصفیه جدید خرید
+                                  <i class="fa fa-plus"></i>
+                                </button>
+                            </a>
+
+                            <span class="center">   لست تصفیه حساب خریداری ها   </span>
 
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
@@ -32,7 +39,7 @@
                         <div class="filterForm" id="searchWrapper1">
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-3 col-sm-6 col-xs-6">
                                         <input type="text" id="customer_name" placeholder="مشتری" class="form-control">
                                     </div>
 
@@ -45,11 +52,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="bill_number" placeholder="بل نمبر" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-3 col-sm-6 col-xs-6">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -93,39 +96,32 @@
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <input type="hidden" id="warehouse_id" value="14" >
                                 <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
-                                <table id="salesTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
+                                <table id="clearanceTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                            <td colspan="8">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
-                                            <center> لست فروشات   </center>
+                                            <td colspan="8">
+                                            <center> لست تصفیه حسابات   </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره &nbsp; </th>
-                                            <th> بل نمبر </th>
-                                            <th> فاکتور </th>
-                                            <th> مشتری </th>
-                                            <th> مبلغ مجموعی </th>
-                                            <th> تخفیف  </th>
-                                            <th> قابل دریافت </th>
-                                            <th> دریافت فعلی </th>
-                                            <th> باقی </th>
-                                            <th> واحد پولی </th>
+                                            <th> شماره </th>
+                                            <th>  تصفیه  </th>
+                                             <th> مشتری </th>
+                                            <th> مبلغ تصفیه شده </th>
+                                             <th> واحد پولی </th>
+                                            <th> بل نمبرها  </th>
+                                            <th> کاربر</th>
                                             <th> تاریخ </th>
-                                            <th> جزییات </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
+                                            <td colspan="3">مجموع</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -143,6 +139,48 @@
     </div> <!-- /content -->
 </div> <!-- /main content -->
 
-@include('sales.scripts')
+
+<!-- buy modal -->
+<div class="modal fade" id="buyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> انتخاب فروشنده </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            <input type="hidden" id="clearanceRoute" value="{{ route('clearance.buy.create', ['currency_id' => '__currency__', 'buy_to_account_id' => '__account__']) }}">
+
+                    <div class="form-group">
+                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="buy_to_account_id" required>
+                            <option value="">  فروشنده را انتخاب نمایید </option>
+                            @foreach($accounts as $account)
+                                <option value="{{ $account->id }}">{{ $account->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="buy_currency_id" required>
+                            <option value="">  واحد پولی را انتخاب نمایید </option>
+                            @foreach($currencies as $currency)
+                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-success btn-sm m-r-10" onclick="submitBuyClearanceForm()" >انتخاب </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@include('clearance.buy.scripts')
 @endsection
 

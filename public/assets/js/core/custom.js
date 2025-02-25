@@ -202,6 +202,100 @@ function print_page() {
 	printWindow.close();
 }
 
+
+function print_page_with_image() {
+    var data = document.getElementById("print_area").innerHTML;
+
+    var printWindow = window.open("", "PrintWindow", "");
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+                body {
+                    direction: rtl !important;
+                    text-align: right !important;
+                    margin: 4mm;
+                }
+                img {
+                    display: block !important;
+                    max-width: 100% !important;
+                    height: auto !important;
+                }
+                .visible-print {
+                    display: block !important;
+                    width: 100% !important;
+                }
+                table {
+                    border-collapse: collapse !important;
+                    width: 100% !important;
+                }
+                table tr td, table th {
+                    border: 1px solid #444 !important;
+                    font-size: 14px !important;
+                    padding: 5px;
+                    text-align: right;
+                }
+                table thead tr {
+                    background-color: #436fa7;
+                    color: #fff;
+                }
+                .hidden-print {
+                    display: none !important;
+                }
+                .visible-print {
+                    display: block !important;
+                    width: 100% !important;
+                }
+                .header {
+                    font-size: 10px !important;
+                }
+                thead {
+                    display: table-header-group;
+                }
+                tr, td, th {
+                    page-break-inside: avoid;
+                }
+                h1, h2, h3, h5, h6 {
+                    line-height: 1.4px !important;
+                }
+                .m-t-50 { margin-top: 50px; }
+                .m-t-20 { margin-top: 20px; }
+                .m-b-30 { margin-bottom: 30px; }
+                .m-b-20 { margin-bottom: 20px; }
+                .m-b-50 { margin-bottom: 50px; }
+                td.price-section {
+                    background-color: #f6f6f6;
+				}
+				.dataTables_length, .dataTables_filter, .dataTables_info, .dataTables_paginate {
+					display:none;
+				}
+                .final-total {
+                    background-color: #436fa7;
+                    color: #fff;
+                    font-size: 20px;
+                    font-weight: bold;
+                }
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
+            </style>
+        </head>
+        <body>${data}</body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
+
+
 // table tr{page-break-before:always;}
 
 function printGeneralRequest() {

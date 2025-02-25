@@ -24,8 +24,7 @@
                     <div class="card">
                         <div class="card-header" style="padding: 10px;">
                             <span class="card-title">   لست موجودی  {{ $warehouse->name ?? ''}} </span>
-
-                            <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button>
+                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
 
@@ -64,7 +63,7 @@
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="13">
-                                            <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                            <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">

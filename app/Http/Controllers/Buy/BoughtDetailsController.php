@@ -90,31 +90,40 @@ class BoughtDetailsController extends Controller
             // })
 
             ->addColumn('billno', function($boughtItem) {
-                return $boughtItem->billno ? 'BUY_'.$boughtItem->billno: 0;
+                $checkIcon = $boughtItem->is_cleared == 1 ? '<i class="fas fa-check-circle success"></i>' : '';
+                return $boughtItem->billno ? $checkIcon.' '.'BUY_'.$boughtItem->billno: 0;
             })
 
             ->addColumn('total_price', function ($boughtItem) {
-                return $boughtItem->total_price ? number_format($boughtItem->total_price,2) : '';
+                $total_price = $boughtItem->total_price;
+                return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
             })
 
             ->addColumn('trans_spend', function ($boughtItem) {
-                return $boughtItem->trans_spend ? number_format($boughtItem->trans_spend,2) : '';
+                $trans_spend = $boughtItem->trans_spend;
+                return (fmod($trans_spend, 1) == 0) ? number_format($trans_spend, 0) : number_format($trans_spend, 2);
             })
 
             ->addColumn('discount', function ($boughtItem) {
-                return $boughtItem->discount ? number_format($boughtItem->discount,2) : '';
+                $discount = $boughtItem->discount;
+                return (fmod($discount, 1) == 0) ? number_format($discount, 0) : number_format($discount, 2);
             })
 
             ->addColumn('payable', function ($boughtItem) {
-                return $boughtItem->payable ? number_format($boughtItem->payable,2) : '';
+                $payable = $boughtItem->payable;
+                return (fmod($payable, 1) == 0) ? number_format($payable, 0) : number_format($payable, 2);
             })
 
             ->addColumn('cur_pay', function ($boughtItem) {
-                return $boughtItem->cur_pay ? number_format($boughtItem->cur_pay,2) : '';
+                $cur_pay = $boughtItem->cur_pay;
+                return (fmod($cur_pay, 1) == 0) ? number_format($cur_pay, 0) : number_format($cur_pay, 2);
             })
+
             ->addColumn('remained', function ($boughtItem) {
-                return $boughtItem->remained ? number_format($boughtItem->remained,2) : '';
+                $remained = $boughtItem->remained;
+                return (fmod($remained, 1) == 0) ? number_format($remained, 0) : number_format($remained, 2);
             })
+
             ->addColumn('currency', function ($boughtItem) {
                 return $boughtItem->currency->name ? $boughtItem->currency->name : '';
             })

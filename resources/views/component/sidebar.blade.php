@@ -50,14 +50,43 @@
                     <p>No Access</p>
                 @endif
 
-                @if(auth()->user()->hasAccess('journal', 'list') && $packageId >= 1)
+
                     <li class="nav-item">
-                        <a href="{{ route('journal.index') }}">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            <p> روزنامچه / ژورنال </p>
+                        <a data-toggle="collapse" href="#journal">
+                          <i class="fas fa-file-invoice-dollar"></i>
+                            <p> معاملات </p>
+                            <span class="caret"></span>
                         </a>
+                        <div class="collapse" id="journal">
+                            <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="{{ route('journal.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> روزنامچه  </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('boughtList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> عواید </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> مصارف</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> معاشات کارمندان</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> سهم سهامداران</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
-                @endif
 
                 @if(auth()->user()->hasAccess('gen_buy', 'list') && $packageId >= 1)
                     <li class="nav-item">
@@ -140,6 +169,29 @@
                     </li>
                 @endif
 
+
+                <li class="nav-item">
+                        <a data-toggle="collapse" href="#clearance">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <p> تصفیه حسابات </p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse" id="clearance">
+                            <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="{{ route('clearance.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> تصفیه حساب خرید</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('clearance.sales.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> تصفیه حساب فروشات</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                 @if(auth()->user()->hasAccess('users', 'list') || auth()->user()->isAdmin())
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
@@ -165,12 +217,12 @@
                 @endif
 
                 @if(!empty($packageId))
-                    <!-- <li class="nav-item">
+                    <li class="nav-item">
                         <a href="{{ $base_url }}/settings/backup">
                             <i class="fas fa-database"></i>
                             <p> نسخه پشتبان</p>
                         </a>
-                    </li> -->
+                    </li>
                 @endif
             </ul>
         </div>

@@ -44,7 +44,7 @@ class SalesController extends Controller
           $soldItems = DB::table('warehouse_sales')
             ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
             ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
-            ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','remained','currencies.name as currency_name','short_date','iby')
+            ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
             ->orderBy('warehouse_sales.id','DESC');
             
 
@@ -74,27 +74,33 @@ class SalesController extends Controller
             ->addIndexColumn()
            
             ->addColumn('billno', function($soldItem) {
-                return $soldItem->billno ? 'SALES_'.$soldItem->billno: 0;
+                $checkIcon = $soldItem->is_cleared == 1 ? '<i class="fas fa-check-circle success"></i>' : '';
+                return $soldItem->billno ? $checkIcon.' '.'SALES_'.$soldItem->billno: 0;
             })
 
             ->addColumn('total_price', function ($soldItem) {
-                return $soldItem->total_price ? number_format($soldItem->total_price,2) : '';
+                $total_price = $soldItem->total_price;
+                return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
             })
 
             ->addColumn('total_discount', function ($soldItem) {
-                return $soldItem->total_discount ? number_format($soldItem->total_discount,2) : '';
+                $total_discount = $soldItem->total_discount;
+                return (fmod($total_discount, 1) == 0) ? number_format($total_discount, 0) : number_format($total_discount, 2);
             })
 
             ->addColumn('payable', function ($soldItem) {
-                return $soldItem->payable ? number_format($soldItem->payable,2) : '';
+                $payable = $soldItem->payable;
+                return (fmod($payable, 1) == 0) ? number_format($payable, 0) : number_format($payable, 2);
             })
 
             ->addColumn('cur_pay', function ($soldItem) {
-                return $soldItem->cur_pay ? number_format($soldItem->cur_pay,2) : '';
+                $cur_pay = $soldItem->cur_pay;
+                return (fmod($cur_pay, 1) == 0) ? number_format($cur_pay, 0) : number_format($cur_pay, 2);
             })
 
             ->addColumn('remained', function ($soldItem) {
-                return $soldItem->remained ? number_format($soldItem->remained,2) : '';
+                $remained = $soldItem->remained;
+                return (fmod($remained, 1) == 0) ? number_format($remained, 0) : number_format($remained, 2);
             })
             
         
@@ -107,7 +113,6 @@ class SalesController extends Controller
             ->make(true);
 
     }
-
 
 
     /**

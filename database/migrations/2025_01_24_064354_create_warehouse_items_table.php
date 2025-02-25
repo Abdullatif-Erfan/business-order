@@ -36,6 +36,7 @@ return new class extends Migration
             $table->integer('month')->nullable();
             $table->integer('day')->nullable();
             $table->integer('times')->nullable();
+            $table->integer('is_cleared',6)->default(0)->comment('0:not cleared, 1:cleared');
             $table->timestamps();
             
             // Add unique constraint

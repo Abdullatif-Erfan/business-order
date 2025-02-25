@@ -18,8 +18,6 @@
 
 
 
-
-
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -40,7 +38,7 @@
                                 </button>
                             @endif
 
-                            <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button>
+                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
 
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
                                 <i class="fas fa-filter"></i>
@@ -117,7 +115,7 @@
                                 </div>
                             </div> 
                         </div>
-
+                       
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
@@ -126,8 +124,9 @@
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="9">
-                                            <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                              <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
+                                            
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="9">
@@ -249,7 +248,39 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                 { data: 'currency', name: 'currency' },
                 { data: 'inserted_short_date', name: 'inserted_short_date' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
-            ]
+            ],
+            drawCallback: function () {
+                var api = this.api();
+
+                // Helper function for the modulo operation to check if it's an integer
+                function fmod(a, b) {
+                    return a - (b * Math.floor(a / b));
+                }
+
+                function sumColumn(index) {
+                    return api
+                        .column(index, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            var sum = numA + numB;
+
+                            // Format the sum based on whether it has decimals
+                            if (fmod(sum, 1) === 0) {
+                                return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            } else {
+                                return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
+
+                        }, 0)
+                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+
+                $(api.column(4).footer()).html(sumColumn(4));
+                $(api.column(5).footer()).html(sumColumn(5));
+                
+            }
         });
 
         // When the filter button is clicked, refresh the table

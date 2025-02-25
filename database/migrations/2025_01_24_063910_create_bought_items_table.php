@@ -29,6 +29,7 @@ return new class extends Migration
             $table->integer('day');
             $table->string('iby')->nullable();
             $table->string('times')->nullable();
+            $table->integer('is_cleared',6)->default(0)->comment('0:not cleared, 1:cleared');
             $table->timestamps();
         });
     }
