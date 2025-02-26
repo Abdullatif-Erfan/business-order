@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Journal;
+namespace App\Http\Controllers\Transactions;
 
 use App\Services\MessageService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
-use App\Models\Journal\Journal;
+use App\Models\Transaction\Journal;
 use App\Models\Setting\Branch;
 use App\Models\Setting\OrgBio;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +55,7 @@ class JournalController extends Controller
 
         // return response()->json(['data' =>  $orgbios[0]->header]);
         
-        return view('journals.list',compact('accounts','currencies','orgbios'));
+        return view('transactions.journals.list',compact('accounts','currencies','orgbios'));
     }
 
     /**
@@ -63,12 +63,17 @@ class JournalController extends Controller
      */
     public function getData(Request $request)
     {
+        /**
+         * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+         */
         $journals = Journal::with(['accountRelation' => function($query){
             $query->select('id','name');
         },'currencyRelation' => function($query){
             $query->select('id','name','symbols','color');
         }])
+        // $journals = Journal::with(['accountRelation','currencyRelation'])
         ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','currency_id','details','inserted_short_date','status','times','is_single_record')
+        // ->where('journals.status','<=',2)
         ->orderBy('id', 'DESC');
 
 
@@ -111,7 +116,6 @@ class JournalController extends Controller
             // transaction_type == 1 and payment_type = 2 = recieved loan
             ->addColumn('transaction_type_1', function ($journal) {
                 $amount = $journal->amount;
-                // $formattedAmount = ($amount == floor($amount)) ? $amount : number_format($amount, 2);
                 $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
 
                 if ($journal->status == 1) { // رسید حساب سابق 
@@ -134,7 +138,7 @@ class JournalController extends Controller
             // transaction_type == 1 and payment_type = 1 = recieved cache
             ->addColumn('transaction_type_2', function ($journal) {
                 $amount = $journal->amount;
-                $formattedAmount = ($amount == floor($amount)) ? $amount : number_format($amount, 2);
+                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
 
                 if ($journal->status == 1) {
                     return $journal->transaction_type == 1 ? $formattedAmount : '';
@@ -196,7 +200,7 @@ class JournalController extends Controller
         // return response()->json(['data' => $journals]);
         // return response()->json(['data' => $journals[0]->accountRelation->name]);
 
-        return view('journals.details',compact('journals'));
+        return view('transactions.journals.details',compact('journals'));
         
     }
 
@@ -219,7 +223,7 @@ class JournalController extends Controller
         $branchs = Branch::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
-        return view('journals.create',compact('accounts','currencies','branchs','todaysDate'));
+        return view('transactions.journals.create',compact('accounts','currencies','branchs','todaysDate'));
     }
 
     /**
@@ -367,17 +371,10 @@ class JournalController extends Controller
         // return response()->json(['data' => $journals]);
         // return response()->json(['data' => $journals[0]->accountRelation->name]);
         
-        return view('journals.print',compact('journals','orgbios'));
+        return view('transactions.journals.print',compact('journals','orgbios'));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
+  
     /**
      * Show the form for editing the specified resource.
      */
@@ -392,7 +389,7 @@ class JournalController extends Controller
         ->orderBy('id', 'ASC')
         ->get();
         // return response()->json(['data' => $journals]);
-        return view('journals.edit',compact('accounts','currencies','branchs','journals'));
+        return view('transactions.journals.edit',compact('accounts','currencies','branchs','journals'));
     }
 
     /**
@@ -545,7 +542,7 @@ class JournalController extends Controller
         }
     
         // Redirect or return response
-        return redirect()->route('journal.details', ['times' => $request->times])->with('success', 'Documents updated successfully!');
+        return redirect()->route('transactions.journal.details', ['times' => $request->times])->with('success', 'Documents updated successfully!');
 
     }
     

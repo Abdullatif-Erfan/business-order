@@ -65,7 +65,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('boughtList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> عواید </span>
                                     </a>
                                 </li>

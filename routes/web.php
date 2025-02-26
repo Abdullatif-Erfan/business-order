@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Home\HomeController;
 
-use App\Http\Controllers\Journal\JournalController;
+
 
 use App\Http\Controllers\Warehouse\WarehouseListController;
 use App\Http\Controllers\Sales\SalesController;
@@ -82,6 +82,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     require __DIR__ . '/v1/clearance.php';
     
 
+    // transaction
+    require __DIR__ . '/v1/transaction.php';
+    
+
     // WarehouseList
     Route::prefix('warehousesList')->group(function(){
         Route::get('/', [WarehouseListController::class, 'index'])->name('warehousesList.index');
@@ -95,19 +99,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/delete/{id}', [WarehouseListController::class, 'destroy'])->name('warehousesList.delete');
     });
 
-    // Journal
-    Route::prefix('journal')->group(function(){
-        Route::get('/',[JournalController::class, 'index'])->name('journal.index');
-        Route::get('/data', [JournalController::class, 'getData'])->name('journal.data');
-        Route::get('/create',[JournalController::class, 'create'])->name('journal.create');
-        Route::post('/store', [JournalController::class, 'store'])->name('journal.store');
-        Route::get('/details/{times}', [JournalController::class, 'details'])->name('journal.details');
-        Route::patch('/update', [JournalController::class, 'update'])->name('journal.update');
-        Route::patch('/update_document', [JournalController::class, 'update_document'])->name('journal.update_document');
-        Route::get('/print/{times}', [JournalController::class, 'print'])->name('journal.print');
-        Route::get('/edit/{times}', [JournalController::class, 'edit'])->name('journal.edit');
-        Route::delete('/destroy/{times}', [JournalController::class, 'destroy'])->name('journal.destroy');
-    });
+   
 
     // Sales
     Route::prefix('sales')->group(function(){

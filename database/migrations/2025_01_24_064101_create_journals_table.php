@@ -29,8 +29,9 @@ return new class extends Migration
             $table->integer('day');
             $table->string('doc')->nullable();
             $table->string('details')->nullable();
-            $table->integer('status')->comment('1: old journal, 2: journal, 3:buy, 4:sales, 5:clearance');
+            $table->integer('status')->comment('1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other');
             $table->foreignId('branch_id')->default(0);
+            $table->foreignId('dynamic_type')->default(0)->comment('has relation with income_type, expense_type, salary, ....');
             $table->decimal('rate', 10, 2)->nullable();
             $table->decimal('profit', 10, 2)->nullable();
             $table->integer('is_cleared')->comment('0: not cleared, 1:cleared')->default(0);
