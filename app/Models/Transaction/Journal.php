@@ -7,6 +7,8 @@ use App\Models\Setting\Currency;
 use App\Models\Setting\Account;
 use App\Models\Setting\Branch;
 use App\Models\Setting\IncomeType;
+use App\Models\Setting\ExpenseType;
+
 use App\Models\User;
 
 class Journal extends Model
@@ -44,5 +46,10 @@ class Journal extends Model
       public function  incomeTypeRelation()
       {
           return $this->belongsTo(IncomeType::class, 'dynamic_type', 'id');
+      }
+
+      public function  expenseTypeRelation()
+      {
+          return $this->belongsTo(ExpenseType::class, 'dynamic_type', 'id');
       }
 }

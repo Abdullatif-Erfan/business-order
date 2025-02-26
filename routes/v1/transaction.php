@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Transactions\JournalController;
 use App\Http\Controllers\Transactions\IncomeController;
+use App\Http\Controllers\Transactions\ExpenseController;
+
 
 
  // Journal
@@ -22,11 +24,20 @@ use App\Http\Controllers\Transactions\IncomeController;
 Route::prefix('income')->group(function(){
     Route::get('/',[IncomeController::class, 'index'])->name('income.index');
     Route::get('/data', [IncomeController::class, 'getData'])->name('income.data');
-    Route::get('/create',[IncomeController::class, 'create'])->name('income.create');
+    Route::get('/create',[IncomeController::class, 'create'])->name('income.create'); // show insert form
     Route::post('/store', [IncomeController::class, 'store'])->name('income.store');
-    Route::get('/details/{id}', [IncomeController::class, 'details'])->name('income.details');
-    Route::patch('/update/{id}', [IncomeController::class, 'update'])->name('income.update');
-    Route::get('/print/{id}', [IncomeController::class, 'print'])->name('income.print');
-    Route::get('/edit/{id}', [IncomeController::class, 'edit'])->name('income.edit');
+    Route::get('/edit/{id}', [IncomeController::class, 'edit'])->name('income.edit');  // show edit form
+    Route::patch('/update/{id}', [IncomeController::class, 'update'])->name('income.update'); 
     Route::get('/destroy/{id}', [IncomeController::class, 'destroy'])->name('income.destroy');
+});
+
+// expense
+Route::prefix('expense')->group(function(){
+    Route::get('/',[ExpenseController::class, 'index'])->name('expense.index');
+    Route::get('/data', [ExpenseController::class, 'getData'])->name('expense.data');
+    Route::get('/create',[ExpenseController::class, 'create'])->name('expense.create'); // show insert form
+    Route::post('/store', [ExpenseController::class, 'store'])->name('expense.store');
+    Route::get('/edit/{id}', [ExpenseController::class, 'edit'])->name('expense.edit');  // show edit form
+    Route::patch('/update/{id}', [ExpenseController::class, 'update'])->name('expense.update'); 
+    Route::get('/destroy/{id}', [ExpenseController::class, 'destroy'])->name('expense.destroy');
 });

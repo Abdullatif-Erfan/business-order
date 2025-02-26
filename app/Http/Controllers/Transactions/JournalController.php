@@ -73,7 +73,7 @@ class JournalController extends Controller
         }])
         // $journals = Journal::with(['accountRelation','currencyRelation'])
         ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','currency_id','details','inserted_short_date','status','times','is_single_record')
-        // ->where('journals.status','<=',2)
+        ->where('journals.status','<=',2)
         ->orderBy('id', 'DESC');
 
 
