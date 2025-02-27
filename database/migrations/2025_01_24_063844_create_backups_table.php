@@ -14,6 +14,10 @@ return new class extends Migration
         Schema::create('backups', function (Blueprint $table) {
             $table->id();
             $table->string('label');
+            $table->string('file_name');
+            $table->string('file_path');
+            $table->integer('times');
+            $table->string('dates');
             $table->string('created_by');
             $table->timestamps();
         });

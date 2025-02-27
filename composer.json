@@ -10,6 +10,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "morilog/jalali": "^3.4",
+        "spatie/laravel-backup": "^9.2",
         "yajra/laravel-datatables": "11.0"
     },
     "require-dev": {

@@ -218,7 +218,7 @@
 
                 @if(!empty($packageId))
                     <li class="nav-item">
-                        <a href="{{ $base_url }}/settings/backup">
+                        <a href="{{ route('backups.index') }}">
                             <i class="fas fa-database"></i>
                             <p> نسخه پشتبان</p>
                         </a>

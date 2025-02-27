@@ -53,7 +53,15 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
-            'engine' => null,
+            'engine' => null,   
+            'dump' => [
+                // 'dump_binary_path' => env('DB_DUMP_PATH', 'D:/installed/xamp2/mysql/bin/'),
+                'dump_binary_path' => 'D:\\installed\\xamp2\\mysql\\bin\\',
+                'use_single_transaction' => true,
+                'timeout' => 60 * 5, // 5 minute timeout
+                // 'exclude_tables' => ['table1', 'table2'],
+                // 'add_extra_option' => '--optionname=optionvalue', // for example '--column-statistics=0'
+            ],
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

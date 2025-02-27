@@ -6,10 +6,10 @@ use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Home\HomeController;
 
-
-
 use App\Http\Controllers\Warehouse\WarehouseListController;
 use App\Http\Controllers\Sales\SalesController;
+
+use App\Http\Controllers\BackupController;
 
 
 
@@ -117,6 +117,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
+    // backup
+    Route::prefix('backups')->group(function(){
+        Route::get('/', [BackupController::class, 'index'])->name('backups.index');
+        Route::get('/data', [BackupController::class, 'getData'])->name('backups.data');
+        Route::post('/', [BackupController::class, 'createBackup'])->name('backups.create');
+        Route::post('/restore/{id}', [BackupController::class, 'restoreBackup'])->name('backups.restore');
+        Route::get('/download/{id}', [BackupController::class, 'download'])->name('backups.download');
+        Route::delete('/destroy/{id}', [BackupController::class, 'deleteBackup'])->name('backups.destroy');
+    });
 
-    
 });
