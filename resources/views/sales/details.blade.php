@@ -95,7 +95,7 @@
                                                     
                                                     <td>
                                                         @php
-                                                            echo (fmod($detail->discount, 1) == 0) ? number_format($detail->discount, 0) : number_format($detail->discount, 2);
+                                                            echo (fmod($detail->total_discount, 1) == 0) ? number_format($detail->total_discount, 0) : number_format($detail->total_discount, 2);
                                                         @endphp
                                                     </td>
 
@@ -129,9 +129,9 @@
                                             <td> مجموع تخفیف </td>
                                             <td>
                                                 @php
-                                                    echo (fmod($warehouseSales->first()->discount, 1) == 0) ? 
-                                                    number_format($warehouseSales->first()->discount, 0) : 
-                                                    number_format($warehouseSales->first()->discount, 2);
+                                                    echo (fmod($warehouseSales->first()->total_discount, 1) == 0) ? 
+                                                    number_format($warehouseSales->first()->total_discount, 0) : 
+                                                    number_format($warehouseSales->first()->total_discount, 2);
                                                 @endphp
                                             </td>
                                             <td> قابل پرداخت</td>
@@ -222,7 +222,7 @@
                                                     
                                                     <td>
                                                         @php
-                                                            echo (fmod($detail->discount, 1) == 0) ? number_format($detail->discount, 0) : number_format($detail->discount, 2);
+                                                            echo (fmod($detail->total_discount, 1) == 0) ? number_format($detail->total_discount, 0) : number_format($detail->total_discount, 2);
                                                         @endphp
                                                     </td>
 

@@ -16,7 +16,7 @@ use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
 use App\Models\Buy\BoughtItem;
 use App\Models\Buy\BoughtItemDetails; 
-use App\Models\Journal\Journal;
+use App\Models\Transaction\Journal;
 use App\Models\Setting\Warehouse;
 use App\Models\Warehouse\WarehouseItem;
 
@@ -251,6 +251,7 @@ class BoughtDetailsController extends Controller
                 'account_id'          => $request->from_account_id,
                 'customer_account_id' => $request->customer_account_id,
                 'note'                => $note,
+                'is_cleared'         => 0,
             ]);
         } else {
             // ✅ Create new record
@@ -275,7 +276,8 @@ class BoughtDetailsController extends Controller
                 'month'               => $month,
                 'day'                 => $day,
                 'iby'                 => auth()->user()->full_name ?? '',
-                'times'               => $times
+                'times'               => $times,
+                'is_cleared'         => 0,
             ]);
         }
 
@@ -364,6 +366,7 @@ class BoughtDetailsController extends Controller
                     'inserted_by' => $insertedBy,
                     'expire_date' => $request->expire_date ?? null,
                     'times' => $request->times,
+                    'is_cleared' => 0,
                 ];   
             } 
             else 
@@ -392,7 +395,8 @@ class BoughtDetailsController extends Controller
                     'year' => $year,
                     'month' => $month,
                     'day' => $day,
-                    'times' => $request->times
+                    'times' => $request->times,
+                    'is_cleared' => 0,
                 ];
             }
         }

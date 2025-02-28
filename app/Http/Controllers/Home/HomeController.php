@@ -31,18 +31,18 @@ class HomeController extends Controller
         $data['year'] = $request->input('year') ?? Jalalian::now()->format('Y');
         $data['month'] = $request->input('month') ?? Jalalian::now()->format('n');
         $data['day'] = $request->input('day') ?? Jalalian::now()->format('d');
-        $data['currency'] = Currency::select('id','name')->orderBy('id','ASC')->get()->toArray();
-        
-        if (request()->has('currency_id')) {
-            $data['currency_id'] = request()->input('currency_id');
-            
-            $data['cur_currency'] = Currency::select('id', 'name')
+        $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
+    
+        if ($request->has('currency_id')) {
+            $data['currency_id'] = $request->input('currency_id');
+    
+            $cur_currency = Currency::select('id', 'name')
                 ->where('id', $data['currency_id'])
                 ->orderBy('id', 'ASC')
-                ->get()
-                ->toArray();
-        
-            $data['currency_name'] = $data['cur_currency'][0]->name ?? null; // Handle cases where no result is found
+                ->first(); // Use first() instead of get()->toArray()
+    
+            $data['currency_name'] = $cur_currency->name ?? null;
+            $data['currency_id'] = $cur_currency->id ?? null;
         } else {
             $data['currency_id'] = $data['currency'][0]['id'] ?? null;
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;

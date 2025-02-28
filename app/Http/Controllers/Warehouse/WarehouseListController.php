@@ -384,6 +384,7 @@ class WarehouseListController extends Controller
                     'inserted_by' => $insertedBy,
                     'expire_date' => $request->expire_date ?? null,
                     'times' => $request->times,
+                    'is_cleared' => 0,
                 ];
             } 
             else 
@@ -412,7 +413,8 @@ class WarehouseListController extends Controller
                     'year' => $year,
                     'month' => $month,
                     'day' => $day,
-                    'times' => $request->times
+                    'times' => $request->times,
+                    'is_cleared' => 0,
                 ];
             }
         }

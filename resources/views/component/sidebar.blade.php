@@ -192,6 +192,36 @@
                         </div>
                     </li>
 
+                    <!-- <li class="nav-item">
+                        <a data-toggle="collapse" href="#reports">
+                            <i class="fas fa-list-ol"></i>
+                            <p>  گزارشات </p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse" id="reports">
+                            <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="cashflow"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> کهاته مشتریان </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="chartOfAccount"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> چارت حسابات </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li> -->
+
+                    <li class="nav-item">
+                        <a href="{{ route('reports.home') }}">
+                            <i class="fas fa-list-ol"></i>
+                            <p> گزارشات</p>
+                        </a>
+                    </li>
+
+
                 @if(auth()->user()->hasAccess('users', 'list') || auth()->user()->isAdmin())
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">

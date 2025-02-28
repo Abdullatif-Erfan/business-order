@@ -363,7 +363,8 @@ class SalesController extends Controller
                 'uby' => '',
                 'year' => $year, 
                 'month' => $month, 
-                'day' => $day
+                'day' => $day,
+                'is_cleared' => 0,
             ]);
     
             // Check if the insertion was successful
