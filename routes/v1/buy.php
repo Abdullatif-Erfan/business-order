@@ -38,7 +38,7 @@ Route::prefix('boughtList')->group(function(){
     Route::post('/updateItemAndWarehouseItems',[BoughtDetailsController::class, 'updateItemAndWarehouseItems'])->name('boughtList.updateItemAndWarehouseItems');
     Route::get('/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
     Route::get('/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
-    Route::get('/destroy/{billno}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy')->middleware('access:gen_buy,delete_records');;
+    Route::get('/destroy/{times}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy')->middleware('access:gen_buy,delete_records');;
     Route::post('/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])
            ->name('boughtList.deleteSingleItem')->middleware('access:gen_buy,delete_records');
     Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:gen_buy,edit_records');;

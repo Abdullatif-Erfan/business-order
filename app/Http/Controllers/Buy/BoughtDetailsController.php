@@ -231,7 +231,7 @@ class BoughtDetailsController extends Controller
         $month = $date[1];
         $day = $date[2];
         
-        $note = "Total: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
+        $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
 
         // Check if a record with the same billno exists
         $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
@@ -423,6 +423,8 @@ class BoughtDetailsController extends Controller
     */
     public function submit(Request $request)
     {
+        // return ['data' => $request->all()];
+
         $validated = $request->validate([
             'billno' => 'required|numeric',
             'total_price' => 'required',
@@ -434,7 +436,7 @@ class BoughtDetailsController extends Controller
         ]);
     
         // Use proper null coalescing to avoid precedence issues
-        $note = "Total: ".($request->payable ?? 0).", Paid: ".($request->cur_pay ?? 0).", Remained: ".($request->remained ?? 0);
+        $note = "Total Payable: ".($request->payable ?? 0).", Paid: ".($request->cur_pay ?? 0).", Remained: ".($request->remained ?? 0);
         
         // Ensure you're updating a specific record by using the where clause first
         $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
@@ -453,7 +455,18 @@ class BoughtDetailsController extends Controller
             ]);
     
             // Insert into journal
-            // $check = $this->handleJournalEntry($request);
+            $check = $this->handleJournalEntry($request);
+            if(!$check)
+            {
+                DB::rollBack();
+                Session::flash('notification', [
+                    'message' => 'ثبت نگردید',
+                    'type' => 'danger',
+                ]);
+    
+                return redirect()->route('boughtList.index');
+
+            }
      
                // Flash success message
                 Session::flash('notification', [
@@ -586,29 +599,30 @@ class BoughtDetailsController extends Controller
              /**
              * ================================== insert in to journal ========================
              * status: 1: old journal, 2: journal, 3:buy, 4:sales, 5:clearance
-             * transaction_type: 1:recieved/income/increase/talab   2:paid/outcome/decrease/baqi
-             * payment_type: 1: cache, 2: loan
+             * transaction_type: 1:recieved   2:paid
+             * payment_type:     1: cache,    2: loan
              */
             
+            DB::beginTransaction();
+            try {
             /**
              * اگر هیچ پرداخت نکند وتمام شان قرض ثبت گردد
-             * خزانه باید قرضدار ثبت گردد = Loan Recieved
+             * خزانه باید قرضدار ثبت گردد = Recieved Loan 
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
-         DB::beginTransaction();
-         try {
-
             if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
             { 
-                // ثبت قرضه خزانه = Loan Recieved = 2 1
+                // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  ' قرضه خرید - بل '.' BUY_'.$request->billno;
-                $this->createJournalEntry($request,  $request->from_account_id,  $request->payable, $ttype = "1", $ptype="2", $date,
+                $optionLabel = 'قرضه خرید';
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "1", $ptype="2", $date,
                 $full_date, $details);
                 
-                // ثبت طلب مشتری = Loan Paid = 2 2
+                // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
                 $details =  ' طلب خرید - بل '.' BUY_'.$request->billno;
-                $this->createJournalEntry($request, $request->customer_account_id,  $request->payable, $ttype = "2", $ptype="2", $date,
-                $full_date, $details);
+                $optionLabel = 'طلب خرید';
+                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
+                 $ttype = "2", $ptype="2", $date, $full_date, $details);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
@@ -616,18 +630,21 @@ class BoughtDetailsController extends Controller
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-                $this->createJournalEntry($request,  $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date,
+                $optionLabel = 'پرداخت نقد';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date,
                 $full_date, $details);
 
                 // ثبت قرضه خزانه = Loan Recieved 
                 $details =  ' قرضه خرید - بل '.' BUY_'.$request->billno;
-                $this->createJournalEntry($request, $request->from_account_id, $request->remained,  $ttype = "1", $ptype="2", $date,
-                $full_date, $details);
+                $optionLabel = 'قرضه خرید';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->remained,  
+                $ttype = "1", $ptype="2", $date, $full_date, $details);
                
                 // ثبت طلب مشتری = Paid Loan
                 $details =  ' طلب خرید - بل '.' BUY_'.$request->billno;
-                $this->createJournalEntry($request, $request->customer_account_id, $request->remained, $ttype = "2", $ptype="2", $date,
-                $full_date, $details);
+                $optionLabel = 'طلب خرید';
+                $this->createJournalEntry($request, $optionLabel,  $request->customer_account_id, $request->remained,
+                $ttype = "2", $ptype="2", $date, $full_date, $details);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
@@ -636,18 +653,20 @@ class BoughtDetailsController extends Controller
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-                $this->createJournalEntry($request, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date,
+                $optionLabel = 'پرداخت نقد';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date,
                 $full_date, $details);
             }
 
-            // // ثبت مصارف ترانسپورت به روش فعلی روی خزانه جارج میشود
-            // if(intval($request->trans_spend) > 0 && intval($request->trans_account_id) > 0) 
-            // {
-            //     // رفت پول نقد از بابت ترانسپورت = Cache paid
-            //     $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-            //     $this->createJournalEntry($request, $request->trans_account_id, $request->trans_spend, $ttype = "2", $ptype="1", $date,
-            //     $full_date, $details);
-            // }
+            // ثبت مصارف ترانسپورت به روش فعلی هروقت که بزرگتر از صفر بود باید از حساب خزانه کم شود
+            if(intval($request->trans_spend) > 0 && intval($request->from_account_id) > 0) 
+            {
+                // رفت پول نقد از بابت ترانسپورت = Cache paid
+                $details =  'پرداخت مصارف ترانسپورت - بل  '.' BUY_'.$request->billno;
+                $optionLabel = 'مصارف ترانسپورت';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->trans_spend, $ttype = "2", $ptype="1", $date,
+                $full_date, $details);
+            }
             
             DB::commit();
             return true; 
@@ -656,7 +675,7 @@ class BoughtDetailsController extends Controller
             // Rollback the transaction if an error occurs
             DB::rollBack();
             // Optionally, log the error for debugging
-            \Log::error('Error storing journal entry', ['error' => $e]);
+            \Log::error('Error storing journal entry in BoughtDetailsController', ['error' => $e]);
     
             // Use MessageService to return error message
             Session::flash('notification', [
@@ -667,7 +686,7 @@ class BoughtDetailsController extends Controller
         }
     }
 
-    private function createJournalEntry($request, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details)
+    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details)
     {
         Journal::create([
             'bill_no' => $request->billno,
@@ -678,6 +697,7 @@ class BoughtDetailsController extends Controller
             'currency_id' => $request->currency_id,
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
+            'option_label' => $optionLabel,
             'user_id' => auth()->user()->id ?? '',
             'year' =>  $date[0],
             'month' =>  $date[1],
@@ -689,7 +709,6 @@ class BoughtDetailsController extends Controller
             'times' => $request->times,
             'is_single_record' => 1, 
         ]);
-
     }
 
 
@@ -736,6 +755,7 @@ class BoughtDetailsController extends Controller
         $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
         $preLists = BuyPreList::select('id','name','branch_id')->get();
         $units = Unit::select('id','name')->get();
+        $journal_code = Journal::select('code','branch_id')->where('times',$times)->first();
 
 
         $orgbios = OrgBio::all();
@@ -753,7 +773,7 @@ class BoughtDetailsController extends Controller
         // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
         // return response()->json(['boughtItems' => $boughtItems]);
 
-        return view('buy.bought.edit',compact('boughtItemDetails','boughtItems','short_date','orgbios','currencies','warehouses','customers','ownBanks','preLists','units'));
+        return view('buy.bought.edit',compact('boughtItemDetails','boughtItems','short_date','orgbios','currencies','warehouses','customers','ownBanks','preLists','units','journal_code'));
     }
 
     /**
@@ -767,13 +787,13 @@ class BoughtDetailsController extends Controller
            
             $validated = $request->validate([
                 'billno' => 'required|integer|min:1',
-                'account_id' => 'required',
+                'from_account_id' => 'required',
                 'total_price' => 'required|integer|min:1',
                 'payable' => 'required|integer|min:1',
                 'currency_id' => 'required|integer',
             ], [
                 'billno.required' => 'بل نمبر ضروری میباشد',
-                'account_id.required' => ' حساب شرکت ضروری میباشد',
+                'from_account_id.required' => ' حساب شرکت ضروری میباشد',
                 'total_price.required' => ' قیمت مجموعی ضروری میباشد',
                 'payable.required' => ' قابل پرداخت ضروری میباشد',
                 'currency_id.required' => ' کرنسی ضروری میباشد',
@@ -782,7 +802,7 @@ class BoughtDetailsController extends Controller
 
             $boughtItem = BoughtItem::where('billno', $request->billno)->first();
 
-            $note = "Total: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
+            $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
 
             $boughtItem->total_price = $request->total_price;
             $boughtItem->discount = $request->total_discount;
@@ -791,18 +811,38 @@ class BoughtDetailsController extends Controller
             $boughtItem->remained = $request->remained;
             $boughtItem->currency_id = $request->currency_id;
             $boughtItem->trans_spend = $request->trans_spend;
-            $boughtItem->account_id = $request->account_id;
+            $boughtItem->account_id = $request->from_account_id;
             $boughtItem->note = $note;
             $boughtItem->save();
+
+            // delete journal records
+            Journal::where('times', $request->times)->delete();
+
+            // insert new records instead of updating
+            $check = $this->handleJournalEntry($request);
+
+            if(!$check)
+            {
+                DB::rollBack();
+                Session::flash('notification', [
+                    'message' => 'ویرایش نگردید',
+                    'type' => 'danger',
+                ]);
+        
+                return redirect()->route('boughtList.details', ['times' => $request->times]);
+            }
 
             // Flash success message
             Session::flash('notification', [
                 'message' => 'موفقانه ویرایش گردید',
                 'type' => 'success',
             ]);
+
+            DB::commit();
             return redirect()->route('boughtList.details', ['times' => $request->times]);
-    
+
         } catch (\Exception $e) {
+            DB::rollBack();
             // Log the error
             \Log::error('Error occurred during the journal update', ['error' => $e]);
     
@@ -1244,13 +1284,15 @@ class BoughtDetailsController extends Controller
     /**
     * Remove the specified resource from storage.
     */
-    public function destroy(string $billno)
+    public function destroy(string $times)
     {
         DB::beginTransaction();
         try {
             // Delete all related records directly
-            BoughtItemDetails::where('billno', $billno)->delete();
-            BoughtItem::where('billno', $billno)->delete();
+            BoughtItemDetails::where('times', $times)->delete();
+            BoughtItem::where('times', $times)->delete();
+            Journal::where('times', $times)->delete();
+
     
             DB::commit();
     

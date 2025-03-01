@@ -10,7 +10,7 @@ use App\Models\Setting\Branch;
 use App\Models\Setting\AccountType;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
-use App\Models\Journal\Journal;
+use App\Models\Transaction\Journal;
 use Morilog\Jalali\Jalalian;
 use Yajra\DataTables\Facades\DataTables;
 

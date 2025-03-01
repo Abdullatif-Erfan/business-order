@@ -253,7 +253,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-8 m-t-20">
                                         <div class="row">
                                             <div class="col-12">
-                                                <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left btn-sm">
+                                                <input type="submit" id="submit_button" name="submit" value="ثبت نهایی" class="form-control btn bg-blue pull-left btn-sm">
                                             </div>
                                         </div>
                                     </div>

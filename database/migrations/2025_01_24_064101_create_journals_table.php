@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignId('currency_id');
             $table->integer('transaction_type')->comment('1: recieved, 1 paid');
             $table->integer('payment_type')->comment('1: cache, 2: loan');
+            $table->integer('options')->nullable()->comment('1: cache2cache, 2:loan2loan, 3:cache2loan, 4:loan2cache');
+            $table->string('option_label')->nullable();
             $table->string('inserted_full_date', 30)->nullable();
             $table->string('inserted_short_date', 30)->nullable();
             $table->foreignId('user_id');

@@ -43,7 +43,7 @@
     </tbody> 
 </table>
 
-<input type="hidden" name="branch_id" value="{{ $branch_id  }}">
+<input type="hidden" name="branch_id" value="{{ $insertedData->first()->preListRelation->first()->branch_id  }}">
 <table class="table table-bordered new" style="margin-top:10px;">
    <tr>
        <td>مجموع پول &nbsp; </td>

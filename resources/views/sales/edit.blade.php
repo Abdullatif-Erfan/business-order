@@ -66,6 +66,10 @@
                             <form action="{{ route('sales.update') }}"  method="POST">
                              @csrf
                              <input type="hidden" name="billno" value="{{ $warehouseSales->first()->billno }}">
+                             <input type="hidden" name="todays_date" value="{{ $warehouseSales->first()->short_date ?? '' }}">
+                             <input type="hidden" name="branch_id" value="{{ $warehouseSales->first()->branch_id ?? '' }}">
+                             <input type="hidden" name="times" value="{{ $warehouseSales->first()->times ?? '' }}">
+
 
                                <div class="form-body" style="padding: 0px 0px 15px !important;">
                                 <div class="container col-md-12 col-sm-12 col-xs-12" style="padding: 10px 10px;">
@@ -170,7 +174,7 @@
                                         </tr>
                                         <tr>
                                             <td>نوت </td>
-                                            <td colspan="5"><input type="text"  class="form-control" name="note" id="note" 
+                                            <td colspan="5"><input type="text"  class="form-control" name="note" id="note" readonly
                                             value="{{  $warehouseSales->first()->note }}" ></td>
                                         </tr>
                                     </table>

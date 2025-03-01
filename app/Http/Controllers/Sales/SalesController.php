@@ -14,7 +14,7 @@ use App\Models\Setting\Branch;
 use Morilog\Jalali\Jalalian;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
-
+use App\Models\Transaction\Journal;
 use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
 use App\Models\Warehouse\SalesDetails;
@@ -41,7 +41,7 @@ class SalesController extends Controller
 
     public function getData(Request $request)
     {
-          $soldItems = DB::table('warehouse_sales')
+            $soldItems = DB::table('warehouse_sales')
             ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
             ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
             ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
@@ -134,9 +134,12 @@ class SalesController extends Controller
         $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
         $currencies = Currency::all();
         $billno =  WarehouseSales::max('billno') + 1;
+        $journal_code = Journal::max('code') + 1;
+        $times = time();
+        
 
         // return response()->json(['data' => $warehouseItems]);
-        return view('sales.create.form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies'));
+        return view('sales.create.form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
     }
 
     /**
@@ -164,32 +167,23 @@ class SalesController extends Controller
             
             // create warehouse_sales
             $warehouseSalesId = $this->createWarehouseSales($request);
-            if(!$warehouseSalesId)
-            {       
-                \Log::info('insertion failed');
-                DB::rollBack();
-                // Flash error message
-                Session::flash('notification', [
-                    'message' => 'ثبت نگردید ٬ مشکل در ثبت فروشات میباشد',
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('sales.create');
-            }
+            
             // create sales_details
             $salesDetails = $this->createSalesDetails($request, $warehouseSalesId);
-            if(!$salesDetails)
-            {       
+
+            // decrease from warehouse_items
+            $checkWarehouseItems = $this->decreaseWarehouseItemFromSoldAmount($request);
+
+            $checkJournal =  $this->handleJournalEntry($request);
+            if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
+            {
                 DB::rollBack();
-                // Flash error message
                 Session::flash('notification', [
-                    'message' => 'ثبت نگردید ٬ مشکل در ثبت جزییات فروشات میباشد',
+                    'message' => 'ثبت نگردید',
                     'type' => 'danger',
                 ]);
                 return redirect()->route('sales.create');
             }
-
-            // decrease from warehouse_items
-            $this->decreaseWarehouseItemFromSoldAmount($request);
 
             // Flash error message
             DB::commit();
@@ -222,6 +216,7 @@ class SalesController extends Controller
     {
         return [
             'customer_account_id' => 'required|integer|exists:accounts,id',
+            'times'        => 'required',
             'todays_date' => 'required|date_format:Y-m-d',
             'billno' => 'required|integer',
             'factor' => 'nullable|string',
@@ -343,6 +338,9 @@ class SalesController extends Controller
             $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
             // \Log::info('Start inserting into warehouse sales', ['request' => $request->all()]);
     
+            $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
+
+
             // Insert the new warehouse sale record
             $warehouseSales = WarehouseSales::create([
                 'billno' => $request->billno, 
@@ -356,7 +354,7 @@ class SalesController extends Controller
                 'cur_pay' => $request->cur_pay,
                 'remained' => $request->remained, 
                 'currency_id' => $request->currency_id,  
-                'note' => $request->note, 
+                'note' => $note, 
                 'short_date' => $request->todays_date,
                 'ifull_date' => $full_date,
                 'iby' => $insertedBy, 
@@ -364,6 +362,7 @@ class SalesController extends Controller
                 'year' => $year, 
                 'month' => $month, 
                 'day' => $day,
+                'times' => $request->times,
                 'is_cleared' => 0,
             ]);
     
@@ -439,6 +438,122 @@ class SalesController extends Controller
     }
 
 
+    /**
+     * Create Journal
+     */
+    private function handleJournalEntry($request)
+    {
+            $date = explode('-', $request->todays_date);
+            $year = $date[0];
+            $month = $date[1];
+            $day  = $date[2];
+            $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
+             /**
+             * ================================== insert in to journal ========================
+             * status: 1: old journal, 2: journal, 3:buy, 4:sales, 5:clearance
+             * transaction_type: 1:recieved   2:paid
+             * payment_type:     1: cache,    2: loan
+             */
+            
+            DB::beginTransaction();
+            try {
+            /**
+             * اگر هیچ پرداخت نکند وتمام شان قرض ثبت گردد
+             * خزانه باید طلب ثبت گردد =  paid Loan 
+             * مشتری باید قرضدار ثبت گردد = Recieved Loan 
+             */
+            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
+            { 
+                // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
+                $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
+                $optionLabel = 'طلب فروشات';
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date,
+                $full_date, $details);
+                
+                // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
+                $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
+                $optionLabel = 'قرضه فروشات';
+                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
+                 $ttype = "1", $ptype="2", $date, $full_date, $details);
+            }
+
+            // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
+            else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
+            {
+                // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
+                $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
+                $optionLabel = 'دریافت نقد';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details);
+
+                // ثبت قرضه مشتری = Loan Recieved = p2t1
+                $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
+                $optionLabel = 'قرضه فروشات';
+                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $request->remained,  
+                $ttype = "1", $ptype="2", $date, $full_date, $details);
+               
+                // ثبت طلب خزانه = Paid Loan = t2p2
+                $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
+                $optionLabel = 'طلب فروشات';
+                $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $request->remained,
+                $ttype = "2", $ptype="2", $date, $full_date, $details);
+            }
+
+             // قرضدار نمانده است و مکمل پرداخت کرده است
+             // تنها در حساب خزانه اضافه شود
+            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
+            {
+                // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
+                $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
+                $optionLabel = 'دریافت نقد';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
+                $ttype = "1", $ptype="1", $date, $full_date, $details);
+            }
+        
+            DB::commit();
+            return true; 
+
+        } catch (\Exception $e) {
+            // Rollback the transaction if an error occurs
+            DB::rollBack();
+            // Optionally, log the error for debugging
+            \Log::error('Error storing journal entry in SalesController', ['error' => $e->getMessage()]);
+    
+            // Use MessageService to return error message
+            Session::flash('notification', [
+                'message' => ' ثبت نگردید',
+                'type' => 'danger',
+            ]);
+             return false;
+        }
+    }
+
+    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details)
+    {
+        $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
+        Journal::create([
+            'bill_no' => $request->billno,
+            'code' =>  $request->code,
+            'account_id' => $account_id,
+            'branch_id' => $branch_id,
+            'amount' => $amount,
+            'currency_id' => $request->currency_id,
+            'transaction_type' => $ttype,
+            'payment_type' => $ptype,
+            'option_label' => $optionLabel,
+            'user_id' => auth()->user()->id ?? '',
+            'year' =>  $date[0],
+            'month' =>  $date[1],
+            'day' =>  $date[2],
+            'inserted_short_date' => $request->todays_date,
+            'inserted_full_date' => $full_date,
+            'details' => $details,
+            'status' => 4,  
+            'times' => $request->times,
+            'is_single_record' => 1, 
+        ]);
+    }
+
+
 
     /**
      * Display the specified resource.
@@ -449,7 +564,7 @@ class SalesController extends Controller
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
         $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
-
+        
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
         return view('sales.details',compact('warehouseSales','salesDetails','orgbios','todaysDate'));
 
@@ -470,7 +585,6 @@ class SalesController extends Controller
         $customers = Account::select('id','name')->where('account_type_id',3)->orWhere('account_type_id',4)->get();
         $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
         $currencies = Currency::select('id','name')->get();
-
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
         return view('sales.edit',compact('warehouseSales','salesDetails','orgbios','todaysDate','customers','ownBanks','currencies','billno'));
     }
@@ -589,41 +703,74 @@ class SalesController extends Controller
             'total_discount'      => 'required|numeric|min:0',
             'from_account_id'     => 'required|exists:accounts,id',
             'payable'             => 'required|numeric|min:0',
-            'cur_pay'             => 'required|numeric|min:1',
+            'cur_pay'             => 'required|numeric|min:0',
             'remained'            => 'required|numeric|min:0',
             'note'                => 'nullable|string|max:500',
         ]);
-
-        // Find the warehouse sale record
+    
+        DB::beginTransaction();
+    
         try {
+            // Find the warehouse sale record
             $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->firstOrFail();
-
-            // Update values
+    
+            $note = "Total Payable: " . ($validated['payable'] ?? 0) . ", Paid: " . ($validated['cur_pay'] ?? 0) . ", Remained: " . ($validated['remained'] ?? 0);
+    
+            // Update warehouse sale details
             $warehouseSales->update([
                 'total_price'    => $validated['total_price'],
                 'total_discount' => $validated['total_discount'],
                 'payable'        => $validated['payable'],
                 'cur_pay'        => $validated['cur_pay'],
                 'remained'       => $validated['remained'],
-                'note'           => $validated['note'],
+                'note'           => $note,
             ]);
-
-            return redirect()->route('sales.details', ['billno' => $validated['billno']])
-                            ->with('notification', [
-                                'message' => 'موفقانه ویرایش گردید',
-                                'type'    => 'success',
-                            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Error updating WarehouseSales: ' . $e->getMessage());
-
+    
+            // Retrieve old journal records
+            $oldJournals = Journal::where('times', $request->times)->where('status', 4)->get();
+    
+            if ($oldJournals->isNotEmpty()) {
+                // Clone request to avoid modifying original data
+                $clonedRequest = clone $request;
+                $clonedRequest->merge([
+                    'code' => $oldJournals->first()->code, // Get 'code' from the first record
+                ]);
+    
+                // Delete all journal records in a single query
+                Journal::where('times', $request->times)->where('status', 4)->delete();
+    
+                // Handle new journal entry
+                $checkJournal = $this->handleJournalEntry($clonedRequest);
+    
+                if (!$checkJournal) {
+                    DB::rollBack();
+                    return redirect()->route('sales.details', ['billno' => $request->billno])
+                        ->with('notification', [
+                            'message' => 'ویرایش نگردید',
+                            'type'    => 'danger',
+                        ]);
+                }
+            }
+    
+            // Commit transaction
+            DB::commit();
             return redirect()->route('sales.details', ['billno' => $request->billno])
-                            ->with('notification', [
-                                'message' => 'ویرایش نگردید',
-                                'type'    => 'danger',
-                            ]);
+                ->with('notification', [
+                    'message' => 'موفقانه ویرایش گردید',
+                    'type'    => 'success',
+                ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating WarehouseSales: ' . $e->getMessage());
+    
+            return redirect()->route('sales.details', ['billno' => $request->billno])
+                ->with('notification', [
+                    'message' => 'ویرایش نگردید',
+                    'type'    => 'danger',
+                ]);
         }
     }
+    
 
 
     /**

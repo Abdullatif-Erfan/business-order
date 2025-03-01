@@ -225,6 +225,7 @@ class ExpenseController extends Controller
             $journal->details = $validated['details'];
             $journal->transaction_type = 2; // 1: received, 2: paid
             $journal->payment_type = 1; // 1: cache, 2: loan, 3: Talab
+            $journal->option_label = 'پرداخت مصارف';
             $journal->save();
     
             // Commit the transaction

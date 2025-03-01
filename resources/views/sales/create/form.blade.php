@@ -49,6 +49,10 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                         <!-- {{ json_encode(auth()->user()->full_name) }} -->
                         <!-- {{ json_encode(auth()->user()->id) }} -->
+                        <input type="hidden" name="times" value="{{ $times ?? 0 }}">
+                        <input type="hidden" name="code" value="{{ $journal_code ?? 0 }}">
+                        
+
                         
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                             <div class="form-body" style="padding: 0px 0px 15px !important;">

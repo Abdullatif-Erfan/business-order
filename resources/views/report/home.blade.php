@@ -63,16 +63,16 @@
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="cashflow">💰 کهاته حسابات</a>
+                                                    <a target="_blank" href="{{ route('chartOfAccount.index')}}">💰 کهاته حسابات</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="reports/balancesheet">📑 بیلانس شیت</a>
+                                                    <a target="_blank" href="#">📑 بیلانس شیت</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="chartOfAccount">📌 چارت حسابات</a>
+                                                    <a target="_blank" href="#">📌 چارت حسابات</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="reports/clearance">✅ تصفیه حساب</a>
+                                                    <a target="_blank" href="#">✅ تصفیه حساب</a>
                                                 </li>
                                             </ul>
                                         </div>
@@ -88,16 +88,16 @@
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="cashflow">📜 سهم سهامداران</a>
+                                                    <a target="_blank" href="#">📜 سهم سهامداران</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="reports/balancesheet">💹 مفاد و ضرر</a>
+                                                    <a target="_blank" href="#">💹 مفاد و ضرر</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="chartOfAccount">💳 قرضه ها</a>
+                                                    <a target="_blank" href="#">💳 قرضه ها</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="reports/clearance">🧾 طلبات</a>
+                                                    <a target="_blank" href="#">🧾 طلبات</a>
                                                 </li>
                                             </ul>
                                         </div>

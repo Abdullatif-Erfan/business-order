@@ -123,13 +123,13 @@
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="12">
                                               <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                             
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="12">
                                                 <center>
                                                     روزنامچه   
                                                 </center>
@@ -143,10 +143,25 @@
                                             
                                             <!-- <th> رفت / قرض  </th>
                                             <th>  آمد / طلب </th> -->
-                                            <th>  پرداخت  </th>
-                                            <th>  دریافت  </th>
 
+                                       <!-- <th>  پرداخت / قرض  </th>
+                                            <th>  دریافت / طلب  </th> -->
+
+                                            <!-- <th>  رسیدگی / قرض  </th>
+                                            <th>  بردگی / طلب  </th> -->
+
+                                            <!-- <th>بردگی <br> نقد (+)</th>
+                                            <th>رسیدگی <br> نقد (-)</th>
+                                            <th>بردگی <br> قرض</th>
+                                            <th>رسیدگی <br> قرض / طلب</th> -->
+
+                                            <th> دریافت <br> نقد (+)</th>
+                                            <th>پرداخت <br> نقد (-)</th>
+                                            <th> قرض</th>
+                                            <th> طلب</th>
+                                            
                                             <th>واحد</th>
+                                            <th>  نوع معامله  </th>
                                             <th>تاریخ</th>
                                             <th>جزییات</th>
                                         </tr>
@@ -154,6 +169,9 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="4">مجموع</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -243,9 +261,16 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                 { data: 'code', name: 'code' },
                 { data: 'accountRelation', name: 'accountRelation' },
                 { data: 'details', name: 'details' },
-                { data: 'transaction_type_1', name: 'transaction_type_1' },
-                { data: 'transaction_type_2', name: 'transaction_type_2' },
+                // { data: 'transaction_type_1', name: 'transaction_type_1' },
+                // { data: 'transaction_type_2', name: 'transaction_type_2' },
+
+                { data: 'cacheRecieved', name: 'cacheRecieved' },
+                { data: 'cachePaid', name: 'cachePaid' },
+                { data: 'loanRecieved', name: 'loanRecieved' },
+                { data: 'loanPaid', name: 'loanPaid' },
+
                 { data: 'currency', name: 'currency' },
+                { data: 'option_label', name: 'option_label' },
                 { data: 'inserted_short_date', name: 'inserted_short_date' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
@@ -262,23 +287,25 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                         .column(index, { page: 'current' })
                         .data()
                         .reduce(function (a, b) {
-                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
                             var sum = numA + numB;
 
                             // Format the sum based on whether it has decimals
-                            if (fmod(sum, 1) === 0) {
+                            if (sum % 1 === 0) {
                                 return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                             } else {
                                 return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             }
-
                         }, 0)
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
                 $(api.column(4).footer()).html(sumColumn(4));
                 $(api.column(5).footer()).html(sumColumn(5));
+                $(api.column(6).footer()).html(sumColumn(6));
+                $(api.column(7).footer()).html(sumColumn(7));
+
                 
             }
         });

@@ -19,7 +19,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Services\NumberToWordsService;
 
 
-class JournalController extends Controller
+class JournalControllerBkp extends Controller
 {
 
     protected $messageService, $numberToWordsService;
@@ -74,7 +74,7 @@ class JournalController extends Controller
         }])
         // $journals = Journal::with(['accountRelation','currencyRelation'])
         ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','options','option_label','currency_id','details','inserted_short_date','status','times','is_single_record')
-        // ->where('journals.status','<=',2)
+        ->where('journals.status','<=',2)
         ->orderBy('id', 'DESC');
 
 
@@ -110,8 +110,12 @@ class JournalController extends Controller
                 return $journal->accountRelation ? $journal->accountRelation->name : '';
             })
             
-            // cacheRecieved || transaction_type = 2
-            ->addColumn('cacheRecieved', function ($journal) {
+         
+
+            // در این حالت در رفت / قرض نشان داده شود
+            //  transaction_type == 2 and payment_type = 1 = paid cache
+            // transaction_type == 1 and payment_type = 2 = recieved loan
+            ->addColumn('transaction_type_1', function ($journal) {
                 $amount = $journal->amount;
                 $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
 
@@ -121,50 +125,40 @@ class JournalController extends Controller
                 else 
                 {
                     // دو معامله ای
-                    if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return $formattedAmount; }
+                    if (($journal->transaction_type == 2 && $journal->payment_type == 1) || 
+                    ($journal->transaction_type == 1 && $journal->payment_type == 2)) {
+                        return $formattedAmount;
+                    }
                 }
                 return '';
             })
-
-               // cachePaid || transaction_type = 1
-               ->addColumn('cachePaid', function ($journal) {
+            
+            
+            // در این حالت در طلب / و آمد نشان داده شود
+            // transaction_type == 2 and payment_type = 2 = paid loan
+            // transaction_type == 1 and payment_type = 1 = recieved cache
+            ->addColumn('transaction_type_2', function ($journal) {
                 $amount = $journal->amount;
                 $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
 
-                if ($journal->status == 1) { // رسید حساب سابق 
+                if ($journal->status == 1) {
                     return $journal->transaction_type == 1 ? $formattedAmount : '';
                 } 
-                else 
-                {
-                    // دو معامله ای
-                    if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return $formattedAmount; }
+                else {
+                    if (($journal->transaction_type == 2 && $journal->payment_type == 2) || 
+                        ($journal->transaction_type == 1 && $journal->payment_type == 1)) {
+                        return $formattedAmount;
+                    }
                 }
                 return '';
             })
-
-           
-            
-          // loanRecieved 
-            ->addColumn('loanRecieved', function ($journal) {
-            $amount = $journal->amount;
-            $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-               if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return $formattedAmount; }
-           })
-            
-
-           // loanPaid 
-            ->addColumn('loanPaid', function ($journal) {
-            $amount = $journal->amount;
-            $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-               if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return $formattedAmount; }
-           })
             
 
             ->addColumn('currency', function ($journal) {
                 return '<i style="font-size:14px;color:'.$journal->currencyRelation->color.'">'.$journal->currencyRelation->symbols.'</i>';
             })
             ->addColumn('actions', function ($journal) {
-                return $journal->status == 2 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';
+                return $journal->is_single_record == 1 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';
             })
             ->rawColumns(['actions','currency'])
             ->make(true);
@@ -241,12 +235,12 @@ class JournalController extends Controller
         // return ['formData' => $request->all()];
 
         $this->journalValidation($request);
-        $newJournalCode =  Journal::max('code') + 1;
+
         // Start the transaction
         DB::beginTransaction();
         try 
         {
-           $check = $this->handleJournalEntry($request,$newJournalCode);
+           $check = $this->handleJournalEntry($request);
 
            if(!$check)
            { 
@@ -304,7 +298,7 @@ class JournalController extends Controller
         ]);
     }
 
-    private function handleJournalEntry($request,$newJournalCode)
+    private function handleJournalEntry($request)
     {
         $todaysDate = $request->todays_date;
         $date = explode('-', $todaysDate);
@@ -313,6 +307,7 @@ class JournalController extends Controller
         $day = $date[2];
         $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
 
+        $newJournalCode = $newJournalCode =  Journal::max('code') + 1;
         $times = time();
     
          /**
@@ -362,12 +357,12 @@ class JournalController extends Controller
              else if(intval($request->options) === 2)
              {
                  // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                $optionLable = 'پرداخت قرض';
+                $optionLable = 'پرداخت نسیه';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
                                           $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
                 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                 $optionLable = 'دریافت قرض';
+                 $optionLable = 'دریافت نسیه';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
                                           $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times);
              }
@@ -386,7 +381,7 @@ class JournalController extends Controller
 
 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                 $optionLable = 'دریافت قرض';
+                 $optionLable = 'دریافت نسیه';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
                                         $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
 
@@ -396,23 +391,19 @@ class JournalController extends Controller
             {
                 /**
                 * پرداخت نقد مشتری
-                * باید همین مبلغ در جمع  رسیدگی قرض مشتری علاوه شود تا از قرضه شان کم شود
-                * باید همین مبلغ در حساب خزانه جمع شود زیرا نقد دریافت کرده وباید حساب شان افزایش یابد
-
-                * بردگی نقد خزانه
-                * رسیدگی قرض مشتری یا پرداخت کننده
+                * ثبت قرضه خزانه از مشتری تا اینکه از طلب مشتری کم شود
                 */
 
-                // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                $optionLable = 'رسیدگی قرض ';
+                // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
+                $optionLable = 'پرداخت نقد';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                        $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
+                                        $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
 
 
-                // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
-                $optionLable = 'دریافت طلب'; 
+                // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
+                $optionLable = 'دریافت طلب';
                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                    $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times);
+                                    $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
             }
 
             // Commit the transaction
@@ -525,7 +516,7 @@ class JournalController extends Controller
         DB::beginTransaction();
         try 
         {
-           $check = $this->handleJournalEntry($request, $request->code);
+           $check = $this->handleJournalEntry($request);
 
            if(!$check)
            { 
@@ -583,7 +574,7 @@ class JournalController extends Controller
         }
     
         // Redirect or return response
-        return redirect()->route('journal.details', ['times' => $request->times])->with('success', 'Documents updated successfully!');
+        return redirect()->route('transactions.journal.details', ['times' => $request->times])->with('success', 'Documents updated successfully!');
 
     }
     

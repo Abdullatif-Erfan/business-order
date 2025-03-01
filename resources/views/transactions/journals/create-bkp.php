@@ -1,40 +1,6 @@
 @extends('layouts.app')
 @section('title', 'روزنامچه')
 @section('content')
-<style>
-    @keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-.blink {
-  animation: blink 1s linear infinite;
-  color: red;
-  font-size: 20px;
-}
-.blink {
-  color: red;
-  font-size: 20px;
-}
-
-@keyframes bold_normal {  
-    0%, 100% {  
-    font-weight: bold; /* Start and end with bold */  
-  }  
-  50% {  
-    font-weight: normal; /* Transition to normal */  
-  }  
-}  
-
-.typing-effect {  
-  animation: bold_normal 1s linear infinite; /* Apply the animation */  
-  color: green; /* Set the text color */  
-  font-size: 18px; /* Set the font size */  
-  margin-bottom: 10px;
-} 
-
-</style>
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -55,8 +21,7 @@
                                 @csrf
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
-
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <select class="form-control select2" name="branch_id" required>
                                                     @if ($branchs->count() > 1)
@@ -70,21 +35,8 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-3 col-sm-6 col-xs-12">
-                                            <div class="form-group form-floating-label">
-                                                <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" required 
-                                                onchange="selectAccountsLabel(this.value)" > 
-                                                    <option value="">  --- انتخاب نوع معامله --- </option>
-                                                    <option value="1"> معاملات نقد به نقد </option>
-                                                    <option value="2"> معاملات نسیه به نسیه </option>
-                                                    <option value="3"> معاملات نقد به نسیه </option>
-                                                    <option value="4"> معاملات نسیه به نقد ( آوردگی قرض بطور نقد) </option>
-                                                 </select> 
-                                            </div> 
-                                        </div>
 
-
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                            <div class="form-group">
                                                 <input class="form-control" id="bill_no" name="bill_no" type="number" placeholder="بل نمبر" >
                                                 @error('bill_no')<span class="text-danger">{{ $message }}</span>@enderror
@@ -92,7 +44,7 @@
                                         </div>
 
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                                 <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                                 <div class="input-group-append">
                                                 <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -246,58 +198,6 @@
     $('[data-name="enable-button"]').click(function () {
         $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
     });
-</script>
-
-<script>
-    function updateToAmountWithThisValue(from_amount)
-    {
-        const rawAmount = from_amount.replace(/,/g, '');   
-        $('#to_amount').val(formatNumberWithCommas(rawAmount));  
-   }
-   function selectAccountsLabel(paymentType)
-   {
-    /**
-    *  نقد به نقد
-    * پرداخ نقد یک ریکارد و دریافت کننده نقد ریکارد دیگر ثبت شود
-    */
-     if(parseInt(paymentType) === 1) 
-     {
-         $('#from_account_label').html('حساب رسیدگی (پرداخت کننده)');
-         $('#to_account_label').html('حساب بردگی (دریافت کننده)');
-     } 
-     /**
-     *   نسیه به نسیه
-     *  یک ریکارد طلب و یک ریکارد قرضدار ثبت گردد
-     */
-     else if(parseInt(paymentType) === 2) 
-     {
-        $('#from_account_label').html('حساب رسیدگی ( حساب که طلب میشود)');
-        $('#to_account_label').html('حساب بردگی (حساب که قرضدار میشود)');
-     }
-     /**
-     * نقد به نسیه
-     * دو ریکارد برای پرداخت کننده ثبت شود که یکی شان از حساب نقده کم شود ویکی شان طلب ثبت گردد
-     * یک ریکارد قرضداری دریافت کننده ثبت گرد 
-     */
-     else if(parseInt(paymentType) === 3) 
-     {
-        $('#from_account_label').html('حساب رسیدگی (پرداخت کننده نقد)');
-        $('#to_account_label').html('حساب بردگی (دریافت کننده قرض)');
-     }
-    
-    /**
-     * نسیه به نقد
-     * باید همین مبلغ در جمع  رسیدگی قرض مشتری علاوه شود تا از قرضه شان کم شود
-     * باید همین مبلغ در حساب خزانه جمع شود زیرا نقد دریافت کرده وباید حساب شان افزایش یابد
-     */
-     else if(parseInt(paymentType) === 4) 
-     {
-        $('#from_account_label').html('حساب رسیدگی (پرداخت کننده قرضه بطور نقد)');
-        $('#to_account_label').html('حساب بردگی (دریافت کننده/ طلب)');
-     }
-    
-   }
-
 </script>
 
 

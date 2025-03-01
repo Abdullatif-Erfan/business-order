@@ -66,11 +66,17 @@
                             <form action="{{ route('boughtList.update') }}"  method="POST">
                              @csrf
                              <input type="hidden" name="times" value="{{ $boughtItems->first()->times }}">
+                             <input type="hidden" name="todays_date" value="{{ $boughtItems->first()->idate ?? '' }}">
+                             <input type="hidden" name="journal_code" value="{{ $journal_code->code ?? '' }}">
+                             <input type="hidden" name="branch_id" value="{{ $journal_code->branch_id ?? '' }}">
+                             <input type="hidden" name="customer_account_id" value="{{ $boughtItemDetails->first()->accountRelation->id ?? '' }}">
+                             
                              
                                 <div class="form-body" style="padding: 0px 0px 15px !important;" id="print_area">
                             
                                     <div class="container col-md-12 col-sm-12 col-xs-12" style="padding: 10px 10px;">
                                         <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
+
                                         
 
                                         <table style="width:100%">
@@ -81,7 +87,7 @@
                                             </tr>
                                             <tr>
                                                 <td> حساب پرداخت کننده: 
-                                                    <select name="account_id" class="form-control select2" required>
+                                                    <select name="from_account_id" class="form-control select2" required>
                                                         @foreach($ownBanks as $account)
                                                             <option value="{{ $account->id }}" {{ $boughtItems->first()->account_id == $account->id ? 'selected' : '' }}>
                                                                 {{ $account->name }}
@@ -191,7 +197,7 @@
                                           
                                             @if(auth()->user()->hasAccess('buy','delete_records'))
                                                @if($boughtItemDetails->count() == 0)
-                                              <a href="{{ route('boughtList.destroy', $boughtItems->first()->billno) }}"  
+                                              <a href="{{ route('boughtList.destroy', $boughtItems->first()->times) }}"  
                                                 onClick="return doConfirm();" class="hidden-print">
                                                     <button type="button" class="btn btn-danger btn-sm m-r-10">
                                                     <i class="fas fa-trash error "></i>  حذف 

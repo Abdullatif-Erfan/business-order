@@ -101,13 +101,13 @@
                                             <!-- return button -->
                                             <a href="{{ route('journal.index') }}" class="hidden-print">
                                                <button class="btn btn-primary btn-sm btn-border m-r-10">
-                                               <i class="fas fa-arrow-right"></i>  برگشت 
+                                               <i class="fas fa-arrow-left"></i>  برگشت 
                                                </button>
                                             </a> 
              
 
                                             <!-- print button -->
-                                            @if(isset($journals[1]))
+                                            @if(isset($journals[0]) && $journals[0]->status == 2)
                                             <a target="_blank" href="{{ route('journal.print', $journals[1]->times) }}" class="hidden-print">
                                                 <button class="btn btn-primary btn-sm btn-border m-r-10 hidden-print">
                                                     <i class="fas fa-print"></i> چاپ رسید
