@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('code')->default(0);
             $table->foreignId('account_id');
             $table->integer('bill_no')->nullable()->default(0);
-            $table->decimal('amount', 10, 2);
+            $table->double('amount');
             $table->foreignId('currency_id');
             $table->integer('transaction_type')->comment('1: recieved, 1 paid');
             $table->integer('payment_type')->comment('1: cache, 2: loan');
@@ -34,8 +34,8 @@ return new class extends Migration
             $table->integer('status')->comment('1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other');
             $table->foreignId('branch_id')->default(0);
             $table->foreignId('dynamic_type')->default(0)->comment('has relation with income_type, expense_type, salary, ....');
-            $table->decimal('rate', 10, 2)->nullable();
-            $table->decimal('profit', 10, 2)->nullable();
+            $table->double('rate')->nullable();
+            $table->double('profit')->nullable();
             $table->integer('is_cleared')->comment('0: not cleared, 1:cleared')->default(0);
             $table->integer('cleared_round')->default(0);
             $table->string('times')->default('0');

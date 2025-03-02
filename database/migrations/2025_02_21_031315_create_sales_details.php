@@ -19,12 +19,12 @@ return new class extends Migration
             $table->foreignId('warehouse_sales_id');
             $table->foreignId('pre_list_id')->nullable();
             $table->integer('unit_id')->nullable();
-            $table->decimal('amount', 10, 2);
-            $table->decimal('avg_up', 10, 2)->nullable();
-            $table->decimal('sell_up', 10, 2)->nullable();
-            $table->decimal('discount', 10, 2)->nullable();
-            $table->decimal('profit', 10, 2)->nullable();
-            $table->decimal('total', 10, 2)->nullable();
+            $table->double('amount');
+            $table->double('avg_up')->nullable();
+            $table->double('sell_up')->nullable();
+            $table->double('discount')->nullable();
+            $table->double('profit')->nullable();
+            $table->double('total')->nullable();
             $table->integer('is_returned')->default(0)->comment('0:not returned, 1:returned');
             $table->string('todays_date')->nullable();
             $table->timestamps();

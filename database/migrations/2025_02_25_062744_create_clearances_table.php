@@ -16,7 +16,7 @@ return new class extends Migration
             $table->enum('type', ['buy', 'sell'])->default('buy');  // Add the enum column
             $table->foreignId('from_account_id');
             $table->foreignId('to_account_id');
-            $table->decimal('total', 10, 2);
+            $table->double('total');
             $table->foreignId('currency_id');
             $table->string('details');
             $table->json('bill_numbers');

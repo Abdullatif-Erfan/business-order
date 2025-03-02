@@ -16,17 +16,17 @@ return new class extends Migration
             $table->foreignId('warehouse_id');
             $table->integer('buy_pre_id');
             $table->string('name')->nullable();
-            $table->decimal('in_amount', 10, 2)->nullable();
-            $table->decimal('out_amount', 10, 2)->nullable();
-            $table->decimal('available_amount', 10, 2)->nullable();
-            $table->decimal('wastage_amount', 10, 2)->nullable();
-            $table->decimal('wastage_total', 10, 2)->nullable();
+            $table->double('in_amount')->nullable();
+            $table->double('out_amount')->nullable();
+            $table->double('available_amount')->nullable();
+            $table->double('wastage_amount')->nullable();
+            $table->double('wastage_total')->nullable();
             $table->foreignId('unit_id');
-            $table->decimal('bought_up', 10, 2)->nullable()->comment('buy unit price');
-            $table->decimal('avg_up', 10, 2)->nullable()->comment('average unit price');
-            $table->decimal('sell_up', 10, 2)->nullable()->comment('selling unit price');
-            $table->decimal('total', 10, 2)->comment('transfered total');
-            $table->decimal('available_total', 10, 2)->comment('Available total');
+            $table->double('bought_up')->nullable()->comment('buy unit price');
+            $table->double('avg_up')->nullable()->comment('average unit price');
+            $table->double('sell_up')->nullable()->comment('selling unit price');
+            $table->double('total')->comment('transfered total');
+            $table->double('available_total')->comment('Available total');
             $table->foreignId('currency_id');
             $table->integer('notification_amount')->nullable();
             $table->string('inserted_by')->nullable()->comment('user_name'); // Fixed varchar issue

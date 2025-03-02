@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id');
             $table->foreignId('currency_id');
-            $table->decimal('amount', 10, 2)->nullable();
+            $table->double('amount')->nullable();
             $table->string('inserted_by')->nullable();
             $table->string('details')->nullable();
             $table->integer('year');

@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('rates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('from_currency_id');
-            $table->decimal('from_currency_amount', 10, 2)->default(1);
+            $table->double('from_currency_amount')->default(1);
             $table->foreignId('to_currency_id');
-            $table->decimal('to_currency_amount', 10, 2);
-            $table->decimal('reverse_amount', 10, 2);
+            $table->double('to_currency_amount');
+            $table->double('reverse_amount');
             $table->integer('greater_account_id');
             $table->timestamps();
         });

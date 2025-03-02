@@ -18,11 +18,11 @@ return new class extends Migration
             $table->foreignId('account_id');
             $table->foreignId('branch_id')->nullable();
             $table->foreignId('customer_account_id');
-            $table->decimal('total_price', 10, 2);
-            $table->decimal('total_discount', 10, 2)->nullable();
-            $table->decimal('payable', 10, 2);
-            $table->decimal('cur_pay', 10, 2);
-            $table->decimal('remained', 10, 2);
+            $table->double('total_price');
+            $table->double('total_discount')->nullable();
+            $table->double('payable');
+            $table->double('cur_pay');
+            $table->double('remained');
             $table->foreignId('currency_id');
             $table->string('note')->nullable();
             $table->string('short_date', 50)->nullable();
