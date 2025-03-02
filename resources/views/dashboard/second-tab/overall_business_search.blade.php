@@ -1,14 +1,11 @@
 <div class="col-12">
-    <form id="myForm" action="home" method="post">
+    <form action="{{ route('home.search') }}" method="POST" id="seconTabSearch">
+        @csrf
         <div class="row">
-
             <div class="col-md-5 col-sm-4 col-xs-6">
-                <select 
-                    class="form-control mt-1 mb-1"
-                    style="width: 100%; border:1px solid #ddd !important;" 
-                    aria-hidden="true" 
-                    name="currency_id">
-                    <option value="{{ $data['currency_id'] }}"> {{ $data['currency_name'] }} </option>
+                <select class="form-control mt-1 mb-1" style="width: 100%; border:1px solid #ddd !important;" 
+                    aria-hidden="true" name="currency_id">
+                    <option value="{{ $data['currency_id'] ?? '' }}">{{ $data['currency_name'] ?? 'Default Currency' }}</option>
                     <option value="">-- انتخاب کرنسی --</option>
                     @foreach($data['currency'] as $key => $val)
                         <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>

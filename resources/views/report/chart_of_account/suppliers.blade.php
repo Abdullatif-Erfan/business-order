@@ -3,13 +3,6 @@
         <a data-toggle="collapse" data-parent="#accordion" href="#collapseSuppliers" class="">
             فروشنده گان  
         </a>
-        <div class="col-md-6 pull-left hidden-print">
-            <select name="" id="" class="form-control" onchange="updateURLWithCurrencyId(this.value)">
-                @foreach($currencies as $currency)
-                <option value="{{ $currency->id }}" {{  $currency_id == $currency->id ? 'selected': '' }} >{{ $currency->name }}</option>
-                @endforeach
-            </select>
-        </div>
     </h4>
 </div>
 <div id="collapseSuppliers" class="panel-collapse collapse in" style="height: auto;">

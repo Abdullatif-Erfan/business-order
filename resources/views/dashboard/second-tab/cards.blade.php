@@ -14,23 +14,18 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category">سرمایه شرکت</p>
-                            <h4 class="card-title"><?php
+                            <h4 class="card-title">
+                            <?php
                             /**
-                             * سرمایه شرکت  = موجودی گدام + پول موجود
-                             * موجودی گدام = مبلغ گدام ثبت شده  - اجناس فروش شده
-                             * پول موجود  = دریافت ها - پرداخت 
-                             * طلبات + شود 
-                             * قرضه منفی شود
                              * === در نهایت =====
                              *  سرمایه شرکت  = پول نقد + طلبات + اجناس موجود - قرضه
                              */
-                            $cache_balance  = 1000;
-                            $warehouse_price = 2000;
-                            $total_asset = 3000;
-
-                            // $total_assets = $cache_balance + $secondTabData[0]['total_talab'] - $secondTabData[0]['total_loan']; 
-                            echo number_format($total_asset,2);
-                            // echo number_format($total_assets,2);
+                            /**
+                             * total_assets = total_warehouse_value + total_cache_income + total_talabat - (total_warhouse_wastage + total_loan)
+                             */
+                            $total_warehouse_value = $secondTab['total_warehouse_value'] - $secondTab['total_warehouse_wastage'];
+                            $total_assets = (($total_warehouse_value + $secondTab['total_income'] + $secondTab['total_talabat']) - $secondTab['total_loan']);
+                            echo number_format($total_assets,2);
                             
                             ?></h4>
                         </div>
@@ -52,7 +47,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> پول نقد شرکت</p>
-                            <h4 class="card-title"><?=number_format($cache_balance,2)?></h4>
+                            <h4 class="card-title"><?=number_format($secondTab['total_income'],2)?></h4>
                         </div>
                     </div>
                 </div>
@@ -72,7 +67,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> مفاد فروشات </p>
-                            <h4 class="card-title">123</h4>
+                            <h4 class="card-title"><?=number_format($secondTab['sold_profits'],2)?></h4>
                         </div>
                     </div>
                 </div>
@@ -92,7 +87,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> طلبات </p>
-                            <h4 class="card-title">123</h4>
+                            <h4 class="card-title"><?=number_format($secondTab['total_talabat'],2)?></h4>
                         </div>
                     </div>
                 </div>
@@ -113,7 +108,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category">قرضه</p>
-                            <h4 class="card-title">123</h4>
+                            <h4 class="card-title"><?=number_format($secondTab['total_loan'],2)?></h4>
                         </div>
                     </div>
                 </div>
@@ -122,7 +117,7 @@
     </div>
     
     
-    <?php $final_result =  2 - 1; ?>
+    <?php $final_result = $secondTab['total_talabat'] - $secondTab['total_loan']; ?>
         <?php if(intval($final_result) < 0) { ?>
             <div class="col-sm-6 col-md-4">
             <div class="card card-stats card-round" style="border: 1px solid #ff6600;background: linear-gradient(45deg, #ffffff, #ffd1d1)">

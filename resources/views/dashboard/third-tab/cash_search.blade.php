@@ -1,5 +1,6 @@
 <div class="col-12">
-        <form id="myForm"  action="home" method="post">
+<form action="{{ route('home.search') }}" method="POST" id="thirdTabSearch"> 
+        @csrf
         <div class="row">
 
         <div class="col-md-3 col-sm-6 col-xs-6">
@@ -20,7 +21,6 @@
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="month"> 
                 <option value="{{ $data['month'] }}">{{ $data['month'] }}</option>
                 <option value=""> -- انتخاب  ماه -- </option>
-                <option value="100"> همه </option>
                 <?php for($i=1; $i<=12; $i++)
                 { ?>
                     <option  value="<?=$i?>"><?=$i?></option>
@@ -33,7 +33,6 @@
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="day"> 
                 <option value="{{ $data['day'] }}"><?=intval($data['day'] ) === 100 ? "همه" : $data['day'] ?></option>
                 <option value=""> -- انتخاب  روز -- </option>
-                <option value="100"> همه </option>
                 <?php for($i=1; $i<=31; $i++)
                 { ?>
                     <option  value="<?=$i?>"><?=$i?></option>

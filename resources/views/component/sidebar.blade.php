@@ -11,15 +11,16 @@
                     @if(auth()->check())
                         @php
                             $userId = auth()->id();
-                            $userImage = \App\Models\User::find($userId)->photo; // Assuming the User model has a `photo` attribute
+                            $userImage = auth()->user()->photo;
+                            $imagePath = !empty($userImage) && file_exists(storage_path('app/public/' . $userImage))
+                                ? asset('storage/' . $userImage)
+                                : asset('storage/user_photos/no_image.png');
                         @endphp
-                        @if(!empty($userImage))
-                            <img src="{{ asset($userImage) }}" alt="..." class="avatar-img rounded-circle">
-                        @else
-                            <img src="{{ asset('assets/img/no_image.png') }}" alt="..." class="avatar-img rounded-circle">
-                        @endif
+                        <img src="{{ $imagePath }}" alt="User ID: {{ $userId }}" class="avatar-img rounded-circle">
+                        <p class="mt-2 text-center">User ID: {{ $userId }}</p>
                     @endif
                 </div>
+
                 <div class="info">
                     <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
                         <span>

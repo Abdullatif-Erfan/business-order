@@ -65,27 +65,41 @@
            
             // ---------------- belongs to Income and Outcome --------------------
             [
+                'icon' => 'fas fa-arrow-up',
+                'bgColor' => '#6eafd9',
+                'textColor' => '#fff',
+                'title' => 'عواید ',
+                'value' => number_format($data['cashIncomeOutcome']['total_income'] ?? 0),
+                'style' => 'border: 1px solid #afc7f8;background: linear-gradient(45deg, #ffffff, #d6efff)',
+            ],
+            [
+                'icon' => 'fas fa-arrow-down',
+                'bgColor' => '#e6aaaa',
+                'textColor' => '#fff',
+                'title' => 'مصارف ',
+                'value' => number_format($data['cashIncomeOutcome']['total_expense'] ?? 0),
+                'style' => 'border: 1px solid #e7c99c;background: linear-gradient(45deg, #ffffff, #ffd9d9)',
+            ],
+            [
                 'icon' => 'fas fa-arrow-down',
                 'bgColor' => '#83d31a',
                 'textColor' => '#fff',
-                'title' => 'مجموع آمد ',
-                'value' => number_format($data['cashIncomeOutcome']['total_income'] ?? 0),
+                'title' => 'مجموع آمد نقد ',
+                'value' => number_format($data['cashIncomeOutcome']['total_incomes'] ?? 0),
                 'style' => 'border: 1px solid #83d31a;background: linear-gradient(45deg, #ffffff, #f0ffd1)',
             ],
             [
                 'icon' => 'fas fa-arrow-up',
                 'bgColor' => '#d3b33b',
                 'textColor' => '#fff',
-                'title' => 'مجموع رفت ',
-                'value' => number_format($data['cashIncomeOutcome']['total_outcome'] ?? 0),
+                'title' => 'مجموع رفت نقد ',
+                'value' => number_format($data['cashIncomeOutcome']['total_outcomes'] ?? 0),
                 'style' => 'border: 1px solid #d39d1a;background: linear-gradient(45deg, #ffffff, #f9edde)',
             ],
         ];
-        $totalCards = count($cards); // Get total number of cards
         foreach ($cards as $index => $card) {
-             $columnClass = ($index >= $totalCards - 2) ? "col-sm-6 col-lg-6" : "col-sm-6 col-lg-3";
-        ?>
-            <div class="<?= $columnClass ?>">
+            ?>
+                <div class="col-sm-6 col-lg-3">
                 <div class="card p-3" style="<?= $card['style'] ?? '' ?>">
                     <div class="d-flex align-items-center">
                         <span class="stamp stamp-md ml-3" style="background-color: <?= $card['bgColor'] ?>; color: <?= $card['textColor'] ?>; font-size: 18px;">

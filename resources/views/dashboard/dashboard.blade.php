@@ -4,7 +4,13 @@
 @section('content')
 <script>
     function submit12MonthForm() {
-        $('#myForm').submit();
+        $('#firstTabSearch').submit();
+    }
+    function submit12MonthForm() {
+        $('#secondTabSearch').submit();
+    }
+    function submit12MonthForm() {
+        $('#thirdTabSearch').submit();
     }
     function submitCircleGraphForm() {
         $('#myForm2').submit();
@@ -12,23 +18,56 @@
 </script>
 
 <script>
-    $(document).ready(function () {
-        // Restore the active tab from local storage, if available
-        var activeTab = localStorage.getItem('activeTab');
-        if (activeTab) {
-            $('#myTab2 li').removeClass('active');
-            $(activeTab).addClass('active');
-            $('.tab-content .tab-pane').removeClass('active in');
-            $(activeTab + '.tab-pane').addClass('active in');
-        }
+$(document).ready(function () {
+    // Restore active tab from local storage
+    var activeTab = localStorage.getItem('activeTab');
+    if (activeTab) {
+        $('#myTab2 a[href="' + activeTab + '"]').tab('show');
+    }
 
-        // Handle tab click event
-        $('#myTab2 a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            // Store the ID of the active tab in local storage
-            var targetTab = $(e.target).attr('href');
-            localStorage.setItem('activeTab', targetTab);
-        });
+    // Handle tab click event
+    $('#myTab2 a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var targetTab = $(e.target).attr('href');
+        localStorage.setItem('activeTab', targetTab);
+
+        // Reinitialize select dropdowns for the active tab
+        setTimeout(function () {
+            $(targetTab).find('select[name="currency_id"]').trigger('change');
+        }, 100);
     });
+
+    // Handle currency change properly
+    $(document).on('change', 'select[name="currency_id"]', function() {
+        var currencyId = $(this).val();
+        console.log("Currency changed: " + currencyId);
+        updateURLWithCurrencyId(currencyId); // Make sure this function exists
+    });
+});
+// $(document).ready(function () {
+//     // Debugging: Check what's stored in localStorage
+//     console.log("Stored active tab:", localStorage.getItem('activeTab'));
+
+//     var activeTab = localStorage.getItem('activeTab');
+//     if (activeTab) {
+//         console.log("Trying to activate tab:", activeTab);
+//         $('#myTab2 a[href="' + activeTab + '"]').tab('show'); // Activate the correct tab
+//     }
+
+//     // Handle tab click event
+//     $('#myTab2 a[data-toggle="tab"]').on('shown.bs.dropdown', function (e) {
+//     // $('#myTab2 a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+//         var targetTab = $(e.target).attr('href');
+//         console.log("Saving active tab:", targetTab);
+//         localStorage.setItem('activeTab', targetTab);
+//     });
+// });
+
+// if (typeof jQuery == 'undefined') {
+//     alert("jQuery is not loaded!");
+// } else {
+//     console.log("jQuery is working!"); 
+//     alert("jQuery is working");
+// }
 </script>
 
 <style>
@@ -49,7 +88,7 @@
                 <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row">
                     <div>
                         <h1 class="text-white pb-2 fw-bold main_title">
-                            Sample Organization Name
+                            {{ $orgBio->name }}
                         </h1>
                     </div>
                 </div>
@@ -58,6 +97,7 @@
    
         <!-- tab -->
         <div class="col-12 tab-wrapper">
+
             <ul class="nav my_nave nav-tabs" id="myTab2">
                 <li class="active"><a data-toggle="tab" href="#todaysTransaction">معاملات امروز</a></li>
                 <li><a data-toggle="tab" href="#importantTrans">معاملات مهم تجارت</a></li>
@@ -75,15 +115,15 @@
 
                 <!-- importantTrans -->
                 <div id="importantTrans" class="tab-pane fade">
-                    @include('dashboard.second-tab.overall_business_search')
-                    @include('dashboard.second-tab.cards')
+                    @include('dashboard.second-tab.overall_business_search', ['data', $data])
+                    @include('dashboard.second-tab.cards', ['data' => $data])
                 </div>
-                <!-- / importantTrans -->
+                <!-- / importantTrans -->                
 
                 <!-- cache -->
                 <div id="cache" class="tab-pane fade">
-                    @include('dashboard.third-tab.cash_search')
-                    @include('dashboard.third-tab.cash_cards')
+                    @include('dashboard.third-tab.cash_search', ['data' => $data])
+                    @include('dashboard.third-tab.cash_cards', ['thirdTab' => $thirdTab])
                 </div>
                 <!-- / cache -->
             </div>
