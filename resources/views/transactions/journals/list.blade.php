@@ -274,14 +274,42 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                 { data: 'inserted_short_date', name: 'inserted_short_date' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
+            // drawCallback: function () {
+            //     var api = this.api();
+
+            //     // Function to sum columns
+            //     function sumColumn(index) {
+            //         return api
+            //             .column(index, { page: 'current' })
+            //             .data()
+            //             .reduce(function (a, b) {
+            //                 var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+            //                 var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
+            //                 var sum = numA + numB;
+
+            //                 // If the sum has decimals, show them, otherwise remove decimals
+            //                 if (sum % 1 === 0) {
+            //                     return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            //                 } else {
+            //                     return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            //                 }
+            //             }, 0);
+            //     }
+
+            //     // Update footer totals with the sum for each column
+            //     $(api.column(4).footer()).html(sumColumn(4));
+            //     $(api.column(5).footer()).html(sumColumn(5));
+            //     $(api.column(6).footer()).html(sumColumn(6));
+            //     $(api.column(7).footer()).html(sumColumn(7));
+                
+            // }
             drawCallback: function () {
                 var api = this.api();
 
-                // Helper function for the modulo operation to check if it's an integer
-                function fmod(a, b) {
-                    return a - (b * Math.floor(a / b));
-                }
+                // Check if account_id is filtered (i.e., has a value)
+                var accountId = $('#account_id').val();
 
+                // Function to sum columns
                 function sumColumn(index) {
                     return api
                         .column(index, { page: 'current' })
@@ -291,23 +319,51 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                             var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
                             var sum = numA + numB;
 
-                            // Format the sum based on whether it has decimals
+                            // If the sum has decimals, show them, otherwise remove decimals
                             if (sum % 1 === 0) {
                                 return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                             } else {
                                 return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             }
-                        }, 0)
-                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }, 0);
                 }
 
-                $(api.column(4).footer()).html(sumColumn(4));
-                $(api.column(5).footer()).html(sumColumn(5));
-                $(api.column(6).footer()).html(sumColumn(6));
-                $(api.column(7).footer()).html(sumColumn(7));
+                // Only calculate finalResult if account_id is filtered
+                if (parseInt(accountId) > 0) {
+                    // Store column sums to avoid calling sumColumn multiple times
+                    var sum4 = sumColumn(4);
+                    var sum5 = sumColumn(5);
+                    var sum6 = sumColumn(6);
+                    var sum7 = sumColumn(7);
 
-                
+                    // Calculate the final result
+                    var finalResult = (parseFloat(sum4.replace(/,/g, '')) + parseFloat(sum7.replace(/,/g, ''))) - 
+                                       (parseFloat(sum5.replace(/,/g, '')) + parseFloat(sum6.replace(/,/g, '')));
+
+                    // Format the final result without decimals if it's a whole number
+                    var finalResultFormatted = finalResult % 1 === 0
+                        ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                        : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    var badgeType = parseFloat(finalResultFormatted) >= 0 ? 'badge-info' : 'badge-danger';
+
+                    // Update footer totals with the sum for each column
+                    $(api.column(4).footer()).html(sum4);
+                    $(api.column(5).footer()).html(sum5);
+                    $(api.column(6).footer()).html(sum6);
+                    $(api.column(7).footer()).html(sum7);
+                    $(api.column(8).footer()).html('<badge class="badge '+badgeType+'">'+finalResultFormatted+'</>');
+                } else {
+                    // If account_id is not filtered, hide the final result (for performance)
+                    $(api.column(4).footer()).html('');
+                    $(api.column(5).footer()).html('');
+                    $(api.column(6).footer()).html('');
+                    $(api.column(7).footer()).html('');
+                    $(api.column(8).footer()).html('');
+
+                }
             }
+
         });
 
         // When the filter button is clicked, refresh the table
@@ -315,11 +371,86 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
             table.draw(); // Refresh DataTable with new filters
         });
     });
-
-    function viewDetails(id) {
-        alert("جزییات برای آی دی " + id);
-    }
 </script>
+<script>
+    // $(document).ready(function() {
+    //     let table = $('#journalTable').DataTable({
+    //         processing: true,
+    //         serverSide: true,
+    //         ajax: {
+    //             url: '{{ route('journal.data') }}',
+    //             data: function (d) {
+    //                 d.account_id = $('#account_id').val();
+    //                 d.currency_id = $('#currency_id').val();
+    //                 d.start_date = $('#start_date').val();
+    //                 d.end_date = $('#end_date').val();
+    //                 d.code_number = $('#code_number').val();
+    //                 d.bill_number = $('#bill_number').val();
+    //             }
+    //         },
+    //         columns: [
+    //             { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+    //             { data: 'code', name: 'code' },
+    //             { data: 'accountRelation', name: 'accountRelation' },
+    //             { data: 'details', name: 'details' },
+    //             { data: 'cacheRecieved', name: 'cacheRecieved' },
+    //             { data: 'cachePaid', name: 'cachePaid' },
+    //             { data: 'loanRecieved', name: 'loanRecieved' },
+    //             { data: 'loanPaid', name: 'loanPaid' },
+    //             { data: 'currency', name: 'currency' },
+    //             { data: 'option_label', name: 'option_label' },
+    //             { data: 'inserted_short_date', name: 'inserted_short_date' },
+    //             { data: 'actions', name: 'actions', orderable: false, searchable: false }
+    //         ],
+    //         drawCallback: function () {
+    //             var api = this.api();
+    //             var rows = api.rows({ page: 'current' }).nodes();
+    //             var lastCode = null;
+    //             var colorToggle = false; // Track color switching
+
+    //             // Loop through each row to apply color based on code
+    //             api.column(1, { page: 'current' }).data().each(function (code, i) {
+    //                 if (lastCode !== code) {
+    //                     colorToggle = !colorToggle; // Switch color when code changes
+    //                 }
+    //                 lastCode = code;
+
+    //                 // Apply alternating background color
+    //                 if (colorToggle) {
+    //                     $(rows[i]).css('background-color', '#f1f1f1'); // Light Blue
+    //                 } else {
+    //                     $(rows[i]).css('background-color', '#ffffff'); // Light Orange
+    //                 }
+    //             });
+
+    //             // Function to sum columns
+    //             function sumColumn(index) {
+    //                 return api
+    //                     .column(index, { page: 'current' })
+    //                     .data()
+    //                     .reduce(function (a, b) {
+    //                         var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+    //                         var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
+    //                         var sum = numA + numB;
+    //                         return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    //                     }, 0);
+    //             }
+
+    //             // Update footer totals
+    //             $(api.column(4).footer()).html(sumColumn(4));
+    //             $(api.column(5).footer()).html(sumColumn(5));
+    //             $(api.column(6).footer()).html(sumColumn(6));
+    //             $(api.column(7).footer()).html(sumColumn(7));
+    //         }
+    //     });
+
+    //     // When the filter button is clicked, refresh the table
+    //     $('#btn-filter').click(function() {
+    //         table.draw();
+    //     });
+    // });
+</script>
+
 
 
 @endsection('content')

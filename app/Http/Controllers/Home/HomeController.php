@@ -68,7 +68,7 @@ class HomeController extends Controller
         // return ['secondTab', $secondTab];
 
         // Third Tab
-        $thirdTab = $this->getCashInHandAmount($data['currency_id'],$data['year'],$data['month'],$data['day']);
+        $thirdTab = $this->getCashInHandAmount($data['year'],$data['month'],$data['day']);
         // return ['thirdTab', $thirdTab];
 
         // $auth = auth()->user();
@@ -293,7 +293,7 @@ class HomeController extends Controller
 
 
     // ----------------- THIRD TAB ----------------
-    function getCashInHandAmount($currency_id, $year, $month, $day)
+    function getCashInHandAmount($year, $month, $day)
     {
         // day 17 => search where days <= 16
         $last_day = $day - 1;
@@ -314,11 +314,10 @@ class HomeController extends Controller
             ->join('accounts', 'accounts.id', '=', 'journals.account_id')
             ->select(
                 'journals.currency_id',
-                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_payed'),
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_paid'),
                 DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_recieved')
             )
             ->where('accounts.account_type_id', $khazana_account_type_id)
-            ->where('journals.currency_id', $currency_id)
             ->where('journals.year', $year)
             ->where('journals.month', $month)
             ->where('journals.day', '<=', $day)
@@ -335,7 +334,7 @@ class HomeController extends Controller
                 'currency_name' => $currency->currency_name,
                 'symbol' => $currency->symbols,
                 'color' => $currency->color,
-                'total_payed' => $amount->total_payed ?? 0,
+                'total_paid' => $amount->total_paid ?? 0,
                 'total_recieved' => $amount->total_recieved ?? 0,
             ];
         });
