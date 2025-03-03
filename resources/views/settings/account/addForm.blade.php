@@ -39,7 +39,7 @@
             </div>
 
             <div class="form-group col-sm-6" id="is_pre_select" style="display:none;">
-                <label for="is_pre_select"> انتخاب حساب پیش فرض / دیفالت </label>
+                <label for="is_pre_select"> صرف یک حساب پیش فرض انتخاب نمایید    </label>
                 <select class="form-control" name="is_pre_select" >
                     <option value="0">نخیر</option>
                     <option value="1">بلی</option>
@@ -78,11 +78,12 @@
                         </div>
 
                         <div class="form-group col-sm-4">
-                            <label for="transaction_type"> انتخاب گزینه </label>
-                            <select class="form-control" name="transaction_type[]" required>
+                            <label for="options"> انتخاب گزینه </label>
+                            <select class="form-control" name="options[]" required>
                                 <option value=""> انتخاب گزینه </option>
-                                <option value="1">افزایش در حساب (طلب) </option>
-                                <option value="2">کاهش از حساب (باقی)</option>
+                                <option value="1"> افزایش پول نقد</option>
+                                <option value="2"> ثبت در بخش طلبات </option>
+                                <option value="3"> ثبت در بخش قرضه </option>
                             </select>
                             <span class="text-danger"></span>
                         </div>
@@ -116,21 +117,51 @@
 
 
 <script>
- function checkAccountType(account_type_id)
- {
-     if(parseInt(account_type_id) === 5) {
+//  function checkAccountType(account_type_id)
+//  {
+//      if(parseInt(account_type_id) === 5) {
+//         $('#percent').fadeIn(1);
+//         $('#is_pre_select').fadeOut(1);
+//      } 
+//      else if(parseInt(account_type_id) === 1) 
+//      {
+//          $('#is_pre_select').fadeIn(1);
+//          $('#percent').fadeOut(1);
+//      }
+//      else 
+//      {
+//         $('#percent').fadeOut(1);
+//         $('#is_pre_select').fadeOut(1);
+//      }
+//  }
+function checkAccountType(account_type_id) {
+    if (parseInt(account_type_id) === 5) {
         $('#percent').fadeIn(1);
         $('#is_pre_select').fadeOut(1);
-     } 
-     else if(parseInt(account_type_id) === 1) 
-     {
-         $('#is_pre_select').fadeIn(1);
-         $('#percent').fadeOut(1);
-     }
-     else 
-     {
+    } else if (parseInt(account_type_id) === 1) {
+        $('#is_pre_select').fadeIn(1);
+        $('#percent').fadeOut(1);
+
+        // Show only the first option in the select dropdowns
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="1"> افزایش پول نقد</option>
+            `);
+        });
+    } else {
         $('#percent').fadeOut(1);
         $('#is_pre_select').fadeOut(1);
-     }
- }
+
+        // Reset the select options to show all options
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value=""> انتخاب گزینه </option>
+                <option value="1"> افزایش پول نقد</option>
+                <option value="2"> ثبت در بخش طلبات </option>
+                <option value="3"> ثبت در بخش قرضه </option>
+            `);
+        });
+    }
+}
+
 </script>

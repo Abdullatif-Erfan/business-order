@@ -11,19 +11,19 @@
                     <div>
                         <h5 class="mb-2"><b>
                             <small style="border:1px solid #ddd; padding: 1px 12px;margin-left:10px;border-radius:5px;color:#999">   آمد نقد </small>
-                            {{ $row['total_recieved'] ?? 0 }}
+                            {{ number_format($row['total_recieved']) ?? 0 }}
                         </b>
                         </h5>
 
                         <h5 class="mb-2"><b>
                             <small style="border:1px solid #ddd; padding: 1px 10px;margin-left:10px;border-radius:5px;color:#999">   رفت نقد </small>
-                            {{ $row['total_payed'] ?? 0 }}
+                            {{ number_format($row['total_payed']) ?? 0 }}
                         </b>
                         </h5>
 
                         <h5 class="mb-1"><b>
                             <small style="border:1px solid #ddd; padding: 1px 14px;margin-left:10px;border-radius:5px;color:#999;margin-top:3px">   بیلانس </small>
-                            {{ ($row['total_recieved'] ?? 0) - ($row['total_payed'] ?? 0) }}
+                            {{ (floatval(number_format($row['total_recieved']))) - (floatval(number_format($row['total_payed']))) }}
                         </b>
                         </h5>
                     </div>

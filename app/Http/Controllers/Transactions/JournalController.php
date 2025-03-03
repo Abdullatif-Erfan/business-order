@@ -110,53 +110,25 @@ class JournalController extends Controller
                 return $journal->accountRelation ? $journal->accountRelation->name : '';
             })
             
-            // cacheRecieved || transaction_type = 2
+            // cacheRecieved = t1p1 = دریافت نقد
             ->addColumn('cacheRecieved', function ($journal) {
-                $amount = $journal->amount;
-                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-
-                if ($journal->status == 1) { // رسید حساب سابق 
-                    return $journal->transaction_type == 2 ? $formattedAmount : '';
-                } 
-                else 
-                {
-                    // دو معامله ای
-                    if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return $formattedAmount; }
-                }
-                return '';
+                if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
             })
 
-               // cachePaid || transaction_type = 1
-               ->addColumn('cachePaid', function ($journal) {
-                $amount = $journal->amount;
-                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-
-                if ($journal->status == 1) { // رسید حساب سابق 
-                    return $journal->transaction_type == 1 ? $formattedAmount : '';
-                } 
-                else 
-                {
-                    // دو معامله ای
-                    if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return $formattedAmount; }
-                }
-                return '';
+               // cachePaid  = t2p1 = پرداخت نقد
+            ->addColumn('cachePaid', function ($journal) {
+                if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
             })
-
-           
             
-          // loanRecieved 
+            // loanRecieved = t1p2 = قرضه
             ->addColumn('loanRecieved', function ($journal) {
-            $amount = $journal->amount;
-            $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-               if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return $formattedAmount; }
-           })
+               if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
+            })
             
 
-           // loanPaid 
+           // loanPaid = t2p2 = طلب
             ->addColumn('loanPaid', function ($journal) {
-            $amount = $journal->amount;
-            $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-               if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return $formattedAmount; }
+               if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
            })
             
 
@@ -241,7 +213,7 @@ class JournalController extends Controller
         // return ['formData' => $request->all()];
 
         $this->journalValidation($request);
-        $newJournalCode =  Journal::max('code') + 1;
+        $newJournalCode = DB::table('journals')->lockForUpdate()->max('code') + 1;
         // Start the transaction
         DB::beginTransaction();
         try 

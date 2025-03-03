@@ -88,11 +88,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @php
-                                            function formatNumber($number) {
-                                                return fmod($number, 1) == 0 ? number_format($number, 0) : number_format($number, 2);
-                                            }
-                                          @endphp
                                           @php
                                                 // Initialize totals
                                                 $totalWarehouseValue = 0;
@@ -131,30 +126,30 @@
                                                @endphp
                                                 <tr>
                                                     <td>{{$row->year}} </td>
-                                                    <td>{{ formatNumber($row->total_warehouse_value - $row->total_warehouse_wastage) }}</td>
-                                                    <td>{{ formatNumber($row->total_sales_payable) }}</td>
-                                                    <td>{{ formatNumber($row->total_sales_curpay) }}</td>
-                                                    <td>{{ formatNumber($row->total_sales_remained) }}</td>
-                                                    <td>{{ formatNumber($row->total_sales_profit) }}</td>
-                                                    <td>{{ formatNumber($row->total_bought_payable) }}</td>
-                                                    <td>{{ formatNumber($row->total_bought_curpay) }}</td>
-                                                    <td>{{ formatNumber($row->total_bought_remained) }}</td>
-                                                    <td>{{ formatNumber($row->total_bought_transport) }}</td>
+                                                    <td>{{ number_format($row->total_warehouse_value - $row->total_warehouse_wastage) }}</td>
+                                                    <td>{{ number_format($row->total_sales_payable) }}</td>
+                                                    <td>{{ number_format($row->total_sales_curpay) }}</td>
+                                                    <td>{{ number_format($row->total_sales_remained) }}</td>
+                                                    <td>{{ number_format($row->total_sales_profit) }}</td>
+                                                    <td>{{ number_format($row->total_bought_payable) }}</td>
+                                                    <td>{{ number_format($row->total_bought_curpay) }}</td>
+                                                    <td>{{ number_format($row->total_bought_remained) }}</td>
+                                                    <td>{{ number_format($row->total_bought_transport) }}</td>
                                                 </tr>
                                             @endforeach
                                     </tbody>
                                     <tfoot>
                                             <tr style="background-color:#fff8d9">
                                                 <td><strong>مجموع</strong></td>
-                                                <td><strong>{{ formatNumber($totalWarehouseValue) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalSalesPayable) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalSalesCurPay) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalSalesRemained) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalSalesProfit) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalBoughtPayable) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalBoughtCurPay) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalBoughtRemained) }}</strong></td>
-                                                <td><strong>{{ formatNumber($totalBoughtTransport) }}</strong></td>
+                                                <td><strong>{{ number_format($totalWarehouseValue) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesPayable) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesCurPay) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesRemained) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesProfit) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtPayable) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtCurPay) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtRemained) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtTransport) }}</strong></td>
                                             </tr>
                                         </tfoot>
                                 </table>

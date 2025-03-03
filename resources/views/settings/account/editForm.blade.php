@@ -90,11 +90,12 @@
                         </div>
 
                         <div class="form-group col-sm-4">
-                            <label for="transaction_type"> انتخاب گزینه  </label>
-                            <select class="form-control" name="transaction_type[]" required>
+                            <label for="options"> انتخاب گزینه  </label>
+                            <select class="form-control" name="options[]" required>
                                 <option value=""> انتخاب گزینه </option>
-                                <option value="1"> افزایش در حساب (طلب) </option>
-                                <option value="2"> کاهش از حساب (باقی) </option>
+                                <option value="1"> افزایش پول نقد</option>
+                                <option value="2"> ثبت در بخش طلبات </option>
+                                <option value="3"> ثبت در بخش قرضه </option>
                             </select>
                             <span class="text-danger"></span>
                         </div>
@@ -128,11 +129,12 @@
                         </div>
 
                         <div class="form-group col-sm-4">
-                            <label for="transaction_type"> انتخاب گزینه  </label>
-                            <select class="form-control" name="transaction_type[]" required>
+                            <label for="options"> انتخاب گزینه  </label>
+                            <select class="form-control" name="options[]" required>
                                 <option value=""> انتخاب گزینه </option>
-                                <option value="1" {{ $item['transaction_type'] == 1 ? 'selected' : '' }}>افزایش در حساب (طلب)</option>
-                                <option value="2" {{ $item['transaction_type'] == 2 ? 'selected' : '' }}>کاهش از حساب (باقی)</option>
+                                <option value="1" {{ $item['options'] == 1 ? 'selected' : '' }}> افزایش پول نقد</option>
+                                <option value="2" {{ $item['options'] == 2 ? 'selected' : '' }}> ثبت در بخش طلبات </option>
+                                <option value="3" {{ $item['options'] == 3 ? 'selected' : '' }}> ثبت در بخش قرضه </option>
                             </select>
                             <span class="text-danger"></span>
                         </div>
@@ -174,21 +176,50 @@
 </form>
 
 <script>
- function checkAccountTypeEdit(account_type_id)
- {
-     if(parseInt(account_type_id) === 5) {
+//  function checkAccountTypeEdit(account_type_id)
+//  {
+//      if(parseInt(account_type_id) === 5) {
+//         $('#percent').fadeIn(1);
+//         $('#is_pre_select').fadeOut(1);
+//      } 
+//      else if(parseInt(account_type_id) === 1) 
+//      {
+//          $('#is_pre_select').fadeIn(1);
+//          $('#percent').fadeOut(1);
+//      }
+//      else 
+//      {
+//         $('#percent').fadeOut(1);
+//         $('#is_pre_select').fadeOut(1);
+//      }
+//  }
+function checkAccountTypeEdit(account_type_id) {
+    if (parseInt(account_type_id) === 5) {
         $('#percent').fadeIn(1);
         $('#is_pre_select').fadeOut(1);
-     } 
-     else if(parseInt(account_type_id) === 1) 
-     {
-         $('#is_pre_select').fadeIn(1);
-         $('#percent').fadeOut(1);
-     }
-     else 
-     {
+    } else if (parseInt(account_type_id) === 1) {
+        $('#is_pre_select').fadeIn(1);
+        $('#percent').fadeOut(1);
+
+        // Show only the first option in the select dropdowns
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="1"> افزایش پول نقد</option>
+            `);
+        });
+    } else {
         $('#percent').fadeOut(1);
         $('#is_pre_select').fadeOut(1);
-     }
- }
+
+        // Reset the select options to show all options
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value=""> انتخاب گزینه </option>
+                <option value="1"> افزایش پول نقد</option>
+                <option value="2"> ثبت در بخش طلبات </option>
+                <option value="3"> ثبت در بخش قرضه </option>
+            `);
+        });
+    }
+}
 </script>

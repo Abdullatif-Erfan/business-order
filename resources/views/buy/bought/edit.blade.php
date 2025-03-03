@@ -141,10 +141,10 @@
                                                         <td>{{ $detail->preListRelation->name }}</td>
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
-                                                        <td>{{ number_format($detail->bought_up,2) }}</td>
-                                                        <td>{{ number_format($detail->total,2) }}</td>
-                                                        <td>{{ number_format($detail->discount,2) }} </td>
-                                                        <td>{{ number_format($detail->transport,2) }}</td>
+                                                        <td>{{ number_format($detail->bought_up) }}</td>
+                                                        <td>{{ number_format($detail->total) }}</td>
+                                                        <td>{{ number_format($detail->discount) }} </td>
+                                                        <td>{{ number_format($detail->transport) }}</td>
                                                         <td>{{ $detail->expire_date }} </td>
                                                     
                                                         <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>

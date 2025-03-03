@@ -69,7 +69,7 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store2(Request $request)
     {
         $messages = [
             'account_type_id.required' => 'انتخاب نوع حساب ضروری میباشد',
@@ -88,8 +88,8 @@ class AccountController extends Controller
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
             'is_pre_select' => 'nullable|numeric',
-            'percent'       => 'nullable|numeric',
-        ],$messages);
+            'percent' => 'nullable|numeric',
+        ], $messages);
 
         DB::beginTransaction();
         try {
@@ -97,28 +97,38 @@ class AccountController extends Controller
             $account = Account::create($validated);
 
             // Handle Journal Entries (only if amount[] exists and is > 0)
-            if (!empty($request->amount) && is_array($request->amount) && $request->amount[0] > 0) {
-                $journalCode = Journal::latest('code')->value('code');
-                $newJournalCode = $journalCode ? $journalCode + 1 : 1;
+            if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0) {
+                $newJournalCode = DB::table('journals')->lockForUpdate()->max('code') + 1;
+
                 $jalaliDate = Jalalian::now();
                 $year = $jalaliDate->getYear();
                 $month = $jalaliDate->getMonth();
                 $day = $jalaliDate->getDay();
-                $short_date = $year.'-'.$month.'-'.$day;
-
+                $short_date = "$year-$month-$day";
                 $times = time();
 
+                $transactionMapping = [
+                    1 => ['tType' => 1, 'pType' => 1, 'option_label' => 'افزایش نقده'], // افزایش پول نقد (Cash Received)
+                    2 => ['tType' => 2, 'pType' => 2, 'option_label' => 'ثبت طلب'], // ثبت در بخش طلبات (Paid Loan)
+                    3 => ['tType' => 1, 'pType' => 2, 'option_label' => 'ثبت قرضه'], // ثبت در بخش قرضه (Received Loan)
+                ];
+
+                $journalEntries = [];
                 foreach ($request->amount as $key => $value) {
                     if ($value > 0) {
-                        Journal::create([
+                        $types = $transactionMapping[$request->options[$key]] ?? ['tType' => 1, 'pType' => 1];
+
+                        $journalEntries[] = [
                             'code' => $newJournalCode,
                             'account_id' => $account->id,
                             'branch_id' => $request->branch_id,
                             'amount' => $value,
                             'currency_id' => $request->currency_id[$key] ?? null,
-                            'transaction_type' => $request->transaction_type[$key] ?? null,
-                            'payment_type' => 1,
-                            'user_id' => Session::get('userId', 0),
+                            'transaction_type' => $types['tType'],
+                            'payment_type' => $types['pType'],
+                            'options'      => $request->options[$key],
+                            'option_label' =>  $types['option_label'],
+                            'user_id' => auth()->id() ?? 0,
                             'year' => $year,
                             'month' => $month,
                             'day' => $day,
@@ -126,7 +136,138 @@ class AccountController extends Controller
                             'details' => 'رسید حساب سابقه',
                             'status' => 1,
                             'times' => $times,
-                        ]);
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+
+                // Bulk insert
+                Journal::insert($journalEntries);
+            }
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'حساب موفقانه ثبت گردید']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function storeBkp(Request $request)
+    {
+        $messages = [
+            'account_type_id.required' => 'انتخاب نوع حساب ضروری میباشد',
+            'name.required' => 'نام حساب ضروری میباشد',
+            'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
+            'name.min' => 'حداقل باید ۳ حرف باشد',
+            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+        ];
+
+        $validated = $request->validate([
+            'account_type_id' => 'required|exists:account_types,id',
+            // 'name' => 'required|string|max:255|min:3|unique:accounts,name',
+            'name' => 'required|string|max:255|min:3|unique:accounts,name,NULL,id,branch_id,' . $request->branch_id,
+            'branch_id' => 'required|exists:branches,id',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:1000',
+            'is_pre_select' => 'nullable|numeric',
+            'percent' => 'nullable|numeric',
+        ], $messages);
+
+        DB::beginTransaction();
+        try {
+            // Create Account
+            $account = Account::create($validated);
+
+            // get default company_account_id
+            $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->first();
+            $from_account_id = $ownBanks->id ?? 0;
+
+            if (!$from_account_id) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'هیچ حساب بانکی برای تراکنش‌ها یافت نشد.',
+                ], 400);
+            }
+
+            // Handle Journal Entries (only if amount[] exists and is > 0)
+            if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0 && isset($from_account_id)) {
+                $newJournalCode = DB::table('journals')->lockForUpdate()->max('code') + 1;
+
+                $jalaliDate = Jalalian::now();
+                $year = $jalaliDate->getYear();
+                $month = $jalaliDate->getMonth();
+                $day = $jalaliDate->getDay();
+                $short_date = "$year-$month-$day";
+                $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
+                $times = time();
+               
+
+                // $journalEntries = [];
+                foreach (array_filter($request->amount) as $key => $value) 
+                {
+                    if ($value > 0) 
+                    {
+
+                        $amount = $value;
+                        $currency_id = $request->currency_id[$key] ?? 0;
+                        $details = 'رسید حساب سابقه';
+            
+                        $to_account_id = $account->id;
+                        $branch_id = $request->branch_id ?? 0;
+
+
+                        //  افزایش پول نقد
+                        if(intval($request->options[$key]) === 1) 
+                        {
+                            //cacheRecieved = t1p1 = دریافت نقد
+                            $optionLable = 'آورد نقد';
+                            $options = 1;
+                            $this->createJournalEntry($optionLable, $to_account_id, $amount,  $ttype = "1", $ptype="1", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times,$branch_id, $options, $currency_id);
+                            
+                        } 
+
+                        //  ثبت در بخش طلبات
+                        else if(intval($request->options[$key]) === 2)
+                        {
+                            // ثبت طلب مشتری = Paid Loan = t2p2
+                            $optionLable = 'ثبت طلب';
+                            $options = 2;
+                            $this->createJournalEntry($optionLable, $to_account_id, $amount,  $ttype = "2", $ptype="2", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times,$branch_id, $options, $currency_id);
+                            
+                            // ثبت قرض  خزانه = Recieved Loan = t1p2
+                            $optionLable = 'ثبت قرض';
+                            $options = 2;
+                            $this->createJournalEntry($optionLable, $from_account_id, $amount,  $ttype = "1", $ptype="2", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times,$branch_id, $options, $currency_id);
+                        }
+                        // ثبت در بخش قرضه
+                        else if(intval($request->options[$key]) === 3)
+                        {
+                            // ثبت طلب خزانه = Paid Loan = t2p2
+                            $optionLable = 'ثبت طلب';
+                            $options = 3;
+                            $this->createJournalEntry($optionLable, $from_account_id, $amount,  $ttype = "2", $ptype="2", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times,$branch_id, $options, $currency_id);
+                            
+                            // ثبت قرض  مشتری = Recieved Loan = t1p2
+                            $optionLable = 'ثبت قرض';
+                            $options = 3;
+                            $this->createJournalEntry($optionLable, $to_account_id, $amount,  $ttype = "1", $ptype="2", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times,$branch_id, $options, $currency_id);
+
+                        }
+                       
                     }
                 }
             }
@@ -142,6 +283,149 @@ class AccountController extends Controller
             ], 500);
         }
     }
+
+    public function store(Request $request)
+    {
+        $messages = [
+            'account_type_id.required' => 'انتخاب نوع حساب ضروری میباشد',
+            'name.required' => 'نام حساب ضروری میباشد',
+            'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
+            'name.min' => 'حداقل باید ۳ حرف باشد',
+            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+        ];
+
+        $validated = $request->validate([
+            'account_type_id' => 'required|exists:account_types,id',
+            'name' => 'required|string|max:255|min:3|unique:accounts,name,NULL,id,branch_id,' . $request->branch_id,
+            'branch_id' => 'required|exists:branches,id',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:1000',
+            'is_pre_select' => 'nullable|numeric',
+            'percent' => 'nullable|numeric',
+        ], $messages);
+
+        DB::beginTransaction();
+        try {
+            // Create Account
+            $account = Account::create($validated);
+
+            // Get default company_account_id
+            $ownBanks = Account::where('account_type_id', 1)
+                ->orderBy('is_pre_select', 'DESC')
+                ->first();
+
+            $from_account_id = $ownBanks->id ?? null;
+
+            // Ensure there's a valid bank account
+            if (!$from_account_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'هیچ حساب بانکی برای تراکنش‌ها یافت نشد.',
+                ], 400);
+            }
+
+            // Handle Journal Entries
+            if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0) 
+            {
+                $newJournalCode = Journal::max('code') + 1;
+                $jalaliDate = Jalalian::now();
+                $full_date = $jalaliDate->format('Y-m-d h:i:s A');
+                $short_date = $jalaliDate->format('Y-m-d');
+                $times = time();
+
+                foreach (array_filter($request->amount) as $key => $value) {
+                    $amount = $value;
+                    $currency_id = $request->currency_id[$key] ?? 0;
+                    $details = 'رسید حساب سابقه';
+                    $to_account_id = $account->id;
+                    $branch_id = $request->branch_id ?? 0;
+
+                    switch (intval($request->options[$key])) {
+                         /**
+                          * افزایش پول نقد
+                          *  cacheRecieved = t1p1 = دریافت نقد
+                          */
+                        case 1:
+                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            break;
+
+                        case 2:
+                             /**
+                              * ثبت در بخش طلبات
+                              */
+                              // ثبت طلب مشتری = Paid Loan = t2p2
+                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
+                           // ثبت قرض  خزانه = Recieved Loan = t1p2
+                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
+                            break;
+                        case 3:
+                           // ثبت در بخش قرضه
+                           // ثبت طلب خزانه = Paid Loan = t2p2
+                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
+                            
+                            // ثبت قرض  مشتری = Recieved Loan = t1p2
+                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
+                            break;
+                    }
+                }
+            }
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'حساب موفقانه ثبت گردید']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+  
+    private function createJournalEntry($optionLable, $account_id, $amount, $ttype, $ptype, $full_date, $short_date, 
+    $details, $newJournalCode, $times,$branch_id, $options, $currency_id)
+    {
+            $jalaliDate = Jalalian::now();
+            $year = $jalaliDate->getYear();
+            $month = $jalaliDate->getMonth();
+            $day = $jalaliDate->getDay();
+            // Create the Journal entry
+            Journal::create([
+                'bill_no' => 0,
+                'code' => $newJournalCode,
+                'account_id' => $account_id,
+                'branch_id' => $branch_id,
+                'amount' => $amount,
+                'currency_id' => $currency_id,
+                'transaction_type' => $ttype,
+                'payment_type' => $ptype,
+                'options' => $options,
+                'option_label' => $optionLable,
+                'user_id' => auth()->user()->id,
+                'year' => $year,
+                'month' => $month,
+                'day' => $day,
+                'inserted_short_date' => $short_date,
+                'inserted_full_date' => $full_date,
+                'details' => $details,
+                'status' => 1,  
+                'times' => $times,
+                'is_single_record' => 1,
+            ]);
+
+            // Log::info('Journal entry created successfully.');
+    }
+
+
     /**
      * Display the specified resource for edit
      */
@@ -153,7 +437,7 @@ class AccountController extends Controller
         
         $journals = Journal::with(['currencyRelation' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
-          }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id') // Select fields from the Journal model
+          }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id','options') // Select fields from the Journal model
           ->where('account_id', $id)
           ->get();
 
@@ -177,7 +461,7 @@ class AccountController extends Controller
 
         $journals = Journal::with(['currencyRelation' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
-        }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id') // Select fields from the Journal model
+        }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id','options') // Select fields from the Journal model
           ->where('account_id', $id)
           ->get();
 
@@ -205,67 +489,94 @@ class AccountController extends Controller
 
         $validated = $request->validate([
             'account_type_id' => 'required|exists:account_types,id',
-            'name' => 'required|string|max:255|min:3|unique:accounts,name,' . $request->id,
+            'name' => 'required|string|max:255|min:3',
             'branch_id' => 'required|exists:branches,id',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
             'is_pre_select' => 'nullable|numeric',
-            'percent'       => 'nullable|numeric',
-        ],$messages);
+            'percent' => 'nullable|numeric',
+        ], $messages);
 
         DB::beginTransaction();
         try {
             // Find and update the account
             $account = Account::findOrFail($request->id);
             $account->update($validated);
-
-            // Handle Journal Entries (only if amount[] exists and is > 0)
-            if (!empty($request->amount) && is_array($request->amount) && count($request->amount) > 0 && $request->amount[0] > 0) {
-
-                
-                // delete the old journal
-                $jrnal = Journal::where('times', $request->times)->delete();
-                
-                    
-                     $journalNewCode = Journal::latest('code')->value('code');
-                     $newJournalCode = $journalNewCode ? $journalNewCode + 1 : 1;
-                     $curTimes = time();
-
-                     $journalCode = $request->code ?? $newJournalCode;
-                     $jalaliDate = Jalalian::now();
-                     $times = $request->times ?? $curTimes;
-
-                    $year = $jalaliDate->getYear();
-                    $month = $jalaliDate->getMonth();
-                    $day = $jalaliDate->getDay();
-                    $short_date = $year.'-'.$month.'-'.$day;
-
-
-                    foreach ($request->amount as $key => $value) {
-                        if ($value > 0) {
-                           
-                            Journal::create([
-                                'code' => $journalCode,
-                                'account_id' => $account->id,
-                                'branch_id' => $request->branch_id,
-                                'amount' => $value,
-                                'currency_id' => $request->currency_id[$key] ?? null,
-                                'transaction_type' => $request->transaction_type[$key] ?? null,
-                                'payment_type' => 1,
-                                'user_id' => Session::get('userId', 0),
-                                'year' => $year,
-                                'month' => $month,
-                                'day' => $day,
-                                'inserted_short_date' => $short_date,
-                                'details' => 'رسید حساب سابقه',
-                                'status' => 1,
-                                'times' => $times,
-                            ]);
-                        }
-                    }
+            
+            // Get default company_account_id
+            $ownBanks = Account::where('account_type_id', 1)
+            ->orderBy('is_pre_select', 'DESC')
+            ->first();
+            
+            $from_account_id = $ownBanks->id ?? null;
+            
+            // Ensure there's a valid bank account
+            if (!$from_account_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'هیچ حساب بانکی برای تراکنش‌ها یافت نشد.',
+                ], 400);
             }
+            
+            // Handle Journal Entries
+            if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0) 
+            {
+                // delete old journal records
+                Journal::where('times', $request->times)->delete();
+                $newJournalCode = Journal::max('code') + 1;
+                $jalaliDate = Jalalian::now();
+                $full_date = $jalaliDate->format('Y-m-d h:i:s A');
+                $short_date = $jalaliDate->format('Y-m-d');
+                $times = time();
 
+                foreach (array_filter($request->amount) as $key => $value) {
+                    $amount = $value;
+                    $currency_id = $request->currency_id[$key] ?? 0;
+                    $details = 'رسید حساب سابقه';
+                    $to_account_id = $account->id;
+                    $branch_id = $request->branch_id ?? 0;
+
+                    switch (intval($request->options[$key])) {
+                            /**
+                             * افزایش پول نقد
+                             *  cacheRecieved = t1p1 = دریافت نقد
+                             */
+                        case 1:
+                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            break;
+
+                        case 2:
+                            // ثبت در بخش طلبات
+                            // ثبت طلب مشتری = Paid Loan = t2p2
+                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
+                            // ثبت قرض  خزانه = Recieved Loan = t1p2
+                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
+                            break;
+                        case 3:
+                            // ثبت در بخش قرضه
+                            // ثبت طلب خزانه = Paid Loan = t2p2
+                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
+                            
+                            // ثبت قرض  مشتری = Recieved Loan = t1p2
+                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2", 
+                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
+                            break;
+                    }
+                }
+            } 
+            else 
+            {
+                $journals = Journal::where('times', $request->times);
+                // Check if any related journals exist and delete them
+                if ($journals->exists()) {
+                    $journals->delete(); // Delete all related journal records
+                }
+            }
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'حساب با موفقیت به روز رسانی شد']);
         } catch (\Exception $e) {
@@ -279,18 +590,28 @@ class AccountController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
+    * Remove the specified resource from storage.
+    */
     public function destroy($id)
     {
         $account = Account::find($id);
 
+        // Check if account exists before accessing properties
         if (!$account) {
             return response()->json(['status' => 'failed', 'message' => 'حساب یافت نگردید']);
+        }
+
+        $journals = Journal::where('times', $account->times);
+
+        // Check if any related journals exist and delete them
+        if ($journals->exists()) {
+            $journals->delete(); // Delete all related journal records
         }
 
         $account->delete();
 
         return response()->json(['status' => 'success', 'message' => 'حساب موفقانه حذف گردید']);
     }
+
+    
 }

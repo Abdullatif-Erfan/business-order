@@ -22,7 +22,6 @@
                                @include('report.chart_of_account.company_accounts')
                                @include('report.chart_of_account.suppliers')
                                @include('report.chart_of_account.customers')
-
                             </div>
                          </div>
                       </div>
@@ -35,12 +34,25 @@
 </div>
 
 <script>
- function updateURLWithCurrencyId(currency_id) {
-    let currentUrl = new URL(window.location.href);
-    let baseUrl = currentUrl.origin + currentUrl.pathname.split('/').slice(0, -1).join('/') + '/';
+ function updateURLWithCurrencyId(currencyId) {
+        let currentUrl = window.location.href; // Get current full URL
+        let baseUrl = window.location.origin + '/chartOfAccount'; // Ensure base URL is correct
 
-    // Redirect to new URL with currency ID
-    window.location.href = baseUrl + currency_id;
+        // If the current URL already has an ID, replace it
+        let pathParts = window.location.pathname.split('/').filter(part => part !== ""); // Remove empty segments
+        let lastPart = pathParts[pathParts.length - 1]; // Get last part of URL
+
+        let newUrl;
+
+        // If the last part is a number, replace it with the new currency ID
+        if (!isNaN(lastPart)) {
+            pathParts[pathParts.length - 1] = currencyId;
+            newUrl = window.location.origin + '/' + pathParts.join('/');
+        } else {
+            newUrl = baseUrl + '/' + currencyId; // Append new ID
+        }
+
+        window.location.href = newUrl; // Redirect
 }
 
 </script>

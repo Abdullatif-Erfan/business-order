@@ -25,7 +25,7 @@
                              */
                             $total_warehouse_value = $secondTab['total_warehouse_value'] - $secondTab['total_warehouse_wastage'];
                             $total_assets = (($total_warehouse_value + $secondTab['total_income'] + $secondTab['total_talabat']) - $secondTab['total_loan']);
-                            echo number_format($total_assets,2);
+                            echo number_format($total_assets);
                             
                             ?></h4>
                         </div>
@@ -47,7 +47,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> پول نقد شرکت</p>
-                            <h4 class="card-title"><?=number_format($secondTab['total_income'],2)?></h4>
+                            <h4 class="card-title"><?=number_format($secondTab['total_income'])?></h4>
                         </div>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> مفاد فروشات </p>
-                            <h4 class="card-title"><?=number_format($secondTab['sold_profits'],2)?></h4>
+                            <h4 class="card-title"><?=number_format($secondTab['sold_profits'])?></h4>
                         </div>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> طلبات </p>
-                            <h4 class="card-title"><?=number_format($secondTab['total_talabat'],2)?></h4>
+                            <h4 class="card-title"><?=number_format($secondTab['total_talabat'])?></h4>
                         </div>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category">قرضه</p>
-                            <h4 class="card-title"><?=number_format($secondTab['total_loan'],2)?></h4>
+                            <h4 class="card-title"><?=number_format($secondTab['total_loan'])?></h4>
                         </div>
                     </div>
                 </div>
@@ -131,7 +131,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> بیلانس طلبات و قرضه </p>
-                            <h4 class="card-title"><?=number_format($final_result,2)?></h4>
+                            <h4 class="card-title"><?=number_format($final_result)?></h4>
                             <small>شرکت باقی است</small>
                         </div>
                     </div>
@@ -153,7 +153,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                         <p class="card-category"> بیلانس طلبات و قرضه </p>
-                            <h4 class="card-title"><?=number_format($final_result,2)?></h4>
+                            <h4 class="card-title"><?=number_format($final_result)?></h4>
                             <small>شرکت طلب است</small>
                         </div>
                     </div>
@@ -176,7 +176,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                         <p class="card-category"> بیلانس طلبات و قرضه </p>
-                            <h4 class="card-title"><?=number_format($final_result,2)?></h4>
+                            <h4 class="card-title"><?=number_format($final_result)?></h4>
                             <small>  تصفیه است</small>
                         </div>
                     </div>

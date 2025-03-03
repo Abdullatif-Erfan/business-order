@@ -25,7 +25,7 @@
         <div class="page-inner">
             <div class="row">
                 <div class="col-md-12 mt-3">
-                    <div class="card shadow-lg">
+                    <div class="card">
                         <div class="card-header text-white text-center main-card">
                             <h4 class="card-title mb-0">📊 گزارشات سیستم</h4>
                         </div>
@@ -63,13 +63,13 @@
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('chartOfAccount.index')}}">💰 کهاته حسابات</a>
+                                                    <a target="_blank" href="#">💰 کهاته حسابات</a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="#">📑 بیلانس شیت</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="#">📌 چارت حسابات</a>
+                                                    <a target="_blank" href="{{ route('chartOfAccount.index')}}">📌 چارت حسابات</a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="#">✅ تصفیه حساب</a>
@@ -124,6 +124,7 @@
         form.action = url;
         form.submit();
     }
-</script>
 
+   
+</script>
 @endsection
