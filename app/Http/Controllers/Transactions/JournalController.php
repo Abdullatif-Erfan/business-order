@@ -101,6 +101,8 @@ class JournalController extends Controller
             $journals->where('bill_no', 'LIKE', "%{$request->bill_number}%");
         }
         
+         // check if searched_account_id is belongs to company accounts
+         $isCompanyAccount = Account::where('account_type_id', 1)->where('id', $request->account_id)->exists();
 
         return DataTables::of($journals)
             
@@ -139,6 +141,9 @@ class JournalController extends Controller
                 return $journal->status == 2 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';
             })
             ->rawColumns(['actions','currency'])
+            ->with([
+                'isCompanyAccount' => $isCompanyAccount ?? 0 
+            ])
             ->make(true);
     }
 
@@ -167,7 +172,7 @@ class JournalController extends Controller
         // dd($this->numberToWordsService->convertNumber(1000000.00)); // Should be "یک میلیون"
 
 
-        $journals = Journal::with(['accountRelation', 'currencyRelation', 'userRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->where('times', $times)
         ->orderBy('id', 'DESC')
         ->get();
@@ -420,7 +425,7 @@ class JournalController extends Controller
                 'payment_type' => $ptype,
                 'options' => $request->options,
                 'option_label' => $optionLable,
-                'user_id' => auth()->user()->id ?? '',
+                'user' => auth()->user()->full_name ?? '',
                 'year' => $date[0],
                 'month' => $date[1],
                 'day' => $date[2],
@@ -443,7 +448,7 @@ class JournalController extends Controller
     public function print(string $times)
     {
         $orgbios = OrgBio::all();
-        $journals = Journal::with(['accountRelation', 'currencyRelation', 'userRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->where('times', $times)
         ->orderBy('id', 'DESC')
         ->get();
@@ -468,7 +473,7 @@ class JournalController extends Controller
         $currencies = Currency::all();
         $branchs = Branch::all();
 
-        $journals = Journal::with(['accountRelation', 'currencyRelation', 'userRelation','branchRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
         ->orderBy('id', 'ASC')
         ->get();

@@ -117,7 +117,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/updateSalesAndWarehouseItems',[SalesController::class, 'updateSalesAndWarehouseItems'])->name('sales.updateSalesAndWarehouseItems');
         Route::post('/update',[SalesController::class,'update'])->name('sales.update');
         Route::post('/deleteSingleItem/{id}',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem');
-        Route::get('/destroy/{id}',[SalesController::class,'destroy'])->name('sales.destroy');
+        Route::get('/destroy/{times}',[SalesController::class,'destroy'])->name('sales.destroy');
     });
 
 

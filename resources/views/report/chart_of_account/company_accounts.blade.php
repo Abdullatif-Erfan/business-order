@@ -74,8 +74,8 @@
                 <td class="priceStyle">{{ number_format($total_cache_recieved) }}</td>  <!-- آورد نقد -->
                 <td class="priceStyle">{{ number_format($total_cache_paid) }}</td>      <!-- برد نقد -->
                 <td class="priceStyle"></td>
-                <td class="priceStyle">{{ number_format($total_loan_paid) }}</td>        <!--  طلبات -->
-                <td class="priceStyle">{{ number_format($total_loan_recieved) }}</td>    <!--  قرضه -->
+                <td class="priceStyle" style="color:green">{{ number_format($total_loan_paid) }}</td>        <!--  طلبات -->
+                <td class="priceStyle" style="color:red">{{ number_format($total_loan_recieved) }}</td>    <!--  قرضه -->
                 <td class="priceStyle">{{ number_format($general_total_balance) }}</td>
             </tr>
         </tfoot>

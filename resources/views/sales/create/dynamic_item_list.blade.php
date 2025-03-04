@@ -64,98 +64,85 @@
 
 
 <script>
-$(document).ready(function () 
-{
-     // Function to toggle required attribute when row is shown or hidden
-     function toggleRequiredAttribute(row, isVisible) {
+$(document).ready(function () {
+    // Function to toggle required attribute when row is shown or hidden
+    function toggleRequiredAttribute(row, isVisible) {
         row.find('.item-select, .amount, .sell-up').each(function () {
             if (isVisible) {
-                // Add required attribute
                 $(this).attr('required', 'required');
             } else {
-                // Remove required attribute
                 $(this).removeAttr('required');
             }
         });
     }
 
-
-    function recalculate(row) 
-    {
+    function recalculate(row) {
         var sellUp = parseFloat(row.find('.sell-up').val()) || 0;
         var avgUp = parseFloat(row.find('.avg-up').val()) || 0;
         var enteredAmount = parseFloat(row.find('.amount').val()) || 1;
         var discount = parseFloat(row.find('.discount').val()) || 0;
-        var maxAmount = row.find('.amount').data('max') || 1;
 
+        // Ensure the amount is valid
         if (enteredAmount < 1) {
             row.find('.amount').val(1);
             enteredAmount = 1;
-        } else if (enteredAmount > maxAmount) {
-            row.find('.amount').val(maxAmount);
-            enteredAmount = maxAmount;
         }
 
+        // Calculate total price before discount
         var total_result = sellUp * enteredAmount;
         row.find('.total').val(total_result.toFixed(2));
 
+        // Calculate profit based on average cost
         var profit = avgUp * enteredAmount;
-        var net_profit = total_result - profit;
+        var net_profit = total_result - profit - discount;  // Subtract the discount from the net profit
         row.find('.profit').val(net_profit.toFixed(2));
 
-        updateTotalPrice(); // Call function to update total price
+        updateTotalPrice();
         updateGeneralDiscount();
     }
 
-    function updateTotalPrice() 
-    {
+    function updateTotalPrice() {
         var totalPrice = 0;
         $('.total').each(function () {
             totalPrice += parseFloat($(this).val()) || 0;
         });
-
         $('#total_price').val(totalPrice.toFixed(2));
-
-        updatePayableAmount(); 
-   }
-
+        updatePayableAmount();
+    }
 
     function updateGeneralDiscount() {
         var totalDiscount = 0;
         $('.discount').each(function () {
             totalDiscount += parseFloat($(this).val()) || 0;
         });
-
         $('#total_discount').val(totalDiscount.toFixed(2));
+
         var total_price = parseFloat($('#total_price').val()) || 0;
         var payable = total_price - totalDiscount;
         $('#payable').val(payable.toFixed(2));
-
         updatePayableAmount();
     }
 
     function updatePayableAmount() {
-    var totalPrice = parseFloat($('#total_price').val()) || 0;
-    var totalDiscount = parseFloat($('#total_discount').val()) || 0;
-    var payable = totalPrice - totalDiscount;
-    $('#payable').val(payable.toFixed(2));
-}
+        var totalPrice = parseFloat($('#total_price').val()) || 0;
+        var totalDiscount = parseFloat($('#total_discount').val()) || 0;
+        var payable = totalPrice - totalDiscount;
+        $('#payable').val(payable.toFixed(2));
+    }
 
     // Handle item select change
     $(document).on('change', '.item-select', function () {
         var selectedOption = $(this).find(':selected');
-
         var unitName = selectedOption.data('unit-name');
         var unitId = selectedOption.data('unit-id');
         var branchId = selectedOption.data('branch-id');
         var warehouseId = selectedOption.data('warehouse-id');
         var preListId = selectedOption.data('pre-list-id');
-
         var avgUp = selectedOption.data('avg-up');
         var sellUp = selectedOption.data('sell-up');
         var availableAmount = selectedOption.data('available-amount');
-
         var row = $(this).closest('tr');
+
         row.find('.unit-name').val(unitName);
         row.find('.unit-id').val(unitId);
         row.find('.branch-id').val(branchId);
@@ -164,8 +151,6 @@ $(document).ready(function ()
         row.find('.avg-up').val(avgUp);
         row.find('.sell-up').val(sellUp);
         row.find('.amount').data('max', availableAmount);
-
-
     });
 
     // Handle input changes for recalculations
@@ -181,29 +166,32 @@ $(document).ready(function ()
         // Reset input values
         newRow.find('input').val('');
         newRow.find('.item-select').val('').trigger('change');
-
-        // Remove old select2 instance and reinitialize
         newRow.find('.select2-container').remove();
         newRow.find('.item-select').removeClass('select2-hidden-accessible').show();
-
-        // Append new row
         $('#itemsTable tbody').append(newRow);
 
-        // Reinitialize select2
         newRow.find('.item-select').select2();
 
-        
-         // Add required to new row's inputs
-         toggleRequiredAttribute(newRow, true);
+        // Add required to new row's inputs
+        toggleRequiredAttribute(newRow, true);
     });
 
     // Remove row
     $(document).on('click', '.removeRow', function () {
-        if ($('#itemsTable tbody tr').length > 1) {
-            // $(this).closest('tr').remove();
+        var rows = $('#itemsTable tbody tr.item-row');
+        
+        // Ensure there is more than one row and prevent deleting the first row
+        if (rows.length > 1) {
             var row = $(this).closest('tr');
-            toggleRequiredAttribute(row, false); // Remove required from the removed row
-            row.remove();
+            // Prevent deletion of the first row
+            if (row.index() !== 0) {
+                toggleRequiredAttribute(row, false); // Remove required from the removed row
+                row.remove();
+                updateTotalPrice();
+                updateGeneralDiscount();
+            } else {
+                alert("You must have at least one row.");
+            }
         } else {
             alert("You must have at least one row.");
         }
@@ -212,5 +200,6 @@ $(document).ready(function ()
     // Initialize select2 on page load
     $('.item-select').select2();
 });
+
 
 </script>

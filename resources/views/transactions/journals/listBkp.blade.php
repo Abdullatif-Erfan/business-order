@@ -49,16 +49,16 @@
                         <div class="filterForm" id="searchWrapper1">  
                             <div class="col-md-12">
                                 <div class="row">
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <select class="form-control select2" id="account_id" style="width:100%">
+                                    <div class="col-md-2">
+                                        <select class="form-control select2" id="account_id">
                                             <option value=""> حساب </option>
                                             @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
                                         </select> 
                                     </div>
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <select class="form-control select2" id="currency_id" style="width:100%">
+                                    <div class="col-md-2">
+                                        <select class="form-control select2" id="currency_id">
                                             <option value=""> واحد پولی </option>
                                             @foreach($currencies as $currency)
                                                 <option value="{{ $currency->id }}">{{ $currency->name }}</option>
@@ -67,7 +67,7 @@
                                     </div>
 
                                     
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-2">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -83,7 +83,7 @@
                                 
 
 
-                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                     <div class="col-md-3">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -99,11 +99,11 @@
 
                                   
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
+                                    <div class="col-md-1">
                                         <input class="form-control" id="code_number" placeholder="کد">
                                     </div>
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
+                                    <div class="col-md-1">
                                         <input class="form-control" id="bill_number" placeholder="بل">
                                     </div>
 
@@ -282,7 +282,6 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
            
             drawCallback: function (settings) {
                 var api = this.api();
-                let isCompanyAccount = settings.json.isCompanyAccount;
 
                 // Handle case where no records exist
                 if (api.rows().data().length === 0) {
@@ -290,24 +289,23 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                     return; // Exit early to avoid unnecessary calculations
                 }
 
-                // Check if account_id is filtered (i.e., has a value)
+                // Check if an account is filtered
                 var accountId = $('#account_id').val();
+                var isCompanyAccount = settings.json.isCompanyAccount;
 
-                // Function to sum columns and return raw numbers
+                // Function to sum columns efficiently
                 function sumColumn(index) {
                     return api
                         .column(index, { page: 'current' })
                         .data()
                         .reduce(function (a, b) {
-                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
-                            return numA + numB;
+                            return (parseFloat(a.toString().replace(/,/g, '')) || 0) + 
+                                (parseFloat(b.toString().replace(/,/g, '')) || 0);
                         }, 0);
                 }
 
-                // Only calculate finalResult if account_id is filtered
                 if (parseInt(accountId) > 0) {
-                    // Store column sums (as numbers, not formatted strings)
+                    // Store column sums to avoid redundant calculations
                     let sum4 = sumColumn(4);
                     let sum5 = sumColumn(5);
                     let sum6 = sumColumn(6);
@@ -317,22 +315,13 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                     * (بیلانس = (آورد نقد + طلبات) - (برد نقد + قرضه
                     * balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
                     */
-
-                    // Ensure valid numbers for all sums
-                    sum4 = isNaN(sum4) ? 0 : sum4;
-                    sum5 = isNaN(sum5) ? 0 : sum5;
-                    sum6 = isNaN(sum6) ? 0 : sum6;
-                    sum7 = isNaN(sum7) ? 0 : sum7;
-
+                    
                     // Calculate the final result based on account type
                     let finalResult = isCompanyAccount 
                         ? (sum4 + sum7) - (sum5 + sum6)
-                        : (sum5 + sum7) - (sum4 + sum6);
+                        : (sum5 + sum6) - (sum4 + sum7);
 
-                    // Ensure finalResult is not NaN
-                    finalResult = isNaN(finalResult) ? 0 : finalResult;
-
-                    // Format final result with proper decimal places
+                    // Format final result
                     let finalResultFormatted = Number.isInteger(finalResult)
                         ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
                         : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -340,7 +329,7 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                     // Determine badge type
                     let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
 
-                    // Update footer totals with formatted results
+                    // Update footer totals
                     $(api.column(4).footer()).html(sum4.toLocaleString());
                     $(api.column(5).footer()).html(sum5.toLocaleString());
                     $(api.column(6).footer()).html(sum6.toLocaleString());
@@ -355,7 +344,6 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                     $(api.column(8).footer()).html('');
                 }
             }
-
         });
 
         // When the filter button is clicked, refresh the table
@@ -364,6 +352,86 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
         });
     });
 </script>
+<script>
+    // $(document).ready(function() {
+    //     let table = $('#journalTable').DataTable({
+    //         processing: true,
+    //         serverSide: true,
+    //         ajax: {
+    //             url: '{{ route('journal.data') }}',
+    //             data: function (d) {
+    //                 d.account_id = $('#account_id').val();
+    //                 d.currency_id = $('#currency_id').val();
+    //                 d.start_date = $('#start_date').val();
+    //                 d.end_date = $('#end_date').val();
+    //                 d.code_number = $('#code_number').val();
+    //                 d.bill_number = $('#bill_number').val();
+    //             }
+    //         },
+    //         columns: [
+    //             { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+    //             { data: 'code', name: 'code' },
+    //             { data: 'accountRelation', name: 'accountRelation' },
+    //             { data: 'details', name: 'details' },
+    //             { data: 'cacheRecieved', name: 'cacheRecieved' },
+    //             { data: 'cachePaid', name: 'cachePaid' },
+    //             { data: 'loanRecieved', name: 'loanRecieved' },
+    //             { data: 'loanPaid', name: 'loanPaid' },
+    //             { data: 'currency', name: 'currency' },
+    //             { data: 'option_label', name: 'option_label' },
+    //             { data: 'inserted_short_date', name: 'inserted_short_date' },
+    //             { data: 'actions', name: 'actions', orderable: false, searchable: false }
+    //         ],
+    //         drawCallback: function () {
+    //             var api = this.api();
+    //             var rows = api.rows({ page: 'current' }).nodes();
+    //             var lastCode = null;
+    //             var colorToggle = false; // Track color switching
+
+    //             // Loop through each row to apply color based on code
+    //             api.column(1, { page: 'current' }).data().each(function (code, i) {
+    //                 if (lastCode !== code) {
+    //                     colorToggle = !colorToggle; // Switch color when code changes
+    //                 }
+    //                 lastCode = code;
+
+    //                 // Apply alternating background color
+    //                 if (colorToggle) {
+    //                     $(rows[i]).css('background-color', '#f1f1f1'); // Light Blue
+    //                 } else {
+    //                     $(rows[i]).css('background-color', '#ffffff'); // Light Orange
+    //                 }
+    //             });
+
+    //             // Function to sum columns
+    //             function sumColumn(index) {
+    //                 return api
+    //                     .column(index, { page: 'current' })
+    //                     .data()
+    //                     .reduce(function (a, b) {
+    //                         var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+    //                         var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
+    //                         var sum = numA + numB;
+    //                         return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    //                     }, 0);
+    //             }
+
+    //             // Update footer totals
+    //             $(api.column(4).footer()).html(sumColumn(4));
+    //             $(api.column(5).footer()).html(sumColumn(5));
+    //             $(api.column(6).footer()).html(sumColumn(6));
+    //             $(api.column(7).footer()).html(sumColumn(7));
+    //         }
+    //     });
+
+    //     // When the filter button is clicked, refresh the table
+    //     $('#btn-filter').click(function() {
+    //         table.draw();
+    //     });
+    // });
+</script>
+
+
 
 @endsection('content')
 

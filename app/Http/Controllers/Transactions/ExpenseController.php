@@ -205,7 +205,7 @@ class ExpenseController extends Controller
             $journal->inserted_full_date = $full_date;
             $journal->inserted_short_date = $todaysDate;
             $journal->dynamic_type = $validated['dynamic_type'];
-            $journal->user_id = auth()->user()->id ?? 0;
+            $journal->user = auth()->user()->full_name ?? '';
             $journal->year = $year;
             $journal->month = $month;
             $journal->day = $day;
@@ -317,7 +317,7 @@ class ExpenseController extends Controller
             $journal->branch_id = $validated['branch_id'];
             $journal->inserted_full_date = $full_date;
             $journal->inserted_short_date = $todaysDate;
-            $journal->user_id =  auth()->user()->id ?? 0;
+            $journal->user =  auth()->user()->full_name ?? '';
             $journal->dynamic_type = $validated['dynamic_type'];
             $journal->year = $year;
             $journal->month = $month;

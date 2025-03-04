@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Report\ItemController;
 use App\Http\Controllers\Report\ChartOfAccount;
+use App\Http\Controllers\Report\CacheFlowController;
+
 
 
 Route::prefix('reports')->group(function() {
@@ -11,9 +13,12 @@ Route::prefix('reports')->group(function() {
     Route::post('/yearly',[ItemController::class, 'yearly'])->name('reports.yearly');
 });
 
-Route::prefix('chartOfAccount')->group(function() {
-    Route::get('/{id?}',[ChartOfAccount::class, 'index'])->name('chartOfAccount.index');
-    // Route::post('/daily',[ChartOfAccount::class, 'daily'])->name('reports.daily');
-    // Route::post('/monthly',[ChartOfAccount::class, 'monthly'])->name('reports.monthly');
-    // Route::post('/yearly',[ChartOfAccount::class, 'yearly'])->name('reports.yearly');
-});
+Route::get('/chartOfAccount/{id?}',[ChartOfAccount::class, 'index'])->name('chartOfAccount.index');
+Route::get('/cacheflow',[CacheFlowController::class, 'index'])->name('cacheflow.index');
+Route::get('/cacheflow/data',[CacheFlowController::class, 'getData'])->name('cacheflow.data');
+
+
+
+
+
+

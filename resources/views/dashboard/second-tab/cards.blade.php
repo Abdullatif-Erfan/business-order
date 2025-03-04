@@ -21,10 +21,11 @@
                              *  سرمایه شرکت  = پول نقد + طلبات + اجناس موجود - قرضه
                              */
                             /**
-                             * total_assets = total_warehouse_value + total_cache_income + total_talabat - (total_warhouse_wastage + total_loan)
+                             * total_assets = total_warehouse_value + total_cache_income(recieved-paid) + total_talabat - (total_warhouse_wastage + total_loan)
                              */
+                            $total_cache = $secondTab['total_income'] - $secondTab['total_outcome'];
                             $total_warehouse_value = $secondTab['total_warehouse_value'] - $secondTab['total_warehouse_wastage'];
-                            $total_assets = (($total_warehouse_value + $secondTab['total_income'] + $secondTab['total_talabat']) - $secondTab['total_loan']);
+                            $total_assets = (($total_warehouse_value +  $total_cache + $secondTab['total_talabat']) - $secondTab['total_loan']);
                             echo number_format($total_assets);
                             
                             ?></h4>
@@ -47,7 +48,7 @@
                     <div class="col-7 col-stats">
                         <div class="numbers">
                             <p class="card-category"> پول نقد شرکت</p>
-                            <h4 class="card-title"><?=number_format($secondTab['total_income'])?></h4>
+                            <h4 class="card-title"><?=number_format($total_cache)?></h4>
                         </div>
                     </div>
                 </div>

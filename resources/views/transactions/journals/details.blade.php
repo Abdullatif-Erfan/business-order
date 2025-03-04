@@ -90,7 +90,7 @@
                                         </tr>
                                         <tr>
                                              <td>ثبت کننده</td>
-                                             <td>{{ $journals[1]->userRelation->full_name ?? '' }}</td>
+                                             <td>{{ $journals[1]->user ?? '' }}</td>
                                         </tr>
                                     <!-- / second account -->
 

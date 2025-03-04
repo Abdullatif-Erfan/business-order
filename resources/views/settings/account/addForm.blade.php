@@ -117,27 +117,75 @@
 
 
 <script>
- function checkAccountType(account_type_id)
- {
-     if(parseInt(account_type_id) === 5) {
-        $('#percent').fadeIn(1);
-        $('#is_pre_select').fadeOut(1);
-     } 
-     else if(parseInt(account_type_id) === 1) 
-     {
-         $('#is_pre_select').fadeIn(1);
-         $('#percent').fadeOut(1);
+//  function checkAccountType(account_type_id)
+//  {
+//      if(parseInt(account_type_id) === 5) {
+//         $('#percent').fadeIn(1);
+//         $('#is_pre_select').fadeOut(1);
+//      } 
+//      else if(parseInt(account_type_id) === 1) 
+//      {
+//          $('#is_pre_select').fadeIn(1);
+//          $('#percent').fadeOut(1);
 
-        //   Show only the first option in the select dropdowns
+//         //   Show only the first option in the select dropdowns
+//         $('select[name="options[]"]').each(function () {
+//             $(this).html(`
+//                 <option value="1"> افزایش پول نقد</option>
+//             `);
+//         });
+//      }
+//      else 
+//      {
+//         $('#percent').fadeOut(1);
+//         $('#is_pre_select').fadeOut(1);
+
+//         // Reset the select options to show all options
+//         $('select[name="options[]"]').each(function () {
+//             $(this).html(`
+//                 <option value=""> انتخاب گزینه </option>
+//                 <option value="1"> افزایش پول نقد</option>
+//                 <option value="2"> ثبت در بخش طلبات </option>
+//                 <option value="3"> ثبت در بخش قرضه </option>
+//             `);
+//         });
+//      }
+//  }
+function checkAccountType(account_type_id) {
+    /**
+     * 1: حساب شرکت
+     * 2: کارمندان
+     * 3: مشتریان
+     * 4: فروشندگان
+     * 5: سهم داران
+     */
+    
+    if (parseInt(account_type_id) === 1)
+    {
+        $('#is_pre_select').fadeIn(1);
+        $('#percent').fadeOut(1);
+
+        // Show only the first option in the select dropdowns
         $('select[name="options[]"]').each(function () {
             $(this).html(`
                 <option value="1"> افزایش پول نقد</option>
             `);
         });
-     }
-     else 
-     {
-        $('#percent').fadeOut(1);
+    } 
+    else if (parseInt(account_type_id) === 2 || parseInt(account_type_id) === 3 || parseInt(account_type_id) === 4)
+    {
+       // Reset the select options to show all options
+       $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value=""> انتخاب گزینه </option>
+                <option value="2"> ثبت در بخش طلبات </option>
+                <option value="3"> ثبت در بخش قرضه </option>
+            `);
+        });
+    } 
+    else if (parseInt(account_type_id) === 5)
+    {
+        $('#percent').fadeIn(1);
         $('#is_pre_select').fadeOut(1);
 
         // Reset the select options to show all options
@@ -149,8 +197,7 @@
                 <option value="3"> ثبت در بخش قرضه </option>
             `);
         });
-     }
- }
-
+    }
+}
 
 </script>

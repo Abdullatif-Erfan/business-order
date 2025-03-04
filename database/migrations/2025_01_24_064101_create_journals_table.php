@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('option_label')->nullable();
             $table->string('inserted_full_date', 30)->nullable();
             $table->string('inserted_short_date', 30)->nullable();
-            $table->foreignId('user_id');
+            $table->string('user')->nullable();
             $table->string('updated_full_date', 30)->nullable();
             $table->integer('year');
             $table->integer('month');
@@ -40,6 +40,7 @@ return new class extends Migration
             $table->integer('cleared_round')->default(0);
             $table->string('times')->default('0');
             $table->integer('is_single_record')->default('0')->comment('0:single, 1:pair');
+            $table->integer('belongsToMe')->default('0')->nullable()->comment('0: object 1:subject (my record)');
             $table->timestamps();
         });
        

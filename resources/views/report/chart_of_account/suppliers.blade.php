@@ -13,6 +13,7 @@
         $total_loan_recieved = 0;
         $total_loan_paid = 0;
         $cache_balance = 0;
+        $loan_balance = 0;
         $general_balance = 0;
         $general_total_balance = 0;
     @endphp
@@ -41,20 +42,31 @@
             // طلبات
             $total_loan_paid += $row->loan_paid;
 
-            // بیلانس نقد
-            $cache_balance = $row->cache_recieved - $row->cache_paid;
+            // ---------------------------------- BALANCE CALCULATION ---------------------
+                // بیلانس نقد = برد نقد - آورد نقد
+                $cache_balance =  $row->cache_recieved - $row->cache_paid;
 
-            // بیلانس عمومی
-            $general_balance = $cache_balance + $row->loan_paid - $row->loan_recieved;
+                // Ensure values are always numeric (avoid null issues)
+                $loan_recieved = $row->loan_recieved ?? 0;
+                $loan_paid = $row->loan_paid ?? 0;
+                $loan_balance = $loan_paid - $loan_recieved;
 
-            // مجموع بیلانس عمومی
-            $general_total_balance += $general_balance;
+                // Ensure $row->loan_balance is defined, otherwise use $loan_balance
+                $row_loan_balance = $row->loan_balance ?? $loan_balance;
+
+                // بیلانس عمومی 
+                $general_balance = $row_loan_balance - $cache_balance;
+
+                // مجموع بیلانس عمومی
+                $general_total_balance += $general_balance;
+            // ---------------------------------- / BALANCE CALCULATION ---------------------
+
         @endphp
         <tr >
                 <td class="priceStyle">{{ $loop->iteration }}</td>
                 <td class="priceStyle">{{ $row->name }}</td>
-                <td class="priceStyle">{{ number_format($row->cache_recieved) }}</td> <!-- آورد نقد -->
-                <td class="priceStyle">{{ number_format($row->cache_paid) }}</td>     <!-- برد نقد -->
+                <td class="priceStyle">{{ number_format($row->cache_paid) }}</td>     <!-- پرداخت نقد ژورنال => آورد نقد اینجا -->
+                <td class="priceStyle">{{ number_format($row->cache_recieved) }}</td> <!-- دریافت نقد ژورنال => برد نقد اینجا -->
                 <td class="priceStyle">{{ number_format($row->loan_recieved) }}</td>  <!--  قرضه -->
                 <td class="priceStyle">{{ number_format($row->loan_paid) }}</td>      <!--  طلبات -->
                 <td class="priceStyle">{{ number_format($general_balance) }}</td>
@@ -64,10 +76,10 @@
         <tfoot>
             <tr style="background-color:#edf7ff">
                 <td class="priceStyle" colspan="2">مجموع</td>
-                <td class="priceStyle">{{ number_format($total_cache_recieved) }}</td>  <!-- آورد نقد -->
-                <td class="priceStyle">{{ number_format($total_cache_paid) }}</td>      <!-- برد نقد -->
-                <td class="priceStyle">{{ number_format($total_loan_recieved) }}</td>   <!--  قرضه -->
-                <td class="priceStyle">{{ number_format($total_loan_paid) }}</td>       <!--  طلبات -->
+                <td class="priceStyle">{{ number_format($total_cache_paid) }}</td>       <!-- پرداخت نقد ژورنال => آورد نقد اینجا -->
+                <td class="priceStyle">{{ number_format($total_cache_recieved) }}</td>   <!-- دریافت نقد ژورنال => برد نقد اینجا -->
+                <td class="priceStyle" style="color:green">{{ number_format($total_loan_recieved) }}</td>   <!--  قرضه -->
+                <td class="priceStyle" style="color:red">{{ number_format($total_loan_paid) }}</td>       <!--  طلبات -->
                 <td class="priceStyle">{{ number_format($general_total_balance) }}</td>
                 <td class="priceStyle"></td>
             </tr>

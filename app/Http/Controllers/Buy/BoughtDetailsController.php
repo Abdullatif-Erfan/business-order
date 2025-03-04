@@ -598,7 +598,7 @@ class BoughtDetailsController extends Controller
             $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
              /**
              * ================================== insert in to journal ========================
-             * status: 1: old journal, 2: journal, 3:buy, 4:sales, 5:clearance
+             * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
              * transaction_type: 1:recieved   2:paid
              * payment_type:     1: cache,    2: loan
              */
@@ -698,14 +698,14 @@ class BoughtDetailsController extends Controller
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
             'option_label' => $optionLabel,
-            'user_id' => auth()->user()->id ?? '',
+            'user' => auth()->user()->full_name ?? '',
             'year' =>  $date[0],
             'month' =>  $date[1],
             'day' =>  $date[2],
             'inserted_short_date' => $request->todays_date,
             'inserted_full_date' => $full_date,
             'details' => $details,
-            'status' => 3,  
+            'status' => 7,  
             'times' => $request->times,
             'is_single_record' => 1, 
         ]);

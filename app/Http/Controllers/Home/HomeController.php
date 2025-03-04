@@ -37,10 +37,7 @@ class HomeController extends Controller
         if ($request->has('currency_id')) {
             $data['currency_id'] = $request->input('currency_id');
     
-            $cur_currency = Currency::select('id', 'name')
-                ->where('id', $data['currency_id'])
-                ->orderBy('id', 'ASC')
-                ->first(); // Use first() instead of get()->toArray()
+            $cur_currency = Currency::find($data['currency_id']);
     
             $data['currency_name'] = $cur_currency->name ?? null;
             $data['currency_id'] = $cur_currency->id ?? null;
@@ -74,7 +71,45 @@ class HomeController extends Controller
         // $auth = auth()->user();
         // return ['auth' => auth()->user()->photo ];
 
+        // Get the Jalali date object for the provided date
+        // $baseDate = Jalalian::fromFormat('Y-m-d', $data['year'] . '-' . $data['month'] . '-' . $data['day']);
+        // Get the names of the past 7 days
+        // $days = $this->getPast7Days($baseDate);
+
+       
+
         return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab'));
+    }
+
+
+     /**
+     * Get the past 7 days' names.
+     *
+     * @param \Morilog\Jalali\Jalalian $baseDate
+     * @return array
+     */
+    private function getPast7Days(Jalalian $baseDate)
+    {
+        // Check if the current baseDate is the same as the previous one in the session
+        $prevBaseDate = session('baseDate');
+        $days = [];
+
+        if ($prevBaseDate !== $baseDate->format('Y-m-d')) {
+            // If the baseDate has changed, recalculate the days
+            for ($i = 0; $i < 7; $i++) {
+                $date = $baseDate->subDays($i); // Subtract i days from the base date
+                $dayName = $date->format('l'); // Get the day name (e.g., شنبه, یکشنبه, etc.)
+                $days[] = $dayName;
+            }
+
+            // Store the new baseDate and calculated days in the session
+            session(['baseDate' => $baseDate->format('Y-m-d'), 'days' => $days]);
+        } else {
+            // If the baseDate is the same, use the stored days
+            $days = session('days');
+        }
+
+        return $days;
     }
 
 
@@ -149,37 +184,37 @@ class HomeController extends Controller
     // ----------------- re-usable functions ------------
     function getTodaysSoldIncome($year, $month, $day, $currency_id)
     {
-        // $todays_soled = WarehouseSales::selectRaw('SUM(total_price) as total_price, SUM(total_discount) as total_discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained')
-        // ->where('year','=',$year)
-        // ->where('month','=',$month)
-        // ->where('day','=',$day)
-        // ->where('currency_id','=',$currency_id)
-        // ->first();
-
-        // $todays_sold_profits = SalesDetails::whereHas('warehouseSale', function ($query) use ($currency_id, $year, $month, $day) {
-        //     $query->where('currency_id', $currency_id)
-        //           ->where('year', $year)
-        //           ->where('month', $month)
-        //           ->where('day', $day);
-        // })
-        // ->sum('profit');
-    
-        $todays_data = WarehouseSales::selectRaw('
-                SUM(warehouse_sales.total_price) as total_price, 
-                SUM(warehouse_sales.total_discount) as total_discount, 
-                SUM(warehouse_sales.payable) as payable, 
-                SUM(warehouse_sales.cur_pay) as cur_pay, 
-                SUM(warehouse_sales.remained) as remained, 
-                COALESCE(SUM(sales_details.profit), 0) as total_profit
-        ')
-        ->leftJoin('sales_details', function ($join) {
-            $join->on('sales_details.warehouse_sales_id', '=', 'warehouse_sales.id');
-        })
-        ->where('warehouse_sales.year', $year)
-        ->where('warehouse_sales.month', $month)
-        ->where('warehouse_sales.day', $day)
-        ->where('warehouse_sales.currency_id', $currency_id)
+        $todays_soled = WarehouseSales::selectRaw('SUM(total_price) as total_price, SUM(total_discount) as total_discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained')
+        ->where('year','=',$year)
+        ->where('month','=',$month)
+        ->where('day','=',$day)
+        ->where('currency_id','=',$currency_id)
         ->first();
+
+        $todays_sold_profits = SalesDetails::whereHas('warehouseSale', function ($query) use ($currency_id, $year, $month, $day) {
+            $query->where('currency_id', $currency_id)
+                  ->where('year', $year)
+                  ->where('month', $month)
+                  ->where('day', $day);
+        })
+        ->sum('profit');
+    
+        // $todays_data = WarehouseSales::selectRaw('
+        //         SUM(warehouse_sales.total_price) as total_price, 
+        //         SUM(warehouse_sales.total_discount) as total_discount, 
+        //         SUM(warehouse_sales.payable) as payable, 
+        //         SUM(warehouse_sales.cur_pay) as cur_pay, 
+        //         SUM(warehouse_sales.remained) as remained, 
+        //         COALESCE(SUM(sales_details.profit), 0) as total_profit
+        // ')
+        // ->leftJoin('sales_details', function ($join) {
+        //     $join->on('sales_details.warehouse_sales_id', '=', 'warehouse_sales.id');
+        // })
+        // ->where('warehouse_sales.year', $year)
+        // ->where('warehouse_sales.month', $month)
+        // ->where('warehouse_sales.day', $day)
+        // ->where('warehouse_sales.currency_id', $currency_id)
+        // ->first();
 
         return [
             'total_price'     => $todays_soled->total_price ?? 0,
@@ -259,12 +294,14 @@ class HomeController extends Controller
         
         /**
          * دریافت پول نقد شرکت = Cache Recieved = p1t1
+         * پرداخت پول نقد شرکت = Cache Paid = p1t2
          * طلبات شرکت = Paid Loan = p2t2
          * قرضه شرکت = Recieved Loan = p2t1
          */
         $result = DB::table('journals')
             ->selectRaw("
                 SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
+                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes,
                 SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat,
                 SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
             ")
@@ -283,10 +320,11 @@ class HomeController extends Controller
         return [
             'total_warehouse_value' => $total_warehouse_value->total_value ?? 0,
             'total_warehouse_wastage' => $total_warehouse_value->total_wastage ?? 0,
-            'total_income' => $result->total_incomes ?? 0, // Fixed: changed total_income to total_incomes
+            'total_income' => $result->total_incomes ?? 0, 
+            'total_outcome' => $result->total_outcomes ?? 0, 
             'total_talabat' => $result->total_talabat ?? 0,
             'total_loan' => $result->total_loan ?? 0,
-            'sold_profits' => $sold_profits ?? 0, // Fixed: sold_profits is already a numeric value
+            'sold_profits' => $sold_profits ?? 0,
         ];
     }
 

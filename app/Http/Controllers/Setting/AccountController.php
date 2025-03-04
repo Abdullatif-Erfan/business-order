@@ -128,7 +128,7 @@ class AccountController extends Controller
                             'payment_type' => $types['pType'],
                             'options'      => $request->options[$key],
                             'option_label' =>  $types['option_label'],
-                            'user_id' => auth()->id() ?? 0,
+                            'user' => auth()->user()->full_name ?? '',
                             'year' => $year,
                             'month' => $month,
                             'day' => $day,
@@ -233,7 +233,7 @@ class AccountController extends Controller
                             $options = 1;
                             $this->createJournalEntry($optionLable, $to_account_id, $amount,  $ttype = "1", $ptype="1", 
                                     $full_date, $short_date, $details, $newJournalCode, $times,$branch_id, $options, $currency_id);
-                            
+                                    
                         } 
 
                         //  ثبت در بخش طلبات
@@ -348,7 +348,7 @@ class AccountController extends Controller
                           *  cacheRecieved = t1p1 = دریافت نقد
                           */
                         case 1:
-                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1", 
+                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1","1", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
                             break;
 
@@ -357,20 +357,20 @@ class AccountController extends Controller
                               * ثبت در بخش طلبات
                               */
                               // ثبت طلب مشتری = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2", 
+                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                            // ثبت قرض  خزانه = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2", 
+                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                             break;
                         case 3:
                            // ثبت در بخش قرضه
                            // ثبت طلب خزانه = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2", 
+                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             
                             // ثبت قرض  مشتری = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2", 
+                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             break;
                     }
@@ -391,7 +391,7 @@ class AccountController extends Controller
 
 
   
-    private function createJournalEntry($optionLable, $account_id, $amount, $ttype, $ptype, $full_date, $short_date, 
+    private function createJournalEntry($optionLable, $account_id, $amount, $ttype, $ptype, $belongsToMe, $full_date, $short_date, 
     $details, $newJournalCode, $times,$branch_id, $options, $currency_id)
     {
             $jalaliDate = Jalalian::now();
@@ -410,7 +410,7 @@ class AccountController extends Controller
                 'payment_type' => $ptype,
                 'options' => $options,
                 'option_label' => $optionLable,
-                'user_id' => auth()->user()->id,
+                'user' => auth()->user()->full_name ?? '',
                 'year' => $year,
                 'month' => $month,
                 'day' => $day,
@@ -420,6 +420,7 @@ class AccountController extends Controller
                 'status' => 1,  
                 'times' => $times,
                 'is_single_record' => 1,
+                'belongsToMe' => $belongsToMe,
             ]);
 
             // Log::info('Journal entry created successfully.');
@@ -432,22 +433,34 @@ class AccountController extends Controller
     public function show($id)
     {
         $account = Account::find($id);
-        // $accountTypes = AccountType::all();
-        // $currencies = Currency::all();
-        
-        $journals = Journal::with(['currencyRelation' => function($query) {
-            $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
-          }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id','options') // Select fields from the Journal model
-          ->where('account_id', $id)
-          ->get();
-
 
         if (!$account) {
-            return response()->json(['status' => 'failed','message' => 'حساب یافت نگردید'], 404);
+            return response()->json(['status' => 'failed', 'message' => 'حساب یافت نگردید'], 404);
         }
 
-        return view('settings.account.viewForm', compact('account','journals'));
+        $ownBanks = Account::where('account_type_id', 1)
+            ->orderBy('is_pre_select', 'DESC')
+            ->first();
+
+        $default_account_id = $ownBanks->id ?? null;
+
+        // Start the query
+        $journals = Journal::with(['currencyRelation' => function($query) {
+            $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
+        }])
+        ->select('amount', 'transaction_type', 'currency_id', 'times', 'code', 'branch_id', 'options') // Select fields from the Journal model
+        ->where('account_id', $id);
+
+        // Apply additional condition if default account matches
+        if ($default_account_id == $id) {
+            $journals->where('belongsToMe', 1);
+        }
+
+        $journals = $journals->where('status', 1)->get();
+
+        return view('settings.account.viewForm', compact('account', 'journals'));
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -459,12 +472,24 @@ class AccountController extends Controller
         $currencies = Currency::all();
         $branchs = Branch::all();
 
+        $ownBanks = Account::where('account_type_id', 1)
+            ->orderBy('is_pre_select', 'DESC')
+            ->first();
+
+        $default_account_id = $ownBanks->id ?? null;
+
         $journals = Journal::with(['currencyRelation' => function($query) {
             $query->select('id', 'name'); // Ensure you also select the 'id' field as it's the foreign key
         }])->select('amount', 'transaction_type', 'currency_id','times','code','branch_id','options') // Select fields from the Journal model
-          ->where('account_id', $id)
-          ->get();
+          ->where('account_id', $id);
 
+
+        // Apply additional condition if default account matches
+        if ($default_account_id == $id) {
+            $journals->where('belongsToMe', 1);
+        }
+
+        $journals = $journals->where('status', 1)->get();
 
         if (!$account) {
             return response()->json(['status' => 'failed','message' => 'حساب یافت نگردید'], 404);
@@ -543,27 +568,27 @@ class AccountController extends Controller
                              *  cacheRecieved = t1p1 = دریافت نقد
                              */
                         case 1:
-                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1", 
+                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1","1", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
                             break;
 
                         case 2:
                             // ثبت در بخش طلبات
                             // ثبت طلب مشتری = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2", 
+                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                             // ثبت قرض  خزانه = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2", 
+                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                             break;
                         case 3:
                             // ثبت در بخش قرضه
                             // ثبت طلب خزانه = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2", 
+                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             
                             // ثبت قرض  مشتری = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2", 
+                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             break;
                     }

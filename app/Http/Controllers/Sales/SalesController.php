@@ -450,7 +450,7 @@ class SalesController extends Controller
             $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
              /**
              * ================================== insert in to journal ========================
-             * status: 1: old journal, 2: journal, 3:buy, 4:sales, 5:clearance
+             * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
              * transaction_type: 1:recieved   2:paid
              * payment_type:     1: cache,    2: loan
              */
@@ -540,14 +540,14 @@ class SalesController extends Controller
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
             'option_label' => $optionLabel,
-            'user_id' => auth()->user()->id ?? '',
+            'user' => auth()->user()->full_name ?? '',
             'year' =>  $date[0],
             'month' =>  $date[1],
             'day' =>  $date[2],
             'inserted_short_date' => $request->todays_date,
             'inserted_full_date' => $full_date,
             'details' => $details,
-            'status' => 4,  
+            'status' => 8,  
             'times' => $request->times,
             'is_single_record' => 1, 
         ]);
@@ -564,11 +564,59 @@ class SalesController extends Controller
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
         $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
+
+        $customer_account_id = $warehouseSales->first()->customer_account_id ?? 0;
+        $currency_id = $warehouseSales->first()->currency_id ?? 1;
+
+        // get previous balances
+        $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id);
         
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
-        return view('sales.details',compact('warehouseSales','salesDetails','orgbios','todaysDate'));
+        // return ['customer_balance' => $customer_balance];
+        return view('sales.details',compact('warehouseSales','salesDetails','orgbios','todaysDate','customer_balance'));
 
     }
+
+    /**
+     * Get Customer balance by customer_account_id
+     */
+    private function getCustomerBalance($customer_account_id, $currency_id)
+    {
+        $journal = DB::table('journals')
+            ->select([
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_paid"),
+            ])
+            ->where('currency_id', $currency_id)
+            ->where('account_id', $customer_account_id)
+            ->first();
+    
+        // Calculate the balance
+        $balance = ($journal->cache_recieved + $journal->loan_paid) - ($journal->cache_paid + $journal->loan_recieved);
+    
+        // Optionally, you can return the balance or add it to the response
+        return $balance;
+    }
+    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -727,7 +775,7 @@ class SalesController extends Controller
             ]);
     
             // Retrieve old journal records
-            $oldJournals = Journal::where('times', $request->times)->where('status', 4)->get();
+            $oldJournals = Journal::where('times', $request->times)->where('status', 8)->get();
     
             if ($oldJournals->isNotEmpty()) {
                 // Clone request to avoid modifying original data
@@ -737,7 +785,7 @@ class SalesController extends Controller
                 ]);
     
                 // Delete all journal records in a single query
-                Journal::where('times', $request->times)->where('status', 4)->delete();
+                Journal::where('times', $request->times)->where('status', 8)->delete();
     
                 // Handle new journal entry
                 $checkJournal = $this->handleJournalEntry($clonedRequest);
@@ -832,13 +880,14 @@ class SalesController extends Controller
         }
     }
 
-    public function destroy(string $billno)
+    public function destroy(string $times)
     {
         DB::beginTransaction();
         try {
             // Delete all related records directly
-            WarehouseSales::where('billno', $billno)->delete();
-           
+            WarehouseSales::where('times', $times)->delete();
+            Journal::where('times',$times)->delete();
+            
             DB::commit();
     
             Session::flash('notification', [

@@ -81,7 +81,7 @@
                                                     <td> {{ number_format($detail->amount)  }} </td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
                                                     <td>{{ number_format($detail->sell_up) }}</td>
-                                                    <td>{{ number_format($detail->total_discount) }} </td>
+                                                    <td>{{ number_format($detail->discount) }} </td>
                                                     <td>{{ number_format($detail->profit) }} </td>
                                                     <td>{{ number_format($detail->total) }} </td>
                                                 </tr>
@@ -151,12 +151,12 @@
                                                     <td>{{ number_format($detail->amount) }} </td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
                                                     <td>{{ number_format($detail->sell_up) }} </td>
-                                                    <td>{{ number_format($detail->total_discount) }} </td>
+                                                    <td>{{ number_format($detail->discount) }} </td>
                                                     <td>{{ number_format($detail->total) }}</td>
                                                 </tr>
                                                   @endforeach
                                                 <tr>
-                                                    <td colspan="4" rowspan="7" style="padding: 40px;">
+                                                    <td colspan="4" rowspan="8" style="padding: 40px;">
                                                         <div class="col-md-12" style="border:2px dotted #999; min-height:80px;background-color:#f8f8f8;border-top-right-radius:10px; border-bottom-left-radius:10px; padding: 10px;">
                                                             نوت :  {{ $orgbios[0]->note_for_print }}
                                                         </div>
@@ -176,14 +176,14 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section">  تخفیف </td>
                                                     <td  class="price-section">
-                                                         {{  number_format($warehouseSales->first()->trans_spend) }}
+                                                         {{  number_format($warehouseSales->first()->total_discount) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  قابل پرداخت </td>
                                                     <td class="price-section">
-                                                        {{ number_format($warehouseSales->first()->cur_pay) }}
+                                                         {{ $warehouseSales->first()->payable }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -191,7 +191,7 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section"> پرداخت فعلی  </td>
                                                     <td  class="price-section">
-                                                         {{ $warehouseSales->first()->payable) }}
+                                                        {{ number_format($warehouseSales->first()->cur_pay) }}
                                                          {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -205,17 +205,71 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="price-section"> بقایای سابقه   </td>
+                                                    <td colspan="2" class="price-section">بقایای سابقه</td>
                                                     <td class="price-section">
-                                                        ???
+                                                        @php 
+                                                           $prev_baqi = 0;
+                                                           $prev_talab = 0;
+                                                           $prev_zero = 0;
+                                                            if ($customer_balance == 0) {
+                                                                $finalBalance = 0;
+                                                            } elseif ($customer_balance > 0) {
+                                                                $finalBalance = $customer_balance - $warehouseSales->first()->remained;
+                                                            } else {
+                                                                $finalBalance = $customer_balance + $warehouseSales->first()->remained;
+                                                            }
+
+                                                            if($finalBalance > 0) 
+                                                            {
+                                                               $prev_talab = $finalBalance;
+                                                            }
+                                                            else if($finalBalance < 0)
+                                                            {
+                                                                $prev_baqi2 = $finalBalance;
+                                                                $prev_baqi = $prev_baqi2 < 0 ? $prev_baqi2 * -1 : $prev_baqi2;
+                                                            }
+                                                             else 
+                                                            {
+                                                                $prev_zero = $finalBalance;
+                                                            }
+                                                        @endphp
+
+                                                        {{ number_format($prev_baqi) }} 
+                                                        {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
+
                                                 <tr>
-                                                    <td colspan="2" class="final-total">   مبلغ مجموعی   </td>
-                                                    <td  class="final-total">
-                                                        ???
+                                                    <td colspan="2" class="price-section">طلبات سابقه</td>
+                                                    <td class="price-section">
+                                                        {{ number_format($prev_talab) }}
+                                                        {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
+
+                                                <tr>
+                                                    <td colspan="2" class="final-total">مبلغ مجموعی قابل پرداخت</td>
+                                                    <td class="final-total">
+                                                        @php
+                                                            if($prev_baqi > $prev_talab)
+                                                            {
+                                                                $finalTotalBalance = $prev_baqi + $warehouseSales->first()->remained;
+                                                            } 
+                                                            else if($prev_baqi < $prev_talab)
+                                                            {
+                                                                $finalTotalB = $prev_talab - $warehouseSales->first()->remained;  
+                                                                $finalTotalBalance = $finalTotalB > 0 ? $finalTotalB : $finalTotalB * -1;
+                                                            } 
+                                                            else 
+                                                            {
+                                                                $finalTotalBalance = 0 ;
+                                                            }
+                                                        @endphp
+                                                        {{ number_format($finalTotalBalance) }}
+                                                        {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
+                                                    </td>
+                                                </tr>
+
                                                 
                                             </tbody>
                                         </table>

@@ -47,5 +47,10 @@
         </div>
 
     </div>
+
+    <!-- <div class="col-xs-12">
+        <span class="badge badge-info" style="padding: 6px 20px 10px; font-size:13px;">امروز</span>
+        <span class="badge" style="padding: 6px 20px 10px; font-size:13px;"></span>
+    </div> -->
    </form>
  </div>

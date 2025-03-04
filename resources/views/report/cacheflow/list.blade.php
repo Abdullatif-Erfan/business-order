@@ -26,19 +26,9 @@
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
                             
-                            @if(auth()->user()->hasAccess('journal','create_records'))
-                                <a href="{{ route('journal.create') }}">
-                                    <button type="button" class="btn btn-sm mybtn">
-                                        <i class="fas fa-plus"></i> ثبت ژورنال جدید
-                                    </button>
-                                </a>
-                            @else
-                                <button type="button" onclick="alert('صلاحیت ندارید')" class="btn btn-sm mybtn">
-                                    <i class="fas fa-plus"></i> ثبت جدید
-                                </button>
-                            @endif
+                            <strong>جریان حساب نقده   </strong>
 
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            <button class="printBtn m-b-10" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
 
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
                                 <i class="fas fa-filter"></i>
@@ -57,9 +47,9 @@
                                             @endforeach
                                         </select> 
                                     </div>
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-2  col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="currency_id" style="width:100%">
-                                            <option value=""> واحد پولی </option>
+                                            <!-- <option value=""> واحد پولی </option> -->
                                             @foreach($currencies as $currency)
                                                 <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
@@ -67,7 +57,7 @@
                                     </div>
 
                                     
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-2  col-sm-6 col-xs-6">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -83,7 +73,7 @@
                                 
 
 
-                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                     <div class="col-md-3  col-sm-6 col-xs-6">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -99,11 +89,11 @@
 
                                   
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
+                                    <div class="col-md-1  col-sm-6 col-xs-6">
                                         <input class="form-control" id="code_number" placeholder="کد">
                                     </div>
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
+                                    <div class="col-md-1  col-sm-6 col-xs-6">
                                         <input class="form-control" id="bill_number" placeholder="بل">
                                     </div>
 
@@ -131,7 +121,7 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="12">
                                                 <center>
-                                                    روزنامچه   
+                                                    جریان حساب نقده   
                                                 </center>
                                             </td>
                                         </tr>
@@ -163,7 +153,7 @@
                                             <th>واحد</th>
                                             <th>  نوع معامله  </th>
                                             <th>تاریخ</th>
-                                            <th>جزییات</th>
+                                            <th>کاربر</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -246,7 +236,7 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('journal.data') }}',
+                url: '{{ route("cacheflow.data") }}',
                 data: function (d) {
                     d.account_id = $('#account_id').val();
                     d.currency_id = $('#currency_id').val();
@@ -255,11 +245,10 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                     d.code_number = $('#code_number').val();
                     d.bill_number = $('#bill_number').val();
                 },
-                error: function(xhr, status, error) 
-                {
-                   console.log("Error fetching data: ", error);
-                   $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">مواردی یافت نشد</td></tr>');
-                }
+                error: function(xhr, status, error) {
+                console.log("Error fetching data: ", error);
+                   $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
+               }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
@@ -277,90 +266,50 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                 { data: 'currency', name: 'currency' },
                 { data: 'option_label', name: 'option_label' },
                 { data: 'inserted_short_date', name: 'inserted_short_date' },
-                { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                { data: 'full_name', name: 'full_name'}
             ],
            
-            drawCallback: function (settings) {
+            drawCallback: function(settings) {
                 var api = this.api();
-                let isCompanyAccount = settings.json.isCompanyAccount;
+                
+                // Ensure values are defined, otherwise default to '0'
+                var sumCacheRecieved = settings.json.sumCacheRecieved || '0';
+                var sumCachePaid = settings.json.sumCachePaid || '0';
+                var sumLoanRecieved = settings.json.sumLoanRecieved || '0';
+                var sumLoanPaid = settings.json.sumLoanPaid || '0';
+                var isCompanyAccount = settings.json.isCompanyAccount;
 
-                // Handle case where no records exist
-                if (api.rows().data().length === 0) {
-                    $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
-                    return; // Exit early to avoid unnecessary calculations
-                }
+                // Convert values to numbers safely
+                let cacheRecieved = Number(sumCacheRecieved.replace(/,/g, ''));
+                let cachePaid = Number(sumCachePaid.replace(/,/g, ''));
+                let loanRecieved = Number(sumLoanRecieved.replace(/,/g, ''));
+                let loanPaid = Number(sumLoanPaid.replace(/,/g, ''));
 
-                // Check if account_id is filtered (i.e., has a value)
-                var accountId = $('#account_id').val();
+                // Calculate the final result based on account type
+                let finalResult = isCompanyAccount 
+                    ? (cacheRecieved + loanPaid) - (cachePaid + loanRecieved)
+                    : (cachePaid + loanPaid) - (cacheRecieved + loanRecieved);
 
-                // Function to sum columns and return raw numbers
-                function sumColumn(index) {
-                    return api
-                        .column(index, { page: 'current' })
-                        .data()
-                        .reduce(function (a, b) {
-                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
-                            return numA + numB;
-                        }, 0);
-                }
+                // Format the final result properly
+                let finalResultFormatted = Number.isInteger(finalResult)
+                    ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                    : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                // Only calculate finalResult if account_id is filtered
-                if (parseInt(accountId) > 0) {
-                    // Store column sums (as numbers, not formatted strings)
-                    let sum4 = sumColumn(4);
-                    let sum5 = sumColumn(5);
-                    let sum6 = sumColumn(6);
-                    let sum7 = sumColumn(7);
+                // Determine badge type
+                let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
 
-                    /**
-                    * (بیلانس = (آورد نقد + طلبات) - (برد نقد + قرضه
-                    * balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
-                    */
-
-                    // Ensure valid numbers for all sums
-                    sum4 = isNaN(sum4) ? 0 : sum4;
-                    sum5 = isNaN(sum5) ? 0 : sum5;
-                    sum6 = isNaN(sum6) ? 0 : sum6;
-                    sum7 = isNaN(sum7) ? 0 : sum7;
-
-                    // Calculate the final result based on account type
-                    let finalResult = isCompanyAccount 
-                        ? (sum4 + sum7) - (sum5 + sum6)
-                        : (sum5 + sum7) - (sum4 + sum6);
-
-                    // Ensure finalResult is not NaN
-                    finalResult = isNaN(finalResult) ? 0 : finalResult;
-
-                    // Format final result with proper decimal places
-                    let finalResultFormatted = Number.isInteger(finalResult)
-                        ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                        : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-                    // Determine badge type
-                    let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
-
-                    // Update footer totals with formatted results
-                    $(api.column(4).footer()).html(sum4.toLocaleString());
-                    $(api.column(5).footer()).html(sum5.toLocaleString());
-                    $(api.column(6).footer()).html(sum6.toLocaleString());
-                    $(api.column(7).footer()).html(sum7.toLocaleString());
-                    $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
-                } else {
-                    // Hide results when no account is filtered
-                    $(api.column(4).footer()).html('');
-                    $(api.column(5).footer()).html('');
-                    $(api.column(6).footer()).html('');
-                    $(api.column(7).footer()).html('');
-                    $(api.column(8).footer()).html('');
-                }
+                // Update footer with formatted values
+                $(api.column(4).footer()).html(sumCacheRecieved);
+                $(api.column(5).footer()).html(sumCachePaid);
+                $(api.column(6).footer()).html(sumLoanRecieved);
+                $(api.column(7).footer()).html(sumLoanPaid);
+                $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
             }
-
         });
 
         // When the filter button is clicked, refresh the table
-         $('#btn-filter').on('click', function() {
-            table.ajax.reload();
+        $('#btn-filter').click(function() {
+            table.draw(); // Refresh DataTable with new filters
         });
     });
 </script>

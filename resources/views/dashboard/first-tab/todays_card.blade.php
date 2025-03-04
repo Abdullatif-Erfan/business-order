@@ -9,7 +9,7 @@
                 'bgColor' => '#dbf3ff',
                 'textColor' => '#3f7cc7',
                 'title' => 'فروشات',
-                'value' => number_format($data['todays_sold_income']['total_price'] ?? 0),
+                'value' => number_format($data['todays_sold_income']['payable'] ?? 0),
             ],
             [
                 'icon' => 'far fa-money-bill-alt',
@@ -39,7 +39,7 @@
                 'bgColor' => '#ebd997',
                 'textColor' => '#3f7cc7',
                 'title' => 'خریداری',
-                'value' => number_format($data['getTodaysBoughtItems']['total_price'] ?? 0),
+                'value' => number_format($data['getTodaysBoughtItems']['payable'] ?? 0),
             ],
             [
                 'icon' => 'fas fa-hand-holding-usd',

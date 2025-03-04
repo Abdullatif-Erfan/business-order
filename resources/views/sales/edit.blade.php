@@ -195,7 +195,7 @@
                                     <!-- print button -->
                                     @if(auth()->user()->hasAccess('buy','delete_records'))
                                         @if($salesDetails->count() == 0)
-                                        <a href="{{ route('sales.destroy', $billno) }}"  
+                                        <a href="{{ route('sales.destroy', $warehouseSales->first()->times) }}"  
                                         onClick="return doConfirm();" class="hidden-print">
                                             <button type="button" class="btn btn-danger btn-sm m-r-10">
                                             <i class="fas fa-trash error "></i>  حذف 

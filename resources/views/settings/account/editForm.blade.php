@@ -176,11 +176,22 @@
 </form>
 
 <script>
+$(document).ready(function () {
+    // Run checkAccountTypeEdit on page load with the selected value
+    var selectedAccountType = $('select[name="account_type_id"]').val();
+    checkAccountTypeEdit(selectedAccountType);
+});
 function checkAccountTypeEdit(account_type_id) {
-    if (parseInt(account_type_id) === 5) {
-        $('#percent2').fadeIn(1);
-        $('#is_pre_select2').fadeOut(1);
-    } else if (parseInt(account_type_id) === 1) {
+    /**
+     * 1: حساب شرکت
+     * 2: کارمندان
+     * 3: مشتریان
+     * 4: فروشندگان
+     * 5: سهم داران
+     */
+    
+    if (parseInt(account_type_id) === 1)
+    {
         $('#is_pre_select2').fadeIn(1);
         $('#percent').fadeOut(1);
 
@@ -190,8 +201,21 @@ function checkAccountTypeEdit(account_type_id) {
                 <option value="1"> افزایش پول نقد</option>
             `);
         });
-    } else {
-        $('#percent').fadeOut(1);
+    } 
+    else if (parseInt(account_type_id) === 2 || parseInt(account_type_id) === 3 || parseInt(account_type_id) === 4)
+    {
+       // Reset the select options to show all options
+       $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value=""> انتخاب گزینه </option>
+                <option value="2"> ثبت در بخش طلبات </option>
+                <option value="3"> ثبت در بخش قرضه </option>
+            `);
+        });
+    } 
+    else if (parseInt(account_type_id) === 5)
+    {
+        $('#percent2').fadeIn(1);
         $('#is_pre_select2').fadeOut(1);
 
         // Reset the select options to show all options
