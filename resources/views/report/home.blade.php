@@ -66,7 +66,7 @@
                                                     <a target="_blank" href="{{ route('cacheflow.index')}}">💰 کهاته حسابات</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="#">📑 بیلانس شیت</a>
+                                                    <a target="_blank" href="{{ route('balancesheet.index') }}">📑 بیلانس شیت</a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="{{ route('chartOfAccount.index')}}">📌 چارت حسابات</a>

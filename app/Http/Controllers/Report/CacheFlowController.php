@@ -70,6 +70,7 @@ class CacheFlowController extends Controller
                 'sumCachePaid' => 0,
                 'sumLoanRecieved' => 0,
                 'sumLoanPaid' => 0,
+                'isCompanyAccount' => false,
             ]);
         }
     

@@ -3,6 +3,8 @@
 use App\Http\Controllers\Report\ItemController;
 use App\Http\Controllers\Report\ChartOfAccount;
 use App\Http\Controllers\Report\CacheFlowController;
+use App\Http\Controllers\Report\BalanceSheetController;
+
 
 
 
@@ -16,6 +18,9 @@ Route::prefix('reports')->group(function() {
 Route::get('/chartOfAccount/{id?}',[ChartOfAccount::class, 'index'])->name('chartOfAccount.index');
 Route::get('/cacheflow',[CacheFlowController::class, 'index'])->name('cacheflow.index');
 Route::get('/cacheflow/data',[CacheFlowController::class, 'getData'])->name('cacheflow.data');
+Route::get('/balancesheet',[BalanceSheetController::class,'index'])->name('balancesheet.index');
+Route::get('/balancesheet/data',[BalanceSheetController::class,'getData'])->name('balancesheet.data');
+
 
 
 

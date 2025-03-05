@@ -1,7 +1,10 @@
 @extends('layouts.app')
-@section('title', 'جریان حساب نقده')
+@section('title', 'بیلانس شیت')
 
 @section('content')
+
+
+
 
 <div class="main-panel">
     <div class="content">
@@ -11,8 +14,7 @@
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
                             
-                            <strong>جریان حساب نقده   </strong>
-
+                            <strong>  بیلانس شیت   </strong>
                             <button class="printBtn m-b-10" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
 
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
@@ -24,6 +26,18 @@
                         <div class="filterForm" id="searchWrapper1">  
                             <div class="col-md-12">
                                 <div class="row">
+                                
+
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <select class="form-control select2" id="account_type_id" style="width:100%">
+                                            <!-- <option value=""> حساب اصلی </option> -->
+                                            @foreach($accountTypes as $type)
+                                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                            @endforeach
+                                        </select> 
+                                    </div>
+
+
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_id" style="width:100%">
                                             <option value=""> حساب </option>
@@ -32,6 +46,7 @@
                                             @endforeach
                                         </select> 
                                     </div>
+
                                     <div class="col-md-2  col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="currency_id" style="width:100%">
                                             <!-- <option value=""> واحد پولی </option> -->
@@ -74,14 +89,6 @@
 
                                   
 
-                                    <div class="col-md-1  col-sm-6 col-xs-6">
-                                        <input class="form-control" id="code_number" placeholder="کد">
-                                    </div>
-
-                                    <div class="col-md-1  col-sm-6 col-xs-6">
-                                        <input class="form-control" id="bill_number" placeholder="بل">
-                                    </div>
-
                                     <div class="col-md-1">
                                         <button class="btn mybtn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
@@ -98,53 +105,33 @@
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="9">
                                               <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                             
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="9">
                                                 <center>
-                                                    جریان حساب نقده   
+                                                      بیلانس شیت   
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> شماره </th>
-                                            <th> کد </th>
-                                            <th> حساب </th>
-                                            <th> جزییات </th>
-                                            
-                                            <!-- <th> رفت / قرض  </th>
-                                            <th>  آمد / طلب </th> -->
-
-                                       <!-- <th>  پرداخت / قرض  </th>
-                                            <th>  دریافت / طلب  </th> -->
-
-                                            <!-- <th>  رسیدگی / قرض  </th>
-                                            <th>  بردگی / طلب  </th> -->
-
-                                            <!-- <th>بردگی <br> نقد (+)</th>
-                                            <th>رسیدگی <br> نقد (-)</th>
-                                            <th>بردگی <br> قرض</th>
-                                            <th>رسیدگی <br> قرض / طلب</th> -->
-
+                                             <th> حساب </th>
                                             <th> دریافت <br> نقد (+)</th>
                                             <th>پرداخت <br> نقد (-)</th>
                                             <th> قرض</th>
                                             <th> طلب</th>
-                                            
+                                            <th> بیلانس </th>
                                             <th>واحد</th>
-                                            <th>  نوع معامله  </th>
-                                            <th>تاریخ</th>
-                                            <th>کاربر</th>
+                                            <th>تشخیص</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
-                                            <td></td>
+                                            <td colspan="2">مجموع</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -221,14 +208,13 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("cacheflow.data") }}',
+                url: '{{ route("balancesheet.data") }}',
                 data: function (d) {
                     d.account_id = $('#account_id').val();
                     d.currency_id = $('#currency_id').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
-                    d.code_number = $('#code_number').val();
-                    d.bill_number = $('#bill_number').val();
+                    d.account_type_id = $('#account_type_id').val();
                 },
                 error: function(xhr, status, error) {
                 console.log("Error fetching data: ", error);
@@ -237,64 +223,70 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'code', name: 'code' },
-                { data: 'accountRelation', name: 'accountRelation' },
-                { data: 'details', name: 'details' },
-                // { data: 'transaction_type_1', name: 'transaction_type_1' },
-                // { data: 'transaction_type_2', name: 'transaction_type_2' },
-
-                { data: 'cacheRecieved', name: 'cacheRecieved' },
-                { data: 'cachePaid', name: 'cachePaid' },
-                { data: 'loanRecieved', name: 'loanRecieved' },
-                { data: 'loanPaid', name: 'loanPaid' },
-
+                { data: 'name', name: 'name' },
+                { data: 'cache_recieved', name: 'cache_recieved' },
+                { data: 'cache_paid', name: 'cache_paid' },
+                { data: 'loan_recieved', name: 'loan_recieved' },
+                { data: 'loan_paid', name: 'loan_paid' },
+                { data: 'balance', name: 'balance' },
                 { data: 'currency', name: 'currency' },
-                { data: 'option_label', name: 'option_label' },
-                { data: 'inserted_short_date', name: 'inserted_short_date' },
-                { data: 'full_name', name: 'full_name'}
+                { data: 'result_label', name: 'result_label' },
             ],
-           
-            drawCallback: function(settings) {
+            drawCallback: function (settings) {
                 var api = this.api();
-                
-                // Ensure values are defined, otherwise default to '0'
-                var sumCacheRecieved = settings.json.sumCacheRecieved || '0';
-                var sumCachePaid = settings.json.sumCachePaid || '0';
-                var sumLoanRecieved = settings.json.sumLoanRecieved || '0';
-                var sumLoanPaid = settings.json.sumLoanPaid || '0';
-                var isCompanyAccount = settings.json.isCompanyAccount;
 
-                // Convert values to numbers safely
-                let cacheRecieved = Number(sumCacheRecieved.replace(/,/g, ''));
-                let cachePaid = Number(sumCachePaid.replace(/,/g, ''));
-                let loanRecieved = Number(sumLoanRecieved.replace(/,/g, ''));
-                let loanPaid = Number(sumLoanPaid.replace(/,/g, ''));
+                // Handle case where no records exist
+                if (api.rows().data().length === 0) {
+                    $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
+                    
+                    // Clear the footer when no records are available
+                    $(api.column(2).footer()).html('');
+                    $(api.column(3).footer()).html('');
+                    $(api.column(4).footer()).html('');
+                    $(api.column(5).footer()).html('');
+                    $(api.column(6).footer()).html('');
+                    
+                    return; // Exit early to avoid unnecessary calculations
+                }
 
-                // Calculate the final result based on account type
-                let finalResult = isCompanyAccount 
-                    ? (cacheRecieved + loanPaid) - (cachePaid + loanRecieved)
-                    : (cachePaid + loanPaid) - (cacheRecieved + loanRecieved);
+                // Function to sum columns and return raw numbers
+                function sumColumn(index) {
+                    return api
+                        .column(index, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            // Make sure to parse floats and handle commas correctly
+                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
+                            var sum = numA + numB;
+                            return sum;
+                        }, 0);
+                }
 
-                // Format the final result properly
-                let finalResultFormatted = Number.isInteger(finalResult)
-                    ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                    : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                // Calculate the sum for the 6th column (index 6)
+                let sum6 = sumColumn(6);
 
-                // Determine badge type
-                let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
+                // Check if the sum is NaN or invalid and handle it accordingly
+                sum6 = isNaN(sum6) ? 0 : sum6;
 
-                // Update footer with formatted values
-                $(api.column(4).footer()).html(sumCacheRecieved);
-                $(api.column(5).footer()).html(sumCachePaid);
-                $(api.column(6).footer()).html(sumLoanRecieved);
-                $(api.column(7).footer()).html(sumLoanPaid);
-                $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
+                // Determine badge type based on sum value
+                let badgeType = sum6 >= 0 ? 'badge-info' : 'badge-danger';
+
+                // Update footer with sums for columns 2, 3, 4, 5, and 6
+                $(api.column(2).footer()).html(sumColumn(2).toLocaleString());
+                $(api.column(3).footer()).html(sumColumn(3).toLocaleString());
+                $(api.column(4).footer()).html(sumColumn(4).toLocaleString());
+                $(api.column(5).footer()).html(sumColumn(5).toLocaleString());
+                $(api.column(6).footer()).html(`<span class="badge ${badgeType}">${sum6.toLocaleString()}</span>`);
             }
+
+
+
         });
 
         // When the filter button is clicked, refresh the table
-        $('#btn-filter').click(function() {
-            table.draw(); // Refresh DataTable with new filters
+         $('#btn-filter').on('click', function() {
+            table.ajax.reload();
         });
     });
 </script>

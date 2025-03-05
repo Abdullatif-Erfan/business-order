@@ -53,7 +53,7 @@
                                         <select class="form-control select2" id="account_id" style="width:100%">
                                             <option value=""> حساب </option>
                                             @foreach($accounts as $account)
-                                                <option value="{{ $account->id }}">{{ $account->name }}</option>
+                                              <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
                                         </select> 
                                     </div>
@@ -61,7 +61,7 @@
                                         <select class="form-control select2" id="currency_id" style="width:100%">
                                             <option value=""> واحد پولی </option>
                                             @foreach($currencies as $currency)
-                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                               <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
                                         </select> 
                                     </div>
