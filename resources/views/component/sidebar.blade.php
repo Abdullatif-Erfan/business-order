@@ -24,9 +24,9 @@
                 <div class="info">
                     <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
                         <span>
-                            {{ auth()->user()->name ?? '' }}
-                            <span class="user-level">{{ auth()->user()->roleText ?? '' }}</span>
-                            <span class="caret"></span>
+                            {{ auth()->user()->full_name ?? '' }}
+                            <span class="user-level">{{ auth()->user()->user_name ?? '' }}</span>
+                            <!-- <span class="caret"></span> -->
                         </span>
                     </a>
                     <div class="clearfix"></div>
@@ -47,8 +47,6 @@
                             <p> تنظیمات اولیه </p>
                         </a>
                     </li>
-                @else
-                    <p>No Access</p>
                 @endif
 
 

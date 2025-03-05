@@ -32,6 +32,9 @@
 
                         <div class="card-body">
                             <div class="row m-t-20">
+
+                              
+
                                 <!-- General Reports -->
                                 <div class="col-md-4">
                                     <div class="card border-info shadow-sm">
@@ -71,9 +74,6 @@
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="{{ route('chartOfAccount.index')}}">📌 چارت حسابات</a>
                                                 </li>
-                                                <li class="list-group-item">
-                                                    <a target="_blank" href="#">✅ تصفیه حساب</a>
-                                                </li>
                                             </ul>
                                         </div>
                                     </div>
@@ -87,7 +87,7 @@
                                         </div>
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
-                                                <li class="list-group-item">
+                                                <!-- <li class="list-group-item">
                                                     <a target="_blank" href="#">📜 سهم سهامداران</a>
                                                 </li>
                                                 <li class="list-group-item">
@@ -98,6 +98,24 @@
                                                 </li>
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="#">🧾 طلبات</a>
+                                                </li> -->
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                  <!-- general low -->
+
+                                  <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <div class="card border-success shadow-sm">
+                                        <div class="card-header bg-custom-grey">
+                                            <h6 class="mb-0 font-bold">👥 قوانین استفاده از سیستم</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item">
+                                                    <a target="_blank" href="{{ route('laws.index') }}">✅ لیست قوانین</a>
                                                 </li>
                                             </ul>
                                         </div>

@@ -1,7 +1,15 @@
-   
+   <style>
+   .navbar-header {
+       /* background: linear-gradient(90deg,#03228f 10%,#0e73e4 100%); */
+       background: linear-gradient(90deg, #008fff 10%, #0068dd 50%);
+   }
+   .logo-header{
+       background: linear-gradient(90deg, #008cfa 10%, #0068dd 50%);
+   }
+   </style>
 <div class="main-header">
     <!-- Logo Header -->
-    <div class="logo-header" data-background-color="blue">
+    <div class="logo-header" >
         <a href="#" class="logo">
             <img src="{{ asset(\App\Helpers\FunctionHelper::showWhere('logos', 'org_bios', ['is_active' => 1])) }}" alt="navbar brand" class="navbar-brand" style="width: 40px !important; border-radius: 8px;">
         </a>
@@ -16,21 +24,21 @@
     <!-- End Logo Header -->
 
     <!-- Navbar Header -->
-    <nav class="navbar navbar-header navbar-expand-lg" data-background-color="blue2">
+    <nav class="navbar navbar-header navbar-expand-lg" data-background-color="gradiant">
         <div class="container-fluid">
             <div class="collapse" id="search-nav">
-                {{-- <a href="{{ route('showBuyingForm') }}">
+                 <a href="{{ route('boughtList.create') }}">
                     <button class="btn btn-sm btn-info"><i class="fas fa-cart-arrow-down">&nbsp; خرید</i></button>
                 </a>
-                <a href="{{ route('showSalesForm') }}">
+                <a href="{{ route('sales.create') }}">
                     <button class="btn btn-sm btn-info"><i class="fas fa-luggage-cart">&nbsp; فروش</i></button>
                 </a>
-                <a href="{{ route('movements') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-exchange-alt">&nbsp; انتقالات</i></button>
+                <a href="{{ route('journal.index') }}">
+                    <button class="btn btn-sm btn-info"><i class="fas fa-exchange-alt ">&nbsp; روزنامچه</i></button>
+                </a> 
+                <a href="{{ route('laws.index') }}">
+                    <button class="btn btn-sm btn-info"><i class="fas fa-file-invoice-dollar">&nbsp; قوانین</i></button>
                 </a>
-                <a href="{{ route('journals') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-file-invoice-dollar">&nbsp; روزنامچه</i></button>
-                </a> --}}
             </div>
             <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
                 <li class="nav-item toggle-nav-search hidden-caret">
