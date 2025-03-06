@@ -22,10 +22,11 @@ class BalanceSheetController extends Controller
      */
     public function index()
     {
-        $accounts = Account::all();
+        // نمایش لیست مشتریان و خزانه ها و فروشنده گان
+        $accounts = Account::whereIn('account_type_id',[1,3,4])->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $accountTypes = AccountType::all();
+        $accountTypes = AccountType::whereIn('id',[1,3,4])->get();
         // $sums = $this->showFooterReport(1,33);
         // return response()->json(['sums' =>  $sums]);
 

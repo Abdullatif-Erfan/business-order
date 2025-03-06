@@ -263,10 +263,10 @@ class ExpenseController extends Controller
         $currencies = Currency::all();
         $branchs = Branch::all();
 
-        $expense = Journal::with(['accountRelation', 'currencyRelation', 'userRelation','branchRelation'])
+        $expense = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('id', $id)
         ->orderBy('id', 'ASC')
-        ->get();
+        ->first();
         // return response()->json(['data' => $expense]);
         return view('transactions.expense.edit',compact('currencies','branchs','expense','expenseTypes'));
     }

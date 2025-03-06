@@ -71,27 +71,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('get_expire_date_list',[HomeController::class,'expiredWarehouseItems'])->name('home.get_expire_date_list');
     });
 
-    
 
-    // setting
-    require __DIR__ . '/v1/setting.php';
-   
-    // buy
-    require __DIR__ . '/v1/buy.php';
- 
-    // clearance
-    require __DIR__ . '/v1/clearance.php';
-    
-
-    // transaction
-    require __DIR__ . '/v1/transaction.php';
-
-    // reports
-    require __DIR__ . '/v1/reports.php';
-    
-
-    // WarehouseList
-    Route::prefix('warehousesList')->group(function(){
+     // WarehouseList
+     Route::prefix('warehousesList')->group(function(){
         Route::get('/', [WarehouseListController::class, 'index'])->name('warehousesList.index');
         Route::get('/data', [WarehouseListController::class, 'getData'])->name('warehousesList.data');
         Route::get('/details/{id}', [WarehouseListController::class, 'details'])->name('warehousesList.details');
@@ -130,5 +112,26 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/download/{id}', [BackupController::class, 'download'])->name('backups.download');
         Route::delete('/destroy/{id}', [BackupController::class, 'deleteBackup'])->name('backups.destroy');
     });
+    
 
+    // setting
+    require __DIR__ . '/v1/setting.php';
+   
+    // buy
+    require __DIR__ . '/v1/buy.php';
+ 
+    // clearance
+    require __DIR__ . '/v1/clearance.php';
+    
+
+    // transaction
+    require __DIR__ . '/v1/transaction.php';
+
+    // reports
+    require __DIR__ . '/v1/reports.php';
+    
+     // hr
+     require __DIR__ . '/v1/hr.php';
+
+   
 });

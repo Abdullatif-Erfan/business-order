@@ -20,7 +20,7 @@ class Journal extends Model
     {
         return $this->belongsTo(Currency::class, 'currency_id');
     }
-
+    
     /**
      * This (journal) is belongs to account
      * an Account hasMany journal records
@@ -29,7 +29,7 @@ class Journal extends Model
     {
         return $this->belongsTo(Account::class,'account_id');
     }
-
+    
       // A journal belongs to one user
     //   public function userRelation()
     //   {

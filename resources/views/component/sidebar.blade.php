@@ -87,6 +87,39 @@
                         </div>
                     </li>
 
+
+                    <li class="nav-item">
+                        <a data-toggle="collapse" href="#hr">
+                          <i class="fas fa-users"></i>
+                            <p> منابع بشری </p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse" id="hr">
+                            <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="{{ route('employee.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> لیست کارمندان  </span>
+                                    </a>
+                                </li>
+                                <!-- <li>
+                                    <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> پیش پرداخت </span>
+                                    </a>
+                                </li> -->
+                                <li>
+                                    <a href="{{ route('salary.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  پرداخت معاشات </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('salary.report.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> گزارش معاشات</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                 @if(auth()->user()->hasAccess('gen_buy', 'list') && $packageId >= 1)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#buy-chicken">

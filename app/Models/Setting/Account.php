@@ -5,6 +5,7 @@ namespace App\Models\Setting;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Journal\Journal;
 use App\Models\Buy\BoughtItem;
+use App\Models\Setting\Currency;
 
 
 class Account extends Model
@@ -30,5 +31,10 @@ class Account extends Model
     public function boughtItems()
     {
         return $this->hasMany(BoughtItem::class, 'account_id');
+    }
+
+    public function salaryCurrency()
+    {
+        return $this->belongsTo(Currency::class, 'salary_currency','id');
     }
 }
