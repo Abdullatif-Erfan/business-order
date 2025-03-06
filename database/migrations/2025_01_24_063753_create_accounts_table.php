@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('description', 255)->nullable();
             $table->integer('is_pre_select')->default(0);
             $table->integer('percent')->nullable()->default(0);
+            $table->double('net_salary')->nullable()->default(0);
+            $table->integer('salary_currency')->nullable()->default(0);
             $table->timestamps();
         });
     }

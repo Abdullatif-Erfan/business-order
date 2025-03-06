@@ -87,13 +87,16 @@
                                         </div>
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
-                                                <!-- <li class="list-group-item">
+                                                <li class="list-group-item">
                                                     <a target="_blank" href="#">📜 سهم سهامداران</a>
                                                 </li>
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="#">💹 مفاد و ضرر</a>
+                                                    <a target="_blank" href="{{ route('profitloss.index') }}">💹 مفاد و ضرر</a>
                                                 </li>
                                                 <li class="list-group-item">
+                                                    .
+                                                </li>
+                                                <!-- <li class="list-group-item">
                                                     <a target="_blank" href="#">💳 قرضه ها</a>
                                                 </li>
                                                 <li class="list-group-item">

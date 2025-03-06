@@ -34,6 +34,28 @@
                 <span id="addressError" class="text-danger"></span>
             </div>
 
+
+            <!-- belongs to employee -->
+            @if($account->account_type_id == 2)
+            <div class="form-group col-sm-6" id="net_salary2">
+                    <label for="percent"> معاش خالص ماهانه </label>
+                    <input type="number" class="form-control" name="net_salary" value="{{ $account->net_salary }}"  placeholder="معاش خالص ماهانه را بنویسید">
+                    <span id="netSalaryError" class="text-danger"></span>
+                </div>
+
+                <div class="form-group col-sm-6" id="salary_currency2">
+                    <label for="percent">  پرداخت معاش به کرنسی </label>
+                    <select class="form-control" name="salary_currency">
+                        <option value=""> انتخاب کرنسی </option>
+                        @foreach($currencies as $currency)
+                           <option value="{{ $currency->id }}" {{ $currency->id == $account->salary_currency ? 'selected': '' }} >
+                           {{ $currency->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+            <!-- /belongs to employee -->
+
             @if($account->account_type_id == 5)
             <div class="form-group col-sm-6" id="percent2">
                 <label for="percent"> فیصدی </label>
@@ -189,11 +211,10 @@ function checkAccountTypeEdit(account_type_id) {
      * 4: فروشندگان
      * 5: سهم داران
      */
-    
-    if (parseInt(account_type_id) === 1)
-    {
-        $('#is_pre_select2').fadeIn(1);
-        $('#percent').fadeOut(1);
+    account_type_id = parseInt(account_type_id);
+   if (account_type_id === 1) {
+        $('#is_pre_select2').show().attr('required', true);
+        $('#percent2, #net_salary2, #salary_currency2').hide().removeAttr('required');
 
         // Show only the first option in the select dropdowns
         $('select[name="options[]"]').each(function () {
@@ -202,8 +223,10 @@ function checkAccountTypeEdit(account_type_id) {
             `);
         });
     } 
-    else if (parseInt(account_type_id) === 2 || parseInt(account_type_id) === 3 || parseInt(account_type_id) === 4)
-    {
+    else if (account_type_id === 2) {
+        $('#net_salary2, #salary_currency2').show().attr('required', true);
+        $('#is_pre_select2, #percent2').hide().removeAttr('required');
+
        // Reset the select options to show all options
        $('select[name="options[]"]').each(function () {
             $(this).html(`
@@ -213,10 +236,22 @@ function checkAccountTypeEdit(account_type_id) {
             `);
         });
     } 
-    else if (parseInt(account_type_id) === 5)
-    {
-        $('#percent2').fadeIn(1);
-        $('#is_pre_select2').fadeOut(1);
+    else if (account_type_id === 3 || account_type_id === 4) {
+        $('#net_salary2, #is_pre_select2, #salary_currency2, #percent2')
+            .hide()
+            .removeAttr('required');
+
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value=""> انتخاب گزینه </option>
+                <option value="2"> ثبت در بخش طلبات </option>
+                <option value="3"> ثبت در بخش قرضه </option>
+            `);
+        });
+    } 
+    else if (account_type_id === 5) {
+        $('#percent2').show().attr('required', true);
+        $('#is_pre_select2, #salary_currency2, #net_salary2').hide().removeAttr('required');
 
         // Reset the select options to show all options
         $('select[name="options[]"]').each(function () {

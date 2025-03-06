@@ -5,6 +5,8 @@ use App\Http\Controllers\Report\ChartOfAccount;
 use App\Http\Controllers\Report\CacheFlowController;
 use App\Http\Controllers\Report\BalanceSheetController;
 use App\Http\Controllers\Report\LawController;
+use App\Http\Controllers\Report\ProfitAndLossController;
+
 
 
 
@@ -23,6 +25,8 @@ Route::get('/cacheflow/data',[CacheFlowController::class, 'getData'])->name('cac
 Route::get('/balancesheet',[BalanceSheetController::class,'index'])->name('balancesheet.index');
 Route::get('/balancesheet/data',[BalanceSheetController::class,'getData'])->name('balancesheet.data');
 Route::get('/laws',[LawController::class,'index'])->name('laws.index');
+Route::get('/profitloss',[ProfitAndLossController::class,'index'])->name('profitloss.index');
+
 
 
 

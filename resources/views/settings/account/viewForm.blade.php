@@ -14,8 +14,17 @@
                 <th> آدرس </th><td>{{ $account->address }}</td>
               </tr>
               <tr>
+                  @if($account->account_type_id == 5)
                   <th>فیصدی</th><td>{{ $account->percent > 0  ? $account->percent .' % ' : '' }}</td>
+                  @endif
+
+                  @if($account->account_type_id == 1)
                   <th> حساب پیش فرض</th><td>{{ $account->is_pre_select == 1 ? 'بلی':'نخیر' }}</td>
+                  @endif
+
+                  @if($account->account_type_id == 2)
+                  <th> معاش خالص ماهانه</th><td>{{ number_format($account->net_salary) }} افغانی </td>
+                  @endif
               </tr>
 
            </table>

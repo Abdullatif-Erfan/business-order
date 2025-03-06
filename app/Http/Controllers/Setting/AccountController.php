@@ -303,6 +303,8 @@ class AccountController extends Controller
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
             'is_pre_select' => 'nullable|numeric',
+            'net_salary'    => 'nullable|numeric',
+            'salary_currency' => 'nullable|numeric',
             'percent' => 'nullable|numeric',
         ], $messages);
 
@@ -520,6 +522,8 @@ class AccountController extends Controller
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:1000',
             'is_pre_select' => 'nullable|numeric',
+            'net_salary'    => 'nullable|numeric',
+            'salary_currency' => 'nullable|numeric',
             'percent' => 'nullable|numeric',
         ], $messages);
 
