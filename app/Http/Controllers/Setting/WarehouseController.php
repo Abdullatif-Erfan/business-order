@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Setting\Warehouse;
 use App\Models\Setting\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+
+use App\Models\Warehouse\WarehouseItem;
+use App\Models\Setting\Warehouse;
+use App\Models\Warehouse\WarehouseSales;
+
 
 class WarehouseController extends Controller
 {
@@ -38,12 +42,18 @@ class WarehouseController extends Controller
             //     ->orderBy('id', 'DESC');
             //  }
 
+              // Get the first record ID
+              $firstRecordId = Warehouse::orderBy('id', 'ASC')->first()?->id; 
+
             return DataTables::eloquent($warehouses)
                 ->addIndexColumn()
                 ->addColumn('edit', function ($warehouse) {
                     return '<i class="fas fa-pen-square editWarehouse" data-id="' . $warehouse->id . '" style="font-size:20px; cursor: pointer;"></i>';
                 })
-                ->addColumn('delete', function ($warehouse) {
+                ->addColumn('delete', function ($warehouse) use ($firstRecordId) {
+                    if($warehouse->id == $firstRecordId) {
+                        return  '<br>';
+                    }
                     return '<i class="fas fa-trash-alt deleteWarehouse" data-id="' . $warehouse->id . '" style="font-size:20px; color:red; cursor: pointer;"></i>';
                 })
                 ->rawColumns(['edit', 'delete'])
@@ -144,12 +154,19 @@ class WarehouseController extends Controller
     public function destroy($id)
     {
         $warehouse = Warehouse::find($id);
-
-        if (!$warehouse) {
-            return response()->json(['status' => 'failed'], 404);
+        
+        // Check if any related record exists
+        $warehouseItemExists = WarehouseItem::where('warehouse_id', $id)->exists();
+    
+        // If any record exists, prevent deletion
+        if ($warehouseItemExists) 
+        {
+            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
         }
-
+    
+        // If no related records exist, delete the currency
         $warehouse->delete();
-        return response()->json(['status' => 'success']);
+        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
     }
+    
 }

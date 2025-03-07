@@ -7,7 +7,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Setting\Unit;
+
+use App\Models\Buy\BoughtItemDetails;
+use App\Models\Warehouse\WarehouseItem;
+
 use Yajra\DataTables\Facades\DataTables;
+
 
 
 class UnitController extends Controller
@@ -131,14 +136,24 @@ class UnitController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    
+
     public function destroy($id)
     {
         $unit = Unit::findOrFail($id);
-        if($unit) 
+        
+        // Check if any related record exists
+        $boughtItemDetailsExists = BoughtItemDetails::where('unit_id', $id)->exists();
+        $warehouseItemExists = WarehouseItem::where('branch_id', $id)->exists();
+    
+        // If any record exists, prevent deletion
+        if ($boughtItemDetailsExists  || $warehouseItemExists ) 
         {
-            $unit->delete();
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
         }
-        return response()->json(['status' => 'failed', 'message' => ' حذف نگردید']);
+    
+        // If no related records exist, delete the currency
+        $unit->delete();
+        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
     }
 }

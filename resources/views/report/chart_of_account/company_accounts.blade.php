@@ -20,6 +20,7 @@
         $total_loan_recieved = 0;
         $total_loan_paid = 0;
         $cache_balance = 0;
+        $total_cache_balance = 0;
         $general_balance = 0;
         $general_total_balance = 0;
     @endphp
@@ -50,6 +51,7 @@
 
             // بیلانس نقد
             $cache_balance = $row->cache_recieved - $row->cache_paid;
+            $total_cache_balance += $cache_balance;
 
             // بیلانس عمومی
             $general_balance = $cache_balance + $row->loan_paid - $row->loan_recieved;
@@ -73,7 +75,7 @@
                 <td class="priceStyle" colspan="2">مجموع</td>
                 <td class="priceStyle">{{ number_format($total_cache_recieved) }}</td>  <!-- آورد نقد -->
                 <td class="priceStyle">{{ number_format($total_cache_paid) }}</td>      <!-- برد نقد -->
-                <td class="priceStyle"></td>
+                <td class="priceStyle">{{ number_format($total_cache_balance) }}</td>
                 <td class="priceStyle" style="color:green">{{ number_format($total_loan_paid) }}</td>        <!--  طلبات -->
                 <td class="priceStyle" style="color:red">{{ number_format($total_loan_recieved) }}</td>    <!--  قرضه -->
                 <td class="priceStyle">{{ number_format($general_total_balance) }}</td>

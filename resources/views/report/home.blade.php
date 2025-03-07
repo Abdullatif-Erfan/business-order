@@ -143,6 +143,7 @@
         event.preventDefault();
         let form = document.getElementById("reportForm");
         form.action = url;
+        form.target = "_blank"; // Open form submission in a new tab
         form.submit();
     }
 

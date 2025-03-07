@@ -163,32 +163,76 @@ function showNotification(message, type = 'info', from = 'top', align = 'center'
 
 
 $(document).ready(function () {
-    // Initialize default tab's DataTable
-    fetchBranchList();
+    // Check if there's a stored active tab and set it
+    let activeTab = localStorage.getItem('activeTab');
+    console.log('Active tab is:', activeTab);
 
-    // Ensure correct tab is initialized on click
+    if (activeTab) {
+        $('#myTab2 a[href="' + activeTab + '"]').tab('show');
+    } else {
+        activeTab = '#branch'; // Default to the first tab if none is stored
+    }
+
+    // Call the respective function on page load
+    callFetchFunction(activeTab);
+
+    // Ensure correct tab is initialized on click and store the selected tab
     $('#myTab2 li a').on('click', function () {
         const target = $(this).attr('href');
-        if (target === '#branch') {
-            fetchBranchList();
-        } else if (target === '#warehouse') {
-            fetchWarehouseList();
-        } else if (target === '#unit') {
-            fetchUnitList();
-        } else if (target === '#currency') {
-            fetchCurrencyList();
-        } else if (target === '#account') {
-            fetchAccountList();
-        } else if (target === '#income_type') {
-            fetchIncomeTypeList();
-        }
-        else if (target === '#expense_type') {
-            fetchExpenseTypeList();
-        } else if (target === '#company_profile') {
-            fetchProfileList();
-        } 
+        localStorage.setItem('activeTab', target); // Store the selected tab in local storage
+
+        callFetchFunction(target);
     });
+
+    function callFetchFunction(tab) {
+        console.log('Calling fetch function for:', tab);
+        if (tab === '#branch') {
+            fetchBranchList();
+        } else if (tab === '#warehouse') {
+            fetchWarehouseList();
+        } else if (tab === '#unit') {
+            fetchUnitList();
+        } else if (tab === '#currency') {
+            fetchCurrencyList();
+        } else if (tab === '#account') {
+            fetchAccountList();
+        } else if (tab === '#income_type') {
+            fetchIncomeTypeList();
+        } else if (tab === '#expense_type') {
+            fetchExpenseTypeList();
+        } else if (tab === '#company_profile') {
+            fetchProfileList();
+        }
+    }
 });
+
+// $(document).ready(function () {
+//     // Initialize default tab's DataTable
+//     fetchBranchList();
+
+//     // Ensure correct tab is initialized on click
+//     $('#myTab2 li a').on('click', function () {
+//         const target = $(this).attr('href');
+//         if (target === '#branch') {
+//             fetchBranchList();
+//         } else if (target === '#warehouse') {
+//             fetchWarehouseList();
+//         } else if (target === '#unit') {
+//             fetchUnitList();
+//         } else if (target === '#currency') {
+//             fetchCurrencyList();
+//         } else if (target === '#account') {
+//             fetchAccountList();
+//         } else if (target === '#income_type') {
+//             fetchIncomeTypeList();
+//         }
+//         else if (target === '#expense_type') {
+//             fetchExpenseTypeList();
+//         } else if (target === '#company_profile') {
+//             fetchProfileList();
+//         } 
+//     });
+// });
 </script>
 @endsection
 

@@ -281,12 +281,12 @@ $('table').on('click', '.deleteCurrency', function () {
                         fetchCurrencyList();
                         showNotification(response.message, 'success', 'top', 'right', 'withicon');
                     } else {
-                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
-                       alert(response.message);
+                       showNotification(response.message, 'danger', 'top', 'right', 'withicon');
+                    //    alert(response.message);
                     }
                 },
                 error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification(response.message, 'danger', 'top', 'right', 'withicon');
                 }
             });
         }

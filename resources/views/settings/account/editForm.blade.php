@@ -6,6 +6,11 @@
           
            <div class="form-group col-sm-6">
                 <label for="account_type_id"> انتخاب نوع حساب </label>
+                @if($account->accountType->is_disabled == 1)
+                <select class="form-control"  name="account_type_id"  required>
+                    <option value="{{ $account->account_type_id }}">  {{ $account->accountType->name }} </option>
+                </select>
+                @else
                 <select class="form-control"  name="account_type_id"  onchange="checkAccountTypeEdit(this.value)"  required>
                     <option value="{{ $account->account_type_id }}">  {{ $account->accountType->name }} </option>
                     <option value="">انتخاب نوع حساب</option>
@@ -13,6 +18,7 @@
                     <option value="{{ $accountType->id }}">{{ $accountType->name }}</option>
                     @endforeach
                 </select>
+                @endif
                 <span id="accountTypeIdError" class="text-danger"></span>
             </div>
 
@@ -69,8 +75,6 @@
             <div class="form-group col-sm-6" id="is_pre_select2">
                 <label for="is_pre_select"> انتخاب حساب پیش فرض / دیفالت </label>
                 <select class="form-control" name="is_pre_select" >
-                    <option value="{{ $account->is_pre_select }}">{{ $account->is_pre_select == 1 ? 'بلی':'نخیر' }}</option>
-                    <option value="0">نخیر</option>
                     <option value="1">بلی</option>
                 </select>
             </div>
@@ -262,6 +266,15 @@ function checkAccountTypeEdit(account_type_id) {
                 <option value="3"> ثبت در بخش قرضه </option>
             `);
         });
-    }
+    } else if (parseInt(account_type_id) === 6) {
+        $('#percent2, #net_salary2, #salary_currency2, #is_pre_select2').fadeOut(1).removeAttr('required');
+
+        // Show only the first option in the select dropdowns
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="1"> افزایش پول نقد</option>
+            `);
+        });
+    } 
 }
 </script>

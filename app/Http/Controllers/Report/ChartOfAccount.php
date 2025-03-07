@@ -14,19 +14,21 @@ class ChartOfAccount extends Controller
      */
     public function index(?string $id=null)
     {
-        $company_account_type_id = 1;
+        $khazana_account_type_id = 1;
         $employee_account_type_id = 2;
         $customer_account_type_id = 3;
         $supplier_account_type_id = 4;
         $participants_account_type_id = 5;
+        $banks_account_type_id = 6;
+
         
         $currencies = Currency::select('id','name')->get();
         // حسابات نقده شرکت
-        $company_accounts = $this->companyAccounts($id, $company_account_type_id);
+        $company_accounts = $this->companyAccounts($id, $khazana_account_type_id,$banks_account_type_id);
         // حسابات فروشنده گان
-        $supplier_accounts = $this->companyAccounts($id, $supplier_account_type_id);
+        $supplier_accounts = $this->companyAccounts($id, $supplier_account_type_id,0);
         // حسابات مشتریان
-        $customer_accounts = $this->companyAccounts($id, $customer_account_type_id);
+        $customer_accounts = $this->companyAccounts($id, $customer_account_type_id,0);
 
         // return ['company_accounts' => $company_accounts,'currencies' => $currencies];
 
@@ -42,15 +44,19 @@ class ChartOfAccount extends Controller
 
 
     // get customer accounts report
-    private function companyAccounts($currencyId=null,$account_type_id)
+    private function companyAccounts($currencyId = null, $account_type_id, $banks_account_type_id)
     {
         $currency_id = $currencyId ?? 1;
+        
         $accounts = DB::table('accounts')
             ->leftJoin('journals', function ($join) use ($currency_id) { 
                 $join->on('accounts.id', '=', 'journals.account_id')
                     ->where('journals.currency_id', $currency_id);
             })
             ->where('accounts.account_type_id', $account_type_id)
+            ->when($banks_account_type_id > 0, function ($query) {
+                return $query->orWhere('accounts.account_type_id', 6);
+            })
             ->select([
                 'accounts.id as accountId',
                 'accounts.name',
@@ -80,5 +86,6 @@ class ChartOfAccount extends Controller
     
         return $accounts;
     }
+    
     
 }

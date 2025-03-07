@@ -10,6 +10,8 @@ use App\Http\Controllers\Warehouse\WarehouseListController;
 use App\Http\Controllers\Sales\SalesController;
 
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\RateController;
+
 
 
 
@@ -113,6 +115,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/destroy/{id}', [BackupController::class, 'deleteBackup'])->name('backups.destroy');
     });
     
+    // Rate
+    Route::prefix('rate')->group(function(){
+        Route::get('/', [RateController::class, 'index'])->name('rate.index');
+        Route::get('/data', [RateController::class, 'getData'])->name('rate.data');
+        Route::get('/create', [RateController::class, 'create'])->name('rate.create');
+        Route::post('/store', [RateController::class, 'store'])->name('rate.store');
+        Route::get('/edit/{id}', [RateController::class, 'edit'])->name('rate.edit');
+        Route::put('/update', [RateController::class, 'update'])->name('rate.update');
+        Route::delete('/destroy/{id}', [RateController::class, 'destroy'])->name('rate.destroy');
+    });
 
     // setting
     require __DIR__ . '/v1/setting.php';

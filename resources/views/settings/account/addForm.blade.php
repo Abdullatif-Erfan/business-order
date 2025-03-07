@@ -143,6 +143,7 @@ function checkAccountType(account_type_id) {
      * 3: مشتریان
      * 4: فروشندگان
      * 5: سهم داران
+     * 6: صرافی و بانک
      */
     
     if (parseInt(account_type_id) === 1) {
@@ -197,7 +198,16 @@ function checkAccountType(account_type_id) {
                 <option value="3"> ثبت در بخش قرضه </option>
             `);
         });
-    }
+    } else if (parseInt(account_type_id) === 6) {
+        $('#percent, #net_salary, #salary_currency, #is_pre_select').fadeOut(1).removeAttr('required');
+
+        // Show only the first option in the select dropdowns
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="1"> افزایش پول نقد</option>
+            `);
+        });
+    } 
 }
 
 // function checkAccountType(account_type_id) {

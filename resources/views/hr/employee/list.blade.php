@@ -50,12 +50,11 @@
                                         </tr>
                                         <tr>
                                             <th>شماره </th>									
-                                            <th>  نام کارمند / حساب کارمندی </th>										
+                                            <th>  نام کارمند  </th>										
                                             <th>  شماره تماس </th>		
                                             <th> آدرس  </th>		
                                             <th> معاش خالص ماهانه  </th>		
-                                            <th> واحد پولی  </th>		
-                                            <th> نمایش  </th>		
+                                            <th> واحد پولی  </th>	
                                             <th>ویرایش </th>
                                             <th>حذف </th>
                                         </tr>
@@ -63,7 +62,6 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="4">مجموع</td>
-                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -163,7 +161,6 @@ function fetchList() {
                 { data: 'address', name: 'address' },
                 { data: 'net_salary', name: 'net_salary' },
                 { data: 'salaryCurrency', name: 'salaryCurrency' },
-                { data: 'view', name: 'view' },
                 { data: 'edit', name: 'edit', searchable: false, orderable: false },
                 { data: 'delete', name: 'delete', searchable: false, orderable: false },
             ],

@@ -10,9 +10,13 @@ use App\Models\Setting\Branch;
 use App\Models\Setting\AccountType;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Transaction\Journal;
 use Morilog\Jalali\Jalalian;
 use Yajra\DataTables\Facades\DataTables;
+use App\Models\Buy\BoughtItem;
+use App\Models\Buy\BoughtItemDetails;
+use App\Models\Warehouse\WarehouseSales;
 
 class AccountController extends Controller
 {
@@ -32,7 +36,8 @@ class AccountController extends Controller
         // return response()->json($accounts);
         
         if ($request->ajax()) {
-            $accounts = Account::with('accountType')->select('id', 'account_type_id', 'name', 'phone', 'address', 'description')->orderBy('id', 'DESC');
+            $accounts = Account::with('accountType')->select('id', 'account_type_id', 'name', 'phone', 'address', 'description')
+            ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($accounts)
                 ->addIndexColumn()
@@ -46,7 +51,7 @@ class AccountController extends Controller
                     return '<i class="fas fa-pen-square editAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
                 })
                 ->addColumn('delete', function ($account) {
-                    return '<i class="fas fa-trash-alt deleteAccount" data-id="' . $account->id . '" style="font-size:20px; color:red;"></i>';
+                    return $account->accountType->is_disabled == 0  ? '<i class="fas fa-trash-alt deleteAccount" data-id="' . $account->id . '" style="font-size:20px; color:red;"></i>' : '';
                 })
                 ->rawColumns(['view','edit', 'delete'])
                 ->make(true);
@@ -60,7 +65,7 @@ class AccountController extends Controller
      */
     public function create()
     {
-        $accountTypes = AccountType::all();
+        $accountTypes = AccountType::select('id','name')->where('is_disabled',0)->get();
         $currencies = Currency::all();
         $branchs = Branch::all();
         return view('settings.account.addForm', compact('accountTypes','currencies','branchs'));
@@ -470,7 +475,7 @@ class AccountController extends Controller
     public function edit($id)
     {
         $account = Account::find($id);
-        $accountTypes = AccountType::all();
+        $accountTypes = AccountType::select('id','name')->where('is_disabled',0)->get();
         $currencies = Currency::all();
         $branchs = Branch::all();
 
@@ -621,26 +626,112 @@ class AccountController extends Controller
     /**
     * Remove the specified resource from storage.
     */
+
     public function destroy($id)
     {
-        $account = Account::find($id);
+        DB::beginTransaction();
+        try 
+        {
+            $account = Account::find($id);
 
-        // Check if account exists before accessing properties
-        if (!$account) {
-            return response()->json(['status' => 'failed', 'message' => 'حساب یافت نگردید']);
+            // Check if account exists before accessing properties
+            if (!$account) {
+                return response()->json([
+                    'status' => 'failed', 
+                    'message' => 'حساب یافت نگردید'
+                ]);
+            }
+
+            // Log the deletion attempt with formatted date
+            // Log::info('Deleting journal by created_at:', ['created_at' => $account->created_at->toDateTimeString()]);
+
+            // Check if the account has related records
+            $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
+            $boughtItemDetailsExists = BoughtItemDetails::where('customer_account_id', $id)->exists();
+            $warehouseSalesExists = WarehouseSales::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
+
+            // If any record exists, prevent deletion
+            if ($boughtItemExists || $boughtItemDetailsExists || $warehouseSalesExists) {
+                return response()->json([
+                    'status' => 'failed', 
+                    'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد'
+                ]);
+            }
+
+
+            // Delete related journals by date (ignoring time precision issues)
+            Journal::whereDate('created_at', $account->created_at)->delete();
+
+            // Delete the account
+            $account->delete();
+
+            DB::commit();
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'حساب موفقانه حذف گردید'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $journals = Journal::where('times', $account->times);
-
-        // Check if any related journals exist and delete them
-        if ($journals->exists()) {
-            $journals->delete(); // Delete all related journal records
-        }
-
-        $account->delete();
-
-        return response()->json(['status' => 'success', 'message' => 'حساب موفقانه حذف گردید']);
     }
+
+    
+
+    // public function destroy($id)
+    // {
+
+    //     DB::beginTransaction();
+    //     try 
+    //     {
+    //         $account = Account::find($id);
+
+    //         // Check if account exists before accessing properties
+    //         if (!$account) {
+    //             return response()->json(['status' => 'failed', 'message' => 'حساب یافت نگردید']);
+    //         }
+
+    //         // // Check if the account has related records
+    //         // $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
+    //         // $boughtItemDetailsExists = BoughtItemDetails::where('customer_account_id', $id)->exists();
+    //         // $warehouseSalesExists = WarehouseSales::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
+
+    //         // // If any record exists, prevent deletion
+    //         // if ($boughtItemExists || $boughtItemDetailsExists || $warehouseSalesExists) {
+    //         //     return response()->json([
+    //         //         'status' => 'failed', 
+    //         //         'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد'
+    //         //     ]);
+    //         // }
+
+
+    //         $journals = Journal::where('times', $account->times);
+
+    //         // Check if any related journals exist and delete them
+    //         if ($journals->exists()) {
+    //             $journals->delete(); // Delete all related journal records
+    //         }
+
+    //         $account->delete();
+
+    //         DB::commit();
+    //         return response()->json(['status' => 'success', 'message' => 'حساب موفقانه ثبت گردید']);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+
+    // }
+
 
     
 }

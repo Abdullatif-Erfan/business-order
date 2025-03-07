@@ -316,11 +316,11 @@ $('table').on('click', '.deleteAccount', function () {
                         fetchAccountList();
                         showNotification(response.message, 'success', 'top', 'right', 'withicon');
                     } else {
-                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                       showNotification(response.message, 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification(response.message, 'danger', 'top', 'right', 'withicon');
                 }
             });
         }

@@ -52,9 +52,6 @@ class EmployeeController extends Controller
                     return $account->net_salary ? number_format($account->net_salary) : '';
                 })
 
-                ->addColumn('view', function ($account) {
-                    return '<i class="fas fa-eye viewAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
-                })
                 ->addColumn('edit', function ($account) {
                     return '<a href="' . route("employee.edit", ["id" => $account->id]) . '">
                                 <i class="fas fa-pen-square editAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>
@@ -66,7 +63,7 @@ class EmployeeController extends Controller
                                 <i class="fas fa-trash-alt deleteAccount" style="font-size:20px; color:red;"></i>
                             </a>';
                 })
-                ->rawColumns(['view','edit', 'delete'])
+                ->rawColumns(['edit', 'delete'])
                 ->make(true);
     }
 

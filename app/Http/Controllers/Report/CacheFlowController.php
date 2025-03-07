@@ -20,7 +20,7 @@ class CacheFlowController extends Controller
     public function index()
     {
         // نمایش لیست مشتریان و خزانه ها و فروشنده گان
-        $accounts = Account::whereIn('account_type_id',[1,3,4])->get();
+        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         // $sums = $this->showFooterReport(1,33);

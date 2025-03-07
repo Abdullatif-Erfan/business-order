@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->unique('name');
+            $table->integer('is_disabled',2)->nullable()->default(0)->comment('0: not disabled, 1:disabled');
             $table->timestamps();
         });
     }

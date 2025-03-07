@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Setting\Branch;
 use Yajra\DataTables\Facades\DataTables;
 
+use App\Models\Buy\BoughtItem;
+use App\Models\Buy\BuyPreList;
+use App\Models\Warehouse\WarehouseItem;
+use App\Models\Setting\Warehouse;
+use App\Models\Warehouse\WarehouseSales;
+use App\Models\Transaction\Journal;
 
 class BranchController extends Controller
 {
@@ -54,7 +60,7 @@ class BranchController extends Controller
                 return '<i class="fas fa-pen-square editBranch" data-id="'.$branch->id.'" style="font-size:20px;"></i>';
             })
             ->addColumn('delete', function($branch) {
-                return '<i class="fas fa-trash-alt deleteBranch" data-id="'.$branch->id.'" style="font-size:20px; color:red;"></i>';
+                return  $branch->is_disabled == 0 ? '<i class="fas fa-trash-alt deleteBranch" data-id="'.$branch->id.'" style="font-size:20px; color:red;"></i>' : '';
             })
             ->rawColumns(['edit','delete'])
             ->make(true);
@@ -144,11 +150,24 @@ class BranchController extends Controller
     public function destroy($id)
     {
         $branch = Branch::findOrFail($id);
-        if($branch) 
+        
+        // Check if any related record exists
+        $journalExists = Journal::where('branch_id', $id)->exists();
+        $boughtItemExists = BoughtItem::where('branch_id', $id)->exists();
+        $buyPreListExists = BuyPreList::where('branch_id', $id)->exists();
+        $warehouseExists = Warehouse::where('branch_id', $id)->exists();
+        $warehouseSalesExists = WarehouseSales::where('branch_id', $id)->exists();
+    
+        // If any record exists, prevent deletion
+        if ($journalExists || $boughtItemExists  || $buyPreListExists || $warehouseExists || $warehouseSalesExists) 
         {
-            $branch->delete();
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
         }
-        return response()->json(['status' => 'failed', 'message' => ' حذف نگردید']);
+    
+        // If no related records exist, delete the currency
+        $branch->delete();
+        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
     }
+    
+
 }

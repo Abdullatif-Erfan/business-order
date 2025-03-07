@@ -8,7 +8,7 @@ use App\Models\Buy\BoughtItem;
 class Currency extends Model
 {
     //
-    protected $fillable = ['name','symbols','is_base'];
+    protected $fillable = ['name','symbols','color'];
 
     public function boughtItems()
     {

@@ -15,13 +15,13 @@
                 <span id="symbolsError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-sm-6">
+            <div class="form-group col-sm-12">
                 <label for="symbols">    نمایش رنگ واحد پولی </label>
-                <input type="color" class="form-control" name="color"  placeholder="  نمایش رنگ واحد پولی">
+                <input type="color" class="form-control" name="color"  placeholder="  نمایش رنگ واحد پولی" style="height: 30px !important;">
                 <span id="colorError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-sm-6">
+            <!-- <div class="form-group col-sm-6">
                 <label for="symbols"> انتخاب پول پایه </label>
                 <select class="form-control"  name="is_base">
                     <option value="0">انتخاب پول پایه</option>
@@ -30,7 +30,7 @@
                 </select>
                 <span id="isBaseError" class="text-danger"></span>
 
-            </div>
+            </div> -->
 
 
         </div>

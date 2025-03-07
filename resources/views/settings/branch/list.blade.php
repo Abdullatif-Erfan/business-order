@@ -160,6 +160,7 @@ const addOrUpdateBranch = (table) => {
                 $('#addModal').modal('hide');
                 $('#branchForm')[0].reset();
                 $('#branchId').val('');
+                $('#name').val('');
                 fetchBranchList();
                 showNotification(response.message, 'success', 'top', 'right', 'withicon');
             },
@@ -175,5 +176,15 @@ const addOrUpdateBranch = (table) => {
             }
         });
     };
+
+
+$('#addModal').on('show.bs.modal', function (event) {
+    // Check if it's a new record (not edit)
+    if (!$(event.relatedTarget).hasClass('editBranch')) {
+        $('#branchForm')[0].reset(); // Reset form fields
+        $('#branchId').val(''); // Clear hidden input for branch ID
+        $('#nameError').text(''); // Clear error message
+    }
+});
 
 </script>

@@ -7,6 +7,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Setting\Currency;
+
+use App\Models\Buy\BoughtItem;
+use App\Models\Buy\BoughtItemDetails;
+use App\Models\Warehouse\WarehouseItem;
+use App\Models\Warehouse\WarehouseSales;
+use App\Models\Transaction\Journal;
+
 use Yajra\DataTables\Facades\DataTables;
 
 
@@ -23,6 +30,9 @@ class CurrencyController extends Controller
         if($request->ajax())
         {
             $currency = Currency::query()->select('id','name','symbols','is_base','color')->orderBy('id', 'DESC');
+            // Get the first record ID
+            $firstRecordId = Currency::orderBy('id', 'ASC')->first()?->id; 
+
             return  DataTables::eloquent($currency)
 
             // Add Index Column
@@ -36,7 +46,12 @@ class CurrencyController extends Controller
             ->addColumn('edit', function($currency) {
                 return '<i class="fas fa-pen-square editCurrency" data-id="'.$currency->id.'" style="font-size:20px;"></i>';
             })
-            ->addColumn('delete', function($currency) {
+            ->addColumn('delete', function($currency) use ($firstRecordId) {
+                // Hide delete icon if it's the first record
+                if ($currency->id == $firstRecordId) {
+                    return ''; // No delete icon for the first record
+                }
+
                 return '<i class="fas fa-trash-alt deleteCurrency" data-id="'.$currency->id.'" style="font-size:20px; color:red;"></i>';
             })
             ->rawColumns(['color','is_base','edit','delete'])
@@ -59,6 +74,7 @@ class CurrencyController extends Controller
     public function store(Request $request)
     {
         // Define custom validation messages
+        // return ['data' => $request->all()];
         $messages = [
             'name.required' => 'نام ضروری میباشد',
             'name.string' => 'نام باید حروف باشد',
@@ -67,8 +83,6 @@ class CurrencyController extends Controller
             'name.unique' => 'این نام قبلاً ثبت شده است',
             'symbols.required' => 'سمبول ضروری میباشد',
             'symbols.string' => 'سمبول باید حروف باشد',
-            'is_base.required' => 'لطفاً مشخص کنید که آیا این ارز اصلی است یا خیر',
-            'is_base.in' => 'انتخاب باید بلی یا نخیر باشد',
             'color.max' => 'رنگ باید حداکثر ۲۰ حرف باشد',
         ];
 
@@ -76,15 +90,13 @@ class CurrencyController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:currencies,name',
             'symbols' => 'required|string|max:20',
-            'is_base' => 'required|in:yes,no',
-            'color' => 'nullable|max:20',
+            'color'   => 'nullable|max:20',
         ], $messages);
 
         // Create new currency
         Currency::create([
             'name' => $validated['name'],
             'symbols' => $validated['symbols'],
-            'is_base' => $validated['is_base'],
             'color' => $validated['color'],
         ]);
 
@@ -119,8 +131,6 @@ class CurrencyController extends Controller
             'name.unique' => 'این نام قبلاً ثبت شده است',
             'symbols.required' => 'سمبول ضروری میباشد',
             'symbols.string' => 'سمبول باید حروف باشد',
-            'is_base.required' => 'لطفاً مشخص کنید که آیا این ارز اصلی است یا خیر',
-            'is_base.in' => 'انتخاب باید بلی یا نخیر باشد',
             'color.max' => 'رنگ باید حداکثر ۲۰ حرف باشد',
         ];
 
@@ -128,7 +138,6 @@ class CurrencyController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:currencies,name,' . $request->id,
             'symbols' => 'required|string|max:20',
-            'is_base' => 'required|in:yes,no',
             'color'   => 'nullable|max:20',
         ], $messages);
 
@@ -142,7 +151,6 @@ class CurrencyController extends Controller
         $currency->name = $request->input('name');
         $currency->symbols = $request->input('symbols');
         $currency->color = $request->input('color');
-        $currency->is_base = $request->input('is_base');
 
         $currency->save();
 
@@ -155,11 +163,24 @@ class CurrencyController extends Controller
     public function destroy($id)
     {
         $currency = Currency::findOrFail($id);
-        if($currency) 
+        
+        // Check if any related record exists
+        $journalExists = Journal::where('currency_id', $id)->exists();
+        $boughtItemExists = BoughtItem::where('currency_id', $id)->exists();
+        // $boughtItemDetailsExists = BoughtItemDetails::where('currency_id', $id)->exists();
+        $warehouseItemExists = WarehouseItem::where('currency_id', $id)->exists();
+        $warehouseSalesExists = WarehouseSales::where('currency_id', $id)->exists();
+    
+        // If any record exists, prevent deletion
+        if ($journalExists || $boughtItemExists  || $warehouseItemExists || $warehouseSalesExists) 
         {
-            $currency->delete();
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
         }
-        return response()->json(['status' => 'failed', 'message' => ' حذف نگردید']);
+    
+        // If no related records exist, delete the currency
+        $currency->delete();
+        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
     }
+    
+
 }

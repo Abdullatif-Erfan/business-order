@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('account_types', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('code');
             $table->string('name');
+            $table->integer('is_disabled')->nullable()->default(0)->comment('0:not disabled, 1:disabled');
             $table->timestamps();
         });
     }

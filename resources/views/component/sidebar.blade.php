@@ -49,6 +49,13 @@
                     </li>
                 @endif
 
+                    <li class="nav-item">
+                        <a href="{{ route('rate.index') }}">
+                            <i class="fas fa-percent"></i>
+                            <p> نرخ ارزها</p>
+                        </a>
+                    </li>
+
 
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#journal">
@@ -73,11 +80,6 @@
                                         <span class="sub-item"> مصارف</span>
                                     </a>
                                 </li>
-                                <!-- <li>
-                                    <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> معاشات کارمندان</span>
-                                    </a>
-                                </li> -->
                                 <!-- <li>
                                     <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> سهم سهامداران</span>
