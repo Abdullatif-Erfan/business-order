@@ -1,0 +1,25 @@
+ROLES
+Base Currency (AFN): No conversion is needed for the base currency.
+Greater Currency (USD): For greater currencies, multiply the amount by the exchange rate.
+Smaller Currency (PKR, IR): For smaller currencies, divide the amount by the exchange rate.
+Zero Total Talabat: If the total talabat for a currency is zero, skip the conversion process and return
+check greater and smaller by comparing currency_id to greater_account_id, between two currencies this store greater currency_id
+
+formula for converting big currency to samll currency
+1 USD = 72 AFN
+100 usD = x    
+x = 100 * 72/ 1 = 7200 USD
+
+
+formula for converting smaller currency to big currency
+
+1 AFN  = 3 PK
+ x     = 300 PK
+
+x =  300 / 3  = 30 AFN 
+
+
+AFN is base_currency and no need for conversion
+USD is greater and need multiplication 
+PK is  smaller and need division not multiplication
+IR is samller than base_currency but while total_talabat is zero no need conversion

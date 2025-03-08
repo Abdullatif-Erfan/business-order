@@ -1,6 +1,29 @@
 @extends('layouts.app')
 @section('content')
 
+<style>
+.custom_badge{
+    background-color: transparent !important;
+    border-radius: 50px;
+    margin-right: auto;
+    line-height: 1;
+    padding: 2px 10px;
+    vertical-align: middle;
+    font-weight: 400;
+    font-size: 11px;
+    border: 1px solid #ddd;
+}
+.custom_badge_warning {
+    color: #8a6d3b; /* Bootstrap warning text color */
+    border-color: #8a6d3b;
+}
+.custom_badge_info {
+    color: #31708f; /* Bootstrap info text color */
+    border-color: #31708f;
+}
+
+</style>
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -34,7 +57,43 @@
                                             <div id="collapseIncomes" class="panel-collapse collapse in" style="height: auto;">
                                                 <div class="panel-body" id="body">       
 
-                                                    <table class="table table-bordered"  style="width:100%">
+                                                @php
+                                                    $currencies = $talabat ?? [];
+                                                    $currencyCount = count($currencies);
+                                                    $baseCurrency = collect($currencies)->where('is_base', 1)->first();
+                                                    $totalConverted = collect($currencies)->sum('converted_total');
+                                                @endphp
+
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">طلبات</th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_talabat']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
+                                                            <tr>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                {{ number_format($currency['total_talabat'] ?? 0) }}
+                                                                 <span class="custom_badge custom_badge_warning">{{ $currency['to_currency_amount'] ?? 0 }}</span>
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                    {{ number_format($currency['converted_total'] ?? 0) }}
+                                                                 </span>
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+
+                                                    <tr>
+                                                        <td>قیمت مجموعی:</td>
+                                                        <td>{{ number_format($totalConverted, 2) }}</td>
+                                                    </tr>
+                                                </table>
+
+
+                                                    <!-- <table class="table table-bordered"  style="width:100%">
                                                             <tr>
                                                                 <th rowspan="3" style="width:150px !important;" >طلبات</th>
                                                                   <td style="width:70px !important;">افغانی : </td>
@@ -48,7 +107,7 @@
                                                                   <td>مجموع : </td>
                                                                   <td>4565677 </td>
                                                             </tr>
-                                                    </table>
+                                                    </table> -->
 
                                                     <table class="table table-bordered"  style="width:100%">
                                                             <tr>
