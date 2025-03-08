@@ -32,7 +32,7 @@
                     <div class="card">
                         <div class="card-header" style="padding:10px">
                             <h4 class="card-title">  مفاد و ضرر 
-                            <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button>
+                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                             </h4>
                         </div>
 
@@ -44,8 +44,10 @@
                             <div class="col-xs-12">
                                 <div class="row">
 
+                                    <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand visible-print" style="width: 100% !important;">
+
                                      <!-- Income Seciont -->
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-12 col-x-12">
                                      
                                         <div class="panel-heading m-t-10" style="background-color:#f0eded">
                                                 <h4 class="panel-title">
@@ -58,10 +60,19 @@
                                                 <div class="panel-body" id="body">       
 
                                                 @php
-                                                    $currencies = $talabat ?? [];
+                                                    $currencies = $transactionSummary ?? [];
                                                     $currencyCount = count($currencies);
                                                     $baseCurrency = collect($currencies)->where('is_base', 1)->first();
-                                                    $totalConverted = collect($currencies)->sum('converted_total');
+                                                    $totalConvertedTalabat = collect($currencies)->sum('converted_total_talabat');
+                                                    $totalConvertedIncome = collect($currencies)->sum('converted_total_income');
+                                                    $totalConvertedSoldIncome = collect($currencies)->sum('converted_total_sold');
+                                                    $totalConvertedLoan = collect($currencies)->sum('converted_total_loan');
+                                                    $totalConvertedExpense = collect($currencies)->sum('converted_total_expense');
+                                                    $totalConvertedSalary = collect($currencies)->sum('converted_total_salary');
+                                                    $totalConverted‌‌Bought = collect($currencies)->sum('converted_total_bought');
+                                                    $totalConvertedCacheIn = collect($currencies)->sum('converted_total_cache_in');
+                                                    $totalConvertedCacheOut = collect($currencies)->sum('converted_total_cache_out');
+                                                    $finalTotalCache = $totalConvertedCacheIn - $totalConvertedCacheOut;
                                                 @endphp
 
                                                 <table class="table table-bordered" style="width:100%">
@@ -76,74 +87,119 @@
                                                             <tr>
                                                                 <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color']}}">
-                                                                {{ number_format($currency['total_talabat'] ?? 0) }}
-                                                                 <span class="custom_badge custom_badge_warning">{{ $currency['to_currency_amount'] ?? 0 }}</span>
                                                                  <span class="custom_badge custom_badge_info">
-                                                                    {{ number_format($currency['converted_total'] ?? 0) }}
-                                                                 </span>
+                                                                {{ number_format($currency['total_talabat'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_talabat'] ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>قیمت مجموعی:</td>
-                                                        <td>{{ number_format($totalConverted, 2) }}</td>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedTalabat) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
 
-                                                    <!-- <table class="table table-bordered"  style="width:100%">
-                                                            <tr>
-                                                                <th rowspan="3" style="width:150px !important;" >طلبات</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
-                                                            </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                            <tr>
-                                                                  <td>مجموع : </td>
-                                                                  <td>4565677 </td>
-                                                            </tr>
-                                                    </table> -->
 
-                                                    <table class="table table-bordered"  style="width:100%">
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">عواید متفرقه</th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_income']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >عواید متفرقه</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                {{ number_format($currency['total_income'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_income'] ?? 0) }}
+                                                                </td>
                                                             </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                    </table>
+                                                        @endif
+                                                    @endforeach
 
-                                                    <table class="table table-bordered"  style="width:100%">
-                                                            <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >مفاد خالص فروشات</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
-                                                            </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                    </table>
+                                                    <tr>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedIncome) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
 
-                                                    <table class="table table-bordered"  style="width:100%">
+
+
+                                                <!-- مفاد خالص فروشات -->
+                                                @php
+                                                    $currencies3 = $salesProfit ?? [];
+                                                    $currencyCount3 = count($currencies3);
+                                                    $baseCurrency3 = collect($currencies3)->where('is_base', 1)->first();
+                                                    $totalConvertedTotalProfit = collect($currencies3)->sum('converted_total_profit');
+                                                @endphp
+
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount3 + 1 }}" style="width:90px !important;">  مفاد خالص فروشات </th>
+                                                        <td style="width:130px !important; color:{{ $baseCurrency3['color'] ?? '' }}">
+                                                            {{ $baseCurrency3['currency_name'] ?? 'N/A' }}:
+                                                        </td>
+                                                        <td style="color:{{ $baseCurrency3['color'] ?? '' }}">
+                                                            {{ number_format($baseCurrency3['total_profit'] ?? 0) }}
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies3 as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >عواید فروشات</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                <td style="color:{{ $currency['color'] ?? '' }}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{ $currency['color'] ?? '' }}">
+                                                                    <span class="custom_badge custom_badge_info">
+                                                                        {{ number_format($currency['total_profit'] ?? 0) }}
+                                                                    </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_profit'] ?? 0) }}
+                                                                </td>
                                                             </tr>
+                                                        @endif
+                                                    @endforeach
+                                                    
+
+                                                    <tr>
+                                                        <td> <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedTotalProfit) }} {{ $baseCurrency3['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
+
+                                                    <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">عواید فروشات +  مفاد شان</th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_sold']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                {{ number_format($currency['total_sold'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_sold'] ?? 0) }}
+                                                                </td>
                                                             </tr>
-                                                    </table>
+                                                        @endif
+                                                    @endforeach
+
+                                                    <tr>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedSoldIncome) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
+                                                
 
                                                 </div>
                                             </div>
@@ -153,7 +209,7 @@
 
 
                                     <!-- Expense Section -->
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-12 col-x-12">
                                      
                                         <div class="panel-heading m-t-10" style="background-color:#f0eded">
                                                 <h4 class="panel-title">
@@ -165,53 +221,121 @@
                                             <div id="collapseExpense" class="panel-collapse collapse in" style="height: auto;">
                                                 <div class="panel-body" id="body">       
 
-                                                    <table class="table table-bordered"  style="width:100%">
+                                                <!-- قرضه -->
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">قرضه </th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_loan']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >قرضه</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                {{ number_format($currency['total_loan'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_loan'] ?? 0) }}
+                                                                </td>
                                                             </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                    </table>
+                                                        @endif
+                                                    @endforeach
 
-                                                    <table class="table table-bordered"  style="width:100%">
+                                                    <tr>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedLoan) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <!-- مصارف متفرقه -->
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">مصارف متفرقه </th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_expense']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >مصارف متفرقه</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                {{ number_format($currency['total_expense'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_expense'] ?? 0) }}
+                                                                </td>
                                                             </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                    </table>
+                                                        @endif
+                                                    @endforeach
 
-                                                    <table class="table table-bordered"  style="width:100%">
-                                                            <tr>
-                                                                <th rowspan="2" style="width:150px !important;" > معاشات کارمندان</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
-                                                            </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                    </table>
+                                                    <tr>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedExpense) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
 
-                                                    <table class="table table-bordered"  style="width:100%">
+
+                                                <!-- معاشات کارمندان -->
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> معاشات کارمندان </th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_salary']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" > خرید + ترانسپورت</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                {{ number_format($currency['total_salary'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_salary'] ?? 0) }}
+                                                                </td>
                                                             </tr>
+                                                        @endif
+                                                    @endforeach
+
+                                                    <tr>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedSalary) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
+
+
+                                              <!-- خرید + ترانسپورت  -->
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> خرید + ترانسپورت </th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_bought']) ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base']) 
                                                             <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
+                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color']}}">
+                                                                 <span class="custom_badge custom_badge_info">
+                                                                {{ number_format($currency['total_bought'] ?? 0) }}
+                                                                 </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_bought'] ?? 0) }}
+                                                                </td>
                                                             </tr>
-                                                    </table>
+                                                        @endif
+                                                    @endforeach
+
+                                                    <tr>
+                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConverted‌‌Bought) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
+
+
 
 
                                                 </div>
@@ -232,33 +356,123 @@
                                                 </h4>
                                             </div>
                                             <div id="collapseGeneral" class="panel-collapse collapse in" style="height: auto;">
-                                                <div class="panel-body" id="body">       
+                                                <div class="panel-body" id="body">      
+
+
+                                                @php
+                                                    $currencies2 = $warehouseValue ?? [];
+                                                    $currencyCount2 = count($currencies2);
+                                                    $baseCurrency2 = collect($currencies2)->where('is_base', 1)->first();
+                                                    $totalConvertedValue = collect($currencies2)->sum('converted_total_warehouse_value');
+                                                @endphp
+
+                                                <!-- موجودی گدام -->
+                                                <table class="table table-bordered" style="width:100%">
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount2 + 1 }}" style="width:200px !important;"> موجودی گدام </th>
+                                                        <td style="width:130px !important; color:{{ $baseCurrency2['color'] ?? '' }}">
+                                                            {{ $baseCurrency2['currency_name'] ?? 'N/A' }}:
+                                                        </td>
+                                                        <td style="color:{{ $baseCurrency2['color'] ?? '' }}">
+                                                            {{ number_format($baseCurrency2['total_warehouse_value'] ?? 0) }}
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                    @foreach ($currencies2 as $currency)
+                                                        @if (!$currency['is_base']) 
+                                                            <tr>
+                                                                <td style="color:{{ $currency['color'] ?? '' }}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{ $currency['color'] ?? '' }}">
+                                                                    <span class="custom_badge custom_badge_info">
+                                                                        {{ number_format($currency['total_warehouse_value'] ?? 0) }}
+                                                                    </span> &nbsp; =   
+                                                                    {{ number_format($currency['converted_total_warehouse_value'] ?? 0) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                    
+
+                                                    <tr>
+                                                        <td> <strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedValue) }} {{ $baseCurrency2['symbols'] ?? 'N/A' }} </strong></td>
+                                                    </tr>
+                                                </table>
+
+
+                                                <!-- پول نقد شرکت -->
+                                                <table class="table table-bordered" style="width:100%"> 
+                                                    <tr>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:200px !important;"> پول نقد شرکت </th>
+                                                        <td style="width:130px !important;color:{{$baseCurrency['color'] ?? ''}}">
+                                                            {{ $baseCurrency['currency_name'] ?? 'N/A' }}:
+                                                        </td>
+                                                        <td style="color:{{$baseCurrency['color'] ?? ''}}">
+                                                        {{ isset($baseCurrency['total_cache_in'], $baseCurrency['total_cache_out']) 
+                                                            ? number_format(($baseCurrency['total_cache_in'] ?? 0) - ($baseCurrency['total_cache_out'] ?? 0)) 
+                                                            : 'N/A' }}
+                                                        </td>
+                                                    </tr>
+
+                                                    @foreach ($currencies as $currency)
+                                                        @if (!$currency['is_base'])
+                                                            @php
+                                                                $total_cache_in = $currency['total_cache_in'] ?? 0;
+                                                                $total_cache_out = $currency['total_cache_out'] ?? 0;
+                                                                $converted_cache_in = $currency['converted_total_cache_in'] ?? 0;
+                                                                $converted_cache_out = $currency['converted_total_cache_out'] ?? 0;
+                                                            @endphp 
+                                                            <tr>
+                                                                <td style="color:{{$currency['color'] ?? ''}}">{{ $currency['currency_name'] }} :</td>
+                                                                <td style="color:{{$currency['color'] ?? ''}}">
+                                                                    <span class="custom_badge custom_badge_info">
+                                                                        {{ number_format($total_cache_in - $total_cache_out) }}
+                                                                    </span> &nbsp; =   
+                                                                    {{ number_format($converted_cache_in - $converted_cache_out) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+
+                                                    <tr>
+                                                        <td><strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong> 
+                                                            {{ number_format($finalTotalCache) }} 
+                                                            {{ $baseCurrency['symbols'] ?? 'N/A' }} 
+                                                        </strong></td>
+                                                    </tr>
+                                                </table>
+
+                                                <!-- total_assets = total_warehouse_value + total_cache_income(recieved-paid) + total_talabat - (total_warhouse_wastage + total_loan) -->
 
                                                     <table class="table table-bordered"  style="width:100%">
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >سرمایه شرکت</th>
+                                                                <th rowspan="2" style="width:200px !important;font-weight:bolder" >سرمایه شرکت</th>
                                                                   <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                  <td> <strong> {{ 
+                                                                       number_format( $totalConvertedValue + 
+                                                                      $finalTotalCache + 
+                                                                      $totalConvertedTalabat -
+                                                                      $totalConvertedLoan)
+                                                                      }}</strong></td>
                                                             </tr>
                                                             <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
+                                                                  <td>فورمول : </td>
+                                                                  <td> 
+                                                                    <span class="custom_badge custom_badge_info">موجودی گدام</span>
+                                                                     +
+                                                                     <span class="custom_badge custom_badge_info">مجموع پول نقد شرکت</span>
+                                                                     +
+                                                                     <span class="custom_badge custom_badge_info">طلبات</span> 
+                                                                     - 
+                                                                    <span class="custom_badge custom_badge_warning">قرضه </span>
+                                                                    
+                                                                   </td>
                                                             </tr>
                                                     </table>
 
-                                                    <table class="table table-bordered"  style="width:100%">
-                                                            <tr>
-                                                                <th rowspan="2" style="width:150px !important;" > پول نقد شرکت</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
-                                                            </tr>
-                                                            <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
-                                                            </tr>
-                                                    </table>
 
-                                                    <table class="table table-bordered"  style="width:100%">
+                                                    <!-- <table class="table table-bordered"  style="width:100%">
                                                             <tr>
                                                                 <th rowspan="2" style="width:150px !important;" >  مفاد خالص شرکت</th>
                                                                   <td style="width:70px !important;">افغانی : </td>
@@ -268,7 +482,7 @@
                                                                   <td>دالر : </td>
                                                                   <td>456 </td>
                                                             </tr>
-                                                    </table>
+                                                    </table> -->
 
 
                                                 </div>

@@ -23,3 +23,14 @@ AFN is base_currency and no need for conversion
 USD is greater and need multiplication 
 PK is  smaller and need division not multiplication
 IR is samller than base_currency but while total_talabat is zero no need conversion
+
+
+
+1 USD = 72.5 AFN
+1 PK = 3 AFN
+1 IR = 500 AFN
+
+1 USD = 72.5 AFN
+1 AFN = 3 PK, I need to change PK to AFN
+1 AFN = 500 IR, I need to change IR to AFN
+

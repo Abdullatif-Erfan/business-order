@@ -34,15 +34,19 @@
                                             <div id="collapseIncomes" class="panel-collapse collapse in" style="height: auto;">
                                                 <div class="panel-body" id="body">       
 
-                                                    <table class="table table-bordered"  style="width:100%">
+                                                <table class="table table-bordered"  style="width:100%">
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >طلبات</th>
+                                                                <th rowspan="3" style="width:150px !important;" >طلبات</th>
                                                                   <td style="width:70px !important;">افغانی : </td>
                                                                   <td>123</td>
                                                             </tr>
                                                             <tr>
                                                                   <td>دالر : </td>
                                                                   <td>456 </td>
+                                                            </tr>
+                                                            <tr>
+                                                                  <td>مجموع : </td>
+                                                                  <td>4565677 </td>
                                                             </tr>
                                                     </table>
 
