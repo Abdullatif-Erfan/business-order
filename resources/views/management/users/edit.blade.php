@@ -59,7 +59,7 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="password">رمز عبور (ضروری)</label>
                                             <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" minlength="6" maxlength="20" value="{{ old('password') }}">
@@ -67,12 +67,26 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="password_confirmation">تکرار رمز عبور (ضروری)</label>
                                             <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" name="password_confirmation" maxlength="20" value="{{ old('password_confirmation') }}">
                                             @error('password_confirmation') <span class="text-danger">{{ $message }}</span> @enderror
                                         </div>
+                                    </div>
+
+                                    <div class="col-md-4 m-t-10">
+                                        <label for="">شعبه</label>
+                                        <select class="form-control @error('branch_id') is-invalid @enderror" name="branch_id" required>
+                                                <option value="">انتخاب شعبه </option>
+                                                @foreach ($branches as $branch)
+                                                    <option value="{{ $branch->id }}"
+                                                        {{  $user->branch_id == $branch->id ? 'selected' : '' }}>
+                                                        {{ $branch->name }} 
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('branch_id') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
 

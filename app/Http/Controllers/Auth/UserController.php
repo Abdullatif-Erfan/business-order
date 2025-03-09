@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User; 
 use App\Models\Auth\Role; 
 use App\Models\Setting\OrgBio;
+use App\Models\Setting\Branch;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -42,7 +43,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        // $users = User::with(['roleRelationName'])->orderBy('created_at','DESC')->get();
+        // $users = User::with(['roleRelationName','branchRelation'])->orderBy('created_at','DESC')->get();
         // return ['users' => $users];
         $orgbios = OrgBio::all();
         return view('management.users.list',compact('orgbios'));
@@ -53,7 +54,7 @@ class UserController extends Controller
     {
           
             
-          $users = User::with(['roleRelationName'])->orderBy('created_at','DESC');
+          $users = User::with(['roleRelationName','branchRelation'])->orderBy('created_at','DESC');
            
             
             return DataTables::of($users->get())
@@ -99,7 +100,8 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $orgbios = OrgBio::all();
-        return view('management.users.create',compact('roles','orgbios'));
+        $branches = Branch::all();
+        return view('management.users.create',compact('roles','orgbios','branches'));
     }
 
     /**
@@ -114,6 +116,7 @@ class UserController extends Controller
             'email' => 'nullable|email|max:128|unique:users,email',
             'password' => 'required|string|min:6|max:20|confirmed',
             'roleId' => 'required|exists:roles,roleId',
+            'branch_id' => 'required|exists:branches,id',
             'isAdmin' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -125,6 +128,7 @@ class UserController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->roleId = $validated['roleId'];
         $user->isAdmin = $validated['isAdmin'];
+        $user->branch_id = $validated['branch_id'];
         $user->createdBy = auth()->id();
 
         if ($request->hasFile('photo')) {
@@ -153,8 +157,9 @@ class UserController extends Controller
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $user = User::findOrFail($id);
+        $branches = Branch::all();
 
-        return view('management.users.edit',compact('roles','orgbios','user'));
+        return view('management.users.edit',compact('roles','orgbios','user','branches'));
     }
 
     /**
@@ -170,6 +175,7 @@ class UserController extends Controller
             'email' => 'nullable|email|max:128|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6|max:20|confirmed',
             'roleId' => 'required|exists:roles,roleId',
+            'branch_id' => 'required|exists:branches,id',
             'isAdmin' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -183,6 +189,7 @@ class UserController extends Controller
         $user->email = $request->input('email');
         $user->roleId = $request->input('roleId');
         $user->isAdmin = $request->input('isAdmin');
+        $user->branch_id = $validated['branch_id'];
     
         // Update password if provided
         if ($request->filled('password')) 

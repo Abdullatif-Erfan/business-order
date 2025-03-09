@@ -7,7 +7,7 @@ use App\Models\Auth\Role;
 use App\Models\Auth\AccessMetrics;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
-
+use Yajra\DataTables\Facades\DataTables;
 
 class RoleController extends Controller
 {
@@ -18,6 +18,40 @@ class RoleController extends Controller
     {
         $roles = Role::orderBy('created_at', 'desc')->paginate(10);
         return view('management.roles.list', compact('roles'));
+    }
+
+    public function getData(Request $request)
+    {
+          
+            
+          $roles = Role::orderBy('created_at','DESC');
+           
+            
+            return DataTables::of($roles->get())
+            
+            ->addIndexColumn()
+
+            ->addColumn('status', function ($role) {
+                return $role->status ? 'فعال' : 'غیرفعال';
+            })
+             
+            ->addColumn('add', function ($role) {
+                return '<a href="roles/permissions/'.$role->roleId.'" class="hidden-print"><i class="btn btn-sm btn-success" 
+                data-id="' . $role->roleId . '" style=""> صلاحیت ( + / - )</i></a>'; 
+            })
+
+            ->addColumn('edit', function ($role) {
+                return '<a href="roles/edit/'.$role->roleId.'" class="hidden-print"><i class="fas fa-pen-square" 
+                data-id="' . $role->roleId . '" style="font-size:20px;"></i></a>'; 
+            })
+
+            ->addColumn('delete', function ($role) {
+                return '<a href="roles/destroy/'.$role->roleId.'" onclick="doConfirm()" class="hidden-print"><i class="fas fa-trash-alt danger" 
+                data-id="' . $role->roleId . '" style="font-size:20px; color:red"></i></a>'; 
+            })
+            ->rawColumns(['add','edit','delete'])
+            ->make(true);
+
     }
 
     /**
@@ -128,7 +162,7 @@ class RoleController extends Controller
      /**
      * This function used to get access matrix of a role by roleId.
      * If the access matrix entry doesn't exists then it creates the matrix.
-     * @param number $roleId : This is roleId of user
+     * @param number $roleId : This is roleId of role
      */
     private function getRoleAccessMatrix($roleId)
     {
@@ -160,7 +194,7 @@ class RoleController extends Controller
 
     /**
      * This function used to get role access matrix by role id
-     * @param number $roleId : This is roleId of user
+     * @param number $roleId : This is roleId of role
      */
     private function getRoleAccessMatrixQuery($roleId)
     {
@@ -216,9 +250,9 @@ class RoleController extends Controller
             'roleId' => $roleId,
             'access' => json_encode($modules2),
             'isDeleted' => 0,
-            'createdBy' => auth()->user()->id ?? '',  
+            'createdBy' => auth()->id() ?? '',  
             'createdDtm' => now(),
-            'updatedBy' => auth()->user()->id ?? '',
+            'updatedBy' => auth()->id() ?? '',
             'updatedDtm' => now(),
         ];
 

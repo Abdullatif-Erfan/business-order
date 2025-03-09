@@ -2,7 +2,7 @@
 
 return [
     'moduleList' => [
-        ['module' => 'dashboard', 'label' => 'دشبورد', 'total_access' => 0, 'list' => 0, 'create_records' => 0, 'edit_records' => 0, 'delete_records' => 0],
+        ['module' => 'dashboard', 'label' => 'دشبورد 22', 'total_access' => 0, 'list' => 0, 'create_records' => 2, 'edit_records' => 2, 'delete_records' => 2],
         ['module' => 'settings', 'label' => 'تنظیمات اولیه', 'total_access' => 0, 'list' => 0, 'create_records' => 0, 'edit_records' => 0, 'delete_records' => 0],
         ['module' => 'journal', 'label' => 'روزنامچه', 'total_access' => 0, 'list' => 0, 'create_records' => 0, 'edit_records' => 0, 'delete_records' => 0],
         ['module' => 'gen_buy', 'label' => 'خریداری عمومی', 'total_access' => 0, 'list' => 0, 'create_records' => 0, 'edit_records' => 0, 'delete_records' => 0],

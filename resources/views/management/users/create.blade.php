@@ -59,7 +59,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="password">رمز عبور (ضروری)</label>
                                         <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" minlength="6" maxlength="20" value="{{ old('password') }}" required>
@@ -67,7 +67,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="password_confirmation">تکرار رمز عبور (ضروری)</label>
                                         <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" name="password_confirmation" maxlength="20" required>
@@ -75,10 +75,34 @@
                                     </div>
                                 </div>
 
+                                <div class="col-md-4 col-ms-6 col-xs-12 m-t-10">
+                                    <label for="">انتخاب شعبه</label>
+                                    <select class="form-control @error('branch_id') is-invalid @enderror" name="branch_id" required>
+                                        <option value="">انتخاب شعبه</option>
+                                        @foreach ($branches as $branch)
+                                            <option value="{{ $branch->id }}">
+                                                {{ $branch->name }} 
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('branch_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
                               
                             </div>
 
                             <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="isAdmin">نوعیت کاربر (ضروری)</label>
+                                        <select class="form-control @error('isAdmin') is-invalid @enderror" name="isAdmin"
+                                        onchange="checkUserType(this.value)" required>
+                                            <option value="0">کاربر عادی</option>
+                                            <option value="1">ادمین</option>
+                                        </select>
+                                        @error('isAdmin') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="role">رول</label>
@@ -94,16 +118,6 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="isAdmin">نوعیت کاربر (ضروری)</label>
-                                        <select class="form-control @error('isAdmin') is-invalid @enderror" name="isAdmin" required>
-                                            <option value="0" @if(old('isAdmin') == 0) selected @endif>کاربر عادی</option>
-                                            <option value="1" @if(old('isAdmin') == 1) selected @endif>ادمین</option>
-                                        </select>
-                                        @error('isAdmin') <span class="text-danger">{{ $message }}</span> @enderror
-                                    </div>
-                                </div>
 
                                 <div class="col-md-4">
                                     <div class="form-group">

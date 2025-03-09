@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Auth\Role;
+use App\Models\Setting\Branch;
 
 
 class User extends Authenticatable
@@ -26,6 +27,7 @@ class User extends Authenticatable
         'password',
         'roleId',
         'isAdmin',
+        'branch_id',
         'isDeleted',
         'isHidden',
         'photo',
@@ -59,6 +61,11 @@ class User extends Authenticatable
     public function roleRelationName()
     {
         return $this->belongsTo(Role::class, 'roleId', 'roleId');  // 'roleId' is the foreign key
+    }
+
+    public function branchRelation()
+    {
+        return $this->belongsTo(Branch::class,'branch_id');
     }
 
     public function hasAccess($module, $option)

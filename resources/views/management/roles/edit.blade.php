@@ -9,7 +9,7 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header text-center" style="padding:10px;">
-                            <a href="{{ route('roles.create') }}" class="btn btn-sm btn-default pull-left"> 
+                            <a href="{{ route('roles.index') }}" class="btn btn-sm btn-default pull-left"> 
                                 <span class="fas fa-arrow-left"></span> &nbsp;  برگشت به لست 
                             </a>
                             <span class="card-title pull-right"> ایجاد رول  </span>

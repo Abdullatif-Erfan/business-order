@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('full_name');
             $table->string('user_name', 100);
-            $table->string('email')->unique();
+            // $table->string('email')->unique();
+            $table->string('email')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->tinyInteger('roleId');
+            $table->foreignId('branch_id');
             $table->tinyInteger('isAdmin')->default(2);
             $table->tinyInteger('isDeleted')->default(0);
             $table->integer('isHidden')->default(0);

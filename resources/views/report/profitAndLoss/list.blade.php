@@ -31,7 +31,7 @@
                 <div class="col-md-12 mt-3">
                     <div class="card">
                         <div class="card-header" style="padding:10px">
-                            <h4 class="card-title">  مفاد و ضرر 
+                            <h4 class="card-title">  گزارش عمومی از بخش های مهم سیستم 
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                             </h4>
                         </div>

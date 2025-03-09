@@ -83,15 +83,15 @@
                                 <div class="col-md-4">
                                     <div class="card border-warning shadow-sm">
                                         <div class="card-header bg-custom-grey">
-                                            <h6 class="mb-0 font-bold">🏦 گزارش خزانه</h6>
+                                            <h6 class="mb-0 font-bold">🏦 گزارش عمومی</h6>
                                         </div>
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
-                                                <li class="list-group-item">
+                                                <!-- <li class="list-group-item">
                                                     <a target="_blank" href="#">📜 سهم سهامداران</a>
-                                                </li>
+                                                </li> -->
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('profitloss.index') }}">💹 مفاد و ضرر</a>
+                                                    <a target="_blank" href="{{ route('profitloss.index') }}">💹  گزارش عمومی </a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     .
