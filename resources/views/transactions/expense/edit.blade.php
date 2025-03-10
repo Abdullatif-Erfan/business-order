@@ -68,14 +68,14 @@
 
                                         <!-- Row:2 - Col:1  -->
                                         <div class="col-md-4">
-                                        <label for="">  نوع مصارف</label>
+                                        <label for="">  نوع مصارف  </label>
                                             <div class="form-group">
                                                 <span class="typing-effect" id="dynamic_type"></span>
                                                 <select class="form-control select2" name="dynamic_type" required>
                                                     <option value=""> انتخاب نوع مصارف</option>
                                                     @foreach($expenseTypes as $type)
                                                         <option value="{{ $type->id }}" 
-                                                            {{ $expense->first()->dynamic_type == $type->id ? 'selected' : '' }}>
+                                                            {{ $expense->dynamic_type == $type->id ? 'selected' : '' }}>
                                                             {{ $type->name }}
                                                         </option>
                                                     @endforeach

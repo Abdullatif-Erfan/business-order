@@ -1,21 +1,6 @@
 @php
     $base_url = url('/');
     $packageId = \App\Helpers\ManagementHelper::activePackageId();
-    $user = auth()->user();
-    $isAdmin = $user->isAdmin == 1;
-    $permissions = [
-        'settings' => $user->hasAccess('settings', 'list'),
-        'rates' => $user->hasAccess('rates', 'list'),
-        'journal' => $user->hasAccess('journal', 'list'),
-        'income' => $user->hasAccess('income', 'list'),
-        'expense' => $user->hasAccess('expense', 'list'),
-        'hr' => $user->hasAccess('hr', 'list'),
-        'buy' => $user->hasAccess('buy', 'list'),
-        'gudam' => $user->hasAccess('gudam', 'list'),
-        'sales' => $user->hasAccess('sales', 'list'),
-        'clearance' => $user->hasAccess('clearance', 'list'),
-        'reports' => $user->hasAccess('reports', 'list'),
-    ];
 @endphp
 
 <div class="sidebar sidebar-style-2">
@@ -25,20 +10,22 @@
                 <div class="avatar-sm float-left float_dr float_en mr-2 avatar avatar-online">
                     @if(auth()->check())
                         @php
-                            $userImage = $user->photo;
+                            $userId = auth()->id();
+                            $userImage = auth()->user()->photo;
                             $imagePath = !empty($userImage) && file_exists(storage_path('app/public/' . $userImage))
                                 ? asset('storage/' . $userImage)
                                 : asset('storage/user_photos/no_image.png');
                         @endphp
-                        <img src="{{ $imagePath }}"  class="avatar-img rounded-circle">
+                        <img src="{{ $imagePath }}" alt="User ID: {{ $userId }}" class="avatar-img rounded-circle">
+                        <p class="mt-2 text-center">User ID: {{ $userId }}</p>
                     @endif
                 </div>
 
                 <div class="info">
                     <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
                         <span>
-                            {{ $user->full_name ?? '' }}
-                            <span class="user-level">{{ $user->user_name ?? '' }}</span>
+                            {{ auth()->user()->full_name ?? '' }}
+                            <span class="user-level">{{ auth()->user()->user_name ?? '' }}</span>
                             <!-- <span class="caret"></span> -->
                         </span>
                     </a>
@@ -53,7 +40,7 @@
                     </a>
                 </li>
 
-                @if($permissions['settings'] || $isAdmin)
+                @if(auth()->user()->hasAccess('settings', 'list'))
                     <li class="nav-item">
                         <a href="{{ route('setting') }}">
                             <i class="fas fa-cog"></i>
@@ -62,14 +49,13 @@
                     </li>
                 @endif
 
-                @if($permissions['rates'] || $isAdmin)
                     <li class="nav-item">
                         <a href="{{ route('rate.index') }}">
                             <i class="fas fa-percent"></i>
                             <p> نرخ ارزها</p>
                         </a>
                     </li>
-                 @endif
+
 
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#journal">
@@ -79,27 +65,21 @@
                         </a>
                         <div class="collapse" id="journal">
                             <ul class="nav nav-collapse">
-                                @if($permissions['journal'] || $isAdmin)
                                 <li>
                                     <a href="{{ route('journal.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> روزنامچه  </span>
                                     </a>
                                 </li>
-                                @endif
-                                @if($permissions['income'] || $isAdmin)
                                 <li>
                                     <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> عواید </span>
                                     </a>
                                 </li>
-                                @endif
-                                @if($permissions['expense'] || $isAdmin)
                                 <li>
                                     <a href="{{ route('expense.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> مصارف</span>
                                     </a>
                                 </li>
-                                @endif
                                 <!-- <li>
                                     <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> سهم سهامداران</span>
@@ -110,7 +90,6 @@
                     </li>
 
 
-                    @if($permissions['hr'] || $isAdmin)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#hr">
                           <i class="fas fa-users"></i>
@@ -142,9 +121,8 @@
                             </ul>
                         </div>
                     </li>
-                    @endif
 
-                    @if($permissions['buy'] || $isAdmin)
+                @if(auth()->user()->hasAccess('gen_buy', 'list') && $packageId >= 1)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#buy-chicken">
                             <i class="fas fa-cart-arrow-down"></i>
@@ -174,7 +152,7 @@
                 @endif
 
 
-                @if($permissions['gudam'] || $isAdmin)
+                @if(auth()->user()->hasAccess('gudam', 'list') && $packageId >= 1)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#items">
                             <i class="fas fa-luggage-cart"></i>
@@ -201,7 +179,7 @@
                     </li>
                 @endif
 
-                @if($permissions['sales'] || $isAdmin)
+                @if(auth()->user()->hasAccess('sales', 'list') && $packageId >= 1)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#selling">
                             <i class="fas fa-file-upload"></i>
@@ -225,7 +203,7 @@
                     </li>
                 @endif
 
-                @if($permissions['clearance'] || $isAdmin)
+
                 <li class="nav-item">
                         <a data-toggle="collapse" href="#clearance">
                             <i class="fas fa-file-invoice-dollar"></i>
@@ -247,7 +225,6 @@
                             </ul>
                         </div>
                     </li>
-                @endif
 
                     <!-- <li class="nav-item">
                         <a data-toggle="collapse" href="#reports">
@@ -271,17 +248,15 @@
                         </div>
                     </li> -->
 
-                    @if($permissions['reports'] || $isAdmin)
                     <li class="nav-item">
                         <a href="{{ route('reports.home') }}">
                             <i class="fas fa-list-ol"></i>
                             <p> گزارشات</p>
                         </a>
                     </li>
-                    @endif
 
 
-                    @if( $isAdmin)
+                @if(auth()->user()->hasAccess('users', 'list') || auth()->user()->isAdmin)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
                             <i class="fas fa-users"></i>
@@ -303,16 +278,16 @@
                             </ul>
                         </div>
                     </li>
+                @endif
 
+                @if(!empty($packageId))
                     <li class="nav-item">
                         <a href="{{ route('backups.index') }}">
                             <i class="fas fa-database"></i>
                             <p> نسخه پشتبان</p>
                         </a>
                     </li>
-                 @endif 
-
-    
+                @endif
             </ul>
         </div>
     </div>

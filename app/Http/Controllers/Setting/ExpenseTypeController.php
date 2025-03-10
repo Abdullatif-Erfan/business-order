@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Setting\ExpenseType;
+use App\Models\Transaction\Journal;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseTypeController extends Controller
@@ -71,6 +74,7 @@ class ExpenseTypeController extends Controller
         // Create new unit
         ExpenseType::create([
             'name' => $validated['name'],
+            'user_id' => auth()->user()->id ?? 0
         ]);
 
         // Return success response
@@ -83,11 +87,22 @@ class ExpenseTypeController extends Controller
      */
     public function show(string $id)
     {   
-        $expenseType = ExpenseType::where('id',$id)->first(); 
+        $user = auth()->user();
+        $isAdmin = $user->isAdmin == 1; 
+        $user_id = $user->id;
+        if($isAdmin)
+        {
+            $expenseType = ExpenseType::where('id',$id)->first(); 
+        } 
+        else 
+        {
+            $expenseType = ExpenseType::where('id',$id)->where('user_id',$user_id)->first(); 
+        }
+
         if($expenseType) {
              return view('settings.expense_type.editForm',compact('expenseType'));
-         }
-        return response()->json(['message' => 'یافت نگردید'],404);
+        }
+        return response()->json(['message' => 'صلاحیت ویرایش معلومات دیگران را ندارید'],404);
     }
 
 
@@ -128,12 +143,49 @@ class ExpenseTypeController extends Controller
      */
     public function destroy($id)
     {
-        $expenseType = ExpenseType::findOrFail($id);
-        if($expenseType) 
+        DB::beginTransaction();
+        try 
         {
+            $expenseType = ExpenseType::findOrFail($id);
+    
+            // Check if account exists before accessing properties
+            if (!$expenseType) {
+                return response()->json([
+                    'status' => 'failed', 
+                    'message' => ' یافت نگردید'
+                ]);
+            }
+    
+            // Check if the account has related records
+            $journalRecordsExists = Journal::where('dynamic_type', $id)->exists();
+    
+            // If any record exists, prevent deletion
+            if ($journalRecordsExists ) {
+                return response()->json([
+                    'status' => 'failed', 
+                    'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد'
+                ]);
+            }
+    
+            // Delete the account
             $expenseType->delete();
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+    
+            DB::commit();
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'حساب موفقانه حذف گردید'
+            ]);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        return response()->json(['status' => 'failed', 'message' => ' حذف نگردید']);
+        
     }
+
+
 }

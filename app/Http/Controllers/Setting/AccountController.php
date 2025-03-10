@@ -20,6 +20,19 @@ use App\Models\Warehouse\WarehouseSales;
 
 class AccountController extends Controller
 {
+    protected $branch_id, $isAdmin;
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -36,11 +49,25 @@ class AccountController extends Controller
         // return response()->json($accounts);
         
         if ($request->ajax()) {
-            $accounts = Account::with('accountType')->select('id', 'account_type_id', 'name', 'phone', 'address', 'description')
-            ->orderBy('id', 'DESC');
+
+            if(!$this->isAdmin)
+            {
+                $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address', 'description')
+                ->where('accounts.branch_id', $this->branch_id)
+                ->orderBy('id', 'DESC');
+            } 
+            else 
+            {
+                $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address', 'description')
+                ->orderBy('id', 'DESC');
+            }
+
 
             return DataTables::eloquent($accounts)
                 ->addIndexColumn()
+                ->addColumn('branch_name', function ($account) {
+                    return $account->branchRelation ? $account->branchRelation->name : '-';
+                })
                 ->addColumn('account_type', function ($account) {
                     return $account->accountType ? $account->accountType->name : '-';
                 })
@@ -67,7 +94,7 @@ class AccountController extends Controller
     {
         $accountTypes = AccountType::select('id','name')->where('is_disabled',0)->get();
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         return view('settings.account.addForm', compact('accountTypes','currencies','branchs'));
     }
 
@@ -320,6 +347,7 @@ class AccountController extends Controller
 
             // Get default company_account_id
             $ownBanks = Account::where('account_type_id', 1)
+                ->where('branch_id', $this->branch_id)
                 ->orderBy('is_pre_select', 'DESC')
                 ->first();
 
@@ -447,6 +475,7 @@ class AccountController extends Controller
 
         $ownBanks = Account::where('account_type_id', 1)
             ->orderBy('is_pre_select', 'DESC')
+            ->where('branch_id',$this->branch_id)
             ->first();
 
         $default_account_id = $ownBanks->id ?? null;
@@ -477,10 +506,11 @@ class AccountController extends Controller
         $account = Account::find($id);
         $accountTypes = AccountType::select('id','name')->where('is_disabled',0)->get();
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
 
         $ownBanks = Account::where('account_type_id', 1)
             ->orderBy('is_pre_select', 'DESC')
+            ->where('branch_id', $this->branch_id)
             ->first();
 
         $default_account_id = $ownBanks->id ?? null;
@@ -540,9 +570,10 @@ class AccountController extends Controller
             
             // Get default company_account_id
             $ownBanks = Account::where('account_type_id', 1)
-            ->orderBy('is_pre_select', 'DESC')
-            ->first();
-            
+                ->where('branch_id', $this->branch_id)
+                ->orderBy('is_pre_select', 'DESC')
+                ->first();
+
             $from_account_id = $ownBanks->id ?? null;
             
             // Ensure there's a valid bank account
@@ -660,7 +691,7 @@ class AccountController extends Controller
 
 
             // Delete related journals by date (ignoring time precision issues)
-            Journal::whereDate('created_at', $account->created_at)->delete();
+            Journal::where('created_at', $account->created_at)->delete();
 
             // Delete the account
             $account->delete();
@@ -680,58 +711,4 @@ class AccountController extends Controller
             ], 500);
         }
     }
-
-    
-
-    // public function destroy($id)
-    // {
-
-    //     DB::beginTransaction();
-    //     try 
-    //     {
-    //         $account = Account::find($id);
-
-    //         // Check if account exists before accessing properties
-    //         if (!$account) {
-    //             return response()->json(['status' => 'failed', 'message' => 'حساب یافت نگردید']);
-    //         }
-
-    //         // // Check if the account has related records
-    //         // $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
-    //         // $boughtItemDetailsExists = BoughtItemDetails::where('customer_account_id', $id)->exists();
-    //         // $warehouseSalesExists = WarehouseSales::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
-
-    //         // // If any record exists, prevent deletion
-    //         // if ($boughtItemExists || $boughtItemDetailsExists || $warehouseSalesExists) {
-    //         //     return response()->json([
-    //         //         'status' => 'failed', 
-    //         //         'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد'
-    //         //     ]);
-    //         // }
-
-
-    //         $journals = Journal::where('times', $account->times);
-
-    //         // Check if any related journals exist and delete them
-    //         if ($journals->exists()) {
-    //             $journals->delete(); // Delete all related journal records
-    //         }
-
-    //         $account->delete();
-
-    //         DB::commit();
-    //         return response()->json(['status' => 'success', 'message' => 'حساب موفقانه ثبت گردید']);
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
-    //             'error' => $e->getMessage(),
-    //         ], 500);
-    //     }
-
-    // }
-
-
-    
 }

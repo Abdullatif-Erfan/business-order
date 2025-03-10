@@ -17,6 +17,22 @@ use Yajra\DataTables\Facades\DataTables;
 
 class EmployeeController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
+
     
     public function index(Request $request)
     {
@@ -39,6 +55,7 @@ class EmployeeController extends Controller
             $accounts = Account::with('salaryCurrency')
             ->select('id', 'account_type_id', 'name', 'phone', 'address', 'description','salary_currency','net_salary')
             ->where('account_type_id',$employee_account_type_id)
+            ->where('branch_id', $this->branch_id)
             ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($accounts)
@@ -69,7 +86,7 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         $currencies = Currency::all();
 
         return view('hr.employee.create', compact('branchs','currencies'));
@@ -120,7 +137,7 @@ class EmployeeController extends Controller
     {
       
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         $account = Account::findOrFail($id);
 
         if (!$account) {

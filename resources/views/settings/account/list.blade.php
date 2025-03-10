@@ -3,6 +3,7 @@
         <thead>
             <tr>
                 <th>شماره </th>
+                <th>شعبه</th>
                 <th> نوع حساب </th>										
                 <th>  نام حساب </th>										
                 <th>  شماره تماس </th>		
@@ -267,6 +268,7 @@ function fetchAccountList() {
             
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data:  'branch_name', name: 'branch_name' },
                 { data: 'account_type', name: 'account_type'},
                 { data: 'name', name: 'name'},
                 { data: 'phone', name: 'phone' },

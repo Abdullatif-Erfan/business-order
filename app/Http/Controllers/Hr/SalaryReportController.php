@@ -18,11 +18,27 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalaryReportController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
+
     public function index()
     {
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $employees = Account::select('id','name')->where('account_type_id',2)->get();
+        $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
         $months = array(
             '1' => 'حمل',
             '2' => 'ثور',
@@ -69,6 +85,7 @@ class SalaryReportController extends Controller
         ->where('journals.currency_id','=',$currency_id)
         ->where('journals.account_id','=',$account_id)
         ->where('journals.dynamic_type','=',1) // show just employee records
+        ->where('journals.branch_id', $this->branch_id)
         ->orderBy('id', 'DESC');
 
 

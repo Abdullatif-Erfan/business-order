@@ -144,7 +144,7 @@ class RoleController extends Controller
        $roleAccessMatrix = $this->getRoleAccessMatrix($roleId);
     //    $moduleList  = config('modules.moduleList');
 
-    //    return ['roleInfo' => $roleInfo];
+    //    return ['roleAccessMatrix' => $roleAccessMatrix, 'roleInfo' => $roleInfo];
     //    return ['roleInfo' => $roleInfo,'roleAccessMatrix' => $roleAccessMatrix,'moduleList' => $moduleList];
        return view('management.permission.list', compact('roleInfo', 'roleAccessMatrix','roleId'));
     }

@@ -38,7 +38,7 @@
                                                     <th>شماره</th>
                                                     <th>از</th>
                                                     <th>معادل</th>
-                                                    <th width="30%">عکس آن</th>
+                                                    <!-- <th width="30%">عکس آن</th> -->
                                                     <th>ویرایش</th>
                                                     <th>حذف</th>
                                                 </tr>
@@ -54,12 +54,12 @@
                                                             <label class="label success-label">{{ $rate->to_currency_amount }}</label>
                                                             {{ $rate->toCurrency->name ?? 'Unknown' }}
                                                         </td>
-                                                        <td>
+                                                        <!-- <td>
                                                             <label class="label success-label">1</label>
                                                             {{ $rate->toCurrency->name ?? 'Unknown' }}
                                                             <label class="label success-label">{{ $rate->reverse_amount }}</label>
                                                             {{ $rate->fromCurrency->name ?? 'Unknown' }}
-                                                        </td>
+                                                        </td> -->
                                                         <td>
                                                             <a href="#" data-toggle="modal" data-target="#editModal{{ $rate->id }}">
                                                                 <i class="fas fa-pen-square" style="font-size:20px;"></i>
@@ -95,24 +95,25 @@
                                                                                     </select>
                                                                                 </div>
                                                                                 <div class="form-group">
-                                                                                    <input class="form-control" id="to_currency_amount{{ $rate->id }}" name="to_currency_amount" type="number" step="0.00001" onkeyup="calculateReverseAmountEdit({{ $rate->id }})" required value="{{ $rate->to_currency_amount }}">
+                                                                                    <input class="form-control" id="to_currency_amount{{ $rate->id }}" name="to_currency_amount" 
+                                                                                    type="number" step="0.00001" onkeyup="calculateReverseAmountEdit({{ $rate->id }})" required value="{{ $rate->to_currency_amount }}">
                                                                                 </div>
                                                                                 <div class="form-group">
-                                                                                    <input class="form-control" id="reverse_amount{{ $rate->id }}" name="reverse_amount" type="text" required value="{{ $rate->reverse_amount }}">
+                                                                                    <input class="form-control" id="reverse_amount{{ $rate->id }}" name="reverse_amount" type="hidden" required value="{{ $rate->reverse_amount }}">
                                                                                 </div>
-                                                                                <div class="form-group">
+                                                                                <!-- <div class="form-group">
                                                                                     <select class="form-control" onchange="changePointsEdit(this.value, {{ $rate->id }})">
                                                                                         <option value="">تعداد خانه اعشاریه</option>
                                                                                         @for($i = 10; $i >= 1; $i--)
                                                                                             <option value="{{ $i }}">{{ $i }} خانه</option>
                                                                                         @endfor
                                                                                     </select>
-                                                                                </div>
+                                                                                </div> -->
                                                                                 <div class="modal-footer">
-                                                                                    <button type="button" class="btn btn-warning btn-sm" data-dismiss="modal">لغو</button>
-                                                                                    <button type="submit" class="btn btn-info btn-sm">
+                                                                                    <button type="submit" class="btn btn-info btn-sm m-l-10">
                                                                                         <span class="btn-label"><i class="fa fa-save"></i></span> ثبت
                                                                                     </button>
+                                                                                    <button type="button" class="btn btn-warning btn-sm" data-dismiss="modal">لغو</button>
                                                                                 </div>
                                                                             </form>
                                                                         </div>

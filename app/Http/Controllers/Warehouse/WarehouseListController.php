@@ -400,6 +400,7 @@ class WarehouseListController extends Controller
                     'wastage_amount' => $request->wastage_amount ?? 0,
                     'wastage_total' => $request->wastage_total ?? 0,
                     'unit_id' => $request->unit_id,
+                    'branch_id' => auth()->user()->branch_id ?? 0,
                     'bought_up' => $request->bought_up,
                     'avg_up' => $request->bought_up,
                     'sell_up' => $request->warehouse_sell_up[$index],

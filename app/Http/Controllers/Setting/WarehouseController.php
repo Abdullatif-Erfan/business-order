@@ -30,20 +30,20 @@ class WarehouseController extends Controller
 
         if ($request->ajax()) {
 
-            // if($sessionData['isAdmin']){
-                $warehouses = Warehouse::with('branch')->orderBy('id', 'DESC');
-            // } 
-            // else
-            //  {
-            //     $warehouses = Warehouse::with('branch')
-            //     ->whereHas('branch', function ($query) {
-            //         $query->where('id', $sessionData['branchId']); // Replace `1` with the desired branch ID
-            //     })
-            //     ->orderBy('id', 'DESC');
-            //  }
+            $user = auth()->user();
+            $branch_id = $user->branch_id ?? 0;
+            $isAdmin = $user->isAdmin == 1; 
 
-              // Get the first record ID
-              $firstRecordId = Warehouse::orderBy('id', 'ASC')->first()?->id; 
+            if(!$isAdmin)
+            {
+                $warehouses = Warehouse::with('branch')->where('branch_id',$branch_id)->orderBy('id', 'DESC');
+            } 
+            else 
+            {
+                $warehouses = Warehouse::with('branch')->orderBy('id', 'DESC');
+            }
+            
+                $firstRecordId = Warehouse::orderBy('id', 'ASC')->first()?->id; 
 
             return DataTables::eloquent($warehouses)
                 ->addIndexColumn()

@@ -21,16 +21,22 @@ use App\Services\NumberToWordsService;
 
 class JournalController extends Controller
 {
-
-    protected $messageService, $numberToWordsService;
+    protected $branch_id, $isAdmin, $numberToWordsService;
 
     // Inject the message service into the controller
-    public function __construct(
-        MessageService $messageService, 
-        NumberToWordsService $numberToWordsService)
+    public function __construct(NumberToWordsService $numberToWordsService)
     {
-        $this->messageService = $messageService;
         $this->numberToWordsService = $numberToWordsService;
+
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
     }
 
     /**
@@ -49,8 +55,11 @@ class JournalController extends Controller
 
         // return response()->json(['data' => $journals]);
 
+        // $user = auth()->user();
+        // $branch_id = $user->branch_id ?? 0;
+        // $this->branch_id = $branch_id;
 
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
 
@@ -64,6 +73,9 @@ class JournalController extends Controller
      */
     public function getData(Request $request)
     {
+        // $user = auth()->user();
+        // $branch_id = $user->branch_id ?? 0;
+
         /**
          * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
          */
@@ -75,6 +87,7 @@ class JournalController extends Controller
         // $journals = Journal::with(['accountRelation','currencyRelation'])
         ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','options','option_label','currency_id','details','inserted_short_date','status','times','is_single_record')
         // ->where('journals.status','<=',2)
+        ->where('journals.branch_id', $this->branch_id)
         ->orderBy('id', 'DESC');
 
 
@@ -102,7 +115,7 @@ class JournalController extends Controller
         }
         
          // check if searched_account_id is belongs to company accounts
-         $isCompanyAccount = Account::where('account_type_id', 1)->where('id', $request->account_id)->exists();
+         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->exists();
 
         return DataTables::of($journals)
             
@@ -202,9 +215,9 @@ class JournalController extends Controller
         // $query = $this->db->get('branch'); 		   
         // $data['branch'] = $query->result_array();
 
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
         return view('transactions.journals.create',compact('accounts','currencies','branchs','todaysDate'));

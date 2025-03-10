@@ -21,6 +21,11 @@ class Account extends Model
         return $this->belongsTo(AccountType::class,'account_type_id');
     }
 
+    public function branchRelation()
+    {
+        return $this->belongsTo(Branch::class,'branch_id');
+    }
+
     // an account has many journal
     // a journal is belongs to account
     public function journals()

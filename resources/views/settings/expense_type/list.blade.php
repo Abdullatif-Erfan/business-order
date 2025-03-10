@@ -146,9 +146,9 @@
     $('table').on('click', '.editExpenseType', function () {
         $('#EditExpenseTypeModal').modal('show');
         $('#loading_modal_expense_type').show();
-        const unitId = $(this).data('id');
+        const typeId = $(this).data('id');
         $.ajax({
-            url: `/etype/${unitId}`,
+            url: `/etype/${typeId}`,
             type: 'GET',
             success: (result) => {
                 $('#EditExpenseTypeFormWrapper').html(result);
@@ -159,7 +159,8 @@
             },
             error: () => {
                 $('#loading_modal_expense_type2').hide();
-                alert('اطلاعات یافت نشد');
+                $('#EditExpenseTypeModal').modal('hide');
+                alert('اطلاعات یافت نشد / عدم صلاحیت ویرایش ریکاردهای دیگران');
             }
         });
     });

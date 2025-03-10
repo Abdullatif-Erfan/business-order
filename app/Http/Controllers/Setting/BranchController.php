@@ -35,13 +35,17 @@ class BranchController extends Controller
         // return response()->json($branches);
         if($request->ajax())
         {
-            if(Session::get('isAdmin'))
+            $user = auth()->user();
+            $branch_id = $user->branch_id ?? 0;
+            $isAdmin = $user->isAdmin == 1; 
+
+            if(!$isAdmin)
             {
-                $branchs = Branch::query()->orderBy('id', 'DESC');
+                $branchs = Branch::query()->where('id',$branch_id)->orderBy('id', 'DESC');
             } 
             else 
             {
-                $branchs = Branch::query()->where('id',Session::get('branchId'))->orderBy('id', 'DESC');
+                $branchs = Branch::query()->orderBy('id', 'DESC');
             }
 
 
@@ -56,11 +60,11 @@ class BranchController extends Controller
             // Add Index Column
             ->addIndexColumn()
 
-            ->addColumn('edit', function($branch) {
-                return '<i class="fas fa-pen-square editBranch" data-id="'.$branch->id.'" style="font-size:20px;"></i>';
+            ->addColumn('edit', function($branch) use ($isAdmin) {
+                return $isAdmin ? '<i class="fas fa-pen-square editBranch" data-id="'.$branch->id.'" style="font-size:20px;"></i>': '';
             })
-            ->addColumn('delete', function($branch) {
-                return  $branch->is_disabled == 0 ? '<i class="fas fa-trash-alt deleteBranch" data-id="'.$branch->id.'" style="font-size:20px; color:red;"></i>' : '';
+            ->addColumn('delete', function($branch) use ($isAdmin) {
+                return $isAdmin && $branch->is_disabled == 0 ? '<i class="fas fa-trash-alt deleteBranch" data-id="'.$branch->id.'" style="font-size:20px; color:red;"></i>' : '';
             })
             ->rawColumns(['edit','delete'])
             ->make(true);

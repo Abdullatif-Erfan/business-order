@@ -5,7 +5,7 @@
         <div class="row">
           
            <div class="form-group col-sm-6">
-                <label for="account_type_id"> انتخاب نوع حساب </label>
+                <label for="account_type_id"> انتخاب نوع حساب  </label>
                 @if($account->accountType->is_disabled == 1)
                 <select class="form-control"  name="account_type_id"  required>
                     <option value="{{ $account->account_type_id }}">  {{ $account->accountType->name }} </option>
@@ -205,6 +205,7 @@
 $(document).ready(function () {
     // Run checkAccountTypeEdit on page load with the selected value
     var selectedAccountType = $('select[name="account_type_id"]').val();
+    // alert(selectedAccountType);
     checkAccountTypeEdit(selectedAccountType);
 });
 function checkAccountTypeEdit(account_type_id) {

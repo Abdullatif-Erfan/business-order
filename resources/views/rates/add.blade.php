@@ -69,14 +69,14 @@ function changePoints(value) {
 
                     <div class="col-md-3">
                         <div class="form-group">
-                            <input class="form-control" id="reverse_amount" placeholder="مبلغ عکس تبادله" name="reverse_amount" type="text" required readonly>
+                            <input class="form-control" id="reverse_amount" placeholder="مبلغ عکس تبادله" name="reverse_amount" type="hidden" required readonly>
                             @error('reverse_amount')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <!-- <div class="col-md-3">
                         <div class="form-group">
                             <select class="form-control select2" onchange="changePoints(this.value)" style="width:100%">
                                 <option value=""> تعداد خانه اعشاریه</option>
@@ -85,7 +85,7 @@ function changePoints(value) {
                                 @endfor
                             </select>
                         </div>
-                    </div>
+                    </div> -->
 
                     <div class="col-md-2 center m-t-10">
                         <button type="submit" class="btn btn-primary btn-sm">

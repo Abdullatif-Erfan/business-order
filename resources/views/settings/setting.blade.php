@@ -5,6 +5,14 @@
     $packageId = \App\Helpers\ManagementHelper::activePackageId();
 @endphp
 
+@php
+    $user = auth()->user();
+    $isAdmin = $user->isAdmin == 1;
+    $permissions = [
+        'settings' => $user->hasAccess('settings', 'create_records'),
+    ];
+@endphp
+
 @section('content')
 <!-- main content -->
 <div class="main-panel">
@@ -32,7 +40,7 @@
                                 <!-- branch -->
                                  <div id="branch" class="tab-pane fade in active">
                                       <br> 
-                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+                                      @if($isAdmin) 
 									       @include('settings.branch.add')
                                        @endif
 								       <br>
@@ -43,7 +51,7 @@
                                 <!-- warehouse -->
                                 <div id="warehouse" class="tab-pane fade">
                                     <br>
-                                    @if(auth()->user()->hasAccess('settings', 'create_records'))
+                                    @if($permissions['settings'] || $isAdmin)
                                         @if($packageId >= 2)
                                             @include('settings.warehouse.add')
                                         @endif
@@ -57,7 +65,7 @@
                                 <!-- unit -->
                                 <div id="unit" class="tab-pane fade"> 
                                        <br> 
-                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+                                       @if($permissions['settings'] || $isAdmin)
 									       @include('settings.unit.add')
                                         @endif
 								       <br>  
@@ -68,7 +76,7 @@
                               <!-- currency -->
                               <div id="currency" class="tab-pane fade">
                                     <br> 
-                                    @if(auth()->user()->hasAccess('settings','create_records')) 
+                                    @if($permissions['settings'] || $isAdmin)
 									    @include('settings.currency.add')
                                     @endif
                                     <br>  
@@ -79,7 +87,7 @@
                                <!-- account -->
                                 <div id="account" class="tab-pane fade">
                                    <br> 
-                                    @if(auth()->user()->hasAccess('settings','create_records')) 
+                                   @if($permissions['settings'] || $isAdmin)
 									    @include('settings.account.add')
                                     @endif
                                     <br>  
@@ -90,7 +98,7 @@
                                 <!-- income_type -->
                                 <div id="income_type" class="tab-pane fade"> 
                                        <br> 
-                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+                                       @if($permissions['settings'] || $isAdmin)
 									       @include('settings.income_type.add')
                                         @endif
 								       <br>  
@@ -102,7 +110,7 @@
                                 <!-- expense_type -->
                                 <div id="expense_type" class="tab-pane fade"> 
                                        <br> 
-                                       @if(auth()->user()->hasAccess('settings','create_records')) 
+                                       @if($permissions['settings'] || $isAdmin) 
 									       @include('settings.expense_type.add')
                                         @endif
 								       <br>  
@@ -113,7 +121,7 @@
                                 <!-- company_profile -->
                                  <div id="company_profile" class="tab-pane fade"> 
                                        <br> 
-                                        @if(auth()->user()->hasAccess('settings','list')) 
+                                       @if($isAdmin)
                                           @include('settings.organization.list')      
                                         @endif
 								</div>

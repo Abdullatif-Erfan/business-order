@@ -77,15 +77,18 @@
                                             </td>
 
                                             <td>
-                                                <input type="checkbox" name="access[{{ $record['module'] }}][total_access]" {{ isset($matrix['total_access']) && $matrix['total_access'] == 1 ? 'checked' : '' }} />
+                                                <input type="checkbox" name="access[{{ $record['module'] }}][total_access]" 
+                                                {{ isset($matrix['total_access']) && $matrix['total_access'] == 1 ? 'checked' : '' }} />
                                             </td>
 
                                             <td>
-                                                <input type="checkbox" name="access[{{ $record['module'] }}][list]" {{ isset($matrix['list']) && $matrix['list'] == 1 ? 'checked' : '' }} />
+                                                <input type="checkbox" name="access[{{ $record['module'] }}][list]" 
+                                                {{ isset($matrix['list']) && $matrix['list'] == 1 ? 'checked' : '' }} />
                                             </td>
 
                                             <td>
-                                                <input type="checkbox" name="access[{{ $record['module'] }}][create_records]" {{ isset($matrix['create_records']) && $matrix['create_records'] == 1 ? 'checked' : '' }} />
+                                                <input type="checkbox" name="access[{{ $record['module'] }}][create_records]" 
+                                                {{ isset($matrix['create_records']) && $matrix['create_records'] == 1 ? 'checked' : '' }} />
                                             </td>
 
                                             <td>

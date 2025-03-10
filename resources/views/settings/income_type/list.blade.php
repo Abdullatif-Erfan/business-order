@@ -159,7 +159,8 @@
             },
             error: () => {
                 $('#loading_modal_income_type2').hide();
-                alert('اطلاعات یافت نشد');
+                $('#EditIncomeTypeModal').modal('hide');
+                alert('اطلاعات یافت نشد / عدم صلاحیت ویرایش ریکاردهای دیگران');
             }
         });
     });

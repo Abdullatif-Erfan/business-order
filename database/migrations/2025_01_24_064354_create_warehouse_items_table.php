@@ -22,6 +22,7 @@ return new class extends Migration
             $table->double('wastage_amount')->nullable();
             $table->double('wastage_total')->nullable();
             $table->foreignId('unit_id');
+            $table->foreignId('branch_id');
             $table->double('bought_up')->nullable()->comment('buy unit price');
             $table->double('avg_up')->nullable()->comment('average unit price');
             $table->double('sell_up')->nullable()->comment('selling unit price');

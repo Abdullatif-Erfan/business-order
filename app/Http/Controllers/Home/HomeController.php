@@ -29,6 +29,18 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
+        // $accessInfo = Session::get('accessInfo', []);
+        // return ['accessInfo' => $accessInfo];
+
+        //  $auth = auth()->user();
+        // return ['auth' => $auth];
+        $branch_id = auth()->user()->branch_id;
+
+        if(!$branch_id)
+        {
+            return redirect()->route('login');
+        }
+
         $data['year'] = $request->input('year') ?? Jalalian::now()->format('Y');
         $data['month'] = $request->input('month') ?? Jalalian::now()->format('n');
         $data['day'] = $request->input('day') ?? Jalalian::now()->format('d');
@@ -55,17 +67,17 @@ class HomeController extends Controller
         $orgBio = OrgBio::first();
 
         // first tab
-        $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id']);
-        $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id']);
-        $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id']);
+        $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
         // return ['data' => $data];
 
         // Second Tab
-        $secondTab = $this->getSecondTabReport($data['year'],$data['currency_id']);
+        $secondTab = $this->getSecondTabReport($data['year'],$data['currency_id'],$branch_id);
         // return ['secondTab', $secondTab];
 
         // Third Tab
-        $thirdTab = $this->getCashInHandAmount($data['year'],$data['month'],$data['day']);
+        $thirdTab = $this->getCashInHandAmount($data['year'],$data['month'],$data['day'],$branch_id);
         // $thirdTab = $this->getCashInHandAmount($data['year'],100,100);
         // return ['thirdTab', $thirdTab];
 
@@ -137,7 +149,7 @@ class HomeController extends Controller
 
 
     // ----------------- re-usable functions ------------
-    function getTodaysSoldIncome($year, $month, $day, $currency_id)
+    function getTodaysSoldIncome($year, $month, $day, $currency_id, $branch_id)
     {
         $todays_soled = WarehouseSales::selectRaw('SUM(total_price) as total_price, SUM(total_discount) as total_discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained')
         ->where('year', '=', $year)
@@ -148,19 +160,23 @@ class HomeController extends Controller
             return $query->where('day', '=', $day);
         })
         ->where('currency_id', '=', $currency_id)
+        ->where('branch_id', '=', $branch_id)
         ->first();
 
-        $todays_sold_profits = SalesDetails::whereHas('warehouseSale', function ($query) use ($currency_id, $year, $month, $day) {
-                $query->where('currency_id', $currency_id)
-                    ->where('year', $year)
-                    ->when($month != 100, function ($query) use ($month) {
-                        return $query->where('month', $month);
-                    })
-                    ->when($day != 100, function ($query) use ($day) {
-                        return $query->where('day', $day);
-                    });
-            })
-            ->sum('profit');
+        $todays_sold_profits = SalesDetails::where('branch_id', $branch_id) // Ensure branch_id is directly filtered in SalesDetails
+        ->whereHas('warehouseSale', function ($query) use ($currency_id, $year, $month, $day) {
+            $query->where('currency_id', $currency_id)
+                ->when($year, function ($query) use ($year) {
+                    return $query->where('year', $year);
+                })
+                ->when($month != 100, function ($query) use ($month) {
+                    return $query->where('month', $month);
+                })
+                ->when($day != 100, function ($query) use ($day) {
+                    return $query->where('day', $day);
+                });
+        })
+        ->sum('profit');
 
         return [
             'total_price'     => $todays_soled->total_price ?? 0,
@@ -173,7 +189,7 @@ class HomeController extends Controller
 
     }
 
-    function getTodaysBoughtData($year, $month, $day, $currency_id)
+    function getTodaysBoughtData($year, $month, $day, $currency_id, $branch_id)
     {
         $todays_bought = BoughtItem::selectRaw('SUM(total_price) as total_price, SUM(discount) as discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained, SUM(trans_spend) as trans_spend')
             ->where('year', '=', $year)
@@ -184,6 +200,7 @@ class HomeController extends Controller
                 return $query->where('day', '=', $day);
             })
             ->where('currency_id', '=', $currency_id)
+            ->where('branch_id', '=', $branch_id)
             ->first();
     
         return [
@@ -198,7 +215,7 @@ class HomeController extends Controller
     
 
 
-    function getCashIncomeOutcome($year, $month, $day, $currency_id)
+    function getCashIncomeOutcome($year, $month, $day, $currency_id,$branch_id)
     {
         $company_account_type_id = 1;
     
@@ -221,6 +238,7 @@ class HomeController extends Controller
                 return $query->where('journals.day', '=', $day);
             })
             ->where('journals.currency_id', '=', $currency_id)
+            ->where('journals.branch_id', '=', $branch_id)
             ->where('journals.is_cleared', '=', 0)
             ->first();
     
@@ -235,7 +253,7 @@ class HomeController extends Controller
 
 
     // --------------------- SECOND TAB ---------------------------
-    function getSecondTabReport($year, $currency_id)
+    function getSecondTabReport($year, $currency_id, $branch_id)
     {
         $company_account_type_id = 1; // صرف خزانه شرکت
         $banks_account_type_id = 6; //   صرافی و بانک ها
@@ -245,6 +263,7 @@ class HomeController extends Controller
         $total_warehouse_value = DB::table('warehouse_items')
             ->where('year', $year)
             ->where('currency_id', $currency_id)
+            ->where('branch_id', '=', $branch_id)
             ->selectRaw('SUM(available_amount * avg_up) as total_value, SUM(wastage_total) as total_wastage')
             ->first();
         
@@ -265,11 +284,12 @@ class HomeController extends Controller
             ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id]) // ✅ Fixes issue
             ->where('journals.year', '=', $year)
             ->where('journals.currency_id', '=', $currency_id)
+            ->where('journals.branch_id', '=', $branch_id)
             ->where('journals.is_cleared', '=', 0)
             ->first();
 
         // مفاد فروشات سالانه
-        $sold_profits = SalesDetails::whereHas('warehouseSale', function ($query) use ($currency_id, $year) {
+        $sold_profits = SalesDetails::where('branch_id', $branch_id)->whereHas('warehouseSale', function ($query) use ($currency_id, $year) {
             $query->where('currency_id', $currency_id)->where('year', $year);
         })->sum('profit');
 
@@ -287,7 +307,7 @@ class HomeController extends Controller
 
 
     // ----------------- THIRD TAB ----------------
-    function getCashInHandAmount($year, $month, $day)
+    function getCashInHandAmount($year, $month, $day, $branch_id)
     {
         // day 17 => search where days <= 16
         $last_day = $day - 1;
@@ -314,6 +334,7 @@ class HomeController extends Controller
             ->when($month != 100, function ($query) use ($month) {
                 return $query->where('journals.month', $month);
             })
+            ->where('journals.branch_id', '=', $branch_id)
             ->where('journals.day', '<=', $day)
             ->groupBy('journals.currency_id')
             ->get();

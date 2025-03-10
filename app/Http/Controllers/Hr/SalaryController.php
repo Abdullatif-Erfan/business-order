@@ -18,9 +18,25 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalaryController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
+
     public function index()
     {
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $months = array(
@@ -57,6 +73,7 @@ class SalaryController extends Controller
         ->select('id','code','bill_no','amount','account_id','currency_id','details','year','month','inserted_short_date','status','times')
         ->where('journals.status','=',5)
         ->where('journals.dynamic_type','=',1) // show just employee records
+        ->where('journals.branch_id', $this->branch_id)
         ->orderBy('id', 'DESC');
 
 
@@ -136,8 +153,8 @@ class SalaryController extends Controller
         // $query = $this->db->get('branch'); 		   
         // $data['branch'] = $query->result_array();
 
-        $employees = Account::select('id','name')->where('account_type_id',2)->get();
-        $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
+        $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
         if(!$ownBanks) {
             return "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ";
@@ -160,7 +177,7 @@ class SalaryController extends Controller
         );
 
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $cur_year = Jalalian::now()->format('Y');
         $cur_month = Jalalian::now()->format('n');
@@ -284,9 +301,9 @@ class SalaryController extends Controller
      */
     public function edit(string $id)
     {
+        $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
-        $employees = Account::select('id','name')->where('account_type_id',2)->get();
-        $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
 
         if(!$ownBanks) {
             return "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ";
@@ -313,7 +330,7 @@ class SalaryController extends Controller
         $cur_year = Jalalian::now()->format('Y');
         $cur_month = Jalalian::now()->format('n');
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
 
         $salary = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('id', $id)

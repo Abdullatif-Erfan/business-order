@@ -94,7 +94,8 @@ class LoginController extends Controller
 
             // Session::put('lang', 'dr');
             // Authenticate the user using Laravel's auth system
-            auth()->login($user);
+            // auth()->login($user);
+            Auth::guard('web')->login($user);
             return redirect()->route('home');
         } else {
             Session::flash('failed', 'failed');
@@ -220,20 +221,20 @@ class LoginController extends Controller
      */
     public function relogin($userId)
     {
-        $user = User::find($userId);
+        $user = User::with('roleRelationName')->find($userId);
 
         if ($user) {
-            if ($user->isAdmin != 1 && ($user->role->status == 2 || $user->role->isDeleted == 1)) {
+            if ($user->isAdmin != 1 && ($user->roleRelationName->status == 2 || $user->roleRelationName->isDeleted == 1)) {
                 abort(403, "The role doesn't exist or is inactive");
             }
 
-            $accessInfo = $this->accessInfo($user->role_id);
+            $accessInfo = $this->accessInfo($user->roleId);
 
             Session::put([
                 'userId' => $user->id,
-                'role' => $user->role_id,
-                'roleText' => $user->role->name,
-                'name' => $user->name,
+                'role' => $user->roleId,
+                'roleText' => $user->roleRelationName->name,
+                'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
@@ -241,7 +242,10 @@ class LoginController extends Controller
 
             // Session::put('lang', 'dr');
             // Session::put('comein', 'business@kawoshgaran');
-
+            // Authenticate the user
+            // Auth::login($user);
+            //  auth()->login($user);
+            Auth::guard('web')->login($user);
             return redirect()->route('home');
         } else {
             abort(403, "The role doesn't exist or is inactive");

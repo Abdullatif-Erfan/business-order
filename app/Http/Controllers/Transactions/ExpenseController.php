@@ -15,15 +15,29 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Morilog\Jalali\Jalalian;
 use Yajra\DataTables\Facades\DataTables;
-use App\Services\NumberToWordsService;
 
 class ExpenseController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
 
     public function index()
     {
         $types = ExpenseType::all();
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         return view('transactions.expense.list',compact('accounts','currencies','orgbios','types'));
@@ -47,6 +61,7 @@ class ExpenseController extends Controller
         // $expenses = Journal::with(['accountRelation','currencyRelation','expenseTypeRelation'])
         ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','currency_id','details','inserted_short_date','status','times','is_single_record','dynamic_type','doc')
         ->where('journals.status','=',4)
+        ->where('journals.branch_id', $this->branch_id)
         ->orderBy('id', 'DESC');
 
 
@@ -149,8 +164,8 @@ class ExpenseController extends Controller
 
 
         $expenseTypes = ExpenseType::all();
-        $customers = Account::select('id','name')->where('account_type_id','>',1)->get();
-        $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
         if(!$ownBanks) {
             return "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ";
@@ -158,7 +173,7 @@ class ExpenseController extends Controller
         }
 
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
         return view('transactions.expense.create',compact('customers','ownBanks','currencies','branchs','todaysDate','expenseTypes'));
@@ -261,7 +276,7 @@ class ExpenseController extends Controller
     {
         $expenseTypes = ExpenseType::all();
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
 
         $expense = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('id', $id)

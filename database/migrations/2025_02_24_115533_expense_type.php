@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('expense_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->integer('user_id')->nullable();
             $table->timestamps();
         });
     }
