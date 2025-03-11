@@ -17,6 +17,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
+    protected $branch_id, $isAdmin;
+    public function __construct()
+    {
+        if (auth()->check()) {
+            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
+            $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
 
     public function createUser()
     {
@@ -53,8 +64,14 @@ class UserController extends Controller
     public function getData(Request $request)
     {
           
-            
-          $users = User::with(['roleRelationName','branchRelation'])->orderBy('created_at','DESC');
+          if($this->isAdmin)
+          {
+              $users = User::with(['roleRelationName','branchRelation'])->orderBy('created_at','DESC');
+          }
+          else 
+          {
+             $users = User::with(['roleRelationName','branchRelation'])->where('branch_id', $this->branch_id)->orderBy('created_at','DESC');
+          }
            
             
             return DataTables::of($users->get())
@@ -75,8 +92,8 @@ class UserController extends Controller
             })
 
             ->addColumn('relogin', function ($user) {
-                return '<a href="login/relogin/'.$user->id.'" class="hidden-print"><i class="fas fa-retweet" 
-                data-id="' . $user->id . '" style="font-size:20px;"></i></a>'; 
+                return $this->isAdmin ? '<a href="login/relogin/'.$user->id.'" class="hidden-print"><i class="fas fa-retweet" 
+                data-id="' . $user->id . '" style="font-size:20px;"></i></a>' : ''; 
             })
 
             ->addColumn('edit', function ($user) {
@@ -85,8 +102,8 @@ class UserController extends Controller
             })
 
             ->addColumn('delete', function ($user) {
-                return '<a href="user/delete/'.$user->id.'" onclick="doConfirm()" class="hidden-print"><i class="fa fa-trash" 
-                data-id="' . $user->id . '" style="font-size:20px; color:red"></i></a>'; 
+                return $this->isAdmin ? '<a href="user/delete/'.$user->id.'" onclick="doConfirm()" class="hidden-print"><i class="fa fa-trash" 
+                data-id="' . $user->id . '" style="font-size:20px; color:red"></i></a>': ''; 
             })
             ->rawColumns(['photo','relogin','edit','delete'])
             ->make(true);
@@ -98,10 +115,16 @@ class UserController extends Controller
      */
     public function create()
     {
+        if(!$this->isAdmin)
+        {
+            echo "Just Admin can create user";
+            die();
+        }
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $branches = Branch::all();
-        return view('management.users.create',compact('roles','orgbios','branches'));
+        $isAdmin = $this->isAdmin ?? 0;
+        return view('management.users.create',compact('roles','orgbios','branches','isAdmin'));
     }
 
     /**
@@ -157,9 +180,10 @@ class UserController extends Controller
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $user = User::findOrFail($id);
-        $branches = Branch::all();
+        $branches = Branch::where('id', $this->branch_id)->get();
+        $isAdmin = $this->isAdmin ?? 0;
 
-        return view('management.users.edit',compact('roles','orgbios','user','branches'));
+        return view('management.users.edit',compact('roles','orgbios','user','branches','isAdmin'));
     }
 
     /**
@@ -168,54 +192,58 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {  
         $id = $id ?? 0;
+
         // Validate the incoming data
         $validated = $request->validate([
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name,' . $id,
             'email' => 'nullable|email|max:128|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6|max:20|confirmed',
-            'roleId' => 'required|exists:roles,roleId',
-            'branch_id' => 'required|exists:branches,id',
-            'isAdmin' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
-    
+
         // Find the user
         $user = User::findOrFail($id);
-    
-        // Update the user data
-        $user->full_name = $request->input('full_name');
-        $user->user_name = $request->input('user_name');
-        $user->email = $request->input('email');
-        $user->roleId = $request->input('roleId');
-        $user->isAdmin = $request->input('isAdmin');
-        $user->branch_id = $validated['branch_id'];
-    
+
+        // Update only allowed fields
+        $user->full_name = $validated['full_name'];
+        $user->user_name = $validated['user_name'];
+        $user->email = $validated['email'] ?? $user->email;
+
+        // Only an admin can update these fields
+        if (auth()->user()->isAdmin) {
+            $validatedAdminFields = $request->validate([
+                'roleId' => 'nullable|exists:roles,roleId',
+                'branch_id' => 'nullable|exists:branches,id',
+                'isAdmin' => 'nullable|boolean',
+            ]);
+
+            $user->roleId = $validatedAdminFields['roleId'] ?? $user->roleId;
+            $user->branch_id = $validatedAdminFields['branch_id'] ?? $user->branch_id;
+            $user->isAdmin = $validatedAdminFields['isAdmin'] ?? $user->isAdmin;
+        }
+
         // Update password if provided
-        if ($request->filled('password')) 
-        {
+        if ($request->filled('password')) {
             $user->password = Hash::make($request->input('password'));
         }
-    
+
         // Handle photo upload
-       
         if ($request->hasFile('photo')) {
-            // Delete the old photo if it exists
             if ($user->photo && Storage::exists('public/user_photos/' . $user->photo)) {
                 Storage::delete('public/user_photos/' . $user->photo);
             }
-        
+
             $user->photo = $request->file('photo')->store('user_photos', 'public');
         }
-
 
         // Save the updated user data
         $user->save();
 
         Session::flash('notification', ['message' => 'موفقانه ویرایش گردید', 'type' => 'success']);
         return redirect()->route('user.index');
-
     }
+
     
 
     /**

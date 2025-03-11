@@ -37,7 +37,9 @@ Route::post('/loginMe',[LoginController::class,'loginMe'])->name('loginMe');
 Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('login.logout',[LoginController::class,'logout'])->name('login.logout');
-    Route::get('login/relogin/{id}',[LoginController::class,'relogin'])->name('login.relogin')->middleware('access:users,list');;
+    Route::get('login/relogin/{id}',[LoginController::class,'relogin'])->name('login.relogin')->middleware('access:users,list');
+    Route::post('login/changeBranch',[LoginController::class,'changeBranch'])->name('login.changeBranch');
+
 
     Route::prefix('roles')->group(function() {
         Route::get('/', [RoleController::class, 'index'])->name('roles.index')->middleware('access:users,list');

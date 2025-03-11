@@ -23,11 +23,9 @@ class AccountController extends Controller
     protected $branch_id, $isAdmin;
     public function __construct()
     {
-        // Ensure user authentication before setting the branch ID
         if (auth()->check()) {
-            $user = auth()->user();
-            $this->branch_id = $user->branch_id ?? 0;
-            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
+            $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
             $this->branch_id = 0;
             $this->isAdmin = false;

@@ -19,15 +19,11 @@ use Yajra\DataTables\Facades\DataTables;
 class IncomeController extends Controller
 {
     protected $branch_id, $isAdmin;
-
-    // Inject the message service into the controller
     public function __construct()
     {
-        // Ensure user authentication before setting the branch ID
         if (auth()->check()) {
-            $user = auth()->user();
-            $this->branch_id = $user->branch_id ?? 0;
-            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
+            $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
             $this->branch_id = 0;
             $this->isAdmin = false;
@@ -79,8 +75,12 @@ class IncomeController extends Controller
         // $incomes = Journal::with(['accountRelation','currencyRelation','incomeTypeRelation'])
         ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','currency_id','details','inserted_short_date','status','times','is_single_record','dynamic_type','doc')
         ->where('journals.status','=',3)
-        ->where('journals.branch_id', $this->branch_id)
+        ->whereHas('accountRelation', function($query) {
+            $query->where('branch_id', $this->branch_id);
+        })
         ->orderBy('id', 'DESC');
+
+
 
 
         // Apply filters if provided

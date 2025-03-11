@@ -282,7 +282,7 @@
                     @endif
 
 
-                    @if($isAdmin)
+                   
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
                             <i class="fas fa-users"></i>
@@ -291,11 +291,14 @@
                         </a>
                         <div class="collapse" id="user">
                             <ul class="nav nav-collapse">
+                                @if($isAdmin)
                                 <li>
                                     <a href="{{ route('roles.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> رول</span>
                                     </a>
                                 </li>
+                                @endif
+                                
                                 <li>
                                     <a href="{{ route('user.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> کاربران</span>
@@ -304,7 +307,9 @@
                             </ul>
                         </div>
                     </li>
+                
 
+                @if($isAdmin)
                     <li class="nav-item">
                         <a href="{{ route('backups.index') }}">
                             <i class="fas fa-database"></i>

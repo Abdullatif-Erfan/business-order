@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cookie; 
 use Illuminate\Support\Facades\Crypt; 
 use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; 
 use Illuminate\Http\Request; 
 use Illuminate\Support\Facades\Auth; 
@@ -88,6 +89,7 @@ class LoginController extends Controller
                 'roleText' => $user->roleRelationName->role,
                 'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
+                'branch_id' => $user->branch_id,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
             ]);
@@ -236,6 +238,7 @@ class LoginController extends Controller
                 'roleText' => $user->roleRelationName->name,
                 'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
+                'branch_id' => $user->branch_id,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
             ]);
@@ -250,6 +253,20 @@ class LoginController extends Controller
         } else {
             abort(403, "The role doesn't exist or is inactive");
         }
+    }
+
+    public function changeBranch(Request $request)
+    {
+        $user = auth()->user();
+
+        // Set new branch_id and isAdmin in session
+       
+        // Set new branch_id and isAdmin in session
+        session()->put('branch_id', $request->branch_id);
+        // session()->put('isAdmin', 0);
+        session()->save(); // Force save session
+
+        return response()->json(['status' => 'success', 'message' => 'Branch changed successfully!']);
     }
 
     public function logout(Request $request)

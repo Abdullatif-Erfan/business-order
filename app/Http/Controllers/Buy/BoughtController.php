@@ -14,6 +14,18 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BoughtController extends Controller
 {
+
+    protected $branch_id, $isAdmin;
+    public function __construct()
+    {
+        if (auth()->check()) {
+            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
+            $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -22,10 +34,9 @@ class BoughtController extends Controller
         // $boughtlists = BoughtItem::with(['account', 'currency'])->get(); // Eager loading the relations
         // return response()->json($boughtItems); // Or return view with data
         $currencies = Currency::all();
-        $branches = Branch::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
-        return view('buy.bought.list',compact('currencies','branches','todaysDate'));
+        return view('buy.bought.list',compact('currencies','todaysDate'));
     }
 
     /**
@@ -33,7 +44,7 @@ class BoughtController extends Controller
      */
     public function getData(Request $request)
     {
-        $boughtlists = BoughtItem::with(['account', 'currency'])->orderBy('id', 'DESC')->get();
+        $boughtlists = BoughtItem::with(['account', 'currency'])->where('branch_id', $this->branch_id)->orderBy('id', 'DESC')->get();
 
         return DataTables::of($boughtlists)
             
@@ -55,7 +66,7 @@ class BoughtController extends Controller
      */
     public function create()
     {
-        $accounts = Account::all(); // Fetch all accounts
+        $accounts = Account::where('branch_id', $this->branch_id)->get(); // Fetch all accounts
         $currencies = Currency::all(); // Fetch all currencies
 
         return response()->json(compact('accounts', 'currencies'));

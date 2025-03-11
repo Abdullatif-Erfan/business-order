@@ -91,6 +91,7 @@
                                 </div>
 
                                 <div class="row">
+                                @if($isAdmin)
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="role">رول</label>
@@ -116,6 +117,7 @@
                                             @error('isAdmin') <span class="text-danger">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
+                                    @endif
 
                                     <div class="col-md-4">
                                         <div class="form-group">
@@ -126,9 +128,9 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-3">
-                                    <button type="submit" class="btn btn-primary">بروز رسانی کاربر</button>
-                                    <a href="{{ route('user.index') }}" class="btn btn-warning">لغو</a>
+                                <div class="mt-3 m-b-10">
+                                    <button type="submit" class="btn btn-primary"> ویرایش کاربر </button>
+                                    <a href="{{ route('user.index') }}" class="btn btn-warning m-r-20">لغو</a>
                                 </div>
                             </form>
                         </div> <!-- /card-body -->

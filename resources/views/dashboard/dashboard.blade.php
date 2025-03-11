@@ -97,11 +97,13 @@ $(document).ready(function () {
    
         <!-- tab -->
         <div class="col-12 tab-wrapper">
-
             <ul class="nav my_nave nav-tabs" id="myTab2">
                 <li class="active"><a data-toggle="tab" href="#todaysTransaction">معاملات امروز</a></li>
                 <li><a data-toggle="tab" href="#importantTrans">معاملات مهم تجارت</a></li>
                 <li><a data-toggle="tab" href="#cache">خزانه</a></li>
+                @if($isAdmin)
+                <li><a data-toggle="tab" href="#branch">شعبات</a></li>
+                @endif
             </ul>
 
             <div class="tab-content">
@@ -126,6 +128,15 @@ $(document).ready(function () {
                     @include('dashboard.third-tab.cash_cards', ['thirdTab' => $thirdTab])
                 </div>
                 <!-- / cache -->
+
+                @if($isAdmin)
+                <!-- branch -->
+                <div id="branch" class="tab-pane fade">
+                    @include('dashboard.fourth-tab.branch_cards', ['branches' => $branches,'branch_id' => $branch_id])
+                </div>
+                <!-- / branch -->
+                @endif
+
             </div>
         </div>
        
@@ -134,5 +145,30 @@ $(document).ready(function () {
     </div>
     @include('component.footer-text')
 </div>
+
+<script>
+    function changeBranch(branch_id) {
+    if (confirm('آیا میخواهید به این شعبه وارید شوید ؟')) {
+        fetch("{{ route('login.changeBranch') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ branch_id: branch_id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                location.reload(); // Refresh page to reflect new session data
+            } else {
+                alert("خطا در تغییر شعبه!");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+}
+
+</script>
 
 @endsection

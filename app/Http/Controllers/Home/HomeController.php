@@ -18,11 +18,35 @@ use App\Models\Setting\Account;
 use App\Models\Journal\Journal;
 use App\Models\Warehouse\SalesDetails;
 use App\Models\Setting\OrgBio;
+use App\Models\Setting\Branch;
+
 
 
 // class HomeController extends BaseController
 class HomeController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        // if (auth()->check()) {
+        //     $user = auth()->user();
+        //     $this->branch_id = $user->branch_id ?? 0;
+        //     $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        // } else {
+        //     $this->branch_id = 0;
+        //     $this->isAdmin = false;
+        // }
+        if (auth()->check()) {
+            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
+            $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
     
     /**
      * Display a listing of the resource.
@@ -34,7 +58,15 @@ class HomeController extends Controller
 
         //  $auth = auth()->user();
         // return ['auth' => $auth];
-        $branch_id = auth()->user()->branch_id;
+        // $user = auth()->user();
+        // $branch_id = $this->branch_id;
+        // $isAdmin = $this->isAdmin;
+
+        // **Get branch_id from the session instead of the user model**
+        // $branch_id = session('branch_id');
+        // $isAdmin = session('isAdmin');
+        $branch_id = $this->branch_id ?? 0;
+        $isAdmin = $this->isAdmin ?? 0;
 
         if(!$branch_id)
         {
@@ -65,6 +97,7 @@ class HomeController extends Controller
          */
 
         $orgBio = OrgBio::first();
+        $branches = Branch::all();
 
         // first tab
         $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
@@ -91,7 +124,7 @@ class HomeController extends Controller
 
        
 
-        return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab'));
+        return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab','branches','isAdmin','branch_id'));
     }
 
 

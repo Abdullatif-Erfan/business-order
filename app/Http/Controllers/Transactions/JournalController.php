@@ -27,12 +27,10 @@ class JournalController extends Controller
     public function __construct(NumberToWordsService $numberToWordsService)
     {
         $this->numberToWordsService = $numberToWordsService;
-
-        // Ensure user authentication before setting the branch ID
-        if (auth()->check()) {
-            $user = auth()->user();
-            $this->branch_id = $user->branch_id ?? 0;
-            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        if(auth()->check())
+        {
+            $this->branch_id = session('branch_id', auth()->check() ? auth()->user()->branch_id : 0);
+            $this->isAdmin = session('isAdmin', auth()->check() ? auth()->user()->isAdmin == 1 : false);
         } else {
             $this->branch_id = 0;
             $this->isAdmin = false;
@@ -79,15 +77,22 @@ class JournalController extends Controller
         /**
          * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
          */
-        $journals = Journal::with(['accountRelation' => function($query){
-            $query->select('id','name');
-        },'currencyRelation' => function($query){
-            $query->select('id','name','symbols','color');
-        }])
+        // $journals = Journal::with(['accountRelation' => function($query){
+        //     $query->select('id','name');
+        // },'currencyRelation' => function($query){
+        //     $query->select('id','name','symbols','color');
+        // }])
+
         // $journals = Journal::with(['accountRelation','currencyRelation'])
-        ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','options','option_label','currency_id','details','inserted_short_date','status','times','is_single_record')
-        // ->where('journals.status','<=',2)
-        ->where('journals.branch_id', $this->branch_id)
+        // ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','options','option_label','currency_id','details','inserted_short_date','status','times','is_single_record','journals.branch_id')
+        // ->where('accountRelation.branch_id', $this->branch_id)
+        // ->orderBy('id', 'DESC');
+
+        $journals = Journal::with(['accountRelation', 'currencyRelation'])
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'inserted_short_date', 'status', 'times', 'is_single_record')
+        ->whereHas('accountRelation', function($query) {
+            $query->where('branch_id', $this->branch_id);
+        })
         ->orderBy('id', 'DESC');
 
 
@@ -115,7 +120,7 @@ class JournalController extends Controller
         }
         
          // check if searched_account_id is belongs to company accounts
-         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->exists();
+         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->where('branch_id', $this->branch_id)->exists();
 
         return DataTables::of($journals)
             
