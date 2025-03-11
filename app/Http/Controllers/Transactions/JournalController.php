@@ -231,7 +231,7 @@ class JournalController extends Controller
         // return ['formData' => $request->all()];
 
         $this->journalValidation($request);
-        $newJournalCode = DB::table('journals')->lockForUpdate()->max('code') + 1;
+        $newJournalCode = DB::table('journals')->where('journals.branch_id', $this->branch_id)->lockForUpdate()->max('code') + 1;
         // Start the transaction
         DB::beginTransaction();
         try 
@@ -502,6 +502,7 @@ class JournalController extends Controller
         $this->journalValidation($request);
        
         $records = Journal::where('times', $request->times)
+        ->where('branch_id', $this->branch_id)
         ->orderBy('id') // Order by ID to delete the oldest first
         ->limit(3)
         ->get();
@@ -554,7 +555,7 @@ class JournalController extends Controller
         ]);
     
         // Fetch all journals based on the given times
-        $journals = Journal::where('times', $request->times)->get();
+        $journals = Journal::where('times', $request->times)->where('journals.branch_id', $this->branch_id)->get();
     
         // Check if any journals are found
         if ($journals->isEmpty()) {
@@ -583,7 +584,7 @@ class JournalController extends Controller
     public function destroy(string $times)
     {
         // Find all journal records with the same 'times' value
-        $journals = Journal::where('times', $times)->get();
+        $journals = Journal::where('times', $times)->where('journals.branch_id', $this->branch_id)->get();
 
         if ($journals->isNotEmpty()) {
             // Loop through each journal and delete its associated file

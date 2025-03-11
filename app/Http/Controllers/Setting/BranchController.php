@@ -49,7 +49,7 @@ class BranchController extends Controller
             }
 
 
-            return  DataTables::eloquent($branchs)
+            return DataTables::eloquent($branchs)
 
             // ->addColumn('edit', function($branch) {
             //     return '<a href="'.route('branch.edit', $branch->id).'" data-id="'.$branch->id.'">
@@ -74,7 +74,10 @@ class BranchController extends Controller
 
     }
 
-
+    public function create()
+    {
+        return view('settings.branch.addForm');
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -87,20 +90,25 @@ class BranchController extends Controller
             'name.string' => 'نام شعبه حروف باشد',
             'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
             'name.min' => 'بالاتر از پنج حرف بنویسید',
+            'responsible.required' => 'شخص مسئول ضروری میباشد',
+            'phone.required' => 'شماره تماس ضروری میباشد',
+            'address.required' => 'آدرس دفتر ضروری میباشد',
         ];
 
         // Validate the request
          $validated = $request->validate([
             'name' => 'required|string|max:255|min:5',
+            'responsible' => 'required|min:4',
+            'phone'       => 'required',
+            'email'       => 'nullable',
+            'address'     => 'required|string|min:4|max:255'
          ], $messages);
 
         // Create new branch
-        Branch::create([
-            'name' => $validated['name'],
-        ]);
+        Branch::create($validated);
 
         // Return success response
-        return response()->json(['message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
     }
 
 
@@ -110,43 +118,51 @@ class BranchController extends Controller
     public function show(string $id)
     {
         $branch = Branch::where('id',$id)->first(); 
-        if($branch) {
-             return response()->json($branch);
-         }
-        return response()->json(['message' => 'یافت نگردید'],404);
+        if (!$branch) {
+            return response()->json(['status' => 'failed', 'message' => ' یافت نگردید'], 404);
+        }
+        return view('settings.branch.editForm', compact('branch'));
+         
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-         // Define custom validation messages
-         $messages = [
+        // Define custom validation messages
+        $messages = [
             'name.required' => 'نام شعبه ضروری میباشد',
-            'name.string' => 'نام شعبه حروف باشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
+            'name.string' => 'نام شعبه باید شامل حروف باشد',
+            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
             'name.min' => 'بالاتر از پنج حرف بنویسید',
+            'responsible.required' => 'شخص مسئول ضروری میباشد',
+            'phone.required' => 'شماره تماس ضروری میباشد',
+            'address.required' => 'آدرس دفتر ضروری میباشد',
+            'id.required' => 'شناسه شعبه ضروری میباشد',
+            'id.exists' => 'شعبه مورد نظر یافت نشد',
+            'email.email' => 'ایمیل معتبر وارد کنید'
         ];
 
         // Validate the request
-         $validated = $request->validate([
-            'name' => 'required|string|max:255|min:5',
-         ], $messages);
+        $validated = $request->validate([
+            'id'          => 'required|exists:branches,id',
+            'name'        => 'required|string|max:255|min:5',
+            'responsible' => 'required|string|min:4',
+            'phone'       => 'required',
+            'email'       => 'nullable|email',
+            'address'     => 'required|string|min:4|max:255'
+        ], $messages);
 
-         $branch = Branch::find($id);
+        $branch = Branch::find($request->id);
 
-         if(!$branch) {
-            return response()->json(['message' => 'شعبه مورد نظر یافت نشد'], 404);
-         }
-     
-        // Update the branch's name
-        $branch->name = $request->input('name');
-        $branch->save();
+        // Update the branch's information
+        $branch->update($request->except('id'));
 
-        return response()->json(['message' => 'شعبه با موفقیت بروزرسانی شد'], 200);
+        return response()->json(['status' => 'success', 'message' => 'شعبه با موفقیت بروزرسانی شد'], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.

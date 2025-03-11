@@ -26,6 +26,21 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BoughtDetailsController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -46,7 +61,7 @@ class BoughtDetailsController extends Controller
 
 
         $currencies = Currency::all();
-        $branches = Branch::all();
+        $branches = Branch::where('id',$this->branch_id)->get();
         $orgbios = OrgBio::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
@@ -56,7 +71,7 @@ class BoughtDetailsController extends Controller
 
     public function getData(Request $request)
     {
-            $boughtItems = BoughtItem::with(['currency', 'customer'])->orderBy('id', 'DESC');
+            $boughtItems = BoughtItem::with(['currency', 'customer'])->where('branch_id', $this->branch_id)->orderBy('id', 'DESC');
             
               // Apply filters if provided
               if ($request->customer_name) {
@@ -150,15 +165,16 @@ class BoughtDetailsController extends Controller
         $currencies = Currency::select('id','name')->get();
         // account_id 3 and 4 is belongs to customers and sellers
         // TODO : filter by branch_id
-        $warehouses = Warehouse::select('id','name')->get();
-        $customers = Account::select('id','name')->where('account_type_id',3)->orWhere('account_type_id',4)->get();
-        $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
-        $preLists = BuyPreList::select('id','name','branch_id')->get();
+        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        $billno =  BoughtItem::where('branch_id', $this->branch_id)->max('billno') + 1;
+    
+        $preLists = BuyPreList::select('id','name','branch_id')->where('branch_id', $this->branch_id)->get();
         // TODO : filter by branch_id
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
-        $newJournalCode =  Journal::max('code') + 1;
-        $billno =  BoughtItem::max('billno') + 1;
+        $newJournalCode =  Journal::where('branch_id', $this->branch_id)->max('code') + 1;
 
         $times = time();
 
@@ -188,7 +204,7 @@ class BoughtDetailsController extends Controller
         $times = $request->times;
         
         $preLists = BuyPreList::select('branch_id','name')->where('id',$request->pre_list_id)->first();
-        $branch_id = $preLists->branch_id;
+        $branch_id = $this->branch_id ?? $preLists->branch_id;
         $item_name = $preLists->name ?? '';
 
         // Start the transaction
@@ -200,10 +216,10 @@ class BoughtDetailsController extends Controller
         $BoughtItemId = $this->createOrUpdateBoughtItem($request, $short_date, $branch_id, $times);
 
         // 2: insert in to bought_item_details table
-        $this->storeBoughtItemDetails($request, $BoughtItemId, $times);
+        $this->storeBoughtItemDetails($request, $BoughtItemId,  $branch_id, $times);
 
         // 3: insert or update warehouse_items
-        $this->createOrUpdateWarehouseItems($request);
+        $this->createOrUpdateWarehouseItems($request, $branch_id);
 
         DB::commit();
 
@@ -285,7 +301,7 @@ class BoughtDetailsController extends Controller
     }
 
 
-    private function storeBoughtItemDetails($request, $boughtItemId, $times)
+    private function storeBoughtItemDetails($request, $boughtItemId,  $branch_id, $times)
     {
         // If not exists, create new record
         return BoughtItemDetails::create([
@@ -307,7 +323,7 @@ class BoughtDetailsController extends Controller
     }
     
 
-    private function createOrUpdateWarehouseItems($request)
+    private function createOrUpdateWarehouseItems($request, $branch_id)
     {
         /**
          * 1: Check based on (buy_pre_id and warehouse_id) 
@@ -335,6 +351,7 @@ class BoughtDetailsController extends Controller
             $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
                 ->where('buy_pre_id', $request->pre_list_id)
                 ->where('unit_id', $request->unit_id)
+                ->where('branch_id', $branch_id)
                 ->first();
     
             $warehouseAmount = $request->warehouse_amount[$index];
@@ -390,6 +407,7 @@ class BoughtDetailsController extends Controller
                     'currency_id' => $request->currency_id,
                     'notification_amount' => $request->notification_amount ?? 0,
                     'inserted_by' => $insertedBy,
+                    'branch_id' => $branch_id ?? 0,
                     'expire_date' => $request->expire_date ?? null,
                     'inserted_short_date' => $short_date,
                     'year' => $year,
@@ -692,7 +710,7 @@ class BoughtDetailsController extends Controller
             'bill_no' => $request->billno,
             'code' =>  $request->journal_code,
             'account_id' => $account_id,
-            'branch_id' => $request->branch_id,
+            'branch_id' => $this->branch_id ?? $request->branch_id,
             'amount' => $amount,
             'currency_id' => $request->currency_id,
             'transaction_type' => $ttype,
@@ -749,14 +767,25 @@ class BoughtDetailsController extends Controller
     public function edit(string $times)
     {
 
+        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
+        $billno =  BoughtItem::where('branch_id', $this->branch_id)->max('billno') + 1;
+        
         $currencies = Currency::select('id','name')->get();
-        $warehouses = Warehouse::select('id','name')->get();
-        $customers = Account::select('id','name')->where('account_type_id',3)->orWhere('account_type_id',4)->get();
-        $ownBanks = Account::select('id','name')->where('account_type_id',1)->orderBy('is_pre_select','DESC')->get();
-        $preLists = BuyPreList::select('id','name','branch_id')->get();
+        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
+        
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        
+        $preLists = BuyPreList::select('id','name','branch_id')->where('branch_id', $this->branch_id)->get();
+  
         $units = Unit::select('id','name')->get();
-        $journal_code = Journal::select('code','branch_id')->where('times',$times)->first();
+        $journal_code = Journal::select('code','branch_id')->where('branch_id', $this->branch_id)->where('times',$times)->first();
 
+        if(!$journal_code)
+        {
+            echo "Journal Code and Branch Id not found";
+            die();
+        }
 
         $orgbios = OrgBio::all();
         $short_date = Jalalian::now()->format('Y-m-d');
@@ -772,6 +801,8 @@ class BoughtDetailsController extends Controller
 
         // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
         // return response()->json(['boughtItems' => $boughtItems]);
+        // echo $journal_code;
+        // die();
 
         return view('buy.bought.edit',compact('boughtItemDetails','boughtItems','short_date','orgbios','currencies','warehouses','customers','ownBanks','preLists','units','journal_code'));
     }
@@ -786,12 +817,14 @@ class BoughtDetailsController extends Controller
         {
            
             $validated = $request->validate([
+                'journal_code' => 'required',
                 'billno' => 'required|integer|min:1',
                 'from_account_id' => 'required',
                 'total_price' => 'required|integer|min:1',
                 'payable' => 'required|integer|min:1',
                 'currency_id' => 'required|integer',
             ], [
+                'journal_code.required' => 'کد ژورنال یافت نشد',
                 'billno.required' => 'بل نمبر ضروری میباشد',
                 'from_account_id.required' => ' حساب شرکت ضروری میباشد',
                 'total_price.required' => ' قیمت مجموعی ضروری میباشد',
@@ -816,7 +849,7 @@ class BoughtDetailsController extends Controller
             $boughtItem->save();
 
             // delete journal records
-            Journal::where('times', $request->times)->delete();
+            Journal::where('times', $request->times)->where('branch_id', $this->branch_id)->delete();
 
             // insert new records instead of updating
             $check = $this->handleJournalEntry($request);
@@ -874,6 +907,7 @@ class BoughtDetailsController extends Controller
 
         $warehouseItems = WarehouseItem::with('warehouseRelation')
             ->where('buy_pre_id', (int) $boughtItemDetails->pre_list_id) // Ensure correct type
+            ->where('branch_id', $this->branch_id)
             ->get();
 
         //  return response()->json(['boughtItemDetails' => $boughtItemDetails]);
@@ -948,6 +982,7 @@ class BoughtDetailsController extends Controller
                     $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
                         ->where('buy_pre_id', $validated['pre_list_id'])
                         ->where('unit_id', $validated['unit_id'])
+                        ->where('branch_id', $this->branch_id)
                         ->lockForUpdate() // Prevents race conditions
                         ->first();
     
@@ -1187,6 +1222,7 @@ class BoughtDetailsController extends Controller
         $warehouseItems = WarehouseItem::with('warehouseRelation')
             ->where('buy_pre_id', (int) $boughtItemDetails->pre_list_id) 
             ->where('unit_id', (int) $boughtItemDetails->unit_id) 
+            ->where('branch_id', $this->branch_id)
             ->get();
 
         //  return response()->json(['units' => $units]);
@@ -1220,6 +1256,7 @@ class BoughtDetailsController extends Controller
                 $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
                 ->where('buy_pre_id', $request->preListId)
                 ->where('unit_id', $boughtItemDetailsUnitId)
+                ->where('branch_id', $this->branch_id)
                 ->first();
     
                 if (!$WarehouseItem) {
@@ -1289,11 +1326,10 @@ class BoughtDetailsController extends Controller
         DB::beginTransaction();
         try {
             // Delete all related records directly
-            BoughtItemDetails::where('times', $times)->delete();
-            BoughtItem::where('times', $times)->delete();
-            Journal::where('times', $times)->delete();
+            BoughtItemDetails::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            BoughtItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            Journal::where('times', $times)->where('branch_id', $this->branch_id)->delete();
 
-    
             DB::commit();
     
             Session::flash('notification', [

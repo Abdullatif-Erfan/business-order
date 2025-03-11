@@ -9,7 +9,7 @@
                     <div class="card">
                         <div class="card-header" style="padding:10px">
                             <h4 class="card-title"> چارت حسابات 
-                            <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button>
+                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                             </h4>
                         </div>
 
@@ -17,6 +17,9 @@
                             
                     <!-- panel -->
                     <div class="col-md-12"  id="print_area">
+                        <div class="col-md-12 visible-print">
+                        <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                        </div>
                         <div class="panel-group" id="accordion">
                             <div class="panel panel-default">
                                @include('report.chart_of_account.company_accounts')

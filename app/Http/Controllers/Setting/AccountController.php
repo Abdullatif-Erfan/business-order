@@ -130,7 +130,7 @@ class AccountController extends Controller
 
             // Handle Journal Entries (only if amount[] exists and is > 0)
             if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0) {
-                $newJournalCode = DB::table('journals')->lockForUpdate()->max('code') + 1;
+                $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
 
                 $jalaliDate = Jalalian::now();
                 $year = $jalaliDate->getYear();
@@ -232,7 +232,7 @@ class AccountController extends Controller
 
             // Handle Journal Entries (only if amount[] exists and is > 0)
             if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0 && isset($from_account_id)) {
-                $newJournalCode = DB::table('journals')->lockForUpdate()->max('code') + 1;
+                $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
 
                 $jalaliDate = Jalalian::now();
                 $year = $jalaliDate->getYear();
@@ -364,7 +364,7 @@ class AccountController extends Controller
             // Handle Journal Entries
             if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0) 
             {
-                $newJournalCode = Journal::max('code') + 1;
+                $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
                 $jalaliDate = Jalalian::now();
                 $full_date = $jalaliDate->format('Y-m-d h:i:s A');
                 $short_date = $jalaliDate->format('Y-m-d');
@@ -589,7 +589,7 @@ class AccountController extends Controller
             {
                 // delete old journal records
                 Journal::where('times', $request->times)->delete();
-                $newJournalCode = Journal::max('code') + 1;
+                $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
                 $jalaliDate = Jalalian::now();
                 $full_date = $jalaliDate->format('Y-m-d h:i:s A');
                 $short_date = $jalaliDate->format('Y-m-d');

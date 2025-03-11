@@ -12,6 +12,21 @@ use App\Models\Setting\OrgBio;
 
 class ItemController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -46,7 +61,7 @@ class ItemController extends Controller
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;
         }
     
-        $dailyReport = $this->getDailyReports($data['currency_id'],$data['year'],$data['month']);
+        $dailyReport = $this->getDailyReports($data['currency_id'],$data['year'],$data['month'], $this->branch_id);
         // return ['dailyReport', $dailyReport];
         
         return view('report.items.daily', compact('data','dailyReport','orgbios'));
@@ -75,7 +90,7 @@ class ItemController extends Controller
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;
         }
     
-        $monthlyReport = $this->getMonthlyReports($data['currency_id'],$data['year']);
+        $monthlyReport = $this->getMonthlyReports($data['currency_id'],$data['year'], $this->branch_id);
         // return ['monthlyReport', $monthlyReport];
         
         return view('report.items.monthly', compact('data','monthlyReport','orgbios'));
@@ -103,7 +118,7 @@ class ItemController extends Controller
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;
         }
     
-        $yearlyReport = $this->getYearlyReports($data['currency_id']);
+        $yearlyReport = $this->getYearlyReports($data['currency_id'],$this->branch_id);
         // return ['yearlyReport', $yearlyReport];
         
         return view('report.items.yearly', compact('data','yearlyReport','orgbios'));
@@ -113,7 +128,7 @@ class ItemController extends Controller
     /**
      * Get Daily Reports
      */
-    private function getDailyReportsBkp($currencyId,$year,$month)
+    private function getDailyReportsBkp($currencyId,$year,$month, $branch_id)
     {
         $query1 = DB::table('warehouse_items')
             ->selectRaw("
@@ -126,6 +141,7 @@ class ItemController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currencyId)
+            ->where('branch_id', $branch_id)
             ->groupBy('day');
 
         $query2 = DB::table('warehouse_sales')
@@ -141,6 +157,7 @@ class ItemController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currencyId)
+            ->where('branch_id', $branch_id)
             ->groupBy('day', 'billno');
 
         $query3 = DB::table('bought_items')
@@ -156,6 +173,7 @@ class ItemController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currencyId)
+            ->where('branch_id', $branch_id)
             ->groupBy('day');
 
         // Combine using UNION
@@ -171,19 +189,22 @@ class ItemController extends Controller
     }
 
 
-    public function getDailyReports($currency_id, $year, $month)
+    public function getDailyReports($currency_id, $year, $month, $branch_id)
     {
+        // Get all unique days from multiple sources
         $subQueryAllDays = DB::table('warehouse_items')
             ->select('day as report_day')
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->union(
                 DB::table('warehouse_sales')
                     ->select('day')
                     ->where('year', $year)
                     ->where('month', $month)
                     ->where('currency_id', $currency_id)
+                    ->where('branch_id', $branch_id)
             )
             ->union(
                 DB::table('bought_items')
@@ -191,8 +212,10 @@ class ItemController extends Controller
                     ->where('year', $year)
                     ->where('month', $month)
                     ->where('currency_id', $currency_id)
+                    ->where('branch_id', $branch_id)
             );
 
+        // Get warehouse data per day
         $warehouseQuery = DB::table('warehouse_items')
             ->select(
                 'day',
@@ -202,22 +225,53 @@ class ItemController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->groupBy('day');
 
-        $salesQuery = DB::table('warehouse_sales AS ws')
-            ->leftJoin('sales_details AS sd', 'ws.billno', '=', 'sd.billno') // Join sales_details to aggregate profit
-            ->select(
-                'ws.day',
-                DB::raw('SUM(ws.payable) AS total_sales_payable'),
-                DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
-                DB::raw('SUM(ws.remained) AS total_sales_remained'),
-                DB::raw('SUM(sd.profit) AS total_sales_profit') // Summing profit correctly
-            )
-            ->where('ws.year', $year)
-            ->where('ws.month', $month)
-            ->where('ws.currency_id', $currency_id)
-            ->groupBy('ws.day'); // Grouping by day only
+        // Get sales data per day
+        // $salesQuery = DB::table('warehouse_sales AS ws')
+        //     ->select(
+        //         'ws.day',
+        //         DB::raw('SUM(ws.payable) AS total_sales_payable'),
+        //         DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
+        //         DB::raw('SUM(ws.remained) AS total_sales_remained')
+        //     )
+        //     ->where('ws.year', $year)
+        //     ->where('ws.month', $month)
+        //     ->where('ws.currency_id', $currency_id)
+        //     ->where('ws.branch_id', $branch_id)
+        //     ->groupBy('ws.day');
 
+        // // Get profit data per day
+        // $profitQuery = DB::table('sales_details AS sd')
+        // ->join('warehouse_sales AS ws', 'ws.id', '=', 'sd.warehouse_sales_id')
+        // ->select(
+        //     'ws.day',
+        //     DB::raw('COALESCE(SUM(sd.profit), 0) AS total_sales_profit')
+        // )
+        // ->where('ws.year', $year)
+        // ->where('ws.month', $month)
+        // ->where('ws.currency_id', $currency_id)
+        // ->where('ws.branch_id', $branch_id)
+        // ->groupBy('ws.day');
+
+        $combinedQuery = DB::table('warehouse_sales AS ws')
+        ->leftJoin('sales_details AS sd', 'ws.id', '=', 'sd.warehouse_sales_id')
+        ->select(
+            'ws.day',
+            DB::raw('SUM(ws.payable) AS total_sales_payable'),
+            DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
+            DB::raw('SUM(ws.remained) AS total_sales_remained'),
+            DB::raw('COALESCE(SUM(sd.profit), 0) AS total_sales_profit') // Include profit calculation
+        )
+        ->where('ws.year', $year)
+        ->where('ws.month', $month)
+        ->where('ws.currency_id', $currency_id)
+        ->where('ws.branch_id', $branch_id)
+        ->groupBy('ws.day');
+    
+
+        // Get bought data per day
         $boughtQuery = DB::table('bought_items')
             ->select(
                 'day',
@@ -229,14 +283,19 @@ class ItemController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->groupBy('day');
 
+        // Final Query: Combine all data sources
         return DB::table(DB::raw("({$subQueryAllDays->toSql()}) as all_days"))
             ->mergeBindings($subQueryAllDays)
             ->leftJoin(DB::raw("({$warehouseQuery->toSql()}) as w"), 'all_days.report_day', '=', 'w.day')
             ->mergeBindings($warehouseQuery)
-            ->leftJoin(DB::raw("({$salesQuery->toSql()}) as s"), 'all_days.report_day', '=', 's.day')
-            ->mergeBindings($salesQuery)
+
+            ->leftJoin(DB::raw("({$combinedQuery->toSql()}) as s"), 'all_days.report_day', '=', 's.day')
+            ->mergeBindings($combinedQuery)
+
+
             ->leftJoin(DB::raw("({$boughtQuery->toSql()}) as b"), 'all_days.report_day', '=', 'b.day')
             ->mergeBindings($boughtQuery)
             ->select(
@@ -246,7 +305,7 @@ class ItemController extends Controller
                 DB::raw('COALESCE(s.total_sales_payable, 0) AS total_sales_payable'),
                 DB::raw('COALESCE(s.total_sales_curpay, 0) AS total_sales_curpay'),
                 DB::raw('COALESCE(s.total_sales_remained, 0) AS total_sales_remained'),
-                DB::raw('COALESCE(s.total_sales_profit, 0) AS total_sales_profit'),
+                DB::raw('COALESCE(s.total_sales_profit, 0) AS total_sales_profit'), // Use profit query separately
                 DB::raw('COALESCE(b.total_bought_payable, 0) AS total_bought_payable'),
                 DB::raw('COALESCE(b.total_bought_curpay, 0) AS total_bought_curpay'),
                 DB::raw('COALESCE(b.total_bought_remained, 0) AS total_bought_remained'),
@@ -256,10 +315,12 @@ class ItemController extends Controller
             ->get();
     }
 
+
+
     /**
     * Get Monthly Reports
     */
-    public function getMonthlyReports($currency_id, $year)
+    public function getMonthlyReports($currency_id, $year, $branch_id)
     {
         $warehouseQuery = DB::table('warehouse_items')
             ->select(
@@ -269,6 +330,7 @@ class ItemController extends Controller
             )
             ->where('year', $year)
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->groupBy('month');
 
         $salesQuery = DB::table('warehouse_sales AS ws')
@@ -282,6 +344,7 @@ class ItemController extends Controller
             )
             ->where('ws.year', $year)
             ->where('ws.currency_id', $currency_id)
+            ->where('sd.branch_id', $branch_id)
             ->groupBy('ws.month'); // Grouping by month instead of day
 
         $boughtQuery = DB::table('bought_items')
@@ -294,6 +357,7 @@ class ItemController extends Controller
             )
             ->where('year', $year)
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->groupBy('month');
 
         return DB::table(DB::raw("({$warehouseQuery->toSql()}) as w"))
@@ -322,7 +386,7 @@ class ItemController extends Controller
     /**
     * Get yearly Reports
     */
-    public function getYearlyReports($currency_id)
+    public function getYearlyReports($currency_id, $branch_id)
     {
         $warehouseQuery = DB::table('warehouse_items')
             ->select(
@@ -331,6 +395,7 @@ class ItemController extends Controller
                 DB::raw('SUM(wastage_total) AS total_warehouse_wastage')
             )
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->groupBy('year');
 
         $salesQuery = DB::table('warehouse_sales AS ws')
@@ -343,6 +408,7 @@ class ItemController extends Controller
                 DB::raw('SUM(sd.profit) AS total_sales_profit') 
             )
             ->where('ws.currency_id', $currency_id)
+            ->where('sd.branch_id', $branch_id)
             ->groupBy('ws.year'); 
 
         $boughtQuery = DB::table('bought_items')
@@ -354,6 +420,7 @@ class ItemController extends Controller
                 DB::raw('SUM(trans_spend) AS total_bought_transport')
             )
             ->where('currency_id', $currency_id)
+            ->where('branch_id', $branch_id)
             ->groupBy('year');
 
         return DB::table(DB::raw("({$warehouseQuery->toSql()}) as w"))

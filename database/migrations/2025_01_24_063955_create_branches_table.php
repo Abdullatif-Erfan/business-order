@@ -15,6 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->unique('name');
+            $table->string('responsible');
+            $table->string('phone');
+            $table->string('email')->nullable();
+            $table->string('address');            
             $table->integer('is_disabled',2)->nullable()->default(0)->comment('0: not disabled, 1:disabled');
             $table->timestamps();
         });

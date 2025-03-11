@@ -3,6 +3,7 @@
     $packageId = \App\Helpers\ManagementHelper::activePackageId();
     $user = auth()->user();
     $isAdmin = $user->isAdmin == 1;
+    $branch_id = $user->branch_id ?? 0;
     $permissions = [
         'settings' => $user->hasAccess('settings', 'list'),
         'rates' => $user->hasAccess('rates', 'list'),
@@ -188,7 +189,7 @@
                                         <span class="sub-item"> ثبت موجودی گدام</span>
                                     </a>
                                 </li>
-                                @foreach(\App\Models\Setting\Warehouse::all() as $warehouse)
+                                @foreach(\App\Models\Setting\Warehouse::where('branch_id', $branch_id)->get() as $warehouse)
                                     <li>
                                         <a href="{{ route('warehousesList.index') }}?id={{ $warehouse->id }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
@@ -281,7 +282,7 @@
                     @endif
 
 
-                    @if( $isAdmin)
+                    @if($isAdmin)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
                             <i class="fas fa-users"></i>

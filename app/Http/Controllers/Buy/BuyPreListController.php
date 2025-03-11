@@ -11,6 +11,21 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BuyPreListController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -21,7 +36,7 @@ class BuyPreListController extends Controller
 
         // return response()->json(['data' => $buyPreLists]);
 
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         return view('buy.prelist.list', compact('branchs'));
     }
 
@@ -33,6 +48,7 @@ class BuyPreListController extends Controller
     {
         $buyPreLists = BuyPreList::with('branchRelation')
         ->select('id', 'name', 'branch_id')
+        ->where('branch_id',$this->branch_id)
         ->orderBy('id', 'DESC')
         ->get();
     

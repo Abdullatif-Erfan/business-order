@@ -310,7 +310,7 @@
                                                     </td>
                                                 </tr>
 
-                                                <tr>
+                                                <!-- <tr>
                                                     <td colspan="2" class="price-section"> بقایای سابقه   </td>
                                                     <td colspan="2" class="price-section">
                                                         ???
@@ -321,7 +321,7 @@
                                                     <td colspan="2" class="final-total">
                                                         ???
                                                     </td>
-                                                </tr>
+                                                </tr> -->
                                                 
                                             </tbody>
                                         </table>

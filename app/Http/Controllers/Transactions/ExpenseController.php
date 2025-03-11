@@ -205,7 +205,7 @@ class ExpenseController extends Controller
         $day = $date[2];
         $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
     
-        $newJournalCode = Journal::max('code') + 1;
+        $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
         $times = time();
     
         // Start the transaction
@@ -324,7 +324,7 @@ class ExpenseController extends Controller
             $day = $date[2];
             $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
         
-            $newJournalCode = Journal::max('code') + 1;
+            $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
             $times = time();
         
             // Update the first journal entry ("paid cache")

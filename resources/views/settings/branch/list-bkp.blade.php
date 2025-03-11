@@ -1,34 +1,27 @@
-<br />
-<!-- Button to trigger the modal -->
-<button type="button" class="btn btn-primary btn-sm m-l-10 m-b-10" data-toggle="modal" data-target="#addModal">
-    <span class="btn-label"><i class="fa fa-plus"></i></span> ثبت جدید
-</button>
-
 <div class="table-responsive" style="padding:5px;">
     <div id="loading" style="display: none; text-align: center;">
         <span>Loading...</span>
         <i class="fa fa-spinner fa-spin"></i>
     </div>
-    <table id="example" class="table table-bordered table-striped table-hover">
+    <table id="branchTable"  class="table table-bordered table-striped table-hover datatable">
         <thead>
             <tr>
                 <th>شماره</th>
                 <th>نام شعبه</th>
-                <th>نام شعبه</th>
-                <th>نام شعبه</th>
-                <th>نام شعبه</th>
-                <th>نام شعبه</th>
+                <th> مسؤل شعبه </th>
+                <th>شماره تماس</th>
+                <th> ایمیل آدرس</th>
+                <th> آدرس دفتر</th>
                 <th>ویرایش</th>
                 <th>حذف</th>
             </tr>
         </thead>
-        <tbody></tbody>
     </table>
     <div id="pagination" style="text-align: center;"></div>
 </div>
 
-<!-- Add/Edit Modal -->
-<div class="modal fade" id="addModal33" tabindex="-1" role="dialog">
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -52,63 +45,102 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm " data-dismiss="modal">بستن</button>
-                <button type="button" class="btn btn-success btn-sm m-r-10" id="submitBtn">ثبت</button>
+                <button type="button" class="btn btn-success btn-sm m-r-10" id="submitBtnBranch">ثبت</button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-
+<script type="text/javascript">
 $(document).ready(function () {
-    const fetchBranches = (page = 1) => {
-        $('#loading').show();
-        $('#example tbody').empty();
+    // Initialize DataTable
+    var table = fetchBranchList();
+
+    // Add or Update Branch
+    $('#submitBtnBranch').click(function () {
+        addOrUpdateBranch(table);
+    });
+
+    /**
+     * When clicked on editBranch, get the value based on id and show in the modal
+     */
+    $('table').on('click', '.editBranch', function () {
+        const branchId = $(this).data('id');
+        $('#addModal').modal('show');
+        $('#loading_modal').show();
 
         $.ajax({
-            url: "{{ route('branches.list') }}",
+            url: `/branches/${branchId}`,
             type: 'GET',
-            data: { page },
-            success: (response) => {
-                $('#loading').hide();
-
-                if (response.data.length) {
-                    response.data.forEach((branch, index) => {
-                        $('#example tbody').append(`
-                            <tr>
-                                <td>${response.from + index}</td>
-                                <td>${branch.name}</td>
-                                <td>${branch.name}</td>
-                                <td>${branch.name}</td>
-                                <td>${branch.name}</td>
-                                <td>${branch.name}</td>
-                                <td><i class="fas fa-pen-square editBranch" data-id="${branch.id}" style="font-size:20px;"></i></td>
-                                <td><i class="fas fa-trash-alt deleteBranch" data-id="${branch.id}" style="font-size:20px; color:red;"></i></td>
-                            </tr>
-                        `);
-                    });
-                } else {
-                    $('#example tbody').append('<tr><td colspan="8" class="text-center">No records found</td></tr>');
-                }
-
-                $('#pagination').html('');
-                if (response.links) {
-                    response.links.forEach(link => {
-                        const activeClass = link.active ? 'active' : '';
-                        $('#pagination').append(`
-                            <button class="btn btn-sm ${activeClass}" data-page="${link.url ? new URL(link.url).searchParams.get('page') : null}">${link.label}</button>
-                        `);
-                    });
-                }
+            success: (branch) => {
+                $('#branchId').val(branch.id);
+                $('#name').val(branch.name);
+                $('#loading_modal').hide();
             },
             error: () => {
-                $('#loading').hide();
-                showNotification('Failed to load branches.', 'danger', 'top', 'right', 'withicon');
+                $('#loading_modal').hide();
+                showNotification('ریکارد موجود نیست', 'danger', 'top', 'right', 'withicon');
             }
         });
-    };
+    });
 
-    const addOrUpdateBranch = () => {
+    // Delete Branch
+    $('table').on('click', '.deleteBranch', function () {
+        const id = $(this).data('id');
+        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+            $.ajax({
+                url: `/branches/${id}`,
+                type: 'DELETE',
+                data: { _token: '{{ csrf_token() }}' },
+                success: (response) => {
+                    if(response.status === 'success') {
+                        // table.ajax.reload(null, false); // callaback, boolean
+                        fetchBranchList();
+                        showNotification(response.message, 'success', 'top', 'right', 'withicon');
+                    } else {
+                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                       alert(response.message);
+                    }
+                },
+                error: () => {
+                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                }
+            });
+        }
+    });
+});
+
+// Fetch Branch List
+function fetchBranchList() {
+    const branchTable = $('#branchTable'); // Replace 'branchTable' with the ID of your branch table
+
+    // Check if DataTable is already initialized
+    if (!$.fn.DataTable.isDataTable(branchTable)) {
+        branchTable.DataTable({
+            serverSide: true,
+            processing: true,
+            ajax: {
+                url: '{{ route("branches") }}',
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data: 'name', name: 'name' },
+                { data: 'responsible', name: 'responsible' },
+                { data: 'phone', name: 'phone' },
+                { data: 'email', name: 'email' },
+                { data: 'address', name: 'address' },
+                { data: 'edit', name: 'edit', searchable: false, orderable: false },
+                { data: 'delete', name: 'delete', searchable: false, orderable: false },
+            ]
+        });
+    } else {
+        // Reload the data if already initialized
+        branchTable.DataTable().ajax.reload();
+    }
+}
+
+// Add or Update Branch
+const addOrUpdateBranch = (table) => {
         const branchId = $('#branchId').val();
         const name = $('#name').val();
         const url = branchId ? `/branches/${branchId}` : "{{ route('branches') }}";
@@ -125,8 +157,10 @@ $(document).ready(function () {
                 $('#loading_modal').hide();
                 $('#addModal').modal('hide');
                 $('#branchForm')[0].reset();
+                $('#branchId').val('');
+                $('#name').val('');
+                fetchBranchList();
                 showNotification(response.message, 'success', 'top', 'right', 'withicon');
-                fetchBranches();
             },
             error: (xhr) => {
                 $('#loading_modal').hide();
@@ -134,67 +168,21 @@ $(document).ready(function () {
                 if (errors?.name) {
                     $('#nameError').text(errors.name[0]);
                 } else {
+                    $('#branchId').val('');
                     showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
                 }
             }
         });
     };
 
-    const deleteBranch = (branchId) => {
-        if (confirm('آیا میخواهید حذف نمایید؟')) {
-            $.ajax({
-                url: `/branches/${branchId}`,
-                type: 'DELETE',
-                data: { _token: '{{ csrf_token() }}' },
-                success: (response) => {
-                    showNotification(response.message, 'success', 'top', 'right', 'withicon');
-                    fetchBranches();
-                },
-                error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
-                }
-            });
-        }
-    };
 
-    // Initialize fetch
-    fetchBranches();
-
-    // Pagination
-    $('#pagination').on('click', 'button', function () {
-        const page = $(this).data('page');
-        if (page) fetchBranches(page);
-    });
-
-    // Submit button
-    $('#submitBtn').click(() => addOrUpdateBranch());
-
-    // Edit branch
-    $('#example').on('click', '.editBranch', function () {
-        const branchId = $(this).data('id');
-        $('#addModal').modal('show');
-        $('#loading_modal').show();
-
-        $.ajax({
-            url: `/branches/${branchId}`,
-            type: 'GET',
-            success: (branch) => {
-                $('#branchId').val(branch.id);
-                $('#name').val(branch.name);
-                $('#addModal .modal-title').text('ویرایش شعبه');
-                // $('#submitBtn').text('ویرایش');
-                $('#loading_modal').hide();
-            },
-            error: () => {
-                $('#loading_modal').hide();
-                showNotification('ریکارد موجود نیست', 'danger', 'top', 'right', 'withicon');
-            }
-        });
-    });
-
-    // Delete branch
-    $('#example').on('click', '.deleteBranch', function () {
-        deleteBranch($(this).data('id'));
-    });
+$('#addModal').on('show.bs.modal', function (event) {
+    // Check if it's a new record (not edit)
+    if (!$(event.relatedTarget).hasClass('editBranch')) {
+        $('#branchForm')[0].reset(); // Reset form fields
+        $('#branchId').val(''); // Clear hidden input for branch ID
+        $('#nameError').text(''); // Clear error message
+    }
 });
+
 </script>

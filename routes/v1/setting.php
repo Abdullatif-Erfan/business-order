@@ -16,9 +16,10 @@ Route::get('setting',[SettingController::class,'index'])->name('setting')->middl
 // branch
 Route::prefix('branches')->group(function(){
     Route::get('/', [BranchController::class, 'index'])->name('branches.list')->middleware('access:settings,list');
-    Route::post('/', [BranchController::class, 'store'])->name('branches')->middleware('access:settings,create_records');
-    Route::get('/{id}', [BranchController::class, 'show'])->name('branches.show')->middleware('access:settings,edit_records');
-    Route::patch('/{id}', [BranchController::class, 'update'])->name('branches.update');
+    Route::get('/create', [BranchController::class, 'create'])->name('branches.create')->middleware('access:settings,create_records');
+    Route::post('/store', [BranchController::class, 'store'])->name('branches.store')->middleware('access:settings,create_records');
+    Route::get('/show/{id}', [BranchController::class, 'show'])->name('branches.show')->middleware('access:settings,edit_records');
+    Route::patch('/update', [BranchController::class, 'update'])->name('branches.update');
     Route::delete('/{id}', [BranchController::class, 'destroy'])->name('branches.destroy')->middleware('access:settings,delete_records');
 });
 

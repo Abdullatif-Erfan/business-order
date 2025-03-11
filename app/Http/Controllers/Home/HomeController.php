@@ -324,17 +324,17 @@ class HomeController extends Controller
             ->join('accounts', 'accounts.id', '=', 'journals.account_id')
             ->select(
                 'journals.currency_id',
-                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_paid'),
-                DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_recieved')
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_paid'),
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_recieved')
             )
             ->where('accounts.account_type_id', $khazana_account_type_id)
+            ->where('accounts.branch_id', $branch_id)
             ->when($year != 100, function ($query) use ($year) {
                 return $query->where('journals.year', $year);
             })
             ->when($month != 100, function ($query) use ($month) {
                 return $query->where('journals.month', $month);
             })
-            ->where('journals.branch_id', '=', $branch_id)
             ->where('journals.day', '<=', $day)
             ->groupBy('journals.currency_id')
             ->get();

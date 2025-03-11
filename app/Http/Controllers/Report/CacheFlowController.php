@@ -14,13 +14,28 @@ use Illuminate\Support\Facades\DB;
 
 class CacheFlowController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
       /**
      * Display a listing of the resource.
      */
     public function index()
     {
         // نمایش لیست مشتریان و خزانه ها و فروشنده گان
-        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->get();
+        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         // $sums = $this->showFooterReport(1,33);
@@ -80,11 +95,13 @@ class CacheFlowController extends Controller
                      'payment_type', 'options', 'option_label', 'currency_id', 'details', 
                      'inserted_short_date', 'status', 'times', 'is_single_record','user')
             ->where('account_id', $request->account_id)  // Enforce account_id filter
-            ->where('currency_id', $request->currency_id) // Enforce currency_id filter
+            ->where('currency_id', $request->currency_id) 
+            ->where('branch_id', $this->branch_id) 
             ->orderBy('id', 'DESC');
 
          // check if searched_account_id is belongs to company accounts
-         $isCompanyAccount = Account::where('account_type_id', 1)->where('id', $request->account_id)->exists();
+         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)
+         ->where('branch_id', $this->branch_id)->exists();
         
     
         // Apply optional filters
@@ -105,6 +122,7 @@ class CacheFlowController extends Controller
         $sums = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
+            ->where('branch_id', $this->branch_id)
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
@@ -146,93 +164,5 @@ class CacheFlowController extends Controller
             ])
             ->make(true);
     }
-
-    
-    // public function getData(Request $request)
-    // {
-    //     /**
-    //      * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
-    //      */
-
-    //     $journals = Journal::with(['accountRelation:id,name', 'currencyRelation:id,name,symbols,color'])
-    //     ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
-    //              'payment_type', 'options', 'option_label', 'currency_id', 'details', 
-    //              'inserted_short_date', 'status', 'times', 'is_single_record')
-    //     ->orderBy('id', 'DESC');
-
-    //     // Apply filters
-    //     if ($request->account_id) {
-    //         $journals->where('account_id', $request->account_id);
-    //     }
-    //     if ($request->currency_id) {
-    //         $journals->where('currency_id', $request->currency_id);
-    //     }
-    //     if ($request->start_date && $request->end_date) {
-    //         $journals->whereBetween('inserted_short_date', [$request->start_date, $request->end_date]);
-    //     } elseif ($request->start_date) {
-    //         $journals->whereDate('inserted_short_date', '=', $request->start_date);
-    //     } elseif ($request->end_date) {
-    //         $journals->whereDate('inserted_short_date', '>=', $request->end_date);
-    //     }
-    //     if ($request->code_number) {
-    //         $journals->where('code', 'LIKE', "%{$request->code_number}%");
-    //     }
-    //     if ($request->bill_number) {
-    //         $journals->where('bill_no', 'LIKE', "%{$request->bill_number}%");
-    //     }
-
-    //     $sumCacheRecieved = 1000;
-    //     $sumCachePaid = 2000;
-    //     $sumLoanRecieved = 3000;
-    //     $sumLoanPaid = 4000;
-
-    //     // \Log::info($journals->toSql());
-    //     // \Log::info($journals->getBindings());
-
-    //     return DataTables::of($journals)
-            
-    //         ->addIndexColumn()
-           
-    //         ->addColumn('accountRelation', function ($journal) {
-    //             return $journal->accountRelation ? $journal->accountRelation->name : '';
-    //         })
-            
-    //         // cacheRecieved = t1p1 = دریافت نقد
-    //         ->addColumn('cacheRecieved', function ($journal) {
-    //             if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
-    //         })
-
-    //            // cachePaid  = t2p1 = پرداخت نقد
-    //         ->addColumn('cachePaid', function ($journal) {
-    //             if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
-    //         })
-            
-    //         // loanRecieved = t1p2 = قرضه
-    //         ->addColumn('loanRecieved', function ($journal) {
-    //            if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
-    //         })
-            
-
-    //        // loanPaid = t2p2 = طلب
-    //         ->addColumn('loanPaid', function ($journal) {
-    //            if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
-    //        })
-            
-
-    //         ->addColumn('currency', function ($journal) {
-    //             return '<i style="font-size:14px;color:'.$journal->currencyRelation->color.'">'.$journal->currencyRelation->symbols.'</i>';
-    //         })
-    //         ->addColumn('actions', function ($journal) {
-    //             return $journal->status == 2 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';
-    //         })
-    //         ->rawColumns(['actions','currency'])
-    //         ->with([
-    //                 'sumCacheRecieved' => number_format($sumCacheRecieved),
-    //                 'sumCachePaid' => number_format($sumCachePaid),
-    //                 'sumLoanRecieved' => number_format($sumLoanRecieved),
-    //                 'sumLoanPaid' => number_format($sumLoanPaid)
-    //          ])
-    //         ->make(true);
-    // }
 
 }

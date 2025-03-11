@@ -18,27 +18,44 @@ use App\Models\Setting\OrgBio;
 
 class ProfitAndLossController extends Controller
 {
+    protected $branch_id, $isAdmin;
+
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
+
     public function index()
     {
         // Step 2: Get all currencies
         $orgbios = OrgBio::all();
         $currencies = Currency::all();
         $data = $this->getIncomeSection();
+        $branch_id = $this->branch_id ?? 0;
         // $talabat = $this->getTalabat();
         // $talabat = $this->getTalabat()->map(fn($item) => (array) $item)->toArray(); // Convert objects to arrays
         // return ['talabat' => $talabat];
 
         // $transactionSummary = $this->getTransactionSummary(); 
         // return ['data' => $transactionSummary];
-        $transactionSummary = $this->getTransactionSummary()->map(fn($item) => (array) $item)->toArray(); // Convert objects to arrays
-        $warehouseValue = $this->getWarehouseValue()->map(fn($item) => (array) $item)->toArray();
-        $salesProfit = $this->getSalesProfit()->map(fn($item) => (array) $item)->toArray();
+        $transactionSummary = $this->getTransactionSummary($branch_id)->map(fn($item) => (array) $item)->toArray(); // Convert objects to arrays
+        $warehouseValue = $this->getWarehouseValue($branch_id)->map(fn($item) => (array) $item)->toArray();
+        $salesProfit = $this->getSalesProfit($branch_id)->map(fn($item) => (array) $item)->toArray();
         // return ['salesProfit' => $salesProfit];
 
         return view('report.profitAndLoss.list', compact('transactionSummary','currencies','warehouseValue','salesProfit','orgbios'));
     }
 
-    private function getSalesProfit()
+    private function getSalesProfit($branch_id)
     {
         $baseCurrency = DB::table('currencies')->where('is_base', 'yes')->first();
         if (!$baseCurrency) {
@@ -64,6 +81,7 @@ class ProfitAndLossController extends Controller
         $warehouseData = DB::table('sales_details')
             ->join('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
             ->selectRaw('SUM(sales_details.profit) as total_profit, warehouse_sales.currency_id')
+            ->where('warehouse_sales.branch_id', $branch_id)
             ->groupBy('warehouse_sales.currency_id')
             ->get()
             ->keyBy('currency_id');
@@ -113,7 +131,7 @@ class ProfitAndLossController extends Controller
 
 
     
-    private function getWarehouseValue()
+    private function getWarehouseValue($branch_id)
     {
         $baseCurrency = DB::table('currencies')->where('is_base', 'yes')->first();
         if (!$baseCurrency) {
@@ -134,6 +152,7 @@ class ProfitAndLossController extends Controller
 
         $warehouseData = DB::table('warehouse_items')
             ->selectRaw('currency_id, SUM(available_amount * avg_up) as total_value, SUM(wastage_total) as total_wastage')
+            ->where('branch_id', $branch_id)
             ->groupBy('currency_id')
             ->get()
             ->keyBy('currency_id');
@@ -305,7 +324,7 @@ class ProfitAndLossController extends Controller
 
         
         
-    private function getTransactionSummary()
+    private function getTransactionSummary($branch_id)
     {
         $company_account_type_id = 1; // صرف خزانه شرکت
         $banks_account_type_id = 6; // صرافی و بانک ها
@@ -349,6 +368,7 @@ class ProfitAndLossController extends Controller
             ->join('accounts', 'accounts.id', '=', 'journals.account_id')
             ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id])
             ->where('journals.is_cleared', 0)
+            ->where('journals.branch_id', $branch_id)
             ->groupBy('journals.currency_id')
             ->get()
             ->keyBy('currency_id');

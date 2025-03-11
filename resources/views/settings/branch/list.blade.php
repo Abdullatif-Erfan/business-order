@@ -8,20 +8,14 @@
             <tr>
                 <th>شماره</th>
                 <th>نام شعبه</th>
+                <th> مسؤل شعبه </th>
+                <th>شماره تماس</th>
+                <th> ایمیل آدرس</th>
+                <th> آدرس دفتر</th>
                 <th>ویرایش</th>
                 <th>حذف</th>
             </tr>
         </thead>
-        <tbody>
-          {{-- @foreach($branchs as $branch)
-            <tr>
-                <td>{{ $branch->id }}</td>
-                <td>{{ $branch->name }}</td>
-                <td></td>
-                <td></td>
-            </tr>
-            @endforeach --}}
-        </tbody>
     </table>
     <div id="pagination" style="text-align: center;"></div>
 </div>
@@ -37,14 +31,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="branchForm">
-                    <input type="hidden" id="branchId">
-                    <div class="form-group">
-                        <label for="name">نام شعبه</label>
-                        <input type="text" class="form-control" id="name" required placeholder="نام را وارد کنید">
-                        <span id="nameError" class="text-danger"></span>
-                    </div>
-                </form>
+                <div id="branchFormWrapper"></div>
                 <div id="loading_modal" style="display:none; text-align: center;">
                     <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
                 </div>
@@ -57,64 +44,105 @@
     </div>
 </div>
 
+<!-- Update Modal -->
+<div class="modal fade" id="EditBranchModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="width:900px !important">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> ویرایش </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="EditBranchFormWrapper"></div>
+                <div id="loading_modal2" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditBranchBtn">ثبت</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
-$(document).ready(function () {
-    // Initialize DataTable
-    var table = fetchBranchList();
 
-    // Add or Update Branch
-    $('#submitBtnBranch').click(function () {
-        addOrUpdateBranch(table);
-    });
-
-    /**
-     * When clicked on editBranch, get the value based on id and show in the modal
-     */
-    $('table').on('click', '.editBranch', function () {
-        const branchId = $(this).data('id');
-        $('#addModal').modal('show');
-        $('#loading_modal').show();
-
-        $.ajax({
-            url: `/branches/${branchId}`,
+function showAddBranchForm()
+{
+    $('#addModal').modal('show');
+    $('#loading_modal').show();
+    $.ajax({
+            url: `/branches/create`,
             type: 'GET',
-            success: (branch) => {
-                $('#branchId').val(branch.id);
-                $('#name').val(branch.name);
+            success: (result) => {
+                $('#branchFormWrapper').html(result);
                 $('#loading_modal').hide();
             },
             error: () => {
                 $('#loading_modal').hide();
-                showNotification('ریکارد موجود نیست', 'danger', 'top', 'right', 'withicon');
+                alert('اطلاعات یافت نشد');
+            }
+    });
+}
+
+// submit add form
+$('#submitBtnBranch').on('click', function () 
+    {
+        // Serialize form data
+        var formData = $('#branchForm').serialize();
+
+        // Show loading state
+        $('#loading_modal').show();
+
+        // // Clear previous error messages
+        // $('#accountTypeIdError').text('');
+        // $('#accountNameError').text('');
+
+        // AJAX form submission
+        $.ajax({
+            url: '/branches/store', 
+            type: 'POST',
+            data: formData,
+            success: (response) => {
+                $('#loading_modal').hide();
+                if (response.status === 'success') {
+                    fetchBranchList(); // Ensure this function exists in your code
+                    $('#addModal').modal('hide');
+                    showNotification(response.message, 'success', 'top', 'right', 'withicon');
+                } else {
+                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                }
+            },
+            error: (xhr) => {
+                $('#loading_modal').hide();
+                // Handle validation errors
+                 if (xhr.status === 422) 
+                 { // Laravel validation error status code
+                    var errors = xhr.responseJSON.errors;
+                    if (errors?.name) {
+                        $('#bNameError').text(errors.name[0]);
+                    }
+                    if (errors?.responsible) {
+                        $('#bResponsibleError').text(errors.responsible[0]);
+                    }
+                    if (errors?.phone) {
+                        $('#bPhoneError').text(errors.phone[0]);
+                    }
+                    if (errors?.address) {
+                        $('#bAddressError').text(errors.address[0]);
+                    }
+                    
+                } else {
+                    // General error handling
+                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                }
             }
         });
-    });
+  });
 
-    // Delete Branch
-    $('table').on('click', '.deleteBranch', function () {
-        const id = $(this).data('id');
-        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
-            $.ajax({
-                url: `/branches/${id}`,
-                type: 'DELETE',
-                data: { _token: '{{ csrf_token() }}' },
-                success: (response) => {
-                    if(response.status === 'success') {
-                        // table.ajax.reload(null, false); // callaback, boolean
-                        fetchBranchList();
-                        showNotification(response.message, 'success', 'top', 'right', 'withicon');
-                    } else {
-                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
-                       alert(response.message);
-                    }
-                },
-                error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
-                }
-            });
-        }
-    });
-});
 
 // Fetch Branch List
 function fetchBranchList() {
@@ -126,11 +154,15 @@ function fetchBranchList() {
             serverSide: true,
             processing: true,
             ajax: {
-                url: '{{ route("branches") }}',
+                url: '{{ route("branches.list") }}',
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'name', name: 'name' },
+                { data: 'responsible', name: 'responsible' },
+                { data: 'phone', name: 'phone' },
+                { data: 'email', name: 'email' },
+                { data: 'address', name: 'address' },
                 { data: 'edit', name: 'edit', searchable: false, orderable: false },
                 { data: 'delete', name: 'delete', searchable: false, orderable: false },
             ]
@@ -141,50 +173,111 @@ function fetchBranchList() {
     }
 }
 
-// Add or Update Branch
-const addOrUpdateBranch = (table) => {
-        const branchId = $('#branchId').val();
-        const name = $('#name').val();
-        const url = branchId ? `/branches/${branchId}` : "{{ route('branches') }}";
-        const method = branchId ? 'PATCH' : 'POST';
-        
-        $('#loading_modal').show();
-        $('#nameError').text('');
 
+
+</script>
+
+<!-- ===================== Belongs to Edit ========================= -->
+<script type="text/javascript">
+    // Open Modal for Editing
+    $('table').on('click', '.editBranch', function () {
+        $('#EditBranchModal').modal('show');
+        $('#loading_modal2').show();
+        const bId = $(this).data('id');
         $.ajax({
-            url,
-            type: method,
-            data: { name, _token: '{{ csrf_token() }}', id: branchId },
-            success: (response) => {
-                $('#loading_modal').hide();
-                $('#addModal').modal('hide');
-                $('#branchForm')[0].reset();
-                $('#branchId').val('');
-                $('#name').val('');
-                fetchBranchList();
-                showNotification(response.message, 'success', 'top', 'right', 'withicon');
+            url: `/branches/show/${bId}`,
+            type: 'GET',
+            success: (result) => {
+                $('#EditBranchFormWrapper').html(result);
+                $('#loading_modal2').hide();
             },
-            error: (xhr) => {
-                $('#loading_modal').hide();
-                const errors = xhr.responseJSON?.errors;
-                if (errors?.name) {
-                    $('#nameError').text(errors.name[0]);
-                } else {
-                    $('#branchId').val('');
-                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
-                }
+            error: () => {
+                $('#loading_modal2').hide();
+                alert('اطلاعات یافت نشد');
             }
         });
-    };
+    });
+    
+    // submit edit form 
+    $('#EditBranchBtn').on('click', function () 
+    {
+        // Serialize form data
+        var formData = $('#editBranchForm').serialize();
+
+        // Show loading state
+        $('#loading_modal2').show();
+
+        // Clear previous error messages
+        // $('#accountTypeIdError').text('');
+        // $('#accountNameError').text('');
 
 
-$('#addModal').on('show.bs.modal', function (event) {
-    // Check if it's a new record (not edit)
-    if (!$(event.relatedTarget).hasClass('editBranch')) {
-        $('#branchForm')[0].reset(); // Reset form fields
-        $('#branchId').val(''); // Clear hidden input for branch ID
-        $('#nameError').text(''); // Clear error message
+        // AJAX form submission
+        $.ajax({
+            url: '/branches/update', // The actual route for saving data
+            type: 'PATCH',
+            data: formData,
+            success: (response) => {
+                $('#loading_modal2').hide();
+
+                if (response.status === 'success') {
+                    fetchBranchList(); 
+                    $('#EditBranchModal').modal('hide');
+                    showNotification('موفقانه ویرایش گردید', 'success', 'top', 'right', 'withicon');
+                } else {
+                    showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                }
+            },
+            error: (xhr) => {
+                $('#loading_modal2').hide();
+
+                // Handle validation errors
+                if (xhr.status === 422) 
+                { // Laravel validation error status code
+                    var errors = xhr.responseJSON.errors;
+                    if (errors?.name) {
+                        $('#bNameError').text(errors.name[0]);
+                    }
+                    if (errors?.responsible) {
+                        $('#bResponsibleError').text(errors.responsible[0]);
+                    }
+                    if (errors?.phone) {
+                        $('#bPhoneError').text(errors.phone[0]);
+                    }
+                    if (errors?.address) {
+                        $('#bAddressError').text(errors.address[0]);
+                    }
+                } else {
+                    // General error handling
+                    showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                }
+
+            }
+        });
+  });
+
+ // Delete Branch
+ $('table').on('click', '.deleteBranch', function () {
+    const id = $(this).data('id');
+    if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+        $.ajax({
+            url: `/branches/${id}`,
+            type: 'DELETE',
+            data: { _token: '{{ csrf_token() }}' },
+            success: (response) => {
+                if(response.status === 'success') {
+                    // table.ajax.reload(null, false); // callaback, boolean
+                    fetchBranchList();
+                    showNotification(response.message, 'success', 'top', 'right', 'withicon');
+                } else {
+                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    alert(response.message);
+                }
+            },
+            error: () => {
+                showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+            }
+        });
     }
 });
-
 </script>

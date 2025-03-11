@@ -9,7 +9,7 @@
     <div class="form-group">
         <label for="branch_id">شعبه مربوطه</label>
         <select  class="form-control select2 " id="branch_id" required style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="branch_id" > 
-            <option value=""> انتخاب شعبه</option>
+            <!-- <option value=""> انتخاب شعبه</option> -->
             @foreach($branchs as $branch){ ?>
                 <option value="{{ $branch->id }}">{{ $branch->name }}</option>
             @endforeach

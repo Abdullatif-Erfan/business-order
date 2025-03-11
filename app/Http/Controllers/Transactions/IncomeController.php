@@ -223,7 +223,7 @@ class IncomeController extends Controller
         $day = $date[2];
         $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
     
-        $newJournalCode = Journal::max('code') + 1;
+        $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
         $times = time();
     
         // Start the transaction
@@ -342,7 +342,7 @@ class IncomeController extends Controller
             $day = $date[2];
             $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
         
-            $newJournalCode = Journal::max('code') + 1;
+            $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
             $times = time();
         
             // Update the first journal entry ("paid cache")
@@ -398,7 +398,7 @@ class IncomeController extends Controller
     public function destroy(string $id)
     {
         // Find all income records with the same 'times' value
-        $journal = Journal::where('id', $id)->get();
+        $journal = Journal::where('id', $id)->where('branch_id', $this->branch_id)->get();
 
         if ($journal->isNotEmpty()) {
             // Loop through each income and delete its associated file

@@ -16,17 +16,31 @@ use Illuminate\Support\Facades\DB;
 class BalanceSheetController extends Controller
 {
     
+    protected $branch_id, $isAdmin;
 
+    // Inject the message service into the controller
+    public function __construct()
+    {
+        // Ensure user authentication before setting the branch ID
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->branch_id = $user->branch_id ?? 0;
+            $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
+    }
       /**
      * Display a listing of the resource.
      */
     public function index()
     {
         // نمایش لیست مشتریان و خزانه ها و فروشنده گان
-        $accounts = Account::whereIn('account_type_id',[1,3,4])->get();
+        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $accountTypes = AccountType::whereIn('id',[1,3,4])->get();
+        $accountTypes = AccountType::whereIn('id',[1,3,4,6])->get();
         // $sums = $this->showFooterReport(1,33);
         // return response()->json(['sums' =>  $sums]);
 
@@ -52,6 +66,7 @@ class BalanceSheetController extends Controller
         $currency_id = $request->currency_id ?? 0;
         $account_type_id = $request->account_type_id ?? 0;
         $balance = 0 ;
+        $branch_id = $this->branch_id ?? 0;
 
         // Fetch currency details
         $currency = Currency::find($currency_id);
@@ -68,9 +83,11 @@ class BalanceSheetController extends Controller
     
         // Fetch account details for today only
         $accounts = DB::table('accounts')
-            ->leftJoin('journals', function ($join) use ($currency_id) {
+            ->join('journals', function ($join) use ($currency_id, $branch_id) {
                 $join->on('accounts.id', '=', 'journals.account_id')
-                    ->where('journals.currency_id', $currency_id);  
+                    ->where('journals.currency_id', $currency_id)  
+                    ->where('journals.branch_id', $branch_id);  
+
             })
             ->where('accounts.account_type_id', $account_type_id)
             ->select([
@@ -133,7 +150,7 @@ class BalanceSheetController extends Controller
             })
             ->addColumn('balance', function ($account) use($account_type_id) {
                 
-                $balance = $account_type_id == 1  
+                $balance = $account_type_id == 1 ||  $account_type_id == 6
                     ? ($account->cache_recieved + $account->loan_paid) - ($account->cache_paid + $account->loan_recieved)
                     : ($account->cache_paid + $account->loan_paid) - ($account->cache_recieved + $account->loan_recieved);
 
