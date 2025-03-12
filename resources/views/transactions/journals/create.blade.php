@@ -76,7 +76,7 @@
                                                 onchange="selectAccountsLabel(this.value)" > 
                                                     <option value="">  --- انتخاب نوع معامله --- </option>
                                                     <option value="1"> معاملات نقد به نقد </option>
-                                                    <option value="2"> معاملات نسیه به نسیه </option>
+                                                    <!-- <option value="2"> معاملات نسیه به نسیه </option> -->
                                                     <option value="3"> معاملات نقد به نسیه </option>
                                                     <option value="4"> معاملات نسیه به نقد ( آوردگی قرض بطور نقد) </option>
                                                  </select> 
@@ -183,27 +183,36 @@
 
 
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group">
                                                 <input class="form-control" id="from_details" name="from_details" type="text" 
                                                 placeholder="تفصیلات پرداخت کننده" required>
                                                 @error('from_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group">
                                                 <input class="form-control" id="to_details" name="to_details" type="text"  placeholder="تفصیلات دریافت کننده" required>
                                                 @error('to_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+
+                                        <div class="col-md-6 col-sm-6 col-xs-12" id="prev_code_wrapper" style="display:none">
+                                            <div class="form-group form-floating-label"><label> کد نمبر قرض قبلی </label>
+                                              <input type="number" class="form-control input-solid" id="prev_code" name="prev_code">
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group">
                                                 <label>اسناد</label>
                                                 <input type="file" class="form-control" name="doc" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
                                                 @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6 m-t-30">
+
+                                        <div class="col-md-6 col-sm-6 col-xs-12 m-t-30">
                                             <div class="row">
                                                 <div class="col-6">
                                                     <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue">
@@ -264,6 +273,8 @@
      {
          $('#from_account_label').html('حساب رسیدگی (پرداخت کننده)');
          $('#to_account_label').html('حساب بردگی (دریافت کننده)');
+         $('#prev_code_wrapper').fadeOut(1);
+         $('#prev_code').fadeOut(1).removeAttr('required', true);
      } 
      /**
      *   نسیه به نسیه
@@ -273,6 +284,8 @@
      {
         $('#from_account_label').html('حساب رسیدگی ( حساب که طلب میشود)');
         $('#to_account_label').html('حساب بردگی (حساب که قرضدار میشود)');
+        $('#prev_code_wrapper').fadeOut(1);
+        $('#prev_code').fadeOut(1).removeAttr('required', true);
      }
      /**
      * نقد به نسیه
@@ -283,6 +296,8 @@
      {
         $('#from_account_label').html('حساب رسیدگی (پرداخت کننده نقد)');
         $('#to_account_label').html('حساب بردگی (دریافت کننده قرض)');
+        $('#prev_code_wrapper').fadeOut(1);
+        $('#prev_code').fadeOut(1).removeAttr('required', true);
      }
     
     /**
@@ -294,6 +309,8 @@
      {
         $('#from_account_label').html('حساب رسیدگی (پرداخت کننده قرضه بطور نقد)');
         $('#to_account_label').html('حساب بردگی (دریافت کننده/ طلب)');
+        $('#prev_code_wrapper').fadeIn(1);
+        $('#prev_code').fadeIn(1).attr('required', true);
      }
     
    }

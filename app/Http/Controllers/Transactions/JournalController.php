@@ -389,6 +389,48 @@ class JournalController extends Controller
             // معاملات نسیه به نقد
             else if(intval($request->options) === 4)
             {
+
+                /**
+                 * در ابتدا باید کد قبلی چک گردد اگر موجود بود 
+                 * تنها ریکارد طلب قبلی شانرا بکشد 
+                 * اگر پرداخت فعلی کمتر از مبلغ طلب قبلی بود باید کم بسازد و ریکارد قبلی را آپدیت نمایند
+                 * اگر به اندازه خود شان بود باید ریکارد قبلی را صفر نمایند
+                 * اگر بزرگ بود الیرت بدهد که مبلغ اشتباه میباشد
+                 * بعدا دو ریکارد دیگر را ثبت نمایند
+                 */
+                if (empty($request->prev_code) || intval($request->prev_code) <= 0) {
+                    return response()->json(['message' => 'کد نمبر قرض قبلی را بنویسید'], 400);
+                }
+                
+                $prev_journal = Journal::select('id', 'amount')
+                    ->where('code', $request->prev_code)
+                    ->where('currency_id', $from_currency)
+                    ->where('transaction_type', 2) // Paid
+                    ->where('payment_type', 2)  // Loan
+                    ->where('options', 3)  // Had 3 records
+                    ->where('status', 2) // Belongs to journal entry
+                    ->first();
+                
+                if (!$prev_journal) {
+                    return response()->json(['message' => 'ریکارد قرضداری قبلی پیدا نشد'], 404);
+                }
+                
+                $prev_amount = intval($prev_journal->amount);
+                $from_amount = intval($from_amount);
+                
+                if ($prev_amount === $from_amount) {
+                    $prev_journal->amount = 0;
+                    $prev_journal->save();
+                } elseif ($prev_amount > $from_amount) {
+                    // 5000 - 2000 = 3000 
+                    $prev_journal->amount = $prev_amount - $from_amount;
+                    $prev_journal->save();
+                } else {
+                    return response()->json(['message' => 'مبلغ وارد شده بالاتر از مبلغ قرضداری قبلی شما میباشد لطفا به اندازه قرضه خود مبلغ را وارد نمایید'], 400);
+                }
+
+
+
                 /**
                 * پرداخت نقد مشتری
                 * باید همین مبلغ در جمع  رسیدگی قرض مشتری علاوه شود تا از قرضه شان کم شود

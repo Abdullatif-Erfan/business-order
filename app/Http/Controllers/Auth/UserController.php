@@ -180,7 +180,7 @@ class UserController extends Controller
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $user = User::findOrFail($id);
-        $branches = Branch::where('id', $this->branch_id)->get();
+        $branches = Branch::all();
         $isAdmin = $this->isAdmin ?? 0;
 
         return view('management.users.edit',compact('roles','orgbios','user','branches','isAdmin'));
