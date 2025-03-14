@@ -51,31 +51,31 @@
                             </h4>
                         </div>
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
+                            <div class="col-md-12 m-t-10">
+                            @if(session('notification'))
+                                <div class="alert alert-{{ session('notification.type') }}">
+                                    {{ session('notification.message') }}
+                                </div>
+                            @endif
+                            </div>
                             <form action="{{ route('journal.update') }}" method="POST" enctype="multipart/form-data">
-                               <input type="hidden" name="times" value="{{ $journals[0]->times }}">
-                               <input type="hidden" name="code" value="{{ $journals[0]->code }}"> 
-
+                                <input type="hidden" name="from_id" value="{{ $journals[0]->id }}"> 
+                                <input type="hidden" name="to_id" value="{{ $journals[1]->id }}"> 
+                                <input type="hidden" name="code" value="{{ $journals[0]->code }}"> 
+                                <input type="hidden" name="times" value="{{ $journals[0]->times }}">
+                                <input type="hidden" name="code" value="{{ $journals[0]->code }}"> 
+                                <input type="hidden" name="prev_code" value="{{ $journals[0]->dynamic_type }}"> 
+                                <input type="hidden" name="old_amount" id="old_amount" value="{{ $journals[0]->amount }}">
+                                <input type="hidden" name="increment" id="increment" value=""> 
+                                <input type="hidden" name="decrement" id="decrement" value=""> 
 
                                 @csrf
                                 @method('PATCH') 
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <select class="form-control select2" name="branch_id" required>
-                                                    @if ($branchs->count() > 1)
-                                                       <option value="{{ $journals[0]->branch_id }}">{{ $journals[0]->branchRelation->name }}</option>
-                                                        <option value="">--- انتخاب شعبه ---</option>
-                                                    @endif
-                                                    @foreach ($branchs as $branch)
-                                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('branch_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
+                                       
 
-                                        <div class="col-md-3 col-sm-6 col-xs-12">
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group form-floating-label">
                                            
                                               <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" 
@@ -87,11 +87,11 @@
                                                         @elseif($journals[0]->options == 4) معاملات نسیه به نقد
                                                         @endif
                                                     </option>
-                                                    <option value="">--- انتخاب نوع معامله ---</option>
+                                                    <!-- <option value="">--- انتخاب نوع معامله ---</option>
                                                     <option value="1">معاملات نقد به نقد</option>
                                                     <option value="2">معاملات نسیه به نسیه</option>
                                                     <option value="3">معاملات نقد به نسیه</option>
-                                                    <option value="4"> معاملات نسیه به نقد ( آوردگی قرض بطور نقد) </option>
+                                                    <option value="4"> معاملات نسیه به نقد ( آوردگی قرض بطور نقد) </option> -->
                                               </select>
 
                                             </div> 
@@ -339,7 +339,28 @@
           const rawAmount = from_amount.replace(/,/g, '');  
         // Format the amount to with commas and set it to the to_amount field  
         $('#to_amount').val(formatNumberWithCommas(rawAmount));  
+        var old_amount = $('#old_amount').val() || 0;
 
+        console.log('rawAmount',rawAmount);
+        console.log('old_amount',old_amount);
+
+        if (parseInt(rawAmount) > parseInt(old_amount)) 
+        {
+            var diff = rawAmount - old_amount;
+            $('#increment').val(diff);
+            $('#decrement').val('');
+        } 
+        else if (parseInt(rawAmount) < parseInt(old_amount)) 
+        {
+            var diff = old_amount - rawAmount;
+            $('#increment').val('');
+            $('#decrement').val(diff);
+        }
+        else 
+        {
+            $('#increment').val('');
+            $('#decrement').val('');
+        }
    }
 
 </script>

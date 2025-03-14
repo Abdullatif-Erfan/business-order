@@ -34,6 +34,9 @@ return new class extends Migration
             $table->integer('status')->comment('1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other');
             $table->foreignId('branch_id')->default(0);
             $table->foreignId('dynamic_type')->default(0)->comment('has relation with income_type, expense_type, salary, ....');
+            $table->string('dt_comment')->nullable();
+            $table->integer('is_middle')->default(0)->comment('0:not, 1:middle record for keeping balance in 3 journal records');
+
             $table->double('rate')->nullable();
             $table->double('profit')->nullable();
             $table->integer('is_cleared')->comment('0: not cleared, 1:cleared')->default(0);

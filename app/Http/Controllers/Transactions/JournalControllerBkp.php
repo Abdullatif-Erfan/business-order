@@ -19,18 +19,22 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Services\NumberToWordsService;
 
 
-class JournalControllerBkp extends Controller
+class JournalController extends Controller
 {
-
-    protected $messageService, $numberToWordsService;
+    protected $branch_id, $isAdmin, $numberToWordsService;
 
     // Inject the message service into the controller
-    public function __construct(
-        MessageService $messageService, 
-        NumberToWordsService $numberToWordsService)
+    public function __construct(NumberToWordsService $numberToWordsService)
     {
-        $this->messageService = $messageService;
         $this->numberToWordsService = $numberToWordsService;
+        if(auth()->check())
+        {
+            $this->branch_id = session('branch_id', auth()->check() ? auth()->user()->branch_id : 0);
+            $this->isAdmin = session('isAdmin', auth()->check() ? auth()->user()->isAdmin == 1 : false);
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+        }
     }
 
     /**
@@ -49,8 +53,11 @@ class JournalControllerBkp extends Controller
 
         // return response()->json(['data' => $journals]);
 
+        // $user = auth()->user();
+        // $branch_id = $user->branch_id ?? 0;
+        // $this->branch_id = $branch_id;
 
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
 
@@ -64,17 +71,28 @@ class JournalControllerBkp extends Controller
      */
     public function getData(Request $request)
     {
+        // $user = auth()->user();
+        // $branch_id = $user->branch_id ?? 0;
+
         /**
          * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
          */
-        $journals = Journal::with(['accountRelation' => function($query){
-            $query->select('id','name');
-        },'currencyRelation' => function($query){
-            $query->select('id','name','symbols','color');
-        }])
+        // $journals = Journal::with(['accountRelation' => function($query){
+        //     $query->select('id','name');
+        // },'currencyRelation' => function($query){
+        //     $query->select('id','name','symbols','color');
+        // }])
+
         // $journals = Journal::with(['accountRelation','currencyRelation'])
-        ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','options','option_label','currency_id','details','inserted_short_date','status','times','is_single_record')
-        ->where('journals.status','<=',2)
+        // ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','options','option_label','currency_id','details','inserted_short_date','status','times','is_single_record','journals.branch_id')
+        // ->where('accountRelation.branch_id', $this->branch_id)
+        // ->orderBy('id', 'DESC');
+
+        $journals = Journal::with(['accountRelation', 'currencyRelation'])
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'inserted_short_date', 'status', 'times', 'is_single_record')
+        ->whereHas('accountRelation', function($query) {
+            $query->where('branch_id', $this->branch_id);
+        })
         ->orderBy('id', 'DESC');
 
 
@@ -101,6 +119,8 @@ class JournalControllerBkp extends Controller
             $journals->where('bill_no', 'LIKE', "%{$request->bill_number}%");
         }
         
+         // check if searched_account_id is belongs to company accounts
+         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->where('branch_id', $this->branch_id)->exists();
 
         return DataTables::of($journals)
             
@@ -110,57 +130,38 @@ class JournalControllerBkp extends Controller
                 return $journal->accountRelation ? $journal->accountRelation->name : '';
             })
             
-         
+            // cacheRecieved = t1p1 = دریافت نقد
+            ->addColumn('cacheRecieved', function ($journal) {
+                if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
+            })
 
-            // در این حالت در رفت / قرض نشان داده شود
-            //  transaction_type == 2 and payment_type = 1 = paid cache
-            // transaction_type == 1 and payment_type = 2 = recieved loan
-            ->addColumn('transaction_type_1', function ($journal) {
-                $amount = $journal->amount;
-                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-
-                if ($journal->status == 1) { // رسید حساب سابق 
-                    return $journal->transaction_type == 2 ? $formattedAmount : '';
-                } 
-                else 
-                {
-                    // دو معامله ای
-                    if (($journal->transaction_type == 2 && $journal->payment_type == 1) || 
-                    ($journal->transaction_type == 1 && $journal->payment_type == 2)) {
-                        return $formattedAmount;
-                    }
-                }
-                return '';
+               // cachePaid  = t2p1 = پرداخت نقد
+            ->addColumn('cachePaid', function ($journal) {
+                if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
             })
             
-            
-            // در این حالت در طلب / و آمد نشان داده شود
-            // transaction_type == 2 and payment_type = 2 = paid loan
-            // transaction_type == 1 and payment_type = 1 = recieved cache
-            ->addColumn('transaction_type_2', function ($journal) {
-                $amount = $journal->amount;
-                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-
-                if ($journal->status == 1) {
-                    return $journal->transaction_type == 1 ? $formattedAmount : '';
-                } 
-                else {
-                    if (($journal->transaction_type == 2 && $journal->payment_type == 2) || 
-                        ($journal->transaction_type == 1 && $journal->payment_type == 1)) {
-                        return $formattedAmount;
-                    }
-                }
-                return '';
+            // loanRecieved = t1p2 = قرضه
+            ->addColumn('loanRecieved', function ($journal) {
+               if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
             })
+            
+
+           // loanPaid = t2p2 = طلب
+            ->addColumn('loanPaid', function ($journal) {
+               if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
+           })
             
 
             ->addColumn('currency', function ($journal) {
                 return '<i style="font-size:14px;color:'.$journal->currencyRelation->color.'">'.$journal->currencyRelation->symbols.'</i>';
             })
             ->addColumn('actions', function ($journal) {
-                return $journal->is_single_record == 1 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';
+                return $journal->status == 2 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';
             })
             ->rawColumns(['actions','currency'])
+            ->with([
+                'isCompanyAccount' => $isCompanyAccount ?? 0 
+            ])
             ->make(true);
     }
 
@@ -189,7 +190,7 @@ class JournalControllerBkp extends Controller
         // dd($this->numberToWordsService->convertNumber(1000000.00)); // Should be "یک میلیون"
 
 
-        $journals = Journal::with(['accountRelation', 'currencyRelation', 'userRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->where('times', $times)
         ->orderBy('id', 'DESC')
         ->get();
@@ -219,9 +220,9 @@ class JournalControllerBkp extends Controller
         // $query = $this->db->get('branch'); 		   
         // $data['branch'] = $query->result_array();
 
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id',$this->branch_id)->get();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
         return view('transactions.journals.create',compact('accounts','currencies','branchs','todaysDate'));
@@ -235,12 +236,26 @@ class JournalControllerBkp extends Controller
         // return ['formData' => $request->all()];
 
         $this->journalValidation($request);
-
+        $newJournalCode = DB::table('journals')->where('journals.branch_id', $this->branch_id)->lockForUpdate()->max('code') + 1;
         // Start the transaction
         DB::beginTransaction();
         try 
         {
-           $check = $this->handleJournalEntry($request);
+
+           if(intval($request->options) === 4)
+           {
+               $checkCode = $this->checkPrevCode($request);
+                if ($checkCode['status'] == 'failed') {
+                    DB::rollBack();
+                    Session::flash('notification', [
+                        'message' => $checkCode['message'],
+                        'type' => 'danger',
+                    ]);
+                    return back();
+                }
+           }
+
+           $check = $this->handleJournalEntry($request,$newJournalCode);
 
            if(!$check)
            { 
@@ -298,7 +313,7 @@ class JournalControllerBkp extends Controller
         ]);
     }
 
-    private function handleJournalEntry($request)
+    private function handleJournalEntry($request,$newJournalCode)
     {
         $todaysDate = $request->todays_date;
         $date = explode('-', $todaysDate);
@@ -307,7 +322,6 @@ class JournalControllerBkp extends Controller
         $day = $date[2];
         $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
 
-        $newJournalCode = $newJournalCode =  Journal::max('code') + 1;
         $times = time();
     
          /**
@@ -357,12 +371,12 @@ class JournalControllerBkp extends Controller
              else if(intval($request->options) === 2)
              {
                  // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                $optionLable = 'پرداخت نسیه';
+                $optionLable = 'پرداخت قرض';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
                                           $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
                 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                 $optionLable = 'دریافت نسیه';
+                 $optionLable = 'دریافت قرض';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
                                           $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times);
              }
@@ -381,7 +395,7 @@ class JournalControllerBkp extends Controller
 
 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                 $optionLable = 'دریافت نسیه';
+                 $optionLable = 'دریافت قرض';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
                                         $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
 
@@ -391,19 +405,23 @@ class JournalControllerBkp extends Controller
             {
                 /**
                 * پرداخت نقد مشتری
-                * ثبت قرضه خزانه از مشتری تا اینکه از طلب مشتری کم شود
+                * باید همین مبلغ در جمع  رسیدگی قرض مشتری علاوه شود تا از قرضه شان کم شود
+                * باید همین مبلغ در حساب خزانه جمع شود زیرا نقد دریافت کرده وباید حساب شان افزایش یابد
+
+                * بردگی نقد خزانه
+                * رسیدگی قرض مشتری یا پرداخت کننده
                 */
 
-                // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
-                $optionLable = 'پرداخت نقد';
+                // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
+                $optionLable = 'رسیدگی قرض ';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                        $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                                        $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
 
 
-                // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                $optionLable = 'دریافت طلب';
+                // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
+                $optionLable = 'دریافت طلب'; 
                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                    $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
+                                    $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times);
             }
 
             // Commit the transaction
@@ -417,6 +435,90 @@ class JournalControllerBkp extends Controller
         }
     }
   
+    private function checkPrevCode($request)
+    {
+        /**
+         * در ابتدا باید کد قبلی چک گردد اگر موجود بود 
+         * تنها ریکارد طلب قبلی شانرا بکشد 
+         * اگر پرداخت فعلی کمتر از مبلغ طلب قبلی بود باید کم بسازد و ریکارد قبلی را آپدیت نمایند
+         * اگر به اندازه خود شان بود باید ریکارد قبلی را صفر نمایند
+         * اگر بزرگ بود الیرت بدهد که مبلغ اشتباه میباشد
+         * بعدا دو ریکارد دیگر را ثبت نمایند
+         */
+         // Validate if previous code is provided
+        if (empty($request->prev_code) || intval($request->prev_code) <= 0) {
+            return [
+                'status' => 'failed',
+                'message' => 'کد نمبر قرض قبلی را بنویسید',
+            ];
+        }
+
+        // Remove commas and convert amount to integer
+        $from_amount = intval(str_replace(',', '', $request->from_amount));
+
+        // Fetch previous journal entry
+        $prev_journal = Journal::select('id', 'amount')
+            ->where('code', $request->prev_code)
+            ->where('currency_id', $request->from_currency_id)
+            ->where('branch_id', $this->branch_id)
+            ->where('transaction_type', 2) // Paid
+            ->where('payment_type', 2)  // Loan
+            ->where('options', 3)  // Had 3 records
+            ->where('status', 2) // Belongs to journal entry
+            ->first();
+
+        // Check if journal entry exists
+        if (!$prev_journal) {
+            \Log::error('Journal record not found for prev_code: ' . $request->prev_code);
+            return [
+                'status' => 'failed',
+                'message' => 'ریکارد یافت نشد لطفا کد قرض قبلی را درست وارد نمایید',
+            ];
+        }
+
+        // Convert previous amount to integer
+        $prev_amount = intval($prev_journal->amount);
+
+        // Ensure amounts are valid
+        if ($prev_amount <= 0 || $from_amount <= 0) {
+            \Log::error('Invalid amount values: prev_amount=' . $prev_amount . ', from_amount=' . $from_amount);
+            return [
+                'status' => 'failed',
+                'message' => 'مقادیر مبلغ معتبر نیستند',
+            ];
+        }
+
+        // Log before update
+        \Log::info('Updating journal ID: ' . $prev_journal->id . ' | Old Amount: ' . $prev_amount . ' | Deducting: ' . $from_amount);
+
+        // Update the journal amount based on conditions
+        if ($prev_amount === $from_amount) {
+            $prev_journal->amount = 0;
+        } elseif ($prev_amount > $from_amount) {
+            $prev_journal->amount = $prev_amount - $from_amount;
+        } else {
+            return [
+                'status' => 'failed',
+                'message' => 'مبلغ وارد شده بالاتر از مبلغ قرضداری قبلی شما میباشد لطفا به اندازه قرضه خود مبلغ را وارد نمایید',
+            ];
+        }
+
+        // Attempt to save changes
+        if ($prev_journal->save()) {
+            \Log::info('Journal successfully updated. New Amount: ' . $prev_journal->amount);
+            return [
+                'status' => 'success',
+                'message' => 'بروزرسانی موفقانه انجام شد',
+            ];
+        } else {
+            \Log::error('Journal update failed for ID: ' . $prev_journal->id);
+            return [
+                'status' => 'failed',
+                'message' => 'خطا در بروزرسانی اطلاعات، لطفا دوباره تلاش نمایید',
+            ];
+        }
+    }
+
     private function createJournalEntry($request, $optionLable, $account_id, $currency_id, $amount, $ttype, $ptype,  
         $full_date, $date, $details, $code, $times)
     {
@@ -426,7 +528,7 @@ class JournalControllerBkp extends Controller
                 $docPath = $request->file('doc')->store('documents', 'public');
                 Log::info('Document uploaded', ['path' => $docPath]);
             }
-
+            
             // Create the Journal entry
             Journal::create([
                 'bill_no' => $request->billno,
@@ -439,7 +541,8 @@ class JournalControllerBkp extends Controller
                 'payment_type' => $ptype,
                 'options' => $request->options,
                 'option_label' => $optionLable,
-                'user_id' => auth()->user()->id ?? '',
+                'dynamic_type' => $request->prev_code ?? null,
+                'user' => auth()->user()->full_name ?? '',
                 'year' => $date[0],
                 'month' => $date[1],
                 'day' => $date[2],
@@ -462,7 +565,7 @@ class JournalControllerBkp extends Controller
     public function print(string $times)
     {
         $orgbios = OrgBio::all();
-        $journals = Journal::with(['accountRelation', 'currencyRelation', 'userRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->where('times', $times)
         ->orderBy('id', 'DESC')
         ->get();
@@ -487,7 +590,7 @@ class JournalControllerBkp extends Controller
         $currencies = Currency::all();
         $branchs = Branch::all();
 
-        $journals = Journal::with(['accountRelation', 'currencyRelation', 'userRelation','branchRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
         ->orderBy('id', 'ASC')
         ->get();
@@ -503,6 +606,7 @@ class JournalControllerBkp extends Controller
         $this->journalValidation($request);
        
         $records = Journal::where('times', $request->times)
+        ->where('branch_id', $this->branch_id)
         ->orderBy('id') // Order by ID to delete the oldest first
         ->limit(3)
         ->get();
@@ -516,7 +620,7 @@ class JournalControllerBkp extends Controller
         DB::beginTransaction();
         try 
         {
-           $check = $this->handleJournalEntry($request);
+           $check = $this->handleJournalEntry($request, $request->code);
 
            if(!$check)
            { 
@@ -555,7 +659,7 @@ class JournalControllerBkp extends Controller
         ]);
     
         // Fetch all journals based on the given times
-        $journals = Journal::where('times', $request->times)->get();
+        $journals = Journal::where('times', $request->times)->where('journals.branch_id', $this->branch_id)->get();
     
         // Check if any journals are found
         if ($journals->isEmpty()) {
@@ -574,7 +678,7 @@ class JournalControllerBkp extends Controller
         }
     
         // Redirect or return response
-        return redirect()->route('transactions.journal.details', ['times' => $request->times])->with('success', 'Documents updated successfully!');
+        return redirect()->route('journal.details', ['times' => $request->times])->with('success', 'Documents updated successfully!');
 
     }
     
@@ -584,7 +688,7 @@ class JournalControllerBkp extends Controller
     public function destroy(string $times)
     {
         // Find all journal records with the same 'times' value
-        $journals = Journal::where('times', $times)->get();
+        $journals = Journal::where('times', $times)->where('journals.branch_id', $this->branch_id)->get();
 
         if ($journals->isNotEmpty()) {
             // Loop through each journal and delete its associated file

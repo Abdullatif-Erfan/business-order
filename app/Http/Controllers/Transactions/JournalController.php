@@ -21,7 +21,7 @@ use App\Services\NumberToWordsService;
 
 class JournalController extends Controller
 {
-    protected $branch_id, $isAdmin, $numberToWordsService;
+    protected $branch_id, $isAdmin, $full_name, $numberToWordsService;
 
     // Inject the message service into the controller
     public function __construct(NumberToWordsService $numberToWordsService)
@@ -31,9 +31,12 @@ class JournalController extends Controller
         {
             $this->branch_id = session('branch_id', auth()->check() ? auth()->user()->branch_id : 0);
             $this->isAdmin = session('isAdmin', auth()->check() ? auth()->user()->isAdmin == 1 : false);
+            $this->full_name = session('full_name', auth()->check() ? auth()->user()->full_name : 0);
+            
         } else {
             $this->branch_id = 0;
             $this->isAdmin = false;
+            $this->full_name = '';
         }
     }
 
@@ -190,10 +193,13 @@ class JournalController extends Controller
         // dd($this->numberToWordsService->convertNumber(1000000.00)); // Should be "یک میلیون"
 
 
-        $journals = Journal::with(['accountRelation', 'currencyRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
+        ->where('branch_id', $this->branch_id)
+        ->where('is_middle','=',0) // consider just tow main records and remove middle record from amount of 3 records
         ->orderBy('id', 'DESC')
         ->get();
+
         // Convert amount to words
         foreach ($journals as $journal) {
             $journal->amount_in_words = $this->numberToWordsService->convertNumber($journal->amount);
@@ -241,6 +247,20 @@ class JournalController extends Controller
         DB::beginTransaction();
         try 
         {
+
+           if(intval($request->options) === 4)
+           {
+               $checkCode = $this->checkPrevCode($request);
+                if ($checkCode['status'] == 'failed') {
+                    DB::rollBack();
+                    Session::flash('notification', [
+                        'message' => $checkCode['message'],
+                        'type' => 'danger',
+                    ]);
+                    return back();
+                }
+           }
+
            $check = $this->handleJournalEntry($request,$newJournalCode);
 
            if(!$check)
@@ -283,18 +303,18 @@ class JournalController extends Controller
         // Validation
         $validated = $request->validate([
             'options'  => 'required|numeric',
-            'branch_id' => 'required|exists:branches,id',
             'bill_no' => 'nullable|numeric|min:1',
+            
             'from_account_id' => 'required|exists:accounts,id',
-            'to_account_id' => 'required|exists:accounts,id',
-
             'from_amount' => 'required|numeric|min:1',  
             'from_currency_id' => 'required|exists:currencies,id',
-            'to_amount' => 'required|numeric|min:1',
-
-            'to_currency_id' => 'required|exists:currencies,id',
             'from_details' => 'required|string|max:255',
+            
+            'to_account_id' => 'required|exists:accounts,id',
+            'to_currency_id' => 'required|exists:currencies,id',
+            'to_amount' => 'required|numeric|min:1',
             'to_details' => 'required|string|max:255',
+
             'doc' => 'nullable|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:2048', // Optional file field, max 2MB
         ]);
     }
@@ -344,13 +364,13 @@ class JournalController extends Controller
                 // ثبت پرداخت توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
                 $optionLable = 'پرداخت نقد';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times,0);
                 
      
                  // ثبت دریافت توسط دریافت کننده = recieved(ttype=1) cache(ptype=1)
                  $optionLable = 'دریافت نقد';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times);
+                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times,0);
              } 
           
              // معاملات نسیه به نسیه
@@ -359,12 +379,12 @@ class JournalController extends Controller
                  // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
                 $optionLable = 'پرداخت قرض';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
+                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times,0);
                 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
                  $optionLable = 'دریافت قرض';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times);
+                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times,0);
              }
              // معاملات نقد به نسیه
              else if(intval($request->options) === 3)
@@ -372,65 +392,24 @@ class JournalController extends Controller
                  // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
                  $optionLable = 'پرداخت نقد';
                  $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times,0);
 
                   // ثبت  طلب برای  پرداخت کننده = paid(ttype=2), loan(ptype=2) 
                  $optionLable = 'ثبت طلب';
+                 $isMiddle = 1;
                  $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
+                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times,$isMiddle);
 
 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
                  $optionLable = 'دریافت قرض';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                        $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
+                                        $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times,0);
 
             }
             // معاملات نسیه به نقد
             else if(intval($request->options) === 4)
             {
-
-                /**
-                 * در ابتدا باید کد قبلی چک گردد اگر موجود بود 
-                 * تنها ریکارد طلب قبلی شانرا بکشد 
-                 * اگر پرداخت فعلی کمتر از مبلغ طلب قبلی بود باید کم بسازد و ریکارد قبلی را آپدیت نمایند
-                 * اگر به اندازه خود شان بود باید ریکارد قبلی را صفر نمایند
-                 * اگر بزرگ بود الیرت بدهد که مبلغ اشتباه میباشد
-                 * بعدا دو ریکارد دیگر را ثبت نمایند
-                 */
-                if (empty($request->prev_code) || intval($request->prev_code) <= 0) {
-                    return response()->json(['message' => 'کد نمبر قرض قبلی را بنویسید'], 400);
-                }
-                
-                $prev_journal = Journal::select('id', 'amount')
-                    ->where('code', $request->prev_code)
-                    ->where('currency_id', $from_currency)
-                    ->where('transaction_type', 2) // Paid
-                    ->where('payment_type', 2)  // Loan
-                    ->where('options', 3)  // Had 3 records
-                    ->where('status', 2) // Belongs to journal entry
-                    ->first();
-                
-                if (!$prev_journal) {
-                    return response()->json(['message' => 'ریکارد قرضداری قبلی پیدا نشد'], 404);
-                }
-                
-                $prev_amount = intval($prev_journal->amount);
-                $from_amount = intval($from_amount);
-                
-                if ($prev_amount === $from_amount) {
-                    $prev_journal->amount = 0;
-                    $prev_journal->save();
-                } elseif ($prev_amount > $from_amount) {
-                    // 5000 - 2000 = 3000 
-                    $prev_journal->amount = $prev_amount - $from_amount;
-                    $prev_journal->save();
-                } else {
-                    return response()->json(['message' => 'مبلغ وارد شده بالاتر از مبلغ قرضداری قبلی شما میباشد لطفا به اندازه قرضه خود مبلغ را وارد نمایید'], 400);
-                }
-
-
-
                 /**
                 * پرداخت نقد مشتری
                 * باید همین مبلغ در جمع  رسیدگی قرض مشتری علاوه شود تا از قرضه شان کم شود
@@ -443,13 +422,13 @@ class JournalController extends Controller
                 // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
                 $optionLable = 'رسیدگی قرض ';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                        $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
+                                        $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times,0);
 
 
                 // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
                 $optionLable = 'دریافت طلب'; 
                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                    $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times);
+                                    $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times,0);
             }
 
             // Commit the transaction
@@ -463,8 +442,94 @@ class JournalController extends Controller
         }
     }
   
+    private function checkPrevCode($request)
+    {
+        /**
+         * در ابتدا باید کد قبلی چک گردد اگر موجود بود 
+         * تنها ریکارد طلب قبلی شانرا بکشد 
+         * اگر پرداخت فعلی کمتر از مبلغ طلب قبلی بود باید کم بسازد و ریکارد قبلی را آپدیت نمایند
+         * اگر به اندازه خود شان بود باید ریکارد قبلی را صفر نمایند
+         * اگر بزرگ بود الیرت بدهد که مبلغ اشتباه میباشد
+         * بعدا دو ریکارد دیگر را ثبت نمایند
+         */
+         // Validate if previous code is provided
+        if (empty($request->prev_code) || intval($request->prev_code) <= 0) {
+            return [
+                'status' => 'failed',
+                'message' => 'کد نمبر قرض قبلی را بنویسید',
+            ];
+        }
+
+        // Remove commas and convert amount to integer
+        $from_amount = intval(str_replace(',', '', $request->from_amount));
+
+        // Fetch previous journal entry
+        $prev_journal = Journal::select('id', 'amount')
+            ->where('code', $request->prev_code)
+            ->where('currency_id', $request->from_currency_id)
+            ->where('branch_id', $this->branch_id)
+            ->where('transaction_type', 2) // Paid
+            ->where('payment_type', 2)  // Loan
+            ->where('options', 3)  // Had 3 records
+            ->where('status', 2) // Belongs to journal entry
+            ->first();
+
+        // Check if journal entry exists
+        if (!$prev_journal) {
+            \Log::error('Journal record not found for prev_code: ' . $request->prev_code);
+            return [
+                'status' => 'failed',
+                'message' => 'ریکارد یافت نشد لطفا کد قرض قبلی را درست وارد نمایید',
+            ];
+        }
+
+        // Convert previous amount to integer
+        $prev_amount = intval($prev_journal->amount);
+
+        // Ensure amounts are valid
+        if ($prev_amount <= 0 || $from_amount <= 0) {
+            \Log::error('Invalid amount values: prev_amount=' . $prev_amount . ', from_amount=' . $from_amount);
+            return [
+                'status' => 'failed',
+                'message' => 'مقادیر مبلغ معتبر نیستند',
+            ];
+        }
+
+        // Log before update
+        \Log::info('Updating journal ID: ' . $prev_journal->id . ' | Old Amount: ' . $prev_amount . ' | Deducting: ' . $from_amount);
+
+        // Update the journal amount based on conditions
+        if ($prev_amount === $from_amount) {
+            $prev_journal->amount = 0;
+        } elseif ($prev_amount > $from_amount) {
+            $prev_journal->amount = $prev_amount - $from_amount;
+        } else {
+            return [
+                'status' => 'failed',
+                'message' => 'مبلغ وارد شده بالاتر از مبلغ قرضداری قبلی شما میباشد لطفا به اندازه قرضه خود مبلغ را وارد نمایید',
+            ];
+        }
+
+        // Attempt to save changes
+        if ($prev_journal->save()) {
+            \Log::info('Journal successfully updated. New Amount: ' . $prev_journal->amount);
+            return [
+                'status' => 'success',
+                'message' => 'بروزرسانی موفقانه انجام شد',
+            ];
+        } else {
+            \Log::error('Journal update failed for ID: ' . $prev_journal->id);
+            return [
+                'status' => 'failed',
+                'message' => 'خطا در بروزرسانی اطلاعات، لطفا دوباره تلاش نمایید',
+            ];
+        }
+    }
+
+   
+
     private function createJournalEntry($request, $optionLable, $account_id, $currency_id, $amount, $ttype, $ptype,  
-        $full_date, $date, $details, $code, $times)
+        $full_date, $date, $details, $code, $times, $isMiddle=0)
     {
             // Handle the file upload
             $docPath = '';
@@ -485,6 +550,9 @@ class JournalController extends Controller
                 'payment_type' => $ptype,
                 'options' => $request->options,
                 'option_label' => $optionLable,
+                'dynamic_type' => $request->prev_code ?? null,
+                'dt_comment' => $request->prev_code ? 'کد قبلی این معامله': null,
+                'is_middle' => $isMiddle ?? 0,
                 'user' => auth()->user()->full_name ?? '',
                 'year' => $date[0],
                 'month' => $date[1],
@@ -508,10 +576,13 @@ class JournalController extends Controller
     public function print(string $times)
     {
         $orgbios = OrgBio::all();
-        $journals = Journal::with(['accountRelation', 'currencyRelation'])
+        $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
+        ->where('branch_id', $this->branch_id)
+        ->where('is_middle','=',0) // consider just tow main records and remove middle record from amount of 3 records
         ->orderBy('id', 'DESC')
         ->get();
+
         // Convert amount to words
         foreach ($journals as $journal) {
             $journal->amount_in_words = $this->numberToWordsService->convertNumber($journal->amount);
@@ -529,14 +600,17 @@ class JournalController extends Controller
      */
     public function edit(string $times)
     {
-        $accounts = Account::all();
+        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
-        $branchs = Branch::all();
+        $branchs = Branch::where('id', $this->branch_id)->get();
 
         $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
+        ->where('branch_id', $this->branch_id)
+        ->where('is_middle','=',0) // consider just tow main records and remove middle record from amount of 3 records
         ->orderBy('id', 'ASC')
         ->get();
+
         // return response()->json(['data' => $journals]);
         return view('transactions.journals.edit',compact('accounts','currencies','branchs','journals'));
     }
@@ -546,34 +620,106 @@ class JournalController extends Controller
      */
     public function update(Request $request)
     {
+        // return [ 'formData' => $request->all() ];
         $this->journalValidation($request);
        
-        $records = Journal::where('times', $request->times)
-        ->where('branch_id', $this->branch_id)
-        ->orderBy('id') // Order by ID to delete the oldest first
-        ->limit(3)
-        ->get();
-
-        // Delete each record found (even if it's 1, 2, or 3)
-        foreach ($records as $record) {
-            $record->delete();
-        }
-
         // Start the transaction
         DB::beginTransaction();
         try 
         {
-           $check = $this->handleJournalEntry($request, $request->code);
+            if(intval($request->options) === 4)
+            {
+                $checkCode = $this->checkPrevCodeAndUpdate($request);
+                if ($checkCode['status'] == 'failed') {
+                    DB::rollBack();
+                    Session::flash('notification', [
+                        'message' => $checkCode['message'],
+                        'type' => 'danger',
+                    ]);
+                    return back();
+                }
+            }
 
-           if(!$check)
-           { 
-                DB::rollBack();
+            // Get the journal entry using the `times` field to locate the correct entry
+            $journal1 = Journal::where('id', $request->from_id)->first();
+            $journal2 = Journal::where('id', $request->to_id)->first(); 
+        
+            if (!$journal1 || !$journal2) {
                 Session::flash('notification', [
-                    'message' => ' ویرایش نگردید',
+                    'message' => 'ریکارد یافت نگردید',
                     'type' => 'danger',
                 ]);
                 return back();
-           }
+            }
+        
+
+            // Get the current date and time
+            $todaysDate = $request->todays_date;
+            $date = explode('-', $todaysDate);
+            $year = $date[0];
+            $month = $date[1];
+            $day = $date[2];
+            $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
+
+            $from_amount = str_replace(',', '', $request->from_amount);
+            $to_amount = str_replace(',', '', $request->to_amount);
+
+            // Update the first journal entry ("paid cache")
+            $journal1->bill_no = $request->bill_no ?? 0;
+            $journal1->inserted_full_date = $full_date;
+            $journal1->inserted_short_date = $todaysDate;
+            $journal1->year = $year;
+            $journal1->month = $month;
+            $journal1->day = $day;
+            $journal1->account_id = $request->from_account_id;
+            $journal1->amount = $from_amount;
+            $journal1->currency_id = $request->from_currency_id;
+            $journal1->details = $request->from_details;
+            $journal1->user = $this->full_name ?? '';
+            // Handle the file upload if new file is uploaded
+            if ($request->hasFile('doc')) {
+                $docPath = $request->file('doc')->store('documents', 'public');
+                $journal1->doc = $docPath;
+            }
+            $journal1->save();
+        
+            // =========== Update the second journal entry ("received cache") ======================
+            $journal2->bill_no = $request->bill_no;
+            $journal2->inserted_full_date = $full_date;
+            $journal2->inserted_short_date = $todaysDate;
+            $journal2->user = $this->full_name ?? '';
+            $journal2->year = $year;
+            $journal2->month = $month;
+            $journal2->day = $day;
+            $journal2->account_id = $request->to_account_id;
+            $journal2->amount = $to_amount;
+            $journal2->currency_id = $request->to_currency_id;
+            $journal2->details = $request->to_details;
+            
+            // Handle the file upload if new file is uploaded
+            if ($request->hasFile('doc')) {
+                $docPath = $request->file('doc')->store('documents', 'public');
+                $journal2->doc = $docPath;
+            }
+            $journal2->save();
+
+            if(intval($request->options) === 3) // ویرایش نقد به نسیه
+            {
+                // update amount for middle
+                 $middle_journal = Journal::select('id', 'amount')
+                ->where('code', $journal2->code)
+                ->where('currency_id', $request->from_currency_id)
+                ->where('branch_id', $this->branch_id)
+                ->where('transaction_type', 2) // Paid
+                ->where('payment_type', 2)  // Loan
+                ->where('options', 3)  // Had 3 records
+                ->where('status', 2) // Belongs to journal entry
+                ->where('is_middle', 1) 
+                ->first();
+    
+                $middle_journal->amount = $from_amount;
+                $middle_journal->save();
+            }
 
             // Commit the transaction
             DB::commit();
@@ -594,7 +740,110 @@ class JournalController extends Controller
         }
     }
     
-   
+    private function checkPrevCodeAndUpdate($request)
+    {
+         // Validate if previous code is provided
+        if (empty($request->prev_code) || intval($request->prev_code) <= 0) {
+            return [
+                'status' => 'failed',
+                'message' => 'کد نمبر قرض قبلی را بنویسید',
+            ];
+        }
+
+        if(empty($request->increment) && empty($request->decrement))
+        {
+            return [
+                'status' => 'success',
+                'message' => 'مقدار تغیر نکرده و نیاز به ویرایش نیست',
+            ];
+        }
+
+        // Remove commas and convert amount to integer
+        $from_amount = intval(str_replace(',', '', $request->from_amount));
+
+        // Fetch previous journal entry
+        $prev_journal = Journal::select('id', 'amount')
+            ->where('code', $request->prev_code)
+            ->where('currency_id', $request->from_currency_id)
+            ->where('branch_id', $this->branch_id)
+            ->where('transaction_type', 2) // Paid
+            ->where('payment_type', 2)  // Loan
+            ->where('options', 3)  // Had 3 records
+            ->where('status', 2) // Belongs to journal entry
+            ->where('is_middle', 1) 
+            ->first();
+
+        // Check if journal entry exists
+        if (!$prev_journal) {
+            \Log::error('Journal record not found for prev_code: ' . $request->prev_code);
+            return [
+                'status' => 'failed',
+                'message' => 'ریکارد یافت نشد لطفا کد قرض قبلی را درست وارد نمایید',
+            ];
+        }
+
+        // Convert previous amount to integer
+        $prev_amount = intval($prev_journal->amount);
+
+        // Ensure amounts are valid
+        if ($prev_amount <= 0 || $from_amount <= 0) {
+            \Log::error('Invalid amount values: prev_amount=' . $prev_amount . ', from_amount=' . $from_amount);
+            return [
+                'status' => 'failed',
+                'message' => 'مقادیر مبلغ معتبر نیستند',
+            ];
+        }
+
+        // Log before update
+        // \Log::info('Updating journal ID: ' . $prev_journal->id . ' | Old Amount: ' . $prev_amount . ' | Deducting: ' . $from_amount);
+
+        // Update the journal amount based on conditions
+        if ($prev_amount === $from_amount) {
+            $prev_journal->amount = 0;
+        } 
+        elseif ($prev_amount > $from_amount) 
+        {
+            if(!empty($request->increment) && intval($request->increment) > 0)
+            {
+                $prev_journal->amount = $prev_amount - $request->increment;
+            }
+            else if(!empty($request->decrement) && intval($request->decrement) > 0)
+            {
+                $prev_journal->amount = $prev_amount + $request->decrement;
+            } 
+            else 
+            {
+                return [
+                    'status' => 'success',
+                    'message' => 'نیاز به آپدیت نیست',
+                ];
+            }
+        } 
+        else
+        {
+            return [
+                'status' => 'failed',
+                'message' => 'مبلغ وارد شده بالاتر از مبلغ قرضداری قبلی شما میباشد لطفا به اندازه قرضه خود مبلغ را وارد نمایید',
+            ];
+        }
+
+        // Attempt to save changes
+        if ($prev_journal->save()) {
+            \Log::info('Journal successfully updated. New Amount: ' . $prev_journal->amount);
+            return [
+                'status' => 'success',
+                'message' => 'بروزرسانی موفقانه انجام شد',
+            ];
+        } else {
+            \Log::error('Journal update failed for ID: ' . $prev_journal->id);
+            return [
+                'status' => 'failed',
+                'message' => 'خطا در بروزرسانی اطلاعات، لطفا دوباره تلاش نمایید',
+            ];
+        }
+    }
+
+
     public function update_document(Request $request)
     {
         $request->validate([
@@ -630,39 +879,99 @@ class JournalController extends Controller
      */
     public function destroy(string $times)
     {
-        // Find all journal records with the same 'times' value
-        $journals = Journal::where('times', $times)->where('journals.branch_id', $this->branch_id)->get();
+        // Start the transaction
+        DB::beginTransaction();
 
-        if ($journals->isNotEmpty()) {
-            // Loop through each journal and delete its associated file
-            foreach ($journals as $journal) {
-                // Optionally delete the associated file if needed
-                if (Storage::exists('public/documents/' . $journal->doc)) {
-                    Storage::delete('public/documents/' . $journal->doc);
+        try {
+            // Find all journal records with the same 'times' value
+            $journals = Journal::where('times', $times)
+                ->where('branch_id', $this->branch_id)
+                ->get();
+            
+            // return ['data' => $journals];
+
+            // If journals are not empty, proceed with the deletion
+            if ($journals->isNotEmpty()) {
+                // Loop through each journal and delete its associated file
+                foreach ($journals as $journal) {
+                    // Optionally delete the associated file if needed
+                    if (Storage::exists('public/documents/' . $journal->doc)) {
+                        Storage::delete('public/documents/' . $journal->doc);
+                    }
+
+                    // Delete the journal record
+                    $journal->delete();
                 }
+                
+                // Retrieve the previous journal record
+                if($journals->first()->options == 4)
+                {
+                        $prev_journal = Journal::select('id', 'amount')
+                            ->where('code', $journals->first()->dynamic_type)
+                            ->where('currency_id', $journals->first()->currency_id)
+                            ->where('branch_id', $this->branch_id)
+                            ->where('transaction_type', 2) // Paid
+                            ->where('payment_type', 2)  // Loan
+                            ->where('options', 3)  // Had 3 records
+                            ->where('status', 2) // Belongs to journal entry
+                            ->where('is_middle', 1) 
+                            ->first();
+        
+                        // Check if the previous journal record exists
+                        if (!$prev_journal) {
+                            \Log::error('Journal record not found for prev_code: ' . $journals->first()->dynamic_type);
+                            // Rollback the transaction if the previous journal is not found
+                            DB::rollBack();
+                            return [
+                                'status' => 'failed',
+                                'message' => 'ریکارد یافت نشد لطفا کد قرض قبلی را درست وارد نمایید',
+                            ];
+                        }
+        
+                        // Update the previous journal amount
+                        $prev_amount = intval($prev_journal->amount);
+                        $prev_journal->amount = $prev_amount + $journals->first()->amount;
+                        $prev_journal->save();
+        
+                        // Commit the transaction if everything goes well
+                        DB::commit();
+        
+                        // Optionally, flash a success message to session
+                        session()->flash('notification', [
+                            'type' => 'success',
+                            'message' => 'موفقانه حذف گردید',
+                        ]);
+        
+                        // Redirect to the journal listing page
+                        return redirect()->route('journal.index');
+                    } 
+                  
 
-                // Delete the journal record
-                $journal->delete();
+                // Commit the transaction if everything goes well
+                DB::commit();
+                session()->flash('notification', [
+                    'type' => 'success',
+                    'message' => 'موفقانه حذف گردید',
+                ]);
+                return redirect()->route('journal.index');
+
             }
 
-            // Optionally, flash a success message to session
-            session()->flash('notification', [
-                'type' => 'success',
-                'message' => 'موفقانه حذف گردید',
-            ]);
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of any exception
+            DB::rollBack();
 
-            // Redirect to the journal listing page (or wherever you want)
-            return redirect()->route('journal.index');
-        } else {
-            // If no journals found with the given 'times' value, return back with error message
-            session()->flash('notification', [
-                'type' => 'danger',
-                'message' => 'حذف نگردید',
-            ]);
+            // Log the error
+            \Log::error('Error during destroy operation: ' . $e->getMessage());
 
-            return back();
+            // Return error message
+            return [
+                'status' => 'failed',
+                'message' => 'خطا در حذف، لطفا دوباره تلاش کنید',
+            ];
         }
     }
+
 
     
 }

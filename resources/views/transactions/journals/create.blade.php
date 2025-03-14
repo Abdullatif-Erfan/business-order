@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'روزنامچه')
 @section('content')
+
 <style>
     @keyframes blink {
   0% { opacity: 1; }
@@ -51,34 +52,30 @@
                             </h4>
                         </div>
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
+                            <div class="col-md-12 m-t-10">
+                            @if(session('notification'))
+                                <div class="alert alert-{{ session('notification.type') }}">
+                                    {{ session('notification.message') }}
+                                </div>
+                            @endif
+                            </div>
                             <form action="{{ route('journal.store') }}" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}" required >
+                            
                                 @csrf
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
 
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <select class="form-control select2" name="branch_id" required>
-                                                    @if ($branchs->count() > 1)
-                                                        <option value="">--- انتخاب شعبه ---</option>
-                                                    @endif
-                                                    @foreach ($branchs as $branch)
-                                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('branch_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
 
-                                        <div class="col-md-3 col-sm-6 col-xs-12">
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group form-floating-label">
-                                                <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" required 
+                                                <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" id="options" required 
                                                 onchange="selectAccountsLabel(this.value)" > 
                                                     <option value="">  --- انتخاب نوع معامله --- </option>
-                                                    <option value="1"> معاملات نقد به نقد </option>
+                                                    <option value="1"> معاملات نقد به نقد (انتقال میان حسابات) </option>
                                                     <!-- <option value="2"> معاملات نسیه به نسیه </option> -->
-                                                    <option value="3"> معاملات نقد به نسیه </option>
-                                                    <option value="4"> معاملات نسیه به نقد ( آوردگی قرض بطور نقد) </option>
+                                                    <option value="3"> معاملات نقد به نسیه ( دادن قرض ) </option>
+                                                    <option value="4"> معاملات نسیه به نقد ( دریافت قرض ) </option>
                                                  </select> 
                                             </div> 
                                         </div>
@@ -186,7 +183,7 @@
                                         <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group">
                                                 <input class="form-control" id="from_details" name="from_details" type="text" 
-                                                placeholder="تفصیلات پرداخت کننده" required>
+                                                placeholder="تفصیلات پرداخت کننده" required oninput="checkPrevCode()" >
                                                 @error('from_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
@@ -198,7 +195,7 @@
                                         </div>
 
                                         <div class="col-md-6 col-sm-6 col-xs-12" id="prev_code_wrapper" style="display:none">
-                                            <div class="form-group form-floating-label"><label> کد نمبر قرض قبلی </label>
+                                            <div class="form-group form-floating-label"><label> این پرداخت جهت کدام قرض میباشد ؟ صرف کد نمبر اش را بنویسید </label>
                                               <input type="number" class="form-control input-solid" id="prev_code" name="prev_code">
                                             </div>
                                         </div>
@@ -233,6 +230,7 @@
     </div>
 </div>
 
+
 <!-- For Persian Date Picker -->
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
@@ -258,6 +256,19 @@
 </script>
 
 <script>
+   function checkPrevCode()
+   {
+      var options = $('#options').val();
+      if(parseInt(options) === 4)
+      {
+          $('#msg').val('need prev_code');
+      }
+      else 
+      {
+        $('#msg').val('');
+      }
+   }
+
     function updateToAmountWithThisValue(from_amount)
     {
         const rawAmount = from_amount.replace(/,/g, '');   
