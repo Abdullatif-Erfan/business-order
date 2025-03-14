@@ -2,11 +2,8 @@
 @section('title', 'تنظیمات')
 
 @php
-    $packageId = \App\Helpers\ManagementHelper::activePackageId();
-@endphp
-
-@php
     $user = auth()->user();
+    $packageId = session('package_type');
     $isAdmin = $user->isAdmin == 1;
     $permissions = [
         'settings' => $user->hasAccess('settings', 'create_records'),
@@ -30,8 +27,10 @@
                                 <li><a data-toggle="tab"  href="#unit">واحد اجناس</a></li>
                                 <li><a data-toggle="tab"  href="#currency">واحد پولی</a></li>
                                 <li><a data-toggle="tab"  href="#account"> حساب  </a></li>
+                                @if($packageId >=2)
                                 <li><a data-toggle="tab"  href="#income_type"> کتگوری عواید  </a></li>
                                 <li><a data-toggle="tab"  href="#expense_type"> کتگوری مصارف  </a></li>
+                                @endif
                                 <li><a data-toggle="tab"  href="#company_profile">  پروفایل شرکت  </a></li>
 
                             </ul>

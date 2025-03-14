@@ -80,6 +80,7 @@
                                 </div>
 
                                 <!-- Treasury Reports -->
+                                @if(session('package_type') >=3)
                                 <div class="col-md-4">
                                     <div class="card border-warning shadow-sm">
                                         <div class="card-header bg-custom-grey">
@@ -106,6 +107,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
 
                                   <!-- general low -->

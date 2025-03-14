@@ -1,6 +1,6 @@
 @php
     $base_url = url('/');
-    $packageId = \App\Helpers\ManagementHelper::activePackageId();
+    $packageId = session('package_type');
     $user = auth()->user();
     $isAdmin = $user->isAdmin == 1;
     $branch_id = $user->branch_id ?? 0;
@@ -50,7 +50,7 @@
                 <li class="nav-item">
                     <a href="{{ $base_url }}/home">
                         <i class="fas fa-home"></i>
-                        <p>صفحه اصلی</p>
+                        <p>صفحه اصلی  </p>
                     </a>
                 </li>
 
@@ -63,7 +63,7 @@
                     </li>
                 @endif
 
-                @if($permissions['rates'] || $isAdmin)
+                @if(($permissions['rates'] || $isAdmin) && $packageId >= 3)
                     <li class="nav-item">
                         <a href="{{ route('rate.index') }}">
                             <i class="fas fa-percent"></i>
@@ -72,6 +72,7 @@
                     </li>
                  @endif
 
+                    @if($packageId >= 2)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#journal">
                           <i class="fas fa-file-invoice-dollar"></i>
@@ -87,14 +88,14 @@
                                     </a>
                                 </li>
                                 @endif
-                                @if($permissions['income'] || $isAdmin)
+                                @if(($permissions['income'] || $isAdmin) && $packageId >= 2)
                                 <li>
                                     <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> عواید </span>
                                     </a>
                                 </li>
                                 @endif
-                                @if($permissions['expense'] || $isAdmin)
+                                @if(($permissions['expense'] || $isAdmin) && $packageId >= 2)
                                 <li>
                                     <a href="{{ route('expense.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> مصارف</span>
@@ -109,9 +110,19 @@
                             </ul>
                         </div>
                     </li>
+                    @endif
+
+                    @if($packageId == 1)
+                    <li class="nav-item">
+                        <a href="{{ route('journal.index') }}">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <p>  روزنامچه </p>
+                        </a>
+                    </li>
+                    @endif
 
 
-                    @if($permissions['hr'] || $isAdmin)
+                    @if(($permissions['hr'] || $isAdmin) && $packageId >= 3)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#hr">
                           <i class="fas fa-users"></i>
@@ -226,8 +237,8 @@
                     </li>
                 @endif
 
-                @if($permissions['clearance'] || $isAdmin)
-                <li class="nav-item">
+                @if(($permissions['clearance'] || $isAdmin) && $packageId >= 2)
+                <!-- <li class="nav-item">
                         <a data-toggle="collapse" href="#clearance">
                             <i class="fas fa-file-invoice-dollar"></i>
                             <p> تصفیه حسابات </p>
@@ -247,10 +258,11 @@
                                 </li>
                             </ul>
                         </div>
-                    </li>
+                    </li> -->
                 @endif
 
-                    <!-- <li class="nav-item">
+                @if($packageId ==1)
+                    <li class="nav-item">
                         <a data-toggle="collapse" href="#reports">
                             <i class="fas fa-list-ol"></i>
                             <p>  گزارشات </p>
@@ -259,20 +271,21 @@
                         <div class="collapse" id="reports">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="cashflow"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{route('cacheflow.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> کهاته مشتریان </span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="chartOfAccount"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <a href="{{ route('chartOfAccount.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> چارت حسابات </span>
                                     </a>
                                 </li>
                             </ul>
                         </div>
-                    </li> -->
+                    </li>
+                    @endif
 
-                    @if($permissions['reports'] || $isAdmin)
+                    @if(($permissions['reports'] || $isAdmin) && $packageId >= 2)
                     <li class="nav-item">
                         <a href="{{ route('reports.home') }}">
                             <i class="fas fa-list-ol"></i>
@@ -286,7 +299,7 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
                             <i class="fas fa-users"></i>
-                            <p> مدیریت کاربران</p>
+                            <p> مدیریت کاربران  </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="user">

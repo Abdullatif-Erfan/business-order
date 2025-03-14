@@ -99,9 +99,12 @@ $(document).ready(function () {
         <div class="col-12 tab-wrapper">
             <ul class="nav my_nave nav-tabs" id="myTab2">
                 <li class="active"><a data-toggle="tab" href="#todaysTransaction">معاملات امروز</a></li>
+                @if($package_type >= 2)
                 <li><a data-toggle="tab" href="#importantTrans">معاملات مهم تجارت</a></li>
                 <li><a data-toggle="tab" href="#cache">خزانه</a></li>
-                @if($isAdmin)
+                @endif
+
+                @if(($isAdmin) && $package_type >= 3)
                 <li><a data-toggle="tab" href="#branch">شعبات</a></li>
                 @endif
             </ul>

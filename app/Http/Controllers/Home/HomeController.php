@@ -25,7 +25,7 @@ use App\Models\Setting\Branch;
 // class HomeController extends BaseController
 class HomeController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $branch_id, $isAdmin, $package_type;
 
     // Inject the message service into the controller
     public function __construct()
@@ -42,9 +42,11 @@ class HomeController extends Controller
         if (auth()->check()) {
             $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->package_type = session('package_type', 0);
         } else {
             $this->branch_id = 0;
             $this->isAdmin = false;
+            $this->package_type = 0;
         }
     }
     
@@ -65,8 +67,14 @@ class HomeController extends Controller
         // **Get branch_id from the session instead of the user model**
         // $branch_id = session('branch_id');
         // $isAdmin = session('isAdmin');
+        if(empty($this->package_type) && $this->package_type <= 0)
+        {
+            echo "لطفا یکی از پکیج هارا انتخاب نمایید"; die();
+        }
+
         $branch_id = $this->branch_id ?? 0;
         $isAdmin = $this->isAdmin ?? 0;
+        $package_type = $this->package_type ?? 0;
 
         if(!$branch_id)
         {
@@ -124,7 +132,7 @@ class HomeController extends Controller
 
        
 
-        return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab','branches','isAdmin','branch_id'));
+        return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab','branches','isAdmin','branch_id','package_type'));
     }
 
 
@@ -391,54 +399,57 @@ class HomeController extends Controller
     }
 
 
-    // function getCashInHandAmount($year, $month, $day)
-    // {
-    //     // day 17 => search where days <= 16
-    //     $last_day = $day - 1;
+    public function cleanAll()
+    {
+        // List of tables to truncate
+        $tables = [
+            'journals',
+            'bought_items',
+            'bought_item_details',
+            'bought_item_pre_lists',
+            'clearances',
+            'sales_details',
+            'warehouse_items',
+            'warehouse_sales',
+        ];
 
-    //     $khazana_account_type_id = 1;
+        try {
+            // Start the transaction
+            DB::beginTransaction();
 
-    //     // Initialize conditions
-    //     $monthCondition = (intval($month) > 0 && intval($month) <= 12) ? "AND month = '$month'" : '';
-    //     $dayCondition = (intval($day) > 0 && intval($day) <= 31) ? "AND day <= '$last_day'" : '';
+            foreach ($tables as $table) {
+                // Check if the table exists before truncating
+                if (DB::getSchemaBuilder()->hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
 
-    //     // Get currency details
-    //     $currencies = DB::table('currencies')
-    //         ->select('currencies.id as currencyId', 'currencies.name as currency_name', 'symbols', 'color')
-    //         ->get();
+            // Commit the transaction
+            DB::commit();
 
-    //     // Get total paid and total received in a single query
-    //     $total_amounts = DB::table('journals')
-    //         ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-    //         ->select(
-    //             'journals.currency_id',
-    //             DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_paid'),
-    //             DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_recieved')
-    //         )
-    //         ->where('accounts.account_type_id', $khazana_account_type_id)
-    //         ->where('journals.year', $year)
-    //         ->where('journals.month', $month)
-    //         ->where('journals.day', '<=', $day)
-    //         ->groupBy('journals.currency_id')
-    //         ->get();
+            session()->flash('notification', [
+                'type' => 'success',
+                'message' => 'موفقانه حذف گردید',
+            ]);
 
-    //     // Map and return results
-    //     $result = $currencies->map(function ($currency) use ($total_amounts) {
-    //         // Find the corresponding total for the currency
-    //         $amount = $total_amounts->firstWhere('currency_id', $currency->currencyId);
-            
-    //         return [
-    //             'currencyId' => $currency->currencyId,
-    //             'currency_name' => $currency->currency_name,
-    //             'symbol' => $currency->symbols,
-    //             'color' => $currency->color,
-    //             'total_paid' => $amount->total_paid ?? 0,
-    //             'total_recieved' => $amount->total_recieved ?? 0,
-    //         ];
-    //     });
+            return redirect()->route('home.index');
 
-    //     return $result->toArray();
-    // }
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of error
+            DB::rollBack();
 
+            // Log the error
+            \Log::error('Error truncating tables: ' . $e->getMessage());
+
+            session()->flash('notification', [
+                'type' => 'danger',
+                'message' => 'حذف نگردید',
+            ]);
+            return redirect()->route('home.index');
+        }
+
+    }
+
+   
 
 }

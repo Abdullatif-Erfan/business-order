@@ -19,6 +19,8 @@ use App\Models\User;
 use App\Models\Auth\Role; 
 use App\Models\Auth\AccessMetrics; 
 use App\Models\Auth\Login; 
+use App\Models\Package; 
+
 
 
 class LoginController extends Controller
@@ -83,6 +85,8 @@ class LoginController extends Controller
             $accessInfo = $this->accessInfo($user->roleId);
             // return response()->json(['accessInfo' => $accessInfo]);
 
+            $active_package = Package::where('status',1)->first();
+
             Session::put([
                 'userId' => $user->id,
                 'role' => $user->roleId,
@@ -92,6 +96,7 @@ class LoginController extends Controller
                 'branch_id' => $user->branch_id,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
+                'package_type' => $active_package->type ?? 0,
             ]);
 
             // Session::put('lang', 'dr');
