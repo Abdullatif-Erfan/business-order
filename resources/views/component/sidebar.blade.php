@@ -48,7 +48,7 @@
             </div>
             <ul class="nav nav-primary">
                 <li class="nav-item">
-                    <a href="{{ $base_url }}/home">
+                    <a href="{{ route('home') }}">
                         <i class="fas fa-home"></i>
                         <p>صفحه اصلی  </p>
                     </a>
@@ -238,27 +238,27 @@
                 @endif
 
                 @if(($permissions['clearance'] || $isAdmin) && $packageId >= 2)
-                <!-- <li class="nav-item">
-                        <a data-toggle="collapse" href="#clearance">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            <p> تصفیه حسابات </p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse" id="clearance">
-                            <ul class="nav nav-collapse">
-                                <li>
-                                    <a href="{{ route('clearance.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> تصفیه حساب خرید</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('clearance.sales.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> تصفیه حساب فروشات</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li> -->
+                <li class="nav-item">
+                    <a data-toggle="collapse" href="#clearance">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <p> تصفیه حسابات </p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="clearance">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('clearance.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <span class="sub-item"> تصفیه حساب خرید</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('clearance.sales.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                    <span class="sub-item"> تصفیه حساب فروشات</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
                 @endif
 
                 @if($packageId ==1)

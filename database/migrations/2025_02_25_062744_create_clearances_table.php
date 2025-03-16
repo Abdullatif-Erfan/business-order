@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('clearances', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['buy', 'sell'])->default('buy');  // Add the enum column
-            $table->foreignId('from_account_id');
-            $table->foreignId('to_account_id');
+            $table->foreignId('company_account_id');
+            $table->foreignId('customer_account_id');
             $table->double('total');
             $table->foreignId('currency_id');
+            $table->foreignId('branch_id');
             $table->string('details');
             $table->json('bill_numbers');
             $table->string('dates');

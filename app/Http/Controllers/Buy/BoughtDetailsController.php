@@ -272,7 +272,7 @@ class BoughtDetailsController extends Controller
                 'branch_id'           => $branch_id,
                 'factor'              => $request->factor ?? 0,
                 'billno'              => $request->billno,
-                'journal_code'        => 0,
+                'journal_code'        => $request->journal_code ?? 0,
                 'total_price'         => $request->total_price ?? 0,
                 'discount'            => $request->discount ?? 0,
                 'payable'             => $request->payable ?? 0,
@@ -453,12 +453,13 @@ class BoughtDetailsController extends Controller
         $note = "Total Payable: ".($request->payable ?? 0).", Paid: ".($request->cur_pay ?? 0).", Remained: ".($request->remained ?? 0);
         
         // Ensure you're updating a specific record by using the where clause first
-        $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
+        $BoughtItem = BoughtItem::where('billno', $request->billno)->where('branch_id', $this->branch_id)->first();
     
     
         try {
             // Update BoughtItem record
             $BoughtItem->update([
+                'journal_code' => $request->journal_code,
                 'total_price' => $request->total_price,
                 'discount' => $request->discount,
                 'payable' => $request->payable,
@@ -466,6 +467,7 @@ class BoughtDetailsController extends Controller
                 'remained' => $request->remained,
                 'trans_spend' => $request->trans_spend,
                 'note' => $note,
+                'times' => $request->times,
             ]);
     
             // Insert into journal

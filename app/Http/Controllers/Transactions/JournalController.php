@@ -165,6 +165,11 @@ class JournalController extends Controller
             ->with([
                 'isCompanyAccount' => $isCompanyAccount ?? 0 
             ])
+
+            ->setRowClass(function ($journal) {
+                return $journal->status == 9 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
+            })
+
             ->make(true);
     }
 

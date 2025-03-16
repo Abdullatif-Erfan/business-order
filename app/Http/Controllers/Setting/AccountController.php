@@ -48,17 +48,17 @@ class AccountController extends Controller
         
         if ($request->ajax()) {
 
-            if(!$this->isAdmin)
-            {
+            // if(!$this->isAdmin)
+            // {
                 $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address', 'description')
                 ->where('accounts.branch_id', $this->branch_id)
                 ->orderBy('id', 'DESC');
-            } 
-            else 
-            {
-                $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address', 'description')
-                ->orderBy('id', 'DESC');
-            }
+            // } 
+            // else 
+            // {
+            //     $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address', 'description')
+            //     ->orderBy('id', 'DESC');
+            // }
 
 
             return DataTables::eloquent($accounts)

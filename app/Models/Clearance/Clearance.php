@@ -17,10 +17,11 @@ class Clearance extends Model
 
     protected $fillable = [
         'type',
-        'from_account_id',
-        'to_account_id',
+        'company_account_id',
+        'customer_account_id',
         'total',
         'currency_id',
+        'branch_id',
         'details',
         'bill_numbers',
         'dates',
@@ -29,12 +30,12 @@ class Clearance extends Model
 
     public function fromAccount()
     {
-        return $this->belongsTo(Account::class, 'from_account_id');
+        return $this->belongsTo(Account::class, 'company_account_id');
     }
 
     public function toAccount()
     {
-        return $this->belongsTo(Account::class, 'to_account_id');
+        return $this->belongsTo(Account::class, 'customer_account_id');
     }
 
     public function currency()

@@ -72,7 +72,7 @@
                                                 <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" id="options" required 
                                                 onchange="selectAccountsLabel(this.value)" > 
                                                     <option value="">  --- انتخاب نوع معامله --- </option>
-                                                    <option value="1"> معاملات نقد به نقد (انتقال میان حسابات) </option>
+                                                    <option value="1"> معاملات نقد به نقد (انتقال میان حسابات شرکت) </option>
                                                     <!-- <option value="2"> معاملات نسیه به نسیه </option> -->
                                                     <option value="3"> معاملات نقد به نسیه ( دادن قرض ) </option>
                                                     <option value="4"> معاملات نسیه به نقد ( دریافت قرض ) </option>

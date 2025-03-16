@@ -73,7 +73,14 @@ class WarehouseController extends Controller
 
     public function create()
     {
-        $branchs = Branch::where('id',$this->branch_id)->get();
+        if(!$this->isAdmin)
+        {
+            $branchs = Branch::where('id',$this->branch_id)->get();
+        } 
+        else 
+        {
+            $branchs = Branch::all();
+        }
         return view('settings.warehouse.addForm',compact('branchs'));
     }
 
@@ -112,7 +119,14 @@ class WarehouseController extends Controller
         }
 
         // get branch for dropdown
-        $branchs = Branch::all();
+        if(!$this->isAdmin)
+        {
+            $branchs = Branch::where('id',$this->branch_id)->get();
+        } 
+        else 
+        {
+            $branchs = Branch::all();
+        }
         // return response()->json([$warehouse, $branchs]);
         return view('settings.warehouse.editForm',compact('branchs','warehouse'));
 

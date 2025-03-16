@@ -432,7 +432,7 @@ class HomeController extends Controller
                 'message' => 'موفقانه حذف گردید',
             ]);
 
-            return redirect()->route('home.index');
+            return redirect()->route('home');
 
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
@@ -445,7 +445,7 @@ class HomeController extends Controller
                 'type' => 'danger',
                 'message' => 'حذف نگردید',
             ]);
-            return redirect()->route('home.index');
+            return redirect()->route('home');
         }
 
     }

@@ -32,14 +32,21 @@
                         </div>
 
 
-                        <div class="card-body">
+                        <div class="card-body" style="padding-bottom:20px;">
                           <form action="{{ route('clearance.buy.store') }}" method="POST">
                           @csrf
-                             <p>
+                             <ol>
+                                <li>
                                 شما میتوانید همه بل نمبر هارا ویا چندین بل نمبر خاص را انتخاب نمایید برای تصفیه حساب.  
-                                <br>
+                                </li>
+                                 <li>
                                 لطفا قبل از تصفیه حساب بک اپ بیگیرید و ریکارد تصفیه حساب قابل ویرایش نمیباشد. 
-                             </p>
+                                 </li>
+                                 <li>
+                                از اینکه تصفیه حساب نوع از معاملات نسیه به نسیه میباشد بعداز تصفیه حساب تمام ریکاردهای قبلی دیگر محاسبه نشده و مجموع شان یک ریکارد در ژورنال ویا روزنامچه ثبت میگردد که نیز نوع نسیه به نسیه میباشد. 
+                                و اگر شرکت بخواهد نقد پرداخت نمایند معاملات نقد به نقد را در ژورنال ویا روزنامچه انتخاب نموده انجام بدهند. 
+                                 </li>
+                             </ol>
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <table id="clearanceTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
@@ -83,8 +90,16 @@
                             </div> <!-- /table responsive -->
                             <input type="hidden" name="customer_account_id" value="{{ $boughtItem->first()->customer_account_id }}">
                             <input type="hidden" name="currency_id" value="{{ $boughtItem->first()->currency_id }}">
+                            <input type="hidden" name="company_account_id" value="{{ $ownBanks->id }}">
+                            <input type="hidden" name="company_account_name" value="{{ $ownBanks->name ?? '' }}">
+                            <input type="hidden" name="customer_account_name" value="{{ $account_name ?? '' }}">
 
-                             <button type="submit" class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> تایید وثبت تصفیه حساب </button>
+                            <div class="col-12 m-b-10 m-t-20">
+
+                            <input type="checkbox" name="confirm" class="confirmed-checkbox" value="1" onchange="enableSubmitButton(this)">
+                                اینجانیب {{ auth()->user()->full_name ?? '' }} تایید مینمایم که مبلغ انتخاب شده را با آقای {{ $account_name ?? '' }} با واحد پولی {{ $currency_name ?? '' }} که طرف مقابل آن {{ $ownBanks->name ?? '' }} میباشد تصفیه نمایم.
+                            </div>
+                             <button type="submit" disabled class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> تایید وثبت تصفیه حساب </button>
                             </form>
                         </div> <!-- /card-body -->
                     </div> <!-- /card -->
@@ -110,12 +125,14 @@
             document.getElementById('total_price').value = total.toLocaleString().replace(/,/g, '');
 
             // Show or hide submit button based on total
-            let submitBtn = document.getElementById('submit-btn');
-            if (total === 0) {
-                submitBtn.style.display = 'none';
-            } else {
-                submitBtn.style.display = 'block';
-            }
+            // let submitBtn = document.getElementById('submit-btn');
+            // if (total === 0) {
+            //     // submitBtn.style.display = 'none';
+            //     submitBtn.disabled = true;
+            // } else {
+            //     // submitBtn.style.display = 'block';
+            //     submitBtn.disabled = false;
+            // }
         }
 
         // Attach event listener to checkboxes
@@ -126,6 +143,16 @@
         // Initial check to set button visibility correctly on page load
         recalculateTotal();
     });
+
+
+    function enableSubmitButton(checkbox) 
+    {  
+        let submitBtn = document.getElementById('submit-btn');
+        let total_price = parseInt(document.getElementById('total_price').value) || 0;
+
+        // Enable the button only if checkbox is checked and total price is greater than 0
+        submitBtn.disabled = !(checkbox.checked && total_price > 0);
+   }
 </script>
 
 
