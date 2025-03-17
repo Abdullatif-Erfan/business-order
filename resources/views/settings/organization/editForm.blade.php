@@ -47,16 +47,36 @@
         @endif
     </div>
 
-    <div class="form-group">
-        <label for="name">لوگو</label>
-        <input class="form-control input-solid" id="logos" name="logos" type="file" required>
-        <span id="orgProfileLogosError" class="text-danger"></span>
-        @if ($orgBio->logos)
-            <img id="logoPreview" src="{{ asset($orgBio->logos) }}" alt="Logo Image" width="150" class="img-thumbnail mt-2">
-        @else
-            <img id="logoPreview" src="{{ asset('storage/user_photos/no_image.png') }}" alt="No Image" width="150" class="img-thumbnail mt-2">
-        @endif
+
+    <div class="col-md-12">
+        <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="name">لوگو</label>
+                        <input class="form-control input-solid" id="logos" name="logos" type="file" required>
+                        <span id="orgProfileLogosError" class="text-danger"></span>
+                        @if ($orgBio->logos)
+                            <img id="logoPreview" src="{{ asset($orgBio->logos) }}" alt="Logo Image" width="150" class="img-thumbnail mt-2">
+                        @else
+                            <img id="logoPreview" src="{{ asset('storage/user_photos/no_image.png') }}" alt="No Image" width="150" class="img-thumbnail mt-2">
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="expired_after_days"> قبل از چند روز تاریخ انقضا پیام نشان داده شود ؟ </label>
+                    <input type="number" class="form-control" name="expired_after_days" value="{{ $orgBio->expired_after_days }}" min="5" >
+                    <span id="expired_after_daysError" class="text-danger"></span>
+                    <div>
+                </div>
+        </div>
     </div>
+
+   
+
+
+    
     
 </form>
 

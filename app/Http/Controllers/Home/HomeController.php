@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth; // Import Auth facade
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
 use App\Models\Warehouse\WarehouseSales;
+use App\Models\Warehouse\WarehouseItem;
 use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
 use App\Models\Setting\Account;
@@ -20,6 +21,8 @@ use App\Models\Warehouse\SalesDetails;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Branch;
 
+use Carbon\Carbon;
+use Morilog\Jalali\CalendarUtils;
 
 
 // class HomeController extends BaseController
@@ -104,7 +107,7 @@ class HomeController extends Controller
          * payment_type    : 1: cache,    2:loan
          */
 
-        $orgBio = OrgBio::first();
+        $orgBio = OrgBio::first(); 
         $branches = Branch::all();
 
         // first tab
@@ -168,23 +171,75 @@ class HomeController extends Controller
 
 
     public function warehouseItemNotifyAmount()
+    {   
+        $warehouseNotifyAbleAmount = WarehouseItem::whereColumn('notification_amount', '>=', 'available_amount')  
+        ->where('branch_id', $this->branch_id)->count();
+        return view('notify.warehouse_item_amount', ['records' => $warehouseNotifyAbleAmount]);
+    }
+
+    public function warehouseItemList()
     {
-        return 1;
+        // $warehouseList = WarehouseItem::
+        // $response = $this->load->view('notify/warehouse_item_list',$data,TRUE);
+        // echo $response;	
+        
+        $WarehouseItems = DB::table('warehouse_items')
+        ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
+        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+        ->select(
+            'warehouses.name as wname',
+            'bought_item_pre_lists.name as item_name',
+            'warehouse_items.available_amount',
+            'units.name as unit_name',
+            'notification_amount'
+        )
+        ->where('notification_amount', '>=', 0) // Optional, remove if unnecessary
+        ->whereColumn('notification_amount', '>=', 'warehouse_items.available_amount') // Correct column comparison
+        ->where('warehouse_items.branch_id', $this->branch_id)
+        ->get();
+
+        return view('notify.warehouse_item_list', ['records' => $WarehouseItems]);
+            
+    }
+
+    private function getExpiredWarehouseItems()
+    {
+        $today = Jalalian::now();
+        $orgBio = OrgBio::first(); 
+        $notification_days = $orgBio->expired_after_days ?? 30;
+
+        return WarehouseItem::with(['warehouseRelation:id,name', 'preListRelation:id,name'])
+            ->select('id', 'warehouse_id', 'buy_pre_id', 'expire_date', 'branch_id')
+            ->where('branch_id', $this->branch_id)
+            ->whereNotNull('expire_date')
+            ->get()
+            ->map(function ($item) use ($today) {
+                try {
+                    $expireDate = Jalalian::fromFormat('Y-m-d', $item->expire_date)->toCarbon();
+                    $daysDifference = floor(Carbon::now()->diffInDays($expireDate, false));
+                    $item->expired_days = $daysDifference;
+                } catch (\Exception $e) {
+                    $item->expired_days = null;
+                }
+                return $item;
+            })
+            ->filter(function ($item) use ($notification_days) {
+                return $item->expired_days !== null && $item->expired_days < $notification_days;
+            });
+    }
+
+    public function expiredWarehouseItems()
+    {
+        $expiredAbleItems = $this->getExpiredWarehouseItems();
+        return view('notify.expired_item_list', ['records' => $expiredAbleItems]);
     }
 
     public function expiredDateNotifyAmount()
     {
-        return 1;
+        $expiredItemCount = $this->getExpiredWarehouseItems()->count();
+        return view('notify.expired_items_amount', ['records' => $expiredItemCount]);
     }
-    public function warehouseItemList()
-    {
-        return [];
-    }
-    public function expiredWarehouseItems()
-    {
-        return [];
-    }
-    
 
 
 

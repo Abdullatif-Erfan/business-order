@@ -132,6 +132,11 @@
                 if (errors?.name) {
                     $('#orgProfileNameError').text(errors.name[0]);
                 }
+
+                if (errors?.expired_after_days) {
+                    $('#expired_after_daysError').text(errors.expired_after_days[0]);
+                }
+                
             } else {
                 // General error handling
                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
@@ -222,6 +227,9 @@
                 }
                 if (errors?.logos) {
                     $('#orgProfileLogosError').text(errors.logos[0]);
+                }
+                if (errors?.expired_after_days) {
+                    $('#expired_after_daysError').text(errors.expired_after_days[0]);
                 }
             } else {
                 showNotification('خطای سرور، دوباره امتحان کنید', 'danger', 'top', 'right', 'withicon');

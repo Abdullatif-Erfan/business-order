@@ -388,7 +388,7 @@ class BoughtDetailsController extends Controller
                 $warehouseItemsToInsert[] = [
                     'warehouse_id' => $warehouseId,
                     'buy_pre_id' => $request->pre_list_id,
-                    'name' => $request->item_name ?? 'Unknown Item',
+                    'name' => $request->item_name ?? '',
                     'in_amount' => $warehouseAmount,
                     'out_amount' => 0.00,
                     'available_amount' => $warehouseAmount,

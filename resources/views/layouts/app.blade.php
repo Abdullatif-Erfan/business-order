@@ -39,55 +39,55 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <script>
-        // window.onload = function() {
-        //     $.ajax({
-        //         type: 'POST',
-        //         url: '{{ route("home.warehouse_item_notify_amount") }}',
-        //         data: {},
-        //         success: function(result) {
-        //             $('#warehouse_item_notifyable_amount').html(result);
-        //         }
-        //     });
+        window.onload = function() {
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("home.warehouse_item_notify_amount") }}',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function(result) {
+                    $('#warehouse_item_notifyable_amount').html(result);
+                }
+            });
 
-        //     $.ajax({
-        //         type: 'POST',
-        //         url: '{{ route("home.expired_date_notify_amount") }}',
-        //         data: {},
-        //         success: function(result) {
-        //             $('#expire_date_notifyable_amount').html(result);
-        //         }
-        //     });
-        // }
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("home.expired_date_notify_amount") }}',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function(result) {
+                    $('#expire_date_notifyable_amount').html(result);
+                }
+            });
+        }
 
-        // function getWarehouseItemList() {
-        //     $('#warehouse_item_list').html('<center><img src="{{ asset("assets/img/small_loader.gif") }}" style="width:12%;margin-top:30px;margin-bottom:20px" alt="Loading"/></center>');
-        //     $.ajax({
-        //         type: 'POST',
-        //         url: '{{ route("home.warehouse_item_list") }}',
-        //         data: {},
-        //         success: function(result) {
-        //             $("#warehouse_item_list").html(result);
-        //         },
-        //         error: function(xhr, status) {
-        //             $('#warehouse_item_list').html('Error, مشکل رخ داد');
-        //         }
-        //     });
-        // }
+        function getWarehouseItemList() {
+            $('#warehouse_item_list').html('<center><img src="{{ asset("assets/img/small_loader.gif") }}" style="width:12%;margin-top:30px;margin-bottom:20px" alt="Loading"/></center>');
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("home.warehouse_item_list") }}',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function(result) {
+                    $("#warehouse_item_list").html(result);
+                },
+                error: function(xhr, status) {
+                    $('#warehouse_item_list').html('Error, مشکل رخ داد');
+                }
+            });
+        }
 
-        // function getExpiredMedicineList() {
-        //     $('#expire_date_list').html('<center><img src="{{ asset("assets/img/small_loader.gif") }}" style="width:12%;margin-top:30px;margin-bottom:20px" alt="Loading"/></center>');
-        //     $.ajax({
-        //         type: 'POST',
-        //         url: '{{ route("home.get_expire_date_list") }}',
-        //         data: {},
-        //         success: function(result) {
-        //             $("#expire_date_list").html(result);
-        //         },
-        //         error: function(xhr, status) {
-        //             $('#expire_date_list').html('Error, مشکل رخ داد');
-        //         }
-        //     });
-        // }
+        function getExpiredMedicineList() {
+            $('#expire_date_list').html('<center><img src="{{ asset("assets/img/small_loader.gif") }}" style="width:12%;margin-top:30px;margin-bottom:20px" alt="Loading"/></center>');
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("home.get_expire_date_list") }}',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function(result) {
+                    $("#expire_date_list").html(result);
+                },
+                error: function(xhr, status) {
+                    $('#expire_date_list').html('Error, مشکل رخ داد');
+                }
+            });
+        }
     </script>
 
 

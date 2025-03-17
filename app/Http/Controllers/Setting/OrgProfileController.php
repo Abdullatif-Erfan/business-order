@@ -53,6 +53,7 @@ class OrgProfileController extends Controller
             'header'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'logos'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'note_for_print' => 'nullable|string',
+            'expired_after_days' => 'required|min:5|max:60',
             'is_active' => 'boolean'
         ]);
 
@@ -96,6 +97,9 @@ class OrgProfileController extends Controller
             'address.required' => 'آدرس ضروری میباشد',
             'header.image' => 'هیدر باید یک فایل تصویر باشد',
             'logos.image' => 'لوگو باید یک فایل تصویر باشد',
+            'expired_after_days.required' => 'موعد تاریخ انقضا ضروری میباشد',
+            'expired_after_days.min' => 'موعد تاریخ انقضا حد اقل پنج روز میباشد',
+            'expired_after_days.max' => 'موعد تاریخ انقضا حد اکثر ۶۰ روز میباشد',
         ];
     
         $validated = $request->validate([
@@ -105,6 +109,7 @@ class OrgProfileController extends Controller
             'header' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'logos' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'note_for_print' => 'nullable|string',
+            'expired_after_days' => 'required|integer|min:5|max:60',
         ], $messages);
     
         $orgBio = OrgBio::findOrFail($request->id);
@@ -113,6 +118,8 @@ class OrgProfileController extends Controller
         $orgBio->phone = $request->phone;
         $orgBio->address = $request->address;
         $orgBio->note_for_print = $request->note_for_print;
+        $orgBio->expired_after_days = $request->expired_after_days;
+
     
         // Handle file uploads
         // if ($request->hasFile('header')) {
