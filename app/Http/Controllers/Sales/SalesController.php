@@ -480,15 +480,14 @@ class SalesController extends Controller
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
                 $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'طلب فروشات';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date,
-                $full_date, $details);
+                $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
                 $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'قرضه فروشات';
+                $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
-                 $ttype = "1", $ptype="2", $date, $full_date, $details);
+                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
@@ -496,20 +495,20 @@ class SalesController extends Controller
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
-                $optionLabel = 'دریافت نقد';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details);
+                $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
                 $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'قرضه فروشات';
+                $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $request->remained,  
-                $ttype = "1", $ptype="2", $date, $full_date, $details);
+                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                
                 // ثبت طلب خزانه = Paid Loan = t2p2
                 $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'طلب فروشات';
+                $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $request->remained,
-                $ttype = "2", $ptype="2", $date, $full_date, $details);
+                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
@@ -518,9 +517,9 @@ class SalesController extends Controller
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
-                $optionLabel = 'دریافت نقد';
+                $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
-                $ttype = "1", $ptype="1", $date, $full_date, $details);
+                $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
         
             DB::commit();
@@ -541,7 +540,7 @@ class SalesController extends Controller
         }
     }
 
-    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details)
+    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
         $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
         Journal::create([
@@ -553,6 +552,8 @@ class SalesController extends Controller
             'currency_id' => $request->currency_id,
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
+            'dynamic_type' => $dynamic_type, 
+            'dt_comment' => $dt_comment,
             'option_label' => $optionLabel,
             'user' => auth()->user()->full_name ?? '',
             'year' =>  $date[0],

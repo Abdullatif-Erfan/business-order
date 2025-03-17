@@ -305,6 +305,7 @@ class HomeController extends Controller
             ->where('year', $year)
             ->where('currency_id', $currency_id)
             ->where('branch_id', '=', $branch_id)
+            ->where('is_cleared', '=', 0)
             ->selectRaw('SUM(available_amount * avg_up) as total_value, SUM(wastage_total) as total_wastage')
             ->first();
         
@@ -331,7 +332,7 @@ class HomeController extends Controller
 
         // مفاد فروشات سالانه
         $sold_profits = SalesDetails::where('branch_id', $branch_id)->whereHas('warehouseSale', function ($query) use ($currency_id, $year) {
-            $query->where('currency_id', $currency_id)->where('year', $year);
+            $query->where('currency_id', $currency_id)->where('year', $year)->where('is_cleared', '=', 0);
         })->sum('profit');
 
         return [
@@ -370,6 +371,7 @@ class HomeController extends Controller
             )
             ->where('accounts.account_type_id', $khazana_account_type_id)
             ->where('accounts.branch_id', $branch_id)
+            ->where('is_cleared', '=', 0)
             ->when($year != 100, function ($query) use ($year) {
                 return $query->where('journals.year', $year);
             })
@@ -406,7 +408,7 @@ class HomeController extends Controller
             'journals',
             'bought_items',
             'bought_item_details',
-            'bought_item_pre_lists',
+            // 'bought_item_pre_lists',
             'clearances',
             'sales_details',
             'warehouse_items',

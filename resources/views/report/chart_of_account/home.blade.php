@@ -1,6 +1,12 @@
 @extends('layouts.app')
 @section('content')
 
+<style>
+.bg-dark {
+    background-color: #fffcf3 !important;
+}
+</style>
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">

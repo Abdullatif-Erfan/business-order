@@ -630,15 +630,14 @@ class BoughtDetailsController extends Controller
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  ' قرضه خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'قرضه خرید';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "1", $ptype="2", $date,
-                $full_date, $details);
+                $optionLabel = 'قرضه خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
                 $details =  ' طلب خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'طلب خرید';
+                $optionLabel = 'طلب خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
-                 $ttype = "2", $ptype="2", $date, $full_date, $details);
+                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
@@ -646,21 +645,20 @@ class BoughtDetailsController extends Controller
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-                $optionLabel = 'پرداخت نقد';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date,
-                $full_date, $details);
+                $optionLabel = 'پرداخت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
 
                 // ثبت قرضه خزانه = Loan Recieved 
                 $details =  ' قرضه خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'قرضه خرید';
+                $optionLabel = 'قرضه خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->remained,  
-                $ttype = "1", $ptype="2", $date, $full_date, $details);
+                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                
                 // ثبت طلب مشتری = Paid Loan
                 $details =  ' طلب خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'طلب خرید';
+                $optionLabel = 'طلب خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->customer_account_id, $request->remained,
-                $ttype = "2", $ptype="2", $date, $full_date, $details);
+                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
@@ -669,9 +667,8 @@ class BoughtDetailsController extends Controller
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-                $optionLabel = 'پرداخت نقد';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date,
-                $full_date, $details);
+                $optionLabel = 'پرداخت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
             // ثبت مصارف ترانسپورت به روش فعلی هروقت که بزرگتر از صفر بود باید از حساب خزانه کم شود
@@ -679,9 +676,8 @@ class BoughtDetailsController extends Controller
             {
                 // رفت پول نقد از بابت ترانسپورت = Cache paid
                 $details =  'پرداخت مصارف ترانسپورت - بل  '.' BUY_'.$request->billno;
-                $optionLabel = 'مصارف ترانسپورت';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->trans_spend, $ttype = "2", $ptype="1", $date,
-                $full_date, $details);
+                $optionLabel = 'مصارف ترانسپورت'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->trans_spend, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
             
             DB::commit();
@@ -702,7 +698,7 @@ class BoughtDetailsController extends Controller
         }
     }
 
-    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details)
+    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
         Journal::create([
             'bill_no' => $request->billno,
@@ -714,6 +710,8 @@ class BoughtDetailsController extends Controller
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
             'option_label' => $optionLabel,
+            'dynamic_type' => $dynamic_type,
+            'dt_comment' => $dt_comment,
             'user' => auth()->user()->full_name ?? '',
             'year' =>  $date[0],
             'month' =>  $date[1],

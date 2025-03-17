@@ -42,10 +42,10 @@
                                  <li>
                                 لطفا قبل از تصفیه حساب بک اپ بیگیرید و ریکارد تصفیه حساب قابل ویرایش نمیباشد. 
                                  </li>
-                                 <li>
+                                 <!-- <li>
                                 از اینکه تصفیه حساب نوع از معاملات نسیه به نسیه میباشد بعداز تصفیه حساب تمام ریکاردهای قبلی دیگر محاسبه نشده و مجموع شان یک ریکارد در ژورنال ویا روزنامچه ثبت میگردد که نیز نوع نسیه به نسیه میباشد. 
                                 و اگر شرکت بخواهد نقد پرداخت نمایند معاملات نقد به نقد را در ژورنال ویا روزنامچه انتخاب نموده انجام بدهند. 
-                                 </li>
+                                 </li> -->
                              </ol>
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <table id="clearanceTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
@@ -95,9 +95,8 @@
                             <input type="hidden" name="customer_account_name" value="{{ $account_name ?? '' }}">
 
                             <div class="col-12 m-b-10 m-t-20">
-
-                            <input type="checkbox" name="confirm" class="confirmed-checkbox" value="1" onchange="enableSubmitButton(this)">
-                                اینجانیب {{ auth()->user()->full_name ?? '' }} تایید مینمایم که مبلغ انتخاب شده را با آقای {{ $account_name ?? '' }} با واحد پولی {{ $currency_name ?? '' }} که طرف مقابل آن {{ $ownBanks->name ?? '' }} میباشد تصفیه نمایم.
+                                 <input type="checkbox" name="confirm" class="confirmed-checkbox" value="1" onchange="enableSubmitButton(this)">
+                                اینجانیب {{ auth()->user()->full_name ?? '' }} تایید مینمایم که مبلغ انتخاب شده را با آقای {{ $account_name ?? '' }} با واحد پولی {{ $currency_name ?? '' }} همرای  {{ $ownBanks->name ?? '' }}  تصفیه نمایم و نقدا پرداخت نمایم.
                             </div>
                              <button type="submit" disabled class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> تایید وثبت تصفیه حساب </button>
                             </form>

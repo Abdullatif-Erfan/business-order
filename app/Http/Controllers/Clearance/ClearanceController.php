@@ -200,6 +200,7 @@ class ClearanceController extends Controller
                 ->where('branch_id', $this->branch_id)
                 ->where('status', 7) // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:clearance, 10:other
                 ->where('is_cleared', 0)
+                ->where('dynamic_type', 2) // 2: is clearable flag
                 ->get();
 
                 if(!$journals)
@@ -279,7 +280,10 @@ class ClearanceController extends Controller
             $full_date = Jalalian::now()->format('Y-m-d H:i:s'); 
             $times = time();
     
-            // ثبت طلب مشتری
+            /**
+             * Recieved Loan = t1p2
+             * ثبت قرض جهت تنظیم بیلانس طلب شان
+             */
             $check1 =  Journal::create([
                     'bill_no' => 0,
                     'code' => $newJournalCode,
@@ -287,11 +291,12 @@ class ClearanceController extends Controller
                     'branch_id' => $this->branch_id,
                     'amount' => $request->total,
                     'currency_id' => $request->currency_id,
-                    'transaction_type' => 2,
+                    'transaction_type' => 1,
                     'payment_type' => 2,
-                    'option_label' => 'ثبت طلب',
+                    'option_label' => 'تصفیه طلب',
                     'dt_comment' => 'تصفیه حساب',
                     'dynamic_type' => 1,
+                    'is_cleared' => 1,
                     'user' => $this->full_name ?? '',
                     'year' => $date[0],
                     'month' => $date[1],
@@ -304,19 +309,23 @@ class ClearanceController extends Controller
                     'is_single_record' => 1,
                 ]);
     
-                // ثبت قرضه خزانه
+                /**
+                 * Paid Cache = t2p1
+                 * پرداخت نقد خزانه
+                 */
                 $check2 =  Journal::create([
                     'bill_no' => 0,
                     'code' => $newJournalCode,
                     'account_id' => $request->company_account_id,
                     'branch_id' => $this->branch_id,
                     'amount' => $request->total,
-                    'currency_id' => $request->currency_id,
-                    'transaction_type' => 1,
-                    'payment_type' => 2,
-                    'option_label' => 'ثبت قرض',
+                    'currency_id'  => $request->currency_id,
+                    'transaction_type' => 2,
+                    'payment_type' => 1,
+                    'option_label' => 'پرداخت نقد',
                     'dynamic_type' => 1,
-                    'dt_comment' => 'تصفیه حساب',
+                    'is_cleared'   => 0, // تنها این مبلغ قابل حساب باشد
+                    'dt_comment'   => 'تصفیه حساب',
                     'user' => $this->full_name ?? '',
                     'year' => $date[0],
                     'month' => $date[1],
@@ -424,7 +433,7 @@ class ClearanceController extends Controller
             \Log::error('Missing parameters: sales_to_account_id or currency_id in create_for_sales');
             return response()->json(['error' => 'Customer or currency not found'], 400);
         }
-    
+
         $salesRecords = WarehouseSales::select('id', 'billno', 'remained','customer_account_id','currency_id')
             ->where('customer_account_id', $sales_to_account_id)
             ->where('remained', '>', 0)
@@ -495,6 +504,7 @@ class ClearanceController extends Controller
                     ->where('customer_account_id', $request->customer_account_id)
                     ->where('currency_id', $request->currency_id)
                     ->where('branch_id', $this->branch_id)
+                    ->where('is_cleared', 0)
                     ->first();
 
                 if (!$warehouseSales) {
@@ -507,26 +517,61 @@ class ClearanceController extends Controller
                 $warehouseSales->is_cleared = 1;
                 $warehouseSales->note = 'تصفیه گردید';
                 $warehouseSales->save();
+
+                // update journal
+                $journals = Journal::where('times', $warehouseSales->times)
+                ->where('bill_no',$warehouseSales->billno)
+                ->where('currency_id', $request->currency_id)
+                ->where('branch_id', $this->branch_id)
+                ->where('status', 8) // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:clearance, 10:other
+                ->where('is_cleared', 0)
+                ->where('dynamic_type', 2) // 2: is clearable flag
+                ->get();
+
+                if(!$journals)
+                {
+                    Log::error('Missing parameters: journal record not found');
+                    return back()->with('error', 'Journal Code or BillNo not found.');
+                }
+
+                foreach ($journals as $journal) 
+                {
+                    $journal->is_cleared = 1;
+                    $journal->save();
+                }
             }
 
+            $details = 'تصفیه حساب میان '.$request->company_account_name.' و '.$request->customer_account_name.'';
            
             // Store clearance record
             Clearance::create([
-                'from_account_id' => $request->customer_account_id, 
-                'to_account_id' => $request->customer_account_id,
+                'customer_account_id' => $request->customer_account_id, 
+                'company_account_id' => $request->company_account_id,
                 'total' => $request->total,
                 'currency_id' => $request->currency_id,
                 'branch_id' => $this->branch_id,
                 'details' => '',
                 'bill_numbers' => json_encode($billNumbers),
                 'dates' => Jalalian::now()->format('Y-m-d'),
-                'clearedBy' => auth()->user()->full_name ?? '',
+                'clearedBy' => $this->full_name ?? '',
                 'type' => 'sell',
             ]);
 
+
+            $check = $this->createSalesJournal($request, $details);
+            if(!$check)
+            {
+                DB::rollBack();
+                Session::flash('notification', [
+                    'message' => ' ثبت نگردید و مشکل در ژورنال یافت گردید',
+                    'type' => 'danger',
+                ]);
+                return redirect()->route('clearance.sales.index');
+            }
+
+
             DB::commit(); // Commit transaction
            
-         
             Session::flash('notification', [
                 'message' => 'موفقانه ثبت گردید',
                 'type' => 'success',
@@ -544,6 +589,95 @@ class ClearanceController extends Controller
                 'type' => 'danger',
             ]);
             return redirect()->route('clearance..sales.index');
+        }
+    }
+
+    private function createSalesJournal($request, $details)
+    {
+        DB::beginTransaction();
+        try{
+
+            $newJournalCode = DB::table('journals')->where('journals.branch_id', $this->branch_id)->lockForUpdate()->max('code') + 1;
+            $todaysDate = Jalalian::now()->format('Y-n-d');
+            $date = explode('-', $todaysDate);
+            $year = $date[0];
+            $month = $date[1];
+            $day = $date[2];
+            $full_date = Jalalian::now()->format('Y-m-d H:i:s'); 
+            $times = time();
+    
+            /**
+             * Recieved Loan = t1p2
+             * ثبت قرض جهت تنظیم بیلانس طلب شان
+             */
+            $check1 =  Journal::create([
+                    'bill_no' => 0,
+                    'code' => $newJournalCode,
+                    'account_id' => $request->company_account_id,
+                    'branch_id' => $this->branch_id,
+                    'amount' => $request->total,
+                    'currency_id' => $request->currency_id,
+                    'transaction_type' => 1,
+                    'payment_type' => 1,
+                    'option_label' => 'دریافت نقد',
+                    'dt_comment' => 'تصفیه حساب',
+                    'dynamic_type' => 1,
+                    'is_cleared' => 0, // تنها این مبلغ قابل حساب باشد
+                    'user' => $this->full_name ?? '',
+                    'year' => $date[0],
+                    'month' => $date[1],
+                    'day' => $date[2],
+                    'inserted_short_date' => $todaysDate,
+                    'inserted_full_date' => $full_date,
+                    'details' => $details,
+                    'status' => 9,  // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:clearance, 10:other
+                    'times' => $times,
+                    'is_single_record' => 1,
+                ]);
+    
+                /**
+                 * Paid Cache = t2p1
+                 * پرداخت نقد مشتری
+                 */
+                $check2 =  Journal::create([
+                    'bill_no' => 0,
+                    'code' => $newJournalCode,
+                    'account_id' => $request->customer_account_id,
+                    'branch_id' => $this->branch_id,
+                    'amount' => $request->total,
+                    'currency_id'  => $request->currency_id,
+                    'transaction_type' => 2,
+                    'payment_type' => 1,
+                    'option_label' => 'پرداخت نقد',
+                    'dynamic_type' => 1,
+                    'is_cleared'   => 1, 
+                    'dt_comment'   => 'تصفیه حساب',
+                    'user' => $this->full_name ?? '',
+                    'year' => $date[0],
+                    'month' => $date[1],
+                    'day' => $date[2],
+                    'inserted_short_date' => $todaysDate,
+                    'inserted_full_date' => $full_date,
+                    'details' => $details,
+                    'status' => 9,  // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:clearance, 10:other
+                    'times' => $times,
+                    'is_single_record' => 1,
+                ]);
+            
+                // Ensure both queries succeed
+                if (!$check1 || !$check2) {
+                    DB::rollBack();
+                    return false;
+                }
+
+                DB::commit();
+                return true;
+        } 
+        catch (\Exception $e) 
+        {
+            DB::rollBack(); // Rollback transaction on error
+            Log::error('Error in Clearance Journal Entry: ' . $e->getMessage());
+            return false;
         }
     }
 

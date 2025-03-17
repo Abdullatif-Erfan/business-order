@@ -163,11 +163,11 @@
 
                                             <th> دریافت <br> نقد (+)</th>
                                             <th>پرداخت <br> نقد (-)</th>
-                                            <th> قرض</th>
-                                            <th> طلب</th>
+                                            <th> برد قرض</th>
+                                            <th> رسید قرض <br>/ طلب  </th>
                                             
                                             <th>واحد</th>
-                                            <th>  نوع معامله  </th>
+                                            <!-- <th>  نوع معامله  </th> -->
                                             <th>تاریخ</th>
                                             <th>جزییات</th>
                                         </tr>
@@ -182,7 +182,7 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td></td>
+                                            <!-- <td></td> -->
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -281,7 +281,7 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                 { data: 'loanPaid', name: 'loanPaid' },
 
                 { data: 'currency', name: 'currency' },
-                { data: 'option_label', name: 'option_label' },
+                // { data: 'option_label', name: 'option_label' },
                 { data: 'inserted_short_date', name: 'inserted_short_date' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],

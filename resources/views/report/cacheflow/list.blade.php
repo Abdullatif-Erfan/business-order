@@ -3,6 +3,13 @@
 
 @section('content')
 
+<style>
+.clearance-row {
+    background-color: #f6ffe4 !important;
+    color: #000 !important;
+}
+</style>
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">

@@ -83,8 +83,15 @@
                             </div> <!-- /table responsive -->
                             <input type="hidden" name="customer_account_id" value="{{ $salesRecords->first()->customer_account_id }}">
                             <input type="hidden" name="currency_id" value="{{ $salesRecords->first()->currency_id }}">
+                            <input type="hidden" name="company_account_id" value="{{ $ownBanks->id }}">
+                            <input type="hidden" name="company_account_name" value="{{ $ownBanks->name ?? '' }}">
+                            <input type="hidden" name="customer_account_name" value="{{ $account_name ?? '' }}">
 
-                             <button type="submit" class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> تایید وثبت تصفیه حساب </button>
+                            <div class="col-12 m-b-10 m-t-20">
+                                 <input type="checkbox" name="confirm" class="confirmed-checkbox" value="1" onchange="enableSubmitButton(this)">
+                                اینجانیب {{ auth()->user()->full_name ?? '' }} تایید مینمایم که مبلغ انتخاب شده را با آقای {{ $account_name ?? '' }} با واحد پولی {{ $currency_name ?? '' }} همرای  {{ $ownBanks->name ?? '' }}  تصفیه نمایم و نقدا دریافت نمایم.
+                            </div>
+                             <button type="submit" disabled class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> تایید وثبت تصفیه حساب </button>
                             </form>
                         </div> <!-- /card-body -->
                     </div> <!-- /card -->
@@ -110,12 +117,12 @@
             document.getElementById('total_price').value = total.toLocaleString().replace(/,/g, '');
 
             // Show or hide submit button based on total
-            let submitBtn = document.getElementById('submit-btn');
-            if (total === 0) {
-                submitBtn.style.display = 'none';
-            } else {
-                submitBtn.style.display = 'block';
-            }
+            // let submitBtn = document.getElementById('submit-btn');
+            // if (total === 0) {
+            //     submitBtn.style.display = 'none';
+            // } else {
+            //     submitBtn.style.display = 'block';
+            // }
         }
 
         // Attach event listener to checkboxes
@@ -126,6 +133,16 @@
         // Initial check to set button visibility correctly on page load
         recalculateTotal();
     });
+
+    function enableSubmitButton(checkbox) 
+    {  
+        let submitBtn = document.getElementById('submit-btn');
+        let total_price = parseInt(document.getElementById('total_price').value) || 0;
+
+        // Enable the button only if checkbox is checked and total price is greater than 0
+        submitBtn.disabled = !(checkbox.checked && total_price > 0);
+   }
+
 </script>
 
 

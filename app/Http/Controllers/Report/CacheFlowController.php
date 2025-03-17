@@ -119,6 +119,7 @@ class CacheFlowController extends Controller
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
             ->where('branch_id', $this->branch_id)
+            ->where('is_cleared', 0)
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
@@ -158,6 +159,9 @@ class CacheFlowController extends Controller
                 'sumLoanPaid' => number_format($sums->sumLoanPaid ?? 0),
                 'isCompanyAccount' => $isCompanyAccount ?? 0 
             ])
+            ->setRowClass(function ($journal) {
+                return $journal->status == 9 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
+            })
             ->make(true);
     }
 

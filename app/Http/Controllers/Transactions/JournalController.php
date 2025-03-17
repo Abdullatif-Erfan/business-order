@@ -201,7 +201,6 @@ class JournalController extends Controller
         $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
         ->where('branch_id', $this->branch_id)
-        ->where('is_middle','=',0) // consider just tow main records and remove middle record from amount of 3 records
         ->orderBy('id', 'DESC')
         ->get();
 
@@ -253,18 +252,18 @@ class JournalController extends Controller
         try 
         {
 
-           if(intval($request->options) === 4)
-           {
-               $checkCode = $this->checkPrevCode($request);
-                if ($checkCode['status'] == 'failed') {
-                    DB::rollBack();
-                    Session::flash('notification', [
-                        'message' => $checkCode['message'],
-                        'type' => 'danger',
-                    ]);
-                    return back();
-                }
-           }
+        //    if(intval($request->options) === 4)
+        //    {
+        //        $checkCode = $this->checkPrevCode($request);
+        //         if ($checkCode['status'] == 'failed') {
+        //             DB::rollBack();
+        //             Session::flash('notification', [
+        //                 'message' => $checkCode['message'],
+        //                 'type' => 'danger',
+        //             ]);
+        //             return back();
+        //         }
+        //    }
 
            $check = $this->handleJournalEntry($request,$newJournalCode);
 
@@ -369,13 +368,13 @@ class JournalController extends Controller
                 // ثبت پرداخت توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
                 $optionLable = 'پرداخت نقد';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times,0);
+                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
                 
      
                  // ثبت دریافت توسط دریافت کننده = recieved(ttype=1) cache(ptype=1)
                  $optionLable = 'دریافت نقد';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times,0);
+                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times);
              } 
           
              // معاملات نسیه به نسیه
@@ -384,56 +383,125 @@ class JournalController extends Controller
                  // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
                 $optionLable = 'پرداخت قرض';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times,0);
+                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
                 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
                  $optionLable = 'دریافت قرض';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times,0);
+                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times);
              }
              // معاملات نقد به نسیه
              else if(intval($request->options) === 3)
              {
-                 // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
-                 $optionLable = 'پرداخت نقد';
-                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times,0);
 
-                  // ثبت  طلب برای  پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                 $optionLable = 'ثبت طلب';
-                 $isMiddle = 1;
-                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times,$isMiddle);
+                /**
+                 * اگر خزانه یا حساب شرکت باشد یعنی خزانه جدیدا قرض  پرداخت میکند که باید نقد از خزانه کم شود 
+                 * if(from_account_id === company_account_id) { Paid Cache = p1t2 } 
+                 * ومشتری باید قرضدار ثبت گردد
+                 * else { Recieved Loan = t1p2 }
+                 * 
+                 * اگر شرکت از مشتری پول قرض بیگیرد در اینصورت شرکت یا خزانه باید نقد دریافت کنند
+                 * if(to_account_id === company_account_id) { Cache Recieved = p1t1 }
+                 * و مشتری باید طلب ثبت گردد
+                 * else { Paid Loan = p2t2 }
+                 * 
+                 */
 
+                // Fetch both account types in a single query
+                $companyAccounts = Account::whereIn('account_type_id', [1,6])
+                ->whereIn('id', [$request->from_account_id, $request->to_account_id])
+                ->where('branch_id', $this->branch_id)
+                ->pluck('id')
+                ->toArray();
 
-                 // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                 $optionLable = 'دریافت قرض';
-                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                        $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times,0);
+                $isFromCompanyAccount = in_array($request->from_account_id, $companyAccounts);
+                $isToCompanyAccount = in_array($request->to_account_id, $companyAccounts);
+                
+                if($isFromCompanyAccount) // خزانه خودش قرض میدهد
+                {
+                    // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
+                    $optionLable = 'پرداخت نقد';
+                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+                                             $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+    
+                    // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
+                    $optionLable = 'دریافت قرض';
+                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+                                            $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
+                } 
+                else if($isToCompanyAccount)  // خزانه خودش قرض میگیرد
+                {
+                    // دریافت نقد توسط خزانه بطور قرض  = Recieved(ttype=1), Caceh(ptype=1) 
+                    $optionLable = 'دریافت قرض';
+                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+                    $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times);
+                    
+                    // ثبت طلب توسط  مشتری = Paid (ttype=2) loan(ptype=2)
+                    $optionLable = 'ثبت طلب';
+                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+                                            $ttype = "2", $ptype="2", $full_date, $date, $from_details,  $newJournalCode, $times);
+                }
+                else
+                {
+                    return false;
+                }
 
             }
             // معاملات نسیه به نقد
             else if(intval($request->options) === 4)
             {
-                /**
-                * پرداخت نقد مشتری
-                * باید همین مبلغ در جمع  رسیدگی قرض مشتری علاوه شود تا از قرضه شان کم شود
-                * باید همین مبلغ در حساب خزانه جمع شود زیرا نقد دریافت کرده وباید حساب شان افزایش یابد
+                 /**
+                 * اگر خزانه یا حساب شرکت باشد یعنی خزانه قبلا قرضدار بوده و حالا قرض خود را پرداخت میکند یعنی پرداخت نقد 
+                 * if(to_account_id === company_account_id) { Paid Cache = p1t2 } 
+                 * ومشتری باید قرضدار ثبت گردد تااینکه طلب مشتری کم گرد
+                 * else { Recieved Loan = t1p2 }
+                 * 
+                 * اگر خزانه قرض شانرا 
+                 * if(to_account_id === company_account_id) { Cache Recieved = p1t1 }
+                 * و مشتری باید طلب ثبت گردد
+                 * else { Paid Loan = p2t2 }
+                 * 
+                 */
 
-                * بردگی نقد خزانه
-                * رسیدگی قرض مشتری یا پرداخت کننده
-                */
+                // Fetch both account types in a single query
+                $companyAccounts = Account::whereIn('account_type_id', [1,6])
+                ->whereIn('id', [$request->from_account_id, $request->to_account_id])
+                ->where('branch_id', $this->branch_id)
+                ->pluck('id')
+                ->toArray();
 
-                // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                $optionLable = 'رسیدگی قرض ';
-                $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                        $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times,0);
+                $isFromCompanyAccount = in_array($request->from_account_id, $companyAccounts);
+                $isToCompanyAccount = in_array($request->to_account_id, $companyAccounts);
 
+                if($isToCompanyAccount) // پرداخت کننده قرض مشتری میباشد
+                {
+                    // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
+                    $optionLable = 'دریافت نقد'; 
+                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+                         $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times);
 
-                // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
-                $optionLable = 'دریافت طلب'; 
-                $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                    $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times,0);
+                    // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
+                    $optionLable = 'رسید قرض';
+                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+                             $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);    
+                }
+                else if($isFromCompanyAccount)  // پرداخت کننده قرض خزانه میباشد
+                {
+                    // پرداخت نقد از خزانه = paid(ttype=2), cache(ptype=1)
+                    $optionLable = 'پرداخت نقد'; 
+                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+                              $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                    
+                    //  دریافت قرض = Received (ttype=1), loan(ptype=2) 
+                    $optionLable = 'رسیدگی قرض';
+                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+                           $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
+                } 
+                else 
+                {
+                    return false;
+                }
+
             }
 
             // Commit the transaction
@@ -534,7 +602,7 @@ class JournalController extends Controller
    
 
     private function createJournalEntry($request, $optionLable, $account_id, $currency_id, $amount, $ttype, $ptype,  
-        $full_date, $date, $details, $code, $times, $isMiddle=0)
+        $full_date, $date, $details, $code, $times)
     {
             // Handle the file upload
             $docPath = '';
@@ -557,7 +625,7 @@ class JournalController extends Controller
                 'option_label' => $optionLable,
                 'dynamic_type' => $request->prev_code ?? null,
                 'dt_comment' => $request->prev_code ? 'کد قبلی این معامله': null,
-                'is_middle' => $isMiddle ?? 0,
+                'is_middle' => 0,
                 'user' => auth()->user()->full_name ?? '',
                 'year' => $date[0],
                 'month' => $date[1],
@@ -584,7 +652,6 @@ class JournalController extends Controller
         $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
         ->where('branch_id', $this->branch_id)
-        ->where('is_middle','=',0) // consider just tow main records and remove middle record from amount of 3 records
         ->orderBy('id', 'DESC')
         ->get();
 
@@ -612,7 +679,6 @@ class JournalController extends Controller
         $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
         ->where('branch_id', $this->branch_id)
-        ->where('is_middle','=',0) // consider just tow main records and remove middle record from amount of 3 records
         ->orderBy('id', 'ASC')
         ->get();
 
@@ -632,19 +698,6 @@ class JournalController extends Controller
         DB::beginTransaction();
         try 
         {
-            if(intval($request->options) === 4)
-            {
-                $checkCode = $this->checkPrevCodeAndUpdate($request);
-                if ($checkCode['status'] == 'failed') {
-                    DB::rollBack();
-                    Session::flash('notification', [
-                        'message' => $checkCode['message'],
-                        'type' => 'danger',
-                    ]);
-                    return back();
-                }
-            }
-
             // Get the journal entry using the `times` field to locate the correct entry
             $journal1 = Journal::where('id', $request->from_id)->first();
             $journal2 = Journal::where('id', $request->to_id)->first(); 
@@ -708,23 +761,6 @@ class JournalController extends Controller
             }
             $journal2->save();
 
-            if(intval($request->options) === 3) // ویرایش نقد به نسیه
-            {
-                // update amount for middle
-                 $middle_journal = Journal::select('id', 'amount')
-                ->where('code', $journal2->code)
-                ->where('currency_id', $request->from_currency_id)
-                ->where('branch_id', $this->branch_id)
-                ->where('transaction_type', 2) // Paid
-                ->where('payment_type', 2)  // Loan
-                ->where('options', 3)  // Had 3 records
-                ->where('status', 2) // Belongs to journal entry
-                ->where('is_middle', 1) 
-                ->first();
-    
-                $middle_journal->amount = $from_amount;
-                $middle_journal->save();
-            }
 
             // Commit the transaction
             DB::commit();
@@ -907,49 +943,7 @@ class JournalController extends Controller
                     // Delete the journal record
                     $journal->delete();
                 }
-                
-                // Retrieve the previous journal record
-                if($journals->first()->options == 4)
-                {
-                        $prev_journal = Journal::select('id', 'amount')
-                            ->where('code', $journals->first()->dynamic_type)
-                            ->where('currency_id', $journals->first()->currency_id)
-                            ->where('branch_id', $this->branch_id)
-                            ->where('transaction_type', 2) // Paid
-                            ->where('payment_type', 2)  // Loan
-                            ->where('options', 3)  // Had 3 records
-                            ->where('status', 2) // Belongs to journal entry
-                            ->where('is_middle', 1) 
-                            ->first();
-        
-                        // Check if the previous journal record exists
-                        if (!$prev_journal) {
-                            \Log::error('Journal record not found for prev_code: ' . $journals->first()->dynamic_type);
-                            // Rollback the transaction if the previous journal is not found
-                            DB::rollBack();
-                            return [
-                                'status' => 'failed',
-                                'message' => 'ریکارد یافت نشد لطفا کد قرض قبلی را درست وارد نمایید',
-                            ];
-                        }
-        
-                        // Update the previous journal amount
-                        $prev_amount = intval($prev_journal->amount);
-                        $prev_journal->amount = $prev_amount + $journals->first()->amount;
-                        $prev_journal->save();
-        
-                        // Commit the transaction if everything goes well
-                        DB::commit();
-        
-                        // Optionally, flash a success message to session
-                        session()->flash('notification', [
-                            'type' => 'success',
-                            'message' => 'موفقانه حذف گردید',
-                        ]);
-        
-                        // Redirect to the journal listing page
-                        return redirect()->route('journal.index');
-                    } 
+             
                   
 
                 // Commit the transaction if everything goes well
