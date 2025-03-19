@@ -74,6 +74,7 @@ class CacheFlowController extends Controller
          * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
          */
     
+         $branch_id = $this->branch_id ?? 0 ;
         // Check if account_id and currency_id are provided
         if (!$request->has('account_id') || !$request->has('currency_id')) {
             return response()->json([
@@ -115,7 +116,41 @@ class CacheFlowController extends Controller
             $journals->where('bill_no', 'LIKE', "%{$request->bill_number}%");
         }
     
-        $sums = DB::table('journals')
+        if($isCompanyAccount)
+        {
+            $sums = DB::table('journals')
+            ->where('account_id', $request->account_id)
+            ->where('currency_id', $request->currency_id)
+            ->where('branch_id', $this->branch_id)
+            ->where('is_cleared', 0)
+            ->select(
+                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
+                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
+
+                // Sum of loan paid
+                DB::raw("(SELECT SUM(j2.amount) 
+                        FROM journals AS j2 
+                        WHERE j2.transaction_type = 1 
+                        AND j2.payment_type = 2 
+                        AND j2.is_cleared = 0 
+                        AND (j2.account_type_id = 3 OR j2.account_type_id = 4)) 
+                        as sumLoanPaid"),
+
+                // Sum of loan received
+                DB::raw("(SELECT SUM(j3.amount) 
+                        FROM journals AS j3 
+                        WHERE j3.transaction_type = 2 
+                        AND j3.payment_type = 2 
+                        AND j3.is_cleared = 0 
+                        AND (j3.account_type_id = 3 OR j3.account_type_id = 4)) 
+                        as sumLoanRecieved")
+            )
+            ->first();
+
+        }
+        else
+        {
+            $sums = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
             ->where('branch_id', $this->branch_id)
@@ -127,6 +162,7 @@ class CacheFlowController extends Controller
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanPaid')
             )
             ->first();
+        }
     
         return DataTables::of($journals)
             ->addIndexColumn()

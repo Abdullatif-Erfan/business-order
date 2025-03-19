@@ -194,12 +194,6 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6 col-sm-6 col-xs-12" id="prev_code_wrapper" style="display:none">
-                                            <div class="form-group form-floating-label"><label> این پرداخت جهت کدام قرض میباشد ؟ صرف کد نمبر اش را بنویسید </label>
-                                              <input type="number" class="form-control input-solid" id="prev_code" name="prev_code">
-                                            </div>
-                                        </div>
-
 
                                         <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group">
@@ -284,8 +278,6 @@
      {
          $('#from_account_label').html('حساب رسیدگی (پرداخت کننده)');
          $('#to_account_label').html('حساب بردگی (دریافت کننده)');
-         $('#prev_code_wrapper').fadeOut(1);
-         $('#prev_code').fadeOut(1).removeAttr('required', true);
      } 
      /**
      *   نسیه به نسیه
@@ -295,8 +287,6 @@
      {
         $('#from_account_label').html('حساب رسیدگی ( حساب که طلب میشود)');
         $('#to_account_label').html('حساب بردگی (حساب که قرضدار میشود)');
-        $('#prev_code_wrapper').fadeOut(1);
-        $('#prev_code').fadeOut(1).removeAttr('required', true);
      }
      /**
      * نقد به نسیه
@@ -307,8 +297,7 @@
      {
         $('#from_account_label').html('حساب رسیدگی (پرداخت کننده نقد)');
         $('#to_account_label').html('حساب بردگی (دریافت کننده قرض)');
-        $('#prev_code_wrapper').fadeOut(1);
-        $('#prev_code').fadeOut(1).removeAttr('required', true);
+
      }
     
     /**
@@ -320,8 +309,7 @@
      {
         $('#from_account_label').html('حساب رسیدگی (پرداخت کننده قرضه بطور نقد)');
         $('#to_account_label').html('حساب بردگی (دریافت کننده/ طلب)');
-        $('#prev_code_wrapper').fadeIn(1);
-        $('#prev_code').fadeIn(1).attr('required', true);
+
      }
     
    }

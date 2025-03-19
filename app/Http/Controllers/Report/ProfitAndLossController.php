@@ -361,8 +361,7 @@ class ProfitAndLossController extends Controller
                 SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat,
                 SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
             ")
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id])
+            ->whereIn('journals.account_type_id', [$company_account_type_id, $banks_account_type_id])
             ->where('journals.is_cleared', 0)
             ->where('journals.branch_id', $branch_id)
             ->groupBy('journals.currency_id')

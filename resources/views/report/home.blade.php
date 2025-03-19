@@ -66,7 +66,7 @@
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('cacheflow.index')}}">💰 کهاته حسابات</a>
+                                                    <a target="_blank" href="{{ route('cacheflow.index')}}">💰  صورت حساب مشتریان</a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="{{ route('balancesheet.index') }}">📑 بیلانس شیت</a>

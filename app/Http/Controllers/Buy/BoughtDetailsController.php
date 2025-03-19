@@ -700,9 +700,12 @@ class BoughtDetailsController extends Controller
 
     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
+        $account_type_id = Account::where('id', $account_id)->value('account_type_id');
+
         Journal::create([
             'bill_no' => $request->billno,
             'code' =>  $request->journal_code,
+            'account_type_id' => $account_type_id,
             'account_id' => $account_id,
             'branch_id' => $this->branch_id ?? $request->branch_id,
             'amount' => $amount,

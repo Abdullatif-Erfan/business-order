@@ -335,30 +335,30 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                         ? (sum4 + sum7) - (sum5 + sum6)
                         : (sum5 + sum7) - (sum4 + sum6);
 
-                    // Ensure finalResult is not NaN
-                    finalResult = isNaN(finalResult) ? 0 : finalResult;
+                    // // Ensure finalResult is not NaN
+                    // finalResult = isNaN(finalResult) ? 0 : finalResult;
 
-                    // Format final result with proper decimal places
-                    let finalResultFormatted = Number.isInteger(finalResult)
-                        ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                        : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    // // Format final result with proper decimal places
+                    // let finalResultFormatted = Number.isInteger(finalResult)
+                    //     ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                    //     : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                    // Determine badge type
-                    let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
+                    // // Determine badge type
+                    // let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
 
                     // Update footer totals with formatted results
                     $(api.column(4).footer()).html(sum4.toLocaleString());
                     $(api.column(5).footer()).html(sum5.toLocaleString());
                     $(api.column(6).footer()).html(sum6.toLocaleString());
                     $(api.column(7).footer()).html(sum7.toLocaleString());
-                    $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
+                    // $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
                 } else {
                     // Hide results when no account is filtered
                     $(api.column(4).footer()).html('');
                     $(api.column(5).footer()).html('');
                     $(api.column(6).footer()).html('');
                     $(api.column(7).footer()).html('');
-                    $(api.column(8).footer()).html('');
+                    // $(api.column(8).footer()).html('');
                 }
             }
 

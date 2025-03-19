@@ -210,6 +210,8 @@ class ExpenseController extends Controller
         DB::beginTransaction();
     
         try {
+
+            $account_type_id = Account::where('id', $validated['reciever_account_id'])->value('account_type_id');
             // Store the journal entry for the "paid cache" record
             $journal = new Journal();
             $journal->bill_no = $validated['bill_no'] ?? 0;
@@ -231,7 +233,8 @@ class ExpenseController extends Controller
                 $docPath = $request->file('doc')->store('documents', 'public');
                 $journal->doc = $docPath;
             }
-    
+            
+            $journal->account_type_id = $account_type_id;
             $journal->account_id = $validated['reciever_account_id'];
             $journal->amount = $validated['amount'];
             $journal->currency_id = $validated['currency_id'];

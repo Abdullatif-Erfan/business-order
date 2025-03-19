@@ -431,10 +431,14 @@ class AccountController extends Controller
             $year = $jalaliDate->getYear();
             $month = $jalaliDate->getMonth();
             $day = $jalaliDate->getDay();
+
+            $account_type_id = Account::where('id', $account_id)->value('account_type_id');
+
             // Create the Journal entry
             Journal::create([
                 'bill_no' => 0,
                 'code' => $newJournalCode,
+                'account_type_id' => $account_type_id,
                 'account_id' => $account_id,
                 'branch_id' => $branch_id,
                 'amount' => $amount,

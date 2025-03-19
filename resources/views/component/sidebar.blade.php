@@ -72,7 +72,6 @@
                     </li>
                  @endif
 
-                    @if($packageId >= 2)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#journal">
                           <i class="fas fa-file-invoice-dollar"></i>
@@ -88,14 +87,14 @@
                                     </a>
                                 </li>
                                 @endif
-                                @if(($permissions['income'] || $isAdmin) && $packageId >= 2)
+                                @if(($permissions['income'] || $isAdmin))
                                 <li>
                                     <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> عواید </span>
                                     </a>
                                 </li>
                                 @endif
-                                @if(($permissions['expense'] || $isAdmin) && $packageId >= 2)
+                                @if(($permissions['expense'] || $isAdmin))
                                 <li>
                                     <a href="{{ route('expense.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> مصارف</span>
@@ -110,16 +109,6 @@
                             </ul>
                         </div>
                     </li>
-                    @endif
-
-                    @if($packageId == 1)
-                    <li class="nav-item">
-                        <a href="{{ route('journal.index') }}">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            <p>  روزنامچه </p>
-                        </a>
-                    </li>
-                    @endif
 
 
                     @if(($permissions['hr'] || $isAdmin) && $packageId >= 3)
@@ -272,7 +261,7 @@
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{route('cacheflow.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> کهاته مشتریان </span>
+                                        <span class="sub-item">حسابات مشتریان </span>
                                     </a>
                                 </li>
                                 <li>

@@ -66,11 +66,11 @@ class UserController extends Controller
           
           if($this->isAdmin)
           {
-              $users = User::with(['roleRelationName','branchRelation'])->orderBy('created_at','DESC');
+              $users = User::with(['roleRelationName','branchRelation'])->where('isHidden',0)->orderBy('created_at','DESC');
           }
           else 
           {
-             $users = User::with(['roleRelationName','branchRelation'])->where('branch_id', $this->branch_id)->orderBy('created_at','DESC');
+             $users = User::with(['roleRelationName','branchRelation'])->where('isHidden',0)->where('branch_id', $this->branch_id)->orderBy('created_at','DESC');
           }
            
             

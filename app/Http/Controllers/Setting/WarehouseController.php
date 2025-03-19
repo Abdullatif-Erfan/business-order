@@ -27,48 +27,42 @@ class WarehouseController extends Controller
             $this->isAdmin = false;
         }
     }
+
     public function index(Request $request)
     {
-
-        //  $sessionData = Session::all();
-        // $sessionData = Session::get('isAdmin');
- 
-         // Debugging: Display login status, user, and session data
-        //  dd([
-        //      'sessionData' => $sessionData,
-        //     //  'isAdmin' => $sessionData['isAdmin'] === 1 ? "yes" : "no"
-        //  ]);
-
         if ($request->ajax()) {
-
-            if(!$this->isAdmin)
-            {
-                $warehouses = Warehouse::with('branch')->where('branch_id',$this->branch_id)->orderBy('id', 'DESC');
-            } 
-            else 
-            {
-                $warehouses = Warehouse::with('branch')->orderBy('id', 'DESC');
+            // Base query based on user role
+            if (!$this->isAdmin) {
+                $warehousesQuery = Warehouse::with('branch')->where('branch_id', $this->branch_id);
+            } else {
+                $warehousesQuery = Warehouse::with('branch');
             }
-            
-                $firstRecordId = Warehouse::orderBy('id', 'ASC')->first()?->id; 
-
+    
+            // Get IDs of the two oldest records
+            $oldestRecords = (clone $warehousesQuery)->orderBy('id', 'ASC')->limit(2)->pluck('id')->toArray();
+    
+            // Apply ordering for DataTables
+            $warehouses = $warehousesQuery->orderBy('id', 'DESC');
+    
             return DataTables::eloquent($warehouses)
                 ->addIndexColumn()
                 ->addColumn('edit', function ($warehouse) {
                     return '<i class="fas fa-pen-square editWarehouse" data-id="' . $warehouse->id . '" style="font-size:20px; cursor: pointer;"></i>';
                 })
-                ->addColumn('delete', function ($warehouse) use ($firstRecordId) {
-                    if($warehouse->id == $firstRecordId) {
-                        return  '<br>';
+                ->addColumn('delete', function ($warehouse) use ($oldestRecords) {
+                    // Prevent deletion of the two oldest records
+                    if (in_array($warehouse->id, $oldestRecords)) {
+                        return '<br>'; // Do not show delete icon
                     }
                     return '<i class="fas fa-trash-alt deleteWarehouse" data-id="' . $warehouse->id . '" style="font-size:20px; color:red; cursor: pointer;"></i>';
                 })
                 ->rawColumns(['edit', 'delete'])
                 ->make(true);
         }
-
-        // return view('settings.warehouses.index'); // Ensure you have this view
     }
+    
+
+    
 
 
     public function create()

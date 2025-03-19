@@ -27,10 +27,8 @@
                                 <li><a data-toggle="tab"  href="#unit">واحد اجناس</a></li>
                                 <li><a data-toggle="tab"  href="#currency">واحد پولی</a></li>
                                 <li><a data-toggle="tab"  href="#account"> حساب  </a></li>
-                                @if($packageId >=2)
                                 <li><a data-toggle="tab"  href="#income_type"> کتگوری عواید  </a></li>
                                 <li><a data-toggle="tab"  href="#expense_type"> کتگوری مصارف  </a></li>
-                                @endif
                                 <li><a data-toggle="tab"  href="#company_profile">  پروفایل شرکت  </a></li>
 
                             </ul>
@@ -39,7 +37,7 @@
                                 <!-- branch -->
                                  <div id="branch" class="tab-pane fade in active">
                                       <br> 
-                                      @if($isAdmin) 
+                                      @if($isAdmin && $packageId >= 2) 
 									       @include('settings.branch.add')
                                        @endif
 								       <br>

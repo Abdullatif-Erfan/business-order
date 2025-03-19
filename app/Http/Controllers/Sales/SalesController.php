@@ -543,9 +543,12 @@ class SalesController extends Controller
     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
         $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
+        $account_type_id = Account::where('id', $account_id)->value('account_type_id');
+
         Journal::create([
             'bill_no' => $request->billno,
             'code' =>  $request->code,
+            'account_type_id' => $account_type_id,
             'account_id' => $account_id,
             'branch_id' => $this->branch_id ?? $branch_id,
             'amount' => $amount,

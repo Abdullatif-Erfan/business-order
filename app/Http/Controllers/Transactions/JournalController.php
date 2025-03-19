@@ -611,10 +611,13 @@ class JournalController extends Controller
                 Log::info('Document uploaded', ['path' => $docPath]);
             }
 
+            $account_type_id = Account::where('id', $account_id)->value('account_type_id');
+
             // Create the Journal entry
             Journal::create([
                 'bill_no' => $request->billno,
                 'code' => $code,
+                'account_type_id' => $account_type_id,
                 'account_id' => $account_id,
                 'branch_id' => $request->branch_id,
                 'amount' => $amount,
@@ -698,9 +701,21 @@ class JournalController extends Controller
         DB::beginTransaction();
         try 
         {
+            if (!$request->from_id || !$request->to_id) {
+                return back()->with('notification', [
+                    'message' => 'Invalid journal IDs',
+                    'type' => 'danger',
+                ]);
+            }
+
             // Get the journal entry using the `times` field to locate the correct entry
             $journal1 = Journal::where('id', $request->from_id)->first();
             $journal2 = Journal::where('id', $request->to_id)->first(); 
+
+            $from_account_type_id = Account::where('id', $request->from_account_id)->value('account_type_id');
+            $to_account_type_id = Account::where('id', $request->to_account_id)->value('account_type_id');
+
+
         
             if (!$journal1 || !$journal2) {
                 Session::flash('notification', [
@@ -730,6 +745,7 @@ class JournalController extends Controller
             $journal1->month = $month;
             $journal1->day = $day;
             $journal1->account_id = $request->from_account_id;
+            $journal1->account_type_id = $from_account_type_id;
             $journal1->amount = $from_amount;
             $journal1->currency_id = $request->from_currency_id;
             $journal1->details = $request->from_details;
@@ -749,6 +765,7 @@ class JournalController extends Controller
             $journal2->year = $year;
             $journal2->month = $month;
             $journal2->day = $day;
+            $journal2->account_type_id = $to_account_type_id;
             $journal2->account_id = $request->to_account_id;
             $journal2->amount = $to_amount;
             $journal2->currency_id = $request->to_currency_id;

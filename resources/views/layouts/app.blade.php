@@ -7,7 +7,7 @@
     <title>@yield('title', 'سیستم مدیریت تجارت')</title>
 
     <meta name="Author" content="Developer" />
-    <link rel="icon" href="{{ asset('assets/img/icon.ico') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/img/icon.png') }}" type="image/x-icon" />
     <script src="{{ asset('assets/js/plugin/webfont/webfont.min.js') }}"></script>
     <script>
         WebFont.load({

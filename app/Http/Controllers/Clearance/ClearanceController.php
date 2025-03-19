@@ -284,9 +284,14 @@ class ClearanceController extends Controller
              * Recieved Loan = t1p2
              * ثبت قرض جهت تنظیم بیلانس طلب شان
              */
+            
+            $customer_account_type_id = Account::where('id', $request->customer_account_id)->value('account_type_id');
+            $company_account_type_id = Account::where('id', $request->company_account_id)->value('account_type_id');
+
             $check1 =  Journal::create([
                     'bill_no' => 0,
                     'code' => $newJournalCode,
+                    'account_type_id' => $customer_account_type_id,
                     'account_id' => $request->customer_account_id,
                     'branch_id' => $this->branch_id,
                     'amount' => $request->total,
@@ -316,6 +321,7 @@ class ClearanceController extends Controller
                 $check2 =  Journal::create([
                     'bill_no' => 0,
                     'code' => $newJournalCode,
+                    'account_type_id' => $company_account_type_id,
                     'account_id' => $request->company_account_id,
                     'branch_id' => $this->branch_id,
                     'amount' => $request->total,
@@ -595,8 +601,8 @@ class ClearanceController extends Controller
     private function createSalesJournal($request, $details)
     {
         DB::beginTransaction();
-        try{
-
+        try
+        {
             $newJournalCode = DB::table('journals')->where('journals.branch_id', $this->branch_id)->lockForUpdate()->max('code') + 1;
             $todaysDate = Jalalian::now()->format('Y-n-d');
             $date = explode('-', $todaysDate);
@@ -610,9 +616,13 @@ class ClearanceController extends Controller
              * Recieved Loan = t1p2
              * ثبت قرض جهت تنظیم بیلانس طلب شان
              */
+            $customer_account_type_id = Account::where('id', $request->customer_account_id)->value('account_type_id');
+            $company_account_type_id = Account::where('id', $request->company_account_id)->value('account_type_id');
+
             $check1 =  Journal::create([
                     'bill_no' => 0,
                     'code' => $newJournalCode,
+                    'account_type_id' =>  $company_account_type_id,
                     'account_id' => $request->company_account_id,
                     'branch_id' => $this->branch_id,
                     'amount' => $request->total,
@@ -642,6 +652,7 @@ class ClearanceController extends Controller
                 $check2 =  Journal::create([
                     'bill_no' => 0,
                     'code' => $newJournalCode,
+                    'account_type_id' =>  $customer_account_type_id,
                     'account_id' => $request->customer_account_id,
                     'branch_id' => $this->branch_id,
                     'amount' => $request->total,

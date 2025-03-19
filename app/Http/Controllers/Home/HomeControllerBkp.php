@@ -2,569 +2,511 @@
 
 namespace App\Http\Controllers\Home;
 
-// use App\Http\Controllers\Controller;
-use App\Http\Controllers\BaseController;
+use App\Http\Controllers\Controller;
+// use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session; // Import Session facade
 use Illuminate\Support\Facades\Auth; // Import Auth facade
-use App\Helpers\ManagementHelper;
-use App\Helpers\FunctionHelper;
+// use App\Helpers\ManagementHelper;
+// use App\Helpers\FunctionHelper;
+use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
-
-
+use App\Models\Warehouse\WarehouseSales;
+use App\Models\Warehouse\WarehouseItem;
+use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
+use App\Models\Setting\Account;
+use App\Models\Journal\Journal;
+use App\Models\Warehouse\SalesDetails;
+use App\Models\Setting\OrgBio;
+use App\Models\Setting\Branch;
+
+use Carbon\Carbon;
+use Morilog\Jalali\CalendarUtils;
 
 
-class HomeControllerBkp extends BaseController
+// class HomeController extends BaseController
+class HomeController extends Controller
 {
-    protected $module;
+    protected $branch_id, $isAdmin, $package_type;
+
+    // Inject the message service into the controller
     public function __construct()
     {
-        $this->isLoggedIn();
-        $this->module = 'dashboard';	
+        // Ensure user authentication before setting the branch ID
+        // if (auth()->check()) {
+        //     $user = auth()->user();
+        //     $this->branch_id = $user->branch_id ?? 0;
+        //     $this->isAdmin = $user->isAdmin == 1 ? true : false;
+        // } else {
+        //     $this->branch_id = 0;
+        //     $this->isAdmin = false;
+        // }
+        if (auth()->check()) {
+            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
+            $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->package_type = session('package_type', 0);
+        } else {
+            $this->branch_id = 0;
+            $this->isAdmin = false;
+            $this->package_type = 0;
+        }
     }
-
+    
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        // --------------- test session data and auth data ------------
-        //  // Check if user is logged in
-        //  $isLoggedIn = auth()->check();
-
-        //  // Get the currently logged-in user (if any)
-        //  $user = auth()->user();
- 
-        //  // Retrieve session data
-        //  $sessionData = Session::all();
- 
-        //  // Debugging: Display login status, user, and session data
-        //  dd([
-        //      'isLoggedIn' => $isLoggedIn,
-        //      'user' => $user,
-        //      'sessionData' => $sessionData,
-        //  ]);
-
-        // ----------------- test BaseController Variables -------------
-        // return response()->json(['global' =>$this->global]);
-        // return response()->json(['isAdmin' => $this->isAdmin]);
-        // return response()->json(['isAdmin' => $this->isAdmin()]);
-        // return response()->json(['hasListAccess' => $this->hasListAccess()]);
-        
-        // --------------------- get page data ----------------
-        
-        // $global_data = ['global' => $this->global];
-        // $page_data = ['global' => $data];
-
         // $accessInfo = Session::get('accessInfo', []);
         // return ['accessInfo' => $accessInfo];
 
-        // $auth = auth()->user();
+        //  $auth = auth()->user();
         // return ['auth' => $auth];
- 
+        // $user = auth()->user();
+        // $branch_id = $this->branch_id;
+        // $isAdmin = $this->isAdmin;
 
-        // return view('dashboard.dashboard', compact('global_data','page_data'));
-
-        if(!$this->hasListAccess())
+        // **Get branch_id from the session instead of the user model**
+        // $branch_id = session('branch_id');
+        // $isAdmin = session('isAdmin');
+        if(empty($this->package_type) && $this->package_type <= 0)
         {
-			// pre($this->global);
-            $this->loadThis($this->global);
+            echo "لطفا یکی از پکیج هارا انتخاب نمایید"; die();
         }
-        else
+
+        $branch_id = $this->branch_id ?? 0;
+        $isAdmin = $this->isAdmin ?? 0;
+        $package_type = $this->package_type ?? 0;
+
+        if(!$branch_id)
         {
-            // dd(
-            //     ['message' => 'hasListAccess']
-            // );
+            return redirect()->route('login');
+        }
 
-            $data['year'] = $request->input('year', FunctionHelper::curYear()); 
-            $data['month'] = $request->input('month', FunctionHelper::curMonth()); 
-            $data['day'] = $request->input('day', FunctionHelper::curDay()); 
-
+        $data['year'] = $request->input('year') ?? Jalalian::now()->format('Y');
+        $data['month'] = $request->input('month') ?? Jalalian::now()->format('n');
+        $data['day'] = $request->input('day') ?? Jalalian::now()->format('d');
+        $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
     
-            // ------------------------- Currency --------------------------------
-            
-            $data['currency'] = Currency::select('id','name')->orderBy('id','ASC')->get()->toArray();
-            // ManagementHelper::pre($data);
-            
-			// filter by branch if submitted
-			if (request()->has('currency_id')) {
-                $data['currency_id'] = request()->input('currency_id');
-                
-                $data['cur_currency'] = Currency::select('id', 'name')
-                    ->where('id', $data['currency_id'])
-                    ->orderBy('id', 'ASC')
-                    ->get()
-                    ->toArray();
-            
-                $data['currency_name'] = $data['cur_currency'][0]->name ?? null; // Handle cases where no result is found
-            } else {
-                $data['currency_id'] = $data['currency'][0]['id'] ?? null;
-                $data['currency_name'] = $data['currency'][0]['name'] ?? null;
+        if ($request->has('currency_id')) {
+            $data['currency_id'] = $request->input('currency_id');
+    
+            $cur_currency = Currency::find($data['currency_id']);
+    
+            $data['currency_name'] = $cur_currency->name ?? null;
+            $data['currency_id'] = $cur_currency->id ?? null;
+        } else {
+            $data['currency_id'] = $data['currency'][0]['id'] ?? null;
+            $data['currency_name'] = $data['currency'][0]['name'] ?? null;
+        }
+
+
+        /**
+         * transaction_type: 1: recieved , 2:paid
+         * payment_type    : 1: cache,    2:loan
+         */
+
+        $orgBio = OrgBio::first(); 
+        $branches = Branch::all();
+
+        // first tab
+        $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        // return ['data' => $data];
+
+        // Second Tab
+        $secondTab = $this->getSecondTabReport($data['year'],$data['currency_id'],$branch_id);
+        return ['secondTab', $secondTab];
+
+        // Third Tab
+        $thirdTab = $this->getCashInHandAmount($data['year'],$data['month'],$data['day'],$branch_id);
+        // $thirdTab = $this->getCashInHandAmount($data['year'],100,100);
+        // return ['thirdTab', $thirdTab];
+
+        // $auth = auth()->user();
+        // return ['auth' => auth()->user()->photo ];
+
+        // Get the Jalali date object for the provided date
+        // $baseDate = Jalalian::fromFormat('Y-m-d', $data['year'] . '-' . $data['month'] . '-' . $data['day']);
+        // Get the names of the past 7 days
+        // $days = $this->getPast7Days($baseDate);
+
+       
+
+        return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab','branches','isAdmin','branch_id','package_type'));
+    }
+
+
+     /**
+     * Get the past 7 days' names.
+     *
+     * @param \Morilog\Jalali\Jalalian $baseDate
+     * @return array
+     */
+    private function getPast7Days(Jalalian $baseDate)
+    {
+        // Check if the current baseDate is the same as the previous one in the session
+        $prevBaseDate = session('baseDate');
+        $days = [];
+
+        if ($prevBaseDate !== $baseDate->format('Y-m-d')) {
+            // If the baseDate has changed, recalculate the days
+            for ($i = 0; $i < 7; $i++) {
+                $date = $baseDate->subDays($i); // Subtract i days from the base date
+                $dayName = $date->format('l'); // Get the day name (e.g., شنبه, یکشنبه, etc.)
+                $days[] = $dayName;
             }
-            // ManagementHelper::pre($data);
-            
-             // ----------------------------- / First Tab ------------------------
-             /**
-             * transaction_type: 1: recieved , 2:paid
-             * payment_type    : 1: cache,    2:loan
-             */
 
-			 // first tab
-			 $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id']);
-			 $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id']);
-			 $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id']);
-             
-             
-            if(ManagementHelper::activePackageId() >= 2) 
-            {
-                 $data['secondTabData'] = $this->getGeneralData4SecondTab($data['year'],$data['currency_id']);
-				 $data['cache_in_hand'] = $this->getCashInHandAmount($data['currency_id'],$data['year'],$data['month'],$data['day']);
-            }
-                
-            //  ManagementHelper::pre($data);
-			
-            // $msg=$this->session->flashdata('msg');    
-            $global_data = ['global' => $this->global];
-          
+            // Store the new baseDate and calculated days in the session
+            session(['baseDate' => $baseDate->format('Y-m-d'), 'days' => $days]);
+        } else {
+            // If the baseDate is the same, use the stored days
+            $days = session('days');
+        }
 
-
-            return view('dashboard.dashboard', compact('global_data','data'));
-            // $this->messages->showMessage($msg);
-		}
+        return $days;
     }
 
 
     public function warehouseItemNotifyAmount()
+    {   
+        $warehouseNotifyAbleAmount = WarehouseItem::whereColumn('notification_amount', '>=', 'available_amount')  
+        ->where('branch_id', $this->branch_id)->count();
+        return view('notify.warehouse_item_amount', ['records' => $warehouseNotifyAbleAmount]);
+    }
+
+    public function warehouseItemList()
     {
-        return 1;
+        // $warehouseList = WarehouseItem::
+        // $response = $this->load->view('notify/warehouse_item_list',$data,TRUE);
+        // echo $response;	
+        
+        $WarehouseItems = DB::table('warehouse_items')
+        ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
+        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+        ->select(
+            'warehouses.name as wname',
+            'bought_item_pre_lists.name as item_name',
+            'warehouse_items.available_amount',
+            'units.name as unit_name',
+            'notification_amount'
+        )
+        ->where('notification_amount', '>=', 0) // Optional, remove if unnecessary
+        ->whereColumn('notification_amount', '>=', 'warehouse_items.available_amount') // Correct column comparison
+        ->where('warehouse_items.branch_id', $this->branch_id)
+        ->get();
+
+        return view('notify.warehouse_item_list', ['records' => $WarehouseItems]);
+            
+    }
+
+    private function getExpiredWarehouseItems()
+    {
+        $today = Jalalian::now();
+        $orgBio = OrgBio::first(); 
+        $notification_days = $orgBio->expired_after_days ?? 30;
+
+        return WarehouseItem::with(['warehouseRelation:id,name', 'preListRelation:id,name'])
+            ->select('id', 'warehouse_id', 'buy_pre_id', 'expire_date', 'branch_id')
+            ->where('branch_id', $this->branch_id)
+            ->whereNotNull('expire_date')
+            ->get()
+            ->map(function ($item) use ($today) {
+                try {
+                    $expireDate = Jalalian::fromFormat('Y-m-d', $item->expire_date)->toCarbon();
+                    $daysDifference = floor(Carbon::now()->diffInDays($expireDate, false));
+                    $item->expired_days = $daysDifference;
+                } catch (\Exception $e) {
+                    $item->expired_days = null;
+                }
+                return $item;
+            })
+            ->filter(function ($item) use ($notification_days) {
+                return $item->expired_days !== null && $item->expired_days < $notification_days;
+            });
+    }
+
+    public function expiredWarehouseItems()
+    {
+        $expiredAbleItems = $this->getExpiredWarehouseItems();
+        return view('notify.expired_item_list', ['records' => $expiredAbleItems]);
     }
 
     public function expiredDateNotifyAmount()
     {
-        return 1;
-    }
-    public function warehouseItemList()
-    {
-        return [];
-    }
-    public function expiredWarehouseItems()
-    {
-        return [];
-    }
-    
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $expiredItemCount = $this->getExpiredWarehouseItems()->count();
+        return view('notify.expired_items_amount', ['records' => $expiredItemCount]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 
 
 
     // ----------------- re-usable functions ------------
-    function getTodaysSoldIncome($year, $month, $day, $currency_id)
+    function getTodaysSoldIncome($year, $month, $day, $currency_id, $branch_id)
     {
-        
-        $results = DB::table('warehouse_sales')
-        ->selectRaw('
-            year as sold_year, 
-            month as sold_month, 
-            day as sold_day,
-            (SELECT COALESCE(SUM(payable), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as total_sales,
-            (SELECT COALESCE(SUM(cur_pay), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as cur_pay,
-            (SELECT COALESCE(SUM(remained), 0) FROM warehouse_sales WHERE currency_id = ? AND year = warehouse_sales.year ' . (intval($month) ? 'AND month = ? ' : '') . (intval($day) ? 'AND day = ? ' : '') . ') as remained
-        ', array_merge(
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : []),
-            [$currency_id], (intval($month) ? [$month] : []), (intval($day) ? [$day] : [])
-        ))
-        ->where('currency_id', $currency_id)
-        ->where('year', $year)
-        ->when(intval($month) > 0 && intval($month) <= 12, function ($query) use ($month) {
-            $query->where('month', $month);
+        $todays_soled = WarehouseSales::selectRaw('SUM(total_price) as total_price, SUM(total_discount) as total_discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained')
+        ->where('year', '=', $year)
+        ->when($month != 100, function ($query) use ($month) {
+            return $query->where('month', '=', $month);
         })
-        ->when(intval($day) > 0 && intval($day) <= 31, function ($query) use ($day) {
-            $query->where('day', $day);
+        ->when($day != 100, function ($query) use ($day) {
+            return $query->where('day', '=', $day);
         })
-        ->limit(1)
-        ->get();
+        ->where('currency_id', '=', $currency_id)
+        ->where('branch_id', '=', $branch_id)
+        ->first();
 
-        if ($results->isEmpty()) {
-            return [
-                'sold_year'    => $year,
-                'sold_month'   => $month ?: null,
-                'sold_day'     => $day ?: null,
-                'total_sales'  => 0,
-                'cur_pay'      => 0,
-                'remained'     => 0,
-                'profit'       => 0,
-            ];
-        }
+        $todays_sold_profits = SalesDetails::where('branch_id', $branch_id) // Ensure branch_id is directly filtered in SalesDetails
+        ->whereHas('warehouseSale', function ($query) use ($currency_id, $year, $month, $day) {
+            $query->where('currency_id', $currency_id)
+                ->when($year, function ($query) use ($year) {
+                    return $query->where('year', $year);
+                })
+                ->when($month != 100, function ($query) use ($month) {
+                    return $query->where('month', $month);
+                })
+                ->when($day != 100, function ($query) use ($day) {
+                    return $query->where('day', $day);
+                });
+        })
+        ->sum('profit');
 
-        return $results;
-    }
-
-    function getTodaysBoughtData($year, $month, $day, $currency_id)
-    {
-        $query = DB::table('bought_items')
-            ->selectRaw('
-                year as bought_year,
-                month as bought_month,
-                day as bought_day,
-                COALESCE((
-                    SELECT SUM(payable)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as total_bought',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->selectRaw('
-                COALESCE((
-                    SELECT SUM(cur_pay)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as cur_pay',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->selectRaw('
-                COALESCE((
-                    SELECT SUM(remained)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as remained',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->selectRaw('
-                COALESCE((
-                    SELECT SUM(trans_spend)
-                    FROM bought_items
-                    WHERE currency_id = ? 
-                    AND year = bought_items.year 
-                    AND (? = 0 OR month = ?)
-                    AND (? = 0 OR day = ?)
-                ), 0) as trans_spend',
-                [$currency_id, $month, $month, $day, $day]
-            )
-            ->where('currency_id', $currency_id)
-            ->where('year', $year)
-            ->when(intval($month) > 0 && intval($month) <= 12, function ($query) use ($month) {
-                $query->where('month', $month);
-            })
-            ->when(intval($day) > 0 && intval($day) <= 31, function ($query) use ($day) {
-                $query->where('day', $day);
-            })
-            ->limit(1)
-            ->get();
-
-        // Return the result, or an empty array if no data is found
-        return $query->isEmpty() ? [] : $query->first();
-    }
-
-
-    function getCashIncomeOutcome($year, $month, $day, $currency_id)
-    {
-        $cache = 1000; // تمام پول نقد به شمول خزانه ٬ صرافی و بانک ها
-        $income = 2000;
-        $expense = 3000;
-        $customers = 4000; // مشتریان و فروشندگان
-        $employees = 5000; // کارمندان
-        $khazana_account_id = 4;
-
-        $query = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('year', $year)
-            ->where('currency', $currency_id);
-
-        if (intval($month) > 0 && intval($month) <= 12) {
-            $query->where('month', $month);
-        }
-
-        if (intval($day) > 0 && intval($day) <= 31) {
-            $query->where('day', $day);
-        }
-
-        // Cash income to the treasury
-        $khazana_income = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->where('journals.account_id', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Cash outcome from the treasury
-        $khazana_outcome = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->where('journals.account_id', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Cash income to the banks
-        $banks_income = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->where('journals.account_id', '!=', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Cash outcome from the banks
-        $banks_outcome = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->where('journals.account_id', '!=', $khazana_account_id)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Total spent cash
-        $total_spend = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Total income cash
-        $total_incomes = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $cache)
-            ->whereRaw(intval($month) > 0 && intval($month) <= 12 ? 'month = ?' : '', [$month])
-            ->whereRaw(intval($day) > 0 && intval($day) <= 31 ? 'day = ?' : '', [$day])
-            ->sum('amount');
-
-        // Prepare the result
-        $result = [
-            'khazana_income' => $khazana_income ?? 0,
-            'khazana_outcome' => $khazana_outcome ?? 0,
-            'banks_income' => $banks_income ?? 0,
-            'banks_outcome' => $banks_outcome ?? 0,
-            'total_spend' => $total_spend ?? 0,
-            'total_incomes' => $total_incomes ?? 0,
+        return [
+            'total_price'     => $todays_soled->total_price ?? 0,
+            'total_discount'  => $todays_soled->total_discount ?? 0,
+            'payable'         => $todays_soled->payable ?? 0,
+            'cur_pay'         => $todays_soled->cur_pay ?? 0,
+            'remained'        => $todays_soled->remained ?? 0,
+            'profit'          => $todays_sold_profits ?? 0
         ];
 
-        // If no data is found, return 0
-        if (empty($result)) {
-            return 0;
-        }
-
-        return $result;
     }
+
+    function getTodaysBoughtData($year, $month, $day, $currency_id, $branch_id)
+    {
+        $todays_bought = BoughtItem::selectRaw('SUM(total_price) as total_price, SUM(discount) as discount, SUM(payable) as payable, SUM(cur_pay) as cur_pay, SUM(remained) as remained, SUM(trans_spend) as trans_spend')
+            ->where('year', '=', $year)
+            ->when($month != 100, function ($query) use ($month) {
+                return $query->where('month', '=', $month);
+            })
+            ->when($day != 100, function ($query) use ($day) {
+                return $query->where('day', '=', $day);
+            })
+            ->where('currency_id', '=', $currency_id)
+            ->where('branch_id', '=', $branch_id)
+            ->first();
+    
+        return [
+            'total_price'     => $todays_bought->total_price ?? 0,
+            'discount'        => $todays_bought->discount ?? 0,
+            'payable'         => $todays_bought->payable ?? 0,
+            'cur_pay'         => $todays_bought->cur_pay ?? 0,
+            'remained'        => $todays_bought->remained ?? 0,
+            'trans_spend'     => $todays_bought->trans_spend ?? 0,
+        ];
+    }
+    
+
+
+    function getCashIncomeOutcome($year, $month, $day, $currency_id,$branch_id)
+    {
+        $company_account_type_id = 1;
+    
+        // Cache Recieved =  total_incomes = p1t1
+        // Cache Paid     =  total_outcome = p1t2
+        $result = DB::table('journals')
+            ->selectRaw("
+                SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
+                SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
+                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes
+            ")
+            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
+            ->where('accounts.account_type_id', '=', $company_account_type_id)
+            ->where('journals.year', '=', $year)
+            ->when($month != 100, function ($query) use ($month) {
+                return $query->where('journals.month', '=', $month);
+            })
+            ->when($day != 100, function ($query) use ($day) {
+                return $query->where('journals.day', '=', $day);
+            })
+            ->where('journals.currency_id', '=', $currency_id)
+            ->where('journals.branch_id', '=', $branch_id)
+            ->where('journals.is_cleared', '=', 0)
+            ->first();
+    
+        return [
+            'total_expense' => $result->total_expense ?? 0,
+            'total_outcomes' => $result->total_outcomes ?? 0,
+            'total_incomes' => $result->total_incomes ?? 0,
+            'total_income' => $result->total_income ?? 0,
+        ];
+    }
+    
+
 
     // --------------------- SECOND TAB ---------------------------
-    function getGeneralData4SecondTab($year, $currency_id)
+    function getSecondTabReport($year, $currency_id, $branch_id)
     {
-        $banks = 1000; // تمام پول نقد به شمول خزانه ٬ صرافی و بانک ها
-        $income = 2000;
-        $expense = 3000;
-        $customers = 4000; // مشتریان و فروشندگان
-        $employees = 5000; // کارمندان
-        $khazana_account_id = 4;
+        $company_account_type_id = 1; // صرف خزانه شرکت
+        $banks_account_type_id = 6; //   صرافی و بانک ها
 
-        // Total loans
-        $total_loan = DB::table('journals')
+
+        // Total Goads in Warehouse
+        $total_warehouse_value = DB::table('warehouse_items')
+            ->where('year', $year)
+            ->where('currency_id', $currency_id)
+            ->where('branch_id', '=', $branch_id)
+            ->where('is_cleared', '=', 0)
+            ->selectRaw('SUM(available_amount * avg_up) as total_value, SUM(wastage_total) as total_wastage')
+            ->first();
+        
+        /**
+         * دریافت پول نقد شرکت = Cache Recieved = p1t1
+         * پرداخت پول نقد شرکت = Cache Paid = p1t2
+         * طلبات شرکت = Paid Loan = p2t2
+         * قرضه شرکت = Recieved Loan = p2t1
+         */
+        $result = DB::table('journals')
+            ->selectRaw("
+                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
+                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes,
+                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat,
+                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
+            ")
             ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 2)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $banks)
-            ->where('is_cleared', 0)
-            ->sum('amount');
+            ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id]) // ✅ Fixes issue
+            ->where('journals.year', '=', $year)
+            ->where('journals.currency_id', '=', $currency_id)
+            ->where('journals.branch_id', '=', $branch_id)
+            ->where('journals.is_cleared', '=', 0)
+            ->first();
 
-        // Total debts
-        $total_talab = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 2)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $banks)
-            ->where('is_cleared', 0)
-            ->sum('amount');
+        // مفاد فروشات سالانه
+        $sold_profits = SalesDetails::where('branch_id', $branch_id)->whereHas('warehouseSale', function ($query) use ($currency_id, $year) {
+            $query->where('currency_id', $currency_id)->where('year', $year)->where('is_cleared', '=', 0);
+        })->sum('profit');
 
-        // Total general purchases
-        $total_bought = DB::table('bought_items')
-            ->where('currency_id', $currency_id)
-            ->where('year', $year)
-            ->sum('payable');
-
-        // Total sales
-        $total_sales = DB::table('warehouse_sales')
-            ->where('currency_id', $currency_id)
-            ->where('year', $year)
-            ->sum('payable');
-
-        // Total cash income
-        $banks_income = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $banks)
-            ->sum('amount');
-
-        // Total cash expenses
-        $banks_outcome = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            // ->where('parent_code', $banks)
-            ->sum('amount');
-
-        // Sales profit
-        $profit = DB::table('warehouse_sales')
-            ->where('currency_id', $currency_id)
-            ->where('year', $year)
-            ->sum('total_price');
-
-        // Return results as an array
         return [
-            'total_loan' => $total_loan ?? 0,
-            'total_talab' => $total_talab ?? 0,
-            'total_bought' => $total_bought ?? 0,
-            'medicine_bought' => $medicine_bought ?? 0,
-            'total_sales' => $total_sales ?? 0,
-            'total_stock' => $total_stock ?? 0,
-            'banks_income' => $banks_income ?? 0,
-            'banks_outcome' => $banks_outcome ?? 0,
-            'profit' => $profit ?? 0,
+            'total_warehouse_value' => $total_warehouse_value->total_value ?? 0,
+            'total_warehouse_wastage' => $total_warehouse_value->total_wastage ?? 0,
+            'total_income' => $result->total_incomes ?? 0, 
+            'total_outcome' => $result->total_outcomes ?? 0, 
+            'total_talabat' => $result->total_talabat ?? 0,
+            'total_loan' => $result->total_loan ?? 0,
+            'sold_profits' => $sold_profits ?? 0,
         ];
     }
 
+
+
     // ----------------- THIRD TAB ----------------
-    function getCashInHandAmount($currency_id, $year, $month, $day)
+    function getCashInHandAmount($year, $month, $day, $branch_id)
     {
         // day 17 => search where days <= 16
         $last_day = $day - 1;
 
-        $banks = 1000;
-        $khazana_account_id = 4;
-
-        // Initialize conditions
-        $monthCondition = (intval($month) > 0 && intval($month) <= 12) ? "AND month = '$month'" : '';
-        $dayCondition = (intval($day) > 0 && intval($day) <= 31) ? "AND day <= '$last_day'" : '';
+        $khazana_account_type_id = 1;
 
         // Get currency details
         $currencies = DB::table('currencies')
             ->select('currencies.id as currencyId', 'currencies.name as currency_name', 'symbols', 'color')
             ->get();
 
-        // Get total paid
-        $total_payed = DB::table('journals')
+        // Get total paid and total received in a single query
+        $total_amounts = DB::table('journals')
             ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('journals.account_id', $khazana_account_id)
-            ->where('transaction_type', 2)
-            ->where('payment_type', 1)
-            ->where('journals.currency_id', $currency_id)
-            ->where('year', $year)
-            ->where('month', $month)
-            ->where('day', '<=', $day)
-            ->sum('amount');
-
-        // Get total received
-        $total_recieved = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('journals.account_id', $khazana_account_id)
-            ->where('transaction_type', 1)
-            ->where('payment_type', 1)
-            ->where('journals.currency_id', $currency_id)
-            ->where('year', $year)
-            ->where('month', $month)
-            ->where('day', '<=', $day)
-            ->sum('amount');
+            ->select(
+                'journals.currency_id',
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_paid'),
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_recieved')
+            )
+            ->where('accounts.account_type_id', $khazana_account_type_id)
+            ->where('accounts.branch_id', $branch_id)
+            ->where('is_cleared', '=', 0)
+            ->when($year != 100, function ($query) use ($year) {
+                return $query->where('journals.year', $year);
+            })
+            ->when($month != 100, function ($query) use ($month) {
+                return $query->where('journals.month', $month);
+            })
+            ->where('journals.day', '<=', $day)
+            ->groupBy('journals.currency_id')
+            ->get();
 
         // Map and return results
-        $result = $currencies->map(function ($currency) use ($total_payed, $total_recieved) {
+        $result = $currencies->map(function ($currency) use ($total_amounts) {
+            // Find the corresponding total for the currency
+            $amount = $total_amounts->firstWhere('currency_id', $currency->currencyId);
+            
             return [
                 'currencyId' => $currency->currencyId,
                 'currency_name' => $currency->currency_name,
                 'symbol' => $currency->symbols,
                 'color' => $currency->color,
-                'total_payed' => $total_payed ?? 0,
-                'total_recieved' => $total_recieved ?? 0,
+                'total_paid' => $amount->total_paid ?? 0,
+                'total_recieved' => $amount->total_recieved ?? 0,
             ];
         });
 
         return $result->toArray();
     }
+
+
+    public function cleanAll()
+    {
+        // List of tables to truncate
+        $tables = [
+            'journals',
+            'bought_items',
+            'bought_item_details',
+            // 'bought_item_pre_lists',
+            'clearances',
+            'sales_details',
+            'warehouse_items',
+            'warehouse_sales',
+        ];
+
+        try {
+            // Start the transaction
+            DB::beginTransaction();
+
+            foreach ($tables as $table) {
+                // Check if the table exists before truncating
+                if (DB::getSchemaBuilder()->hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
+
+            // Commit the transaction
+            DB::commit();
+
+            session()->flash('notification', [
+                'type' => 'success',
+                'message' => 'موفقانه حذف گردید',
+            ]);
+
+            return redirect()->route('home');
+
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of error
+            DB::rollBack();
+
+            // Log the error
+            \Log::error('Error truncating tables: ' . $e->getMessage());
+
+            session()->flash('notification', [
+                'type' => 'danger',
+                'message' => 'حذف نگردید',
+            ]);
+            return redirect()->route('home');
+        }
+
+    }
+
+   
 
 }
