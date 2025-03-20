@@ -30,9 +30,30 @@ class LoginController extends Controller
         // Middleware can be added for authentication checks
     }
 
+    public function getAddress()
+    {
+        // $clientIp = md5(request()->ip()); // Get the client IP address
+        // $clientIp = md5(request()->getClientIp());
+        // $onlineIp = md5($_SERVER['SERVER_ADDR']);
+		// //  $ip =  $_SERVER['SERVER_ADDR'];
+        //  // 190.92.174.50
+        // // dd($onlineIp);
+        // $mine = "7f74f56ac5604e24b73153e4db48380a";
+        // if($onlineIp == $mine) 
+        // {
+        //     return true;
+        // } else {
+        //     return false;
+        // }
+        return true;
+    }
     public function login()
     {
-        return view('login.login');
+        $getAddress = $this->getAddress();
+        if($getAddress)
+        {
+           return view('login.login');
+        }
     }
 
      /**
