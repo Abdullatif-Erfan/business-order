@@ -74,7 +74,9 @@
                               <div id="currency" class="tab-pane fade">
                                     <br> 
                                     @if($permissions['settings'] || $isAdmin)
-									    @include('settings.currency.add')
+                                       @if($packageId >= 2)
+									     @include('settings.currency.add')
+                                       @endif
                                     @endif
                                     <br>  
                                     @include('settings.currency.list') 

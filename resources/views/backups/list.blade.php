@@ -66,6 +66,7 @@
                                         <th>#</th>
                                             <th>عنوان</th>
                                             <th>تاریخ</th>
+                                            <th>ایجاد توسط</th>
                                             <th>زمان</th>
                                             <th>ریستور</th>
                                             <th>دانلود</th>
@@ -108,6 +109,7 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'label', name: 'label' },
                 { data: 'dates', name: 'dates' },
+                { data: 'created_by', name: 'created_by' },
                 { data: 'times', name: 'times' },
                 { data: 'restore', name: 'restore', orderable: false, searchable: false }, 
                 { data: 'download', name: 'download', orderable: false, searchable: false }, 

@@ -98,7 +98,7 @@
  <div class="wrapper">
 
         <!-- Header -->
-        @include('component.header3')
+        @include('component.header')
         @include('component.sidebar')
 
 
