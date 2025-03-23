@@ -174,7 +174,7 @@
                                         </tr>
                                         <tr>
                                             <td>نوت </td>
-                                            <td colspan="5"><input type="text"  class="form-control" name="note" id="note" readonly
+                                            <td colspan="5"><input type="text"  class="form-control" name="note" id="note"
                                             value="{{  $warehouseSales->first()->note }}" ></td>
                                         </tr>
                                     </table>

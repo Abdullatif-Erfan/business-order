@@ -211,6 +211,9 @@ class SalaryController extends Controller
         $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
         $times = time();
     
+        $company_account_type_id   = Account::where('id', $request->from_account_id)->value('account_type_id');
+        $customer_account_type_id  = Account::where('id', $request->to_account_id)->value('account_type_id');
+
         // Start the transaction
         DB::beginTransaction();
     
@@ -233,6 +236,7 @@ class SalaryController extends Controller
             $journal1->dynamic_type = null ; // for khazan store null to not be shown in the salary list
             $journal1->account_id = $validated['from_account_id'];
             $journal1->amount = $validated['amount'];
+            $journal1->account_type_id = $company_account_type_id;
             $journal1->currency_id = $validated['currency_id'];
             $journal1->details = $validated['details'] ?? 'پرداخت معاش به کارمند';
             $journal1->transaction_type = 2; // 1: received, 2: paid
@@ -259,6 +263,7 @@ class SalaryController extends Controller
             $journal2->dynamic_type = 1 ; // for employee store 1 to be shown in the salary list
             $journal2->account_id = $validated['to_account_id'];
             $journal2->amount = $validated['amount'];
+            $journal2->account_type_id = $customer_account_type_id;
             $journal2->currency_id = $validated['currency_id'];
             $journal2->details = $validated['details'] ?? 'دریافت معاش';
             $journal2->transaction_type = 1; // 1: received, 2: paid

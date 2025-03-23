@@ -8,13 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use App\Models\Setting\Currency;
 use App\Models\Setting\Branch;
 use Morilog\Jalali\Jalalian;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
 use App\Models\Buy\BoughtItem;
+use App\Models\Setting\Currency;
 use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Transaction\Journal;
 use App\Models\Setting\Warehouse;
@@ -52,7 +52,7 @@ class BoughtDetailsController extends Controller
         // return response()->json(auth()->user());
         // return response()->json(auth()->user());
 
-        // $boughtItems = BoughtItem::with(['currency','customer'])->orderBy('id', 'DESC')->get();
+        // $boughtItems = BoughtItem::with(['currencyRelation','customerRelation'])->orderBy('id', 'DESC')->get();
         // return response()->json($boughtItems);
 
 
@@ -67,11 +67,11 @@ class BoughtDetailsController extends Controller
 
     public function getData(Request $request)
     {
-            $boughtItems = BoughtItem::with(['currency', 'customer'])->where('branch_id', $this->branch_id)->orderBy('id', 'DESC');
+            $boughtItems = BoughtItem::with(['currencyRelation', 'customerRelation'])->where('branch_id', $this->branch_id)->orderBy('id', 'DESC');
             
               // Apply filters if provided
               if ($request->customer_name) {
-                $boughtItems->whereHas('customer', function ($query) use ($request) {
+                $boughtItems->whereHas('customerRelation', function ($query) use ($request) {
                     $query->where('name', 'LIKE', "%{$request->customer_name}%");
                 });
             }
@@ -135,8 +135,8 @@ class BoughtDetailsController extends Controller
                 return (fmod($remained, 1) == 0) ? number_format($remained, 0) : number_format($remained, 2);
             })
 
-            ->addColumn('currency', function ($boughtItem) {
-                return $boughtItem->currency->name ? $boughtItem->currency->name : '';
+            ->addColumn('currencyRelation', function ($boughtItem) {
+                return $boughtItem->currencyRelation->name ? $boughtItem->currencyRelation->name : '';
             })
         
             ->addColumn('view', function ($boughtItem) {

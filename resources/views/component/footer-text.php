@@ -10,7 +10,7 @@
 			</ul>
 		</nav>
 		<div class="copyright ml-auto">
-        Developed by Kaawesh Garan Group
+        Developed by Kaaweshgaraan Group
 		</div>				
 	</div>
 </footer>

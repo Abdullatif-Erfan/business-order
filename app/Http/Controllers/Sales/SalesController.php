@@ -117,7 +117,7 @@ class SalesController extends Controller
             
         
             ->addColumn('view', function ($soldItem) {
-                return '<a href="sales/details/'.$soldItem->billno.'" class="hidden-print"><i class="fas fa-eye viewItems" 
+                return '<a href="/sales/details/'.$soldItem->billno.'" class="hidden-print"><i class="fas fa-eye viewItems" 
                 data-id="' . $soldItem->id . '" style="font-size:20px;"></i></a>';
             })
 
@@ -352,9 +352,7 @@ class SalesController extends Controller
             $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
             // \Log::info('Start inserting into warehouse sales', ['request' => $request->all()]);
     
-            $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
-
-
+           
             // Insert the new warehouse sale record
             $warehouseSales = WarehouseSales::create([
                 'billno' => $request->billno, 
@@ -368,7 +366,7 @@ class SalesController extends Controller
                 'cur_pay' => $request->cur_pay,
                 'remained' => $request->remained, 
                 'currency_id' => $request->currency_id,  
-                'note' => $note, 
+                'note' => $request->note, 
                 'short_date' => $request->todays_date,
                 'ifull_date' => $full_date,
                 'iby' => $insertedBy, 
@@ -627,12 +625,15 @@ class SalesController extends Controller
             ->where('account_id', $customer_account_id)
             ->where('branch_id', $this->branch_id)
             ->first();
+
+            // balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
     
         // Calculate the balance
-        $balance = ($journal->cache_recieved + $journal->loan_paid) - ($journal->cache_paid + $journal->loan_recieved);
-    
-        // Optionally, you can return the balance or add it to the response
-        return $balance;
+        $talabat = ($journal->cache_paid + $journal->loan_paid);
+        $loans = ($journal->cache_recieved + $journal->loan_recieved);
+
+        // return $balance;
+        return ['talabat' => $talabat , 'loans' => $loans];
     }
     
 
@@ -782,8 +783,7 @@ class SalesController extends Controller
             // Find the warehouse sale record
             $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->where('branch_id', $this->branch_id)->firstOrFail();
     
-            $note = "Total Payable: " . ($validated['payable'] ?? 0) . ", Paid: " . ($validated['cur_pay'] ?? 0) . ", Remained: " . ($validated['remained'] ?? 0);
-    
+           
             // Update warehouse sale details
             $warehouseSales->update([
                 'total_price'    => $validated['total_price'],
@@ -791,7 +791,7 @@ class SalesController extends Controller
                 'payable'        => $validated['payable'],
                 'cur_pay'        => $validated['cur_pay'],
                 'remained'       => $validated['remained'],
-                'note'           => $note,
+                'note'           => $validated['note'],
             ]);
     
             // Retrieve old journal records

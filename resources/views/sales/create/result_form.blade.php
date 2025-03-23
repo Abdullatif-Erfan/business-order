@@ -32,6 +32,6 @@
         </select> 
     </td>
     <td>کمنت</td>
-    <td colspan="3"> <input type="text" readonly placeholder="نتیجه محاسبات اتومات توسط سیستم ثبت میگردد" name="note" id="note" class="form-control"> </td>
+    <td colspan="3"> <input type="text"  placeholder="کمنت" name="note" id="note" class="form-control"> </td>
 </tr>
 </table>

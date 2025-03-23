@@ -235,14 +235,14 @@ function fetchList() {
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
-                { data: 'customer.name', name: 'customer.name' },
+                { data: 'customer_relation.name', name: 'customer_relation.name' },
                 { data: 'total_price', name: 'total_price' },
                 { data: 'trans_spend', name: 'trans_spend' },
                 { data: 'discount', name: 'discount' },
                 { data: 'payable', name: 'payable' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
-                { data: 'currency', name: 'currency' },
+                { data: 'currencyRelation', name: 'currencyRelation' },
                 { data: 'idate', name: 'idate' },
                 { data: 'view', name: 'view', orderable: false, searchable: false }
             ],

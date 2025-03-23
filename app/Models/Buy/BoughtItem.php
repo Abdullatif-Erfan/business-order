@@ -4,7 +4,7 @@ namespace App\Models\Buy;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Setting\Account;
-use App\Models\Setting\currency;
+use App\Models\Setting\Currency;
 
 
 class BoughtItem extends Model
@@ -18,12 +18,12 @@ class BoughtItem extends Model
         return $this->belongsTo(Account::class, 'account_id');
     }
 
-    public function customer()
+    public function customerRelation()
     {
         return $this->belongsTo(Account::class, 'customer_account_id','id');
     }
 
-    public function currency()
+    public function currencyRelation()
     {
         return $this->belongsTo(Currency::class, 'currency_id');
     }
