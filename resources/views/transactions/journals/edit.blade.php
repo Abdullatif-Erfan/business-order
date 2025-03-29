@@ -81,9 +81,9 @@
                                               <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" 
                                                     aria-hidden="true" name="options" required onchange="selectAccountsLabel(this.value)"> 
                                                     <option value="{{ $journals[0]->options }}">
-                                                        @if($journals[0]->options == 1) معاملات نقد به نقد
-                                                        @elseif($journals[0]->options == 2) معاملات نسیه به نسیه
-                                                        @elseif($journals[0]->options == 3) معاملات نقد به نسیه
+                                                        @if($journals[0]->options == 1) معاملات نقده
+                                                        @elseif($journals[0]->options == 2) معاملات نسیه 
+                                                        @elseif($journals[0]->options == 3) معاملات نقد
                                                         @elseif($journals[0]->options == 4) معاملات نسیه به نقد
                                                         @endif
                                                     </option>

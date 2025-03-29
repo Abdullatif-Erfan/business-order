@@ -69,6 +69,9 @@ class BalanceSheetController extends Controller
         $currency_symbol = $currency ? $currency->symbols : '';
         $currency_color = $currency ? $currency->color : '#000';
 
+        $total_talabat = 0;
+        $total_loans = 0;
+
           // Check if account_id and currency_id are provided
           if (!$request->has('account_type_id') && !$request->has('currency_id')) {
             return response()->json([
@@ -77,7 +80,7 @@ class BalanceSheetController extends Controller
         }
 
     
-        // Fetch account details for today only
+        // Fetch account details for khazana only
         if($account_type_id == 1)
         {
             $accounts = DB::table('accounts')
@@ -99,31 +102,42 @@ class BalanceSheetController extends Controller
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
                             AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as cache_paid"),
-
-                DB::raw("(SELECT SUM(j2.amount) 
-                            FROM journals AS j2 
-                            WHERE j2.transaction_type = 1 
-                            AND j2.payment_type = 2 
-                            AND j2.is_cleared = 0 
-                            AND (j2.account_type_id = 3 OR j2.account_type_id = 4)
-                            LIMIT 1) * (CASE WHEN accounts.id = (SELECT MIN(id) FROM accounts WHERE branch_id = $branch_id) THEN 1 ELSE NULL END) 
-                            as loan_paid"),
-        
-                    // Show loan_paid only for the first record
-                DB::raw("(SELECT SUM(j3.amount) 
-                        FROM journals AS j3 
-                        WHERE j3.transaction_type = 2 
-                        AND j3.payment_type = 2 
-                        AND j3.is_cleared = 0 
-                        AND (j3.account_type_id = 3 OR j3.account_type_id = 4)
-                        LIMIT 1
-                        ) * (CASE WHEN accounts.id = (SELECT MIN(id) FROM accounts WHERE branch_id = $branch_id) THEN 1 ELSE NULL END) 
-                        as  loan_recieved")
+                            THEN journals.amount ELSE 0 END) as cache_paid")
             ])
             ->groupBy('accounts.id', 'accounts.name');
+
+            $loanAndTalab = DB::table('journals')
+            ->where('journals.branch_id', $branch_id)
+            ->where('journals.currency_id', $currency_id)
+            ->whereIn('journals.account_type_id', [3, 4])
+            ->select([
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_paid")
+            ])
+            ->first(); // Get a single row instead of a collection
+
+            $total_loans = $loanAndTalab->cache_paid + $loanAndTalab->loan_paid;
+            $total_talabat = $loanAndTalab->cache_recieved + $loanAndTalab->loan_recieved;
         }
-        else
+        else 
         {
             $accounts = DB::table('accounts')
                 ->join('journals', function ($join) use ($currency_id, $branch_id) {
@@ -180,24 +194,67 @@ class BalanceSheetController extends Controller
             ->addColumn('name', function ($account) {
                 return $account->name ?: '';
             })
-            ->addColumn('cache_recieved', function ($account) {
-                return $account->cache_recieved ? number_format($account->cache_recieved) : null;
+            // آمد نقد
+            ->addColumn('cache_recieved', function ($account) use ($account_type_id) {
+                if($account_type_id == 1 || $account_type_id == 6)
+                {
+                    return $account->cache_recieved ? number_format($account->cache_recieved) : null;
+                }
+                else 
+                {
+                    return $account->cache_paid ? number_format($account->cache_paid) : null;
+                }
             })
-            ->addColumn('cache_paid', function ($account) {
-                return $account->cache_paid ? number_format($account->cache_paid) : null;
+            
+            // رفت نقد
+            ->addColumn('cache_paid', function ($account) use ($account_type_id) {
+                if($account_type_id == 1 || $account_type_id == 6)
+                {
+                    return $account->cache_paid ? number_format($account->cache_paid) : null;
+                }
+                else 
+                {
+                    return $account->cache_recieved ? number_format($account->cache_recieved) : null;
+                }
             })
-            ->addColumn('loan_recieved', function ($account) {
-                return $account->loan_recieved ? number_format($account->loan_recieved) : null;
-            })
-            ->addColumn('loan_paid', function ($account) {
-                return $account->loan_paid ? number_format($account->loan_paid) : null;
-            })
-            ->addColumn('balance', function ($account) use($account_type_id) {
-                
-                $balance = $account_type_id == 1 ||  $account_type_id == 6
-                    ? ($account->cache_recieved + $account->loan_paid) - ($account->cache_paid + $account->loan_recieved)
-                    : ($account->cache_paid + $account->loan_paid) - ($account->cache_recieved + $account->loan_recieved);
 
+            // قرض
+            ->addColumn('loan_recieved', function ($account) use ($account_type_id, $total_loans)  
+            {
+                if($account_type_id == 1)
+                {
+                    return $total_loans ? number_format($total_loans) : null;
+                }
+                else 
+                {
+                    return $account->loan_recieved ? number_format($account->loan_recieved) : null;
+                }
+            })
+
+            // طلب
+            ->addColumn('loan_paid', function ($account) use ($account_type_id, $total_talabat) 
+            {
+                if($account_type_id == 1 || $account_type_id == 6)
+                {
+                    // $loans = $account->cust_cache_recieved + $account->loan_recieved;
+                    return $total_talabat ? number_format($total_talabat) : null;
+                }
+                else 
+                {
+                    return $account->loan_paid ? number_format($account->loan_paid) : null;
+                }
+            })
+            ->addColumn('balance', function ($account) use ($account_type_id, $total_loans, $total_talabat) 
+            {
+                if($account_type_id == 1 || $account_type_id == 6)
+                {
+                    $balance = ($account->cache_recieved + $total_talabat) - ($account->cache_paid + $total_loans);
+                }
+                else 
+                {
+                  $balance =  ($account->cache_paid + $account->loan_paid) - ($account->cache_recieved + $account->loan_recieved);
+                }
+                
                 $account->computed_balance = $balance; // Store it in the object
                 return number_format($balance);
             })

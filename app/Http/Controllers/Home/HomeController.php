@@ -382,8 +382,10 @@ class HomeController extends Controller
 
         $Loans = DB::table('journals')
         ->selectRaw("
-            SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat ,
-            SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
+            SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as cache_recieved,
+            SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as cache_paid,
+            SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as talabat,
+            SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as loans
         ")
         ->whereIn('journals.account_type_id', [3, 4]) 
         ->where('journals.year', '=', $year)
@@ -402,7 +404,10 @@ class HomeController extends Controller
             'total_warehouse_wastage' => $total_warehouse_value->total_wastage ?? 0,
             'total_income' => $Cache->total_incomes ?? 0, 
             'total_outcome' => $Cache->total_outcomes ?? 0, 
-            'total_talabat' => $Loans->total_talabat ?? 0,
+            'cache_recieved' => $Loans->cache_recieved ?? 0,
+            'cache_paid' => $Loans->cache_paid ?? 0,
+            'talabat' => $Loans->talabat ?? 0,
+            'loans' => $Loans->loans ?? 0,
             'total_loan' => $Loans->total_loan ?? 0,
             'sold_profits' => $sold_profits ?? 0,
         ];

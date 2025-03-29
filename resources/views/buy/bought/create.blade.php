@@ -381,6 +381,15 @@ function submiteBuyingForm()
                 // ✅ Optionally, remove validation error messages
                 // $('.error-message').text('');
                 // $('#validationErrors').hide();
+
+
+                // Remove all dynamic rows except the first one
+                $('.dynamic-row:not(:first)').remove();
+                
+                // Optional: Reset the first row's inputs if needed
+                $('.dynamic-row:first').find('input').val('');
+                $('.dynamic-row:first').find('select').val('').trigger('change');
+
             }
 
         },

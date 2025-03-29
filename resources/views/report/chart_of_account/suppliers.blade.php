@@ -26,37 +26,34 @@
         </tr>
         @foreach($supplier_accounts as $index => $row)
         @php
-
-            // قرضه
-            $total_loan_recieved += $row->loan_recieved;
-
-            // طلبات
-            $total_loan_paid += $row->loan_paid;
-
-            // ---------------------------------- BALANCE CALCULATION ---------------------
-          
-
                 // Ensure values are always numeric (avoid null issues)
-                $loan_recieved = $row->loan_recieved ?? 0;
                 $loan_paid = $row->loan_paid ?? 0;
-                $loan_balance = $loan_paid - $loan_recieved;
+                $cache_paid = $row->cache_paid ?? 0;
 
-                // Ensure $row->loan_balance is defined, otherwise use $loan_balance
-                $row_loan_balance = $row->loan_balance ?? $loan_balance;
+                $loan_recieved = $row->loan_recieved ?? 0; 
+                $cache_recieved = $row->cache_recieved ?? 0; 
+
+                $loan_balance = $loan_recieved + $cache_recieved; // بیلانس قرضه
+                $talab_balance = $loan_paid + $cache_paid; // بیلانس طلبات
+
+                // مجموع بیلانس قرضه
+                $total_loan_recieved += $loan_balance;
+
+                // مجموع بیلانس طلبات
+                $total_loan_paid += $talab_balance;
 
                 // بیلانس عمومی 
-                $general_balance = $row_loan_balance - $cache_balance;
+                $general_balance =  $talab_balance - $loan_balance;
 
                 // مجموع بیلانس عمومی
                 $general_total_balance += $general_balance;
-            // ---------------------------------- / BALANCE CALCULATION ---------------------
 
         @endphp
         <tr >
                 <td class="priceStyle">{{ $loop->iteration }}</td>
                 <td class="priceStyle">{{ $row->name }}</td>
-                <td class="priceStyle">{{ number_format($row->loan_recieved) }}</td>  <!--  قرضه -->
-                <td class="priceStyle">{{ number_format($row->loan_paid) }}</td>      <!--  طلبات -->
+                <td class="priceStyle">{{ number_format($loan_balance) }}</td>  <!--  قرضه -->
+                <td class="priceStyle">{{ number_format($talab_balance) }}</td>      <!--  طلبات -->
                 <td class="priceStyle">{{ number_format($general_balance) }}</td>
                 <td class="priceStyle"> {{ $general_balance == 0 ? 'تصفیه' : ($general_balance < 0 ? 'باقی' : 'طلب') }} </td>
             </tr>
@@ -64,9 +61,9 @@
         <tfoot>
             <tr style="background-color:#edf7ff">
                 <td class="priceStyle" colspan="2">مجموع</td>
-                <td class="priceStyle" style="color:green">{{ number_format($total_loan_recieved) }}</td>   <!--  قرضه -->
-                <td class="priceStyle" style="color:red">{{ number_format($total_loan_paid) }}</td>       <!--  طلبات -->
-                <td class="priceStyle" style="color:blue">{{ number_format($general_total_balance) }}</td>
+                <td class="priceStyle" style="color:green;font-weight:bolder;">{{ number_format($total_loan_recieved) }}</td>   <!--  قرضه -->
+                <td class="priceStyle" style="color:red;font-weight:bolder;">{{ number_format($total_loan_paid) }}</td>       <!--  طلبات -->
+                <td class="priceStyle" style="color:blue;font-weight:bolder;">{{ number_format($general_total_balance) }}</td>
                 <td class="priceStyle"></td>
             </tr>
         </tfoot>

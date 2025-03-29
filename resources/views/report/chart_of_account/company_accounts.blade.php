@@ -25,6 +25,8 @@
         $total_loan_balance = 0;
         $general_balance = 0;
         $general_total_balance = 0;
+        $total_talabat = 0;
+        $total_loans = 0;
     @endphp
     <table class="table table-bordered"  style="width:100%">
         <tr style="background-color:#edf7ff">
@@ -47,24 +49,24 @@
             $total_cache_paid += $row->cache_paid;
 
             // قرضه
-            $total_loan_recieved += $row->loan_recieved;
+            $total_loans = $talabat_and_loans->cache_paid + $talabat_and_loans->loan_paid;
 
             // طلبات
-            $total_loan_paid += $row->loan_paid;
+            $total_talabat = $talabat_and_loans->cache_recieved + $talabat_and_loans->loan_recieved;
 
             // بیلانس نقد
             $cache_balance = $row->cache_recieved - $row->cache_paid;
-            $total_cache_balance += $cache_balance;
+            $total_cache_balance += $cache_balance; // مجموع بیلانس نقد
 
             // بیلانس طلب و قرض
-            $loan_balance = $row->loan_paid - $row->loan_recieved;
-            $total_loan_balance += $loan_balance;
+            $loan_balance = $total_talabat - $total_loans;
+            $total_loan_balance = $loan_balance; 
 
             // بیلانس عمومی
-            $general_balance = $cache_balance + $row->loan_paid - $row->loan_recieved;
+            $general_balance = $cache_balance + $total_talabat - $total_loans;
 
             // مجموع بیلانس عمومی
-            $general_total_balance += $general_balance;
+            $general_total_balance = $total_cache_balance + $total_loan_balance;
          @endphp
             <tr >
                 <td class="priceStyle">{{ $loop->iteration }}</td>
@@ -72,10 +74,11 @@
                 <td class="priceStyle">{{ number_format($row->cache_recieved) }}</td>  <!-- آورد نقد -->
                 <td class="priceStyle">{{ number_format($row->cache_paid) }}</td>      <!-- برد نقد -->
                 <td class="priceStyle"> {{ number_format($cache_balance)  }} </td>
-                <td class="bg-dark">{{ number_format($row->loan_paid) }}</td>       <!--  طلبات -->
-                <td class="bg-dark">{{ number_format($row->loan_recieved) }}</td>   <!--  قرضه -->
-                <td class="bg-dark">{{ number_format($loan_balance) }}</td>
-                <td class="priceStyle">{{ number_format($general_balance) }}</td>
+
+                <td class="bg-dark"></td>       <!--  طلبات -->
+                <td class="bg-dark"></td>       <!--  قرضه -->
+                <td class="bg-dark"></td>
+                <td class="priceStyle"></td>
             </tr>
             @endforeach
         <tfoot>
@@ -84,9 +87,10 @@
                 <td class="priceStyle">{{ number_format($total_cache_recieved) }}</td>  <!-- آورد نقد -->
                 <td class="priceStyle">{{ number_format($total_cache_paid) }}</td>      <!-- برد نقد -->
                 <td class="priceStyle" >{{ number_format($total_cache_balance) }}</td>
-                <td class="bg-dark" style="color:green">{{ number_format($total_loan_paid) }}</td>        <!--  طلبات -->
-                <td class="bg-dark" style="color:red">{{ number_format($total_loan_recieved) }}</td>    <!--  قرضه -->
-                <td class="bg-dark" style="color:blue">{{ number_format($total_loan_balance) }}</td>
+
+                <td class="bg-dark" style="color:green;font-weight:bolder;">{{ number_format($total_talabat) }}</td>  <!--  طلبات -->
+                <td class="bg-dark" style="color:red;font-weight:bolder;">{{ number_format($total_loans) }}</td>       <!--  قرضه -->
+                <td class="bg-dark" style="color:blue;font-weight:bolder;">{{ number_format($total_loan_balance) }}</td>
                 <td class="priceStyle">{{ number_format($general_total_balance) }}</td>
             </tr>
         </tfoot>

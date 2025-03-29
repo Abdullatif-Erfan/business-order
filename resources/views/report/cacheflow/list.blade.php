@@ -261,40 +261,75 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
                 { data: 'full_name', name: 'full_name'}
             ],
            
-            drawCallback: function(settings) {
+            drawCallback: function(settings) 
+            {
                 var api = this.api();
+
+                 // Function to sum columns and return raw numbers
+                 function sumColumn(index) {
+                    return api
+                        .column(index, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            // Make sure to parse floats and handle commas correctly
+                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
+                            var sum = numA + numB;
+                            return sum;
+                        }, 0);
+                }
+
+                // Calculate the sum for the 6th column (index 6)
+                let sum4 = sumColumn(4).toLocaleString();
+                let sum5 = sumColumn(5).toLocaleString();
+
+
+                
                 
                 // Ensure values are defined, otherwise default to '0'
                 var sumCacheRecieved = settings.json.sumCacheRecieved || '0';
                 var sumCachePaid = settings.json.sumCachePaid || '0';
                 var sumLoanRecieved = settings.json.sumLoanRecieved || '0';
                 var sumLoanPaid = settings.json.sumLoanPaid || '0';
-                var isCompanyAccount = settings.json.isCompanyAccount;
 
-                // Convert values to numbers safely
-                let cacheRecieved = Number(sumCacheRecieved.replace(/,/g, ''));
-                let cachePaid = Number(sumCachePaid.replace(/,/g, ''));
-                let loanRecieved = Number(sumLoanRecieved.replace(/,/g, ''));
-                let loanPaid = Number(sumLoanPaid.replace(/,/g, ''));
+                /**
+                 * اگر خزانه انتخاب شده باشد باید
+                 * ۱: طلبات مشتری در قرضه خزانه نشان داده شود
+                 * ۲: قرضه مشتریان در طلبات خزانه نشان داده شود
+                 * ۳: بیلانس طلب و قرض و دریافت نقد و پرداخت نقد محاسبه گردد
+                 */
 
-                // Calculate the final result based on account type
-                let finalResult = isCompanyAccount 
-                    ? (cacheRecieved + loanPaid) - (cachePaid + loanRecieved)
-                    : (cachePaid + loanPaid) - (cacheRecieved + loanRecieved);
+                var isKhazana = Boolean(settings.json.isKhazana) || false;
+                var isCompanyAccount = Boolean(settings.json.isCompanyAccount) || false;
 
-                // Format the final result properly
-                let finalResultFormatted = Number.isInteger(finalResult)
-                    ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                    : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                    let cacheRecieved =   Number(sumCacheRecieved.replace(/,/g, ''));
+                    let cachePaid = Number(sumCachePaid.replace(/,/g, ''));
+                    let loanRecieved =  isCompanyAccount && !isKhazana ? 0 : Number(sumLoanRecieved.replace(/,/g, ''));
+                    let loanPaid =  isCompanyAccount && !isKhazana ? 0 : Number(sumLoanPaid.replace(/,/g, ''));
+
+                    // Calculate the final result based on account type
+                    // let finalResult = isCompanyAccount 
+                    //     ? (cacheRecieved + loanPaid) - (cachePaid + loanRecieved)
+                    //     : (cachePaid + loanPaid) - (cacheRecieved + loanRecieved);
+
+                    let finalResult = (cacheRecieved + loanPaid) - (cachePaid + loanRecieved);
+
+                    // Format the final result properly
+                    let finalResultFormatted = Number.isInteger(finalResult)
+                        ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                        : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
 
                 // Determine badge type
                 let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
 
                 // Update footer with formatted values
-                $(api.column(4).footer()).html(sumCacheRecieved);
-                $(api.column(5).footer()).html(sumCachePaid);
-                $(api.column(6).footer()).html(sumLoanRecieved);
-                $(api.column(7).footer()).html(sumLoanPaid);
+                $(api.column(4).footer()).html(cacheRecieved.toLocaleString());
+                $(api.column(5).footer()).html(cachePaid.toLocaleString());
+
+                $(api.column(6).footer()).html(loanRecieved.toLocaleString());
+                $(api.column(7).footer()).html(loanPaid.toLocaleString());
                 $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
             }
         });

@@ -33,6 +33,7 @@ class ChartOfAccount extends Controller
         $participants_account_type_id = 5;
         $banks_account_type_id = 6;
 
+
         $branch_id = $this->branch_id ?? 0;
 
         $orgbios = OrgBio::all();
@@ -44,6 +45,10 @@ class ChartOfAccount extends Controller
         // حسابات مشتریان
         $customer_accounts = $this->getSellersAndCustomersReport($id, $customer_account_type_id, $branch_id, 0);
 
+        // دریافت طلبات و قرضه شرکت از حسابات مشتریان و فروشندگاه
+        $talabat_and_loans = $this->getTalabatAndLoansReport($id, $branch_id);
+
+        // return ['talabat_and_loans' => $talabat_and_loans];
         // return ['company_accounts' => $company_accounts,'currencies' => $currencies];
         // return ['company_accounts' => $company_accounts,'supplier_accounts' => $supplier_accounts];
 
@@ -53,6 +58,7 @@ class ChartOfAccount extends Controller
             'company_accounts' => $company_accounts,
             'supplier_accounts' => $supplier_accounts,
             'customer_accounts' => $customer_accounts,
+            'talabat_and_loans' => $talabat_and_loans,
             'orgbios' => $orgbios,
         ]);
 
@@ -113,7 +119,7 @@ class ChartOfAccount extends Controller
         // ->get();
     
         $CacheReport = DB::table('accounts')
-        ->join('journals', function ($join) use ($currency_id, $branch_id) { 
+        ->leftJoin('journals', function ($join) use ($currency_id, $branch_id) { 
             $join->on('accounts.id', '=', 'journals.account_id')
                 ->where('journals.currency_id', $currency_id)
                 ->where('journals.branch_id', $branch_id);
@@ -133,27 +139,6 @@ class ChartOfAccount extends Controller
                         AND journals.payment_type = 1 
                         AND journals.is_cleared = 0 
                         THEN journals.amount ELSE 0 END) as cache_paid"),
-            
-            // Show loan_received only for the first record
-            DB::raw("(SELECT SUM(j2.amount) 
-                    FROM journals AS j2 
-                    WHERE j2.transaction_type = 1 
-                    AND j2.payment_type = 2 
-                    AND j2.is_cleared = 0 
-                    AND (j2.account_type_id = 3 OR j2.account_type_id = 4)
-                    LIMIT 1) * (CASE WHEN accounts.id = (SELECT MIN(id) FROM accounts WHERE branch_id = $branch_id) THEN 1 ELSE NULL END) 
-                    as loan_paid"),
-
-            // Show loan_paid only for the first record
-            DB::raw("(SELECT SUM(j3.amount) 
-                    FROM journals AS j3 
-                    WHERE j3.transaction_type = 2 
-                    AND j3.payment_type = 2 
-                    AND j3.is_cleared = 0 
-                    AND (j3.account_type_id = 3 OR j3.account_type_id = 4)
-                    LIMIT 1
-                    ) * (CASE WHEN accounts.id = (SELECT MIN(id) FROM accounts WHERE branch_id = $branch_id) THEN 1 ELSE NULL END) 
-                    as  loan_recieved")
         ])
         ->groupBy('accounts.id', 'accounts.name')
         ->get();
@@ -182,6 +167,16 @@ class ChartOfAccount extends Controller
                 'accounts.name',
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
                             AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
@@ -195,6 +190,41 @@ class ChartOfAccount extends Controller
             ->get();
     
         return $accounts;
+    }
+
+    public function getTalabatAndLoansReport($currencyId = null, $branch_id)
+    {
+        $currency_id = $currencyId ?? 1;
+        
+        $loanAndTalab = DB::table('journals')
+            ->where('journals.branch_id', $branch_id)
+            ->where('journals.currency_id', $currency_id)
+            ->whereIn('journals.account_type_id', [3, 4])
+            ->select([
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_paid")
+            ])
+            ->first(); // Get a single row instead of a collection
+
+        return $loanAndTalab;
     }
     
     

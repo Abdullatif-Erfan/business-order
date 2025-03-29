@@ -169,7 +169,7 @@ class JournalController extends Controller
             ->setRowClass(function ($journal) {
                 return $journal->status == 9 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
             })
-
+            
             ->make(true);
     }
 
@@ -337,12 +337,15 @@ class JournalController extends Controller
          /**
          * ================================== Journal Roles ========================
          * status:           1: old journal,  2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
-         * transaction_type: 1:recieved       2:paid
+         * 
+         * transaction_type: 1: recieved      2:paid = 
          * payment_type:     1: cache,        2: loan
          * options:          1: cache2cache,  2:loan2loan, 3:cache2loan, 4:loan2cache
          * 
-         * Recieved Loan = قرض گرفتن
-         * Paid Loan = طلب
+         * Recieved Loan = قرض گرفتن = t1p2
+         * Paid Loan = طلب = t2p2
+         * Cache Recieved = دریافت نقد = t1p1
+         * Cache Paid = پرداخت نقد = t2p1
          * 
          */
             

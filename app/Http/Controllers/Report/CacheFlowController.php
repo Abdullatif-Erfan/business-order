@@ -53,7 +53,7 @@ class CacheFlowController extends Controller
         $sums = DB::table('journals')
         ->select(
             DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 
-                    AND currency_id='.$currency_id.' AND account_id='.$account_id.' THEN amount ELSE 0 END) as sumCacheRecieved'),
+            AND currency_id='.$currency_id.' AND account_id='.$account_id.' THEN amount ELSE 0 END) as sumCacheRecieved'),
             DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1
             AND currency_id='.$currency_id.' AND account_id='.$account_id.' THEN amount ELSE 0 END) as sumCachePaid'),
             DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 2
@@ -75,6 +75,11 @@ class CacheFlowController extends Controller
          */
     
          $branch_id = $this->branch_id ?? 0 ;
+         $total_talabat = 0;
+        $total_loans = 0;
+        $currency_id = $request->currency_id ?? 0;
+        $account_id = $request->account_id ?? 0;
+
         // Check if account_id and currency_id are provided
         if (!$request->has('account_id') || !$request->has('currency_id')) {
             return response()->json([
@@ -96,9 +101,23 @@ class CacheFlowController extends Controller
             ->where('branch_id', $this->branch_id) 
             ->orderBy('id', 'DESC');
 
-         // check if searched_account_id is belongs to company accounts
-         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)
-         ->where('branch_id', $this->branch_id)->exists();
+        // check if searched_account_id is belongs to company accounts
+        //  $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)
+        //  ->where('branch_id', $this->branch_id)->exists();
+        
+        // $isKhazana = Account::where('account_type_id',1)
+        //  ->where('id', $request->account_id)
+        //  ->where('is_pre_select',1)
+        //  ->where('branch_id', $this->branch_id)
+        //  ->exists();
+
+        $companyAccount = Account::where('id', $request->account_id)
+            ->where('branch_id', $this->branch_id)
+            ->select('account_type_id', 'is_pre_select')
+            ->first();
+
+        $isCompanyAccount = $companyAccount && in_array($companyAccount->account_type_id, [1, 6]);
+        $isKhazana = $companyAccount && $companyAccount->account_type_id == 1 && $companyAccount->is_pre_select == 1;
         
     
         // Apply optional filters
@@ -118,7 +137,7 @@ class CacheFlowController extends Controller
     
         if($isCompanyAccount)
         {
-            $sums = DB::table('journals')
+            $sumsKhazana = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
             ->where('branch_id', $this->branch_id)
@@ -126,38 +145,53 @@ class CacheFlowController extends Controller
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
-
-                // Sum of loan paid
-                DB::raw("(SELECT SUM(j2.amount) 
-                        FROM journals AS j2 
-                        WHERE j2.transaction_type = 1 
-                        AND j2.payment_type = 2 
-                        AND j2.is_cleared = 0 
-                        AND (j2.account_type_id = 3 OR j2.account_type_id = 4)) 
-                        as sumLoanPaid"),
-
-                // Sum of loan received
-                DB::raw("(SELECT SUM(j3.amount) 
-                        FROM journals AS j3 
-                        WHERE j3.transaction_type = 2 
-                        AND j3.payment_type = 2 
-                        AND j3.is_cleared = 0 
-                        AND (j3.account_type_id = 3 OR j3.account_type_id = 4)) 
-                        as sumLoanRecieved")
             )
             ->first();
 
+            $loanAndTalab = DB::table('accounts')
+            ->join('journals', function ($join) use ($currency_id, $branch_id) {
+                $join->on('accounts.id', '=', 'journals.account_id')
+                    ->where('journals.currency_id', $currency_id)  
+                    ->where('journals.branch_id', $branch_id);  
+            })
+            ->whereIn('accounts.account_type_id', [3,4])
+            ->select([
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_paid")
+            ])
+            ->first(); // Get a single row instead of a collection
+
+            $total_loans = ($loanAndTalab) ? ($loanAndTalab->cache_paid + $loanAndTalab->loan_paid) : 0;
+            $total_talabat = ($loanAndTalab) ? ($loanAndTalab->cache_recieved + $loanAndTalab->loan_recieved) : 0;
         }
         else
         {
-            $sums = DB::table('journals')
+            $else_account = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
             ->where('branch_id', $this->branch_id)
             ->where('is_cleared', 0)
             ->select(
-                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
-                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
+                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
+                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanRecieved'),
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanPaid')
             )
@@ -169,11 +203,26 @@ class CacheFlowController extends Controller
             ->addColumn('accountRelation', function ($journal) {
                 return $journal->accountRelation ? $journal->accountRelation->name : '';
             })
-            ->addColumn('cacheRecieved', function ($journal) {
-                return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount) : null;
+            // ->addColumn('cacheRecieved', function ($journal) {
+            //     return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount) : null;
+            // })
+            // ->addColumn('cachePaid', function ($journal) {
+            //     return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount) : null;
+            // })
+            ->addColumn('cacheRecieved', function ($journal) use ($isCompanyAccount) {
+                if($isCompanyAccount) {
+                    return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount) : null; // آمد نقد حسابات شرکت
+                } else {
+                    return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount) : null; // رفت نقد حسابات دیگران                   
+                }
             })
-            ->addColumn('cachePaid', function ($journal) {
-                return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount) : null;
+            ->addColumn('cachePaid', function ($journal) use ($isCompanyAccount) {
+                
+                if($isCompanyAccount) {
+                    return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount) : null;
+                } else {
+                    return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount) : null;                    
+                }
             })
             ->addColumn('loanRecieved', function ($journal) {
                 return ($journal->transaction_type == 1 && $journal->payment_type == 2) ? number_format($journal->amount) : null;
@@ -189,11 +238,12 @@ class CacheFlowController extends Controller
             })
             ->rawColumns(['currency'])
             ->with([
-                'sumCacheRecieved' => number_format($sums->sumCacheRecieved ?? 0),
-                'sumCachePaid' => number_format($sums->sumCachePaid ?? 0),
-                'sumLoanRecieved' => number_format($sums->sumLoanRecieved ?? 0),
-                'sumLoanPaid' => number_format($sums->sumLoanPaid ?? 0),
-                'isCompanyAccount' => $isCompanyAccount ?? 0 
+                'sumCacheRecieved' => $isCompanyAccount ? number_format($sumsKhazana->sumCacheRecieved) : number_format($else_account->sumCacheRecieved ?? 0),
+                'sumCachePaid' => $isCompanyAccount ? number_format($sumsKhazana->sumCachePaid) : number_format($else_account->sumCachePaid ?? 0),
+                'sumLoanRecieved' => $isCompanyAccount ? number_format($loanAndTalab->cache_paid + $loanAndTalab->loan_paid) : number_format($else_account->sumLoanRecieved ?? 0),
+                'sumLoanPaid' => $isCompanyAccount ? number_format($total_talabat) : number_format($else_account->sumLoanPaid ?? 0),
+                'isKhazana' => $isKhazana ? true : false,
+                'isCompanyAccount' => $isCompanyAccount
             ])
             ->setRowClass(function ($journal) {
                 return $journal->status == 9 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
