@@ -742,7 +742,7 @@ class BoughtDetailsController extends Controller
    
             $boughtItems = BoughtItem::with(['account' => function($query) {
                 $query->select('id', 'name');
-            }, 'currency' => function ($query){
+            }, 'currencyRelation' => function ($query){
                 $query->select('id','name');
             }])->where('times', $times)->get();
 
@@ -794,7 +794,7 @@ class BoughtDetailsController extends Controller
 
             $boughtItems = BoughtItem::with(['account' => function($query) {
                 $query->select('id', 'name');
-            }, 'currency' => function ($query){
+            }, 'currencyRelation' => function ($query){
                 $query->select('id','name');
             }])->where('times', $times)->get();
 

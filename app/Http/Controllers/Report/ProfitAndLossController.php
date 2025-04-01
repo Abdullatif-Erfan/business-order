@@ -38,7 +38,7 @@ class ProfitAndLossController extends Controller
         $data = $this->getIncomeSection();
         $branch_id = $this->branch_id ?? 0;
         // $talabat = $this->getTalabat();
-        // $talabat = $this->getTalabat()->map(fn($item) => (array) $item)->toArray(); // Convert objects to arrays
+        $talabat = $this->getTalabat()->map(fn($item) => (array) $item)->toArray(); // Convert objects to arrays
         // return ['talabat' => $talabat];
 
         // $transactionSummary = $this->getTransactionSummary(); 
@@ -48,7 +48,7 @@ class ProfitAndLossController extends Controller
         $salesProfit = $this->getSalesProfit($branch_id)->map(fn($item) => (array) $item)->toArray();
         // return ['salesProfit' => $salesProfit];
 
-        return view('report.profitAndLoss.list', compact('transactionSummary','currencies','warehouseValue','salesProfit','orgbios'));
+        return view('report.profitAndLoss.list', compact('transactionSummary','currencies','warehouseValue','salesProfit','orgbios','talabat'));
     }
 
     private function getSalesProfit($branch_id)
@@ -199,11 +199,6 @@ class ProfitAndLossController extends Controller
     }
 
 
-    
-
-
-
-
     private function getTalabat()
     {
         /***
@@ -212,8 +207,6 @@ class ProfitAndLossController extends Controller
          * 3: check if greater multiply with to_currency_amount else multiply with reverse_amount
          * 4: combine converted_amount to the result
          */
-        $company_account_type_id = 1; // صرف خزانه شرکت
-        $banks_account_type_id = 6; // صرافی و بانک ها
 
         // Step 1: Get the Base Currency (AFN)
         $baseCurrency = DB::table('currencies')->where('is_base', 'yes')->first();
@@ -241,10 +234,13 @@ class ProfitAndLossController extends Controller
         $talabatData = DB::table('journals')
             ->selectRaw("
                 journals.currency_id,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat
+                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as cache_recieved,
+                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as cache_paid,
+                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as loan_paid,
+                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as loan_recieved
             ")
             ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id])
+            ->whereIn('accounts.account_type_id', [3,4])
             ->where('journals.is_cleared', 0)
             ->groupBy('journals.currency_id')
             ->get()
@@ -258,13 +254,18 @@ class ProfitAndLossController extends Controller
             $item->is_base = ($currency->is_base === 'yes') ? 1 : 0; // Convert 'yes' to 1, otherwise 0
             $item->color = $currency->color;
             $item->symbols = $currency->symbols;
-            $item->total_talabat = $talabatData[$currency->id]->total_talabat ?? 0; // If no transactions, show 0
+            $item->total_talabat = ($talabatData[$currency->id]->cache_recieved ?? 0) + 
+            ($talabatData[$currency->id]->loan_recieved ?? 0); // If no transactions, show 0
+
+            $item->total_loan = ($talabatData[$currency->id]->cache_paid ?? 0) + 
+            ($talabatData[$currency->id]->loan_paid ?? 0); // If no transactions, show 0
 
             // Step 6: Convert to Base Currency (Include Exchange Rate)
             if ($currency->id == $baseCurrency->id) {
                 // If it's the base currency, no conversion needed
                 $item->exchange_rate = 1; // No conversion needed
-                $item->converted_total = $item->total_talabat;
+                $item->converted_total_loan = $item->total_loan;
+                $item->converted_total_talab = $item->total_talabat;
                 $item->to_currency_amount = null; // No to_currency_amount for base
             } else {
                 // Find the rate from the database (handle both directions)
@@ -278,7 +279,8 @@ class ProfitAndLossController extends Controller
                 // If no rate found, skip conversion and set converted total to zero
                 if (!$rateFromBase && !$rateToBase) {
                     $item->exchange_rate = null;
-                    $item->converted_total = 0;
+                    $item->converted_total_loan = 0;
+                    $item->converted_total_talab = 0;
                     $item->to_currency_amount = null;
                     return $item;
                 }
@@ -296,18 +298,21 @@ class ProfitAndLossController extends Controller
                     if ($rateFromBase) {
                         // Use reverse_amount when the rate is from base to another currency
                         $item->exchange_rate = $rateFromBase->reverse_amount; // reverse_amount used for multiplication
-                        $item->converted_total = $item->total_talabat * $item->exchange_rate; // Multiply for greater
+                        $item->converted_total_loan = $item->total_loan * $item->exchange_rate; // Multiply for greater
+                        $item->converted_total_talab = $item->total_talabat * $item->exchange_rate; // Multiply for greater
                         $item->to_currency_amount = $rateFromBase->to_currency_amount; // Add to_currency_amount
                     } elseif ($rateToBase) {
                         // Use reverse_amount when the rate is from another currency to base
                         $item->exchange_rate = $rateToBase->reverse_amount; // reverse_amount used for multiplication
-                        $item->converted_total = $item->total_talabat / $item->exchange_rate; // Divide for smaller
+                        $item->converted_total_loan = $item->total_loan / $item->exchange_rate; // Divide for smaller
+                        $item->converted_total_talab = $item->total_talabat / $item->exchange_rate; // Divide for smaller
                         $item->to_currency_amount = $rateToBase->to_currency_amount; // Add to_currency_amount
                     }
                 } else {
                     // If total talabat is zero, no need for conversion
                     $item->exchange_rate = null;
-                    $item->converted_total = 0;
+                    $item->converted_total_loan = 0;
+                    $item->converted_total_talab = 0;
                     $item->to_currency_amount = null;
                 }
             }
@@ -318,7 +323,24 @@ class ProfitAndLossController extends Controller
         return $result;
     }
 
-        
+    private function talabatAndQarza($branch_id)
+    {
+        // $loanAndTalabat = DB::table('journals')
+        //     ->selectRaw("
+        //         journals.currency_id,
+        //         SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_cache_recieved,
+        //         SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_cache_paid,
+        //         SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan_paid,
+        //         SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan_recieved
+        //     ")
+        //     ->join('accounts', 'accounts.id', '=', 'journals.account_id')
+        //     ->whereIn('accounts.account_type_id', [3, 4])
+        //     ->where('journals.is_cleared', 0)
+        //     ->where('journals.branch_id', $branch_id)
+        //     ->groupBy('journals.currency_id')
+        //     ->get()
+        //     ->keyBy('currency_id'); // Now indexed by `currency_id`
+    }
         
     private function getTransactionSummary($branch_id)
     {

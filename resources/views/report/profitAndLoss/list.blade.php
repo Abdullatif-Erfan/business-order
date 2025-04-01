@@ -63,10 +63,8 @@
                                                     $currencies = $transactionSummary ?? [];
                                                     $currencyCount = count($currencies);
                                                     $baseCurrency = collect($currencies)->where('is_base', 1)->first();
-                                                    $totalConvertedTalabat = collect($currencies)->sum('converted_total_talabat');
                                                     $totalConvertedIncome = collect($currencies)->sum('converted_total_income');
                                                     $totalConvertedSoldIncome = collect($currencies)->sum('converted_total_sold');
-                                                    $totalConvertedLoan = collect($currencies)->sum('converted_total_loan');
                                                     $totalConvertedExpense = collect($currencies)->sum('converted_total_expense');
                                                     $totalConvertedSalary = collect($currencies)->sum('converted_total_salary');
                                                     $totalConverted‌‌Bought = collect($currencies)->sum('converted_total_bought');
@@ -75,22 +73,31 @@
                                                     $finalTotalCache = $totalConvertedCacheIn - $totalConvertedCacheOut;
                                                 @endphp
 
+
+                                                  @php
+                                                    $total_talabat = $talabat ?? [];
+                                                    $total_talabat_count = count($total_talabat);
+                                                    $talabatBaseCurrency = collect($total_talabat)->where('is_base', 1)->first();
+                                                    $totalConvertedTalabat = collect($total_talabat)->sum('converted_total_talab');
+                                                @endphp
+
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">طلبات</th>
-                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_talabat']) ?? 'N/A' }}</td>
+                                                        <th rowspan="{{ $total_talabat_count + 1 }}" style="width:90px !important;">طلبات</th>
+                                                        <td style="width:130px !important;color:{{$talabatBaseCurrency['color']}}">{{ $talabatBaseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$talabatBaseCurrency['color']}}">
+                                                        {{ number_format($talabatBaseCurrency['total_talabat']) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
-                                                    @foreach ($currencies as $currency)
-                                                        @if (!$currency['is_base']) 
+                                                    @foreach ($total_talabat as $talab)
+                                                        @if (!$talab['is_base']) 
                                                             <tr>
-                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
-                                                                <td style="color:{{$currency['color']}}">
+                                                                <td style="color:{{$talab['color']}}">{{ $talab['currency_name'] }} :</td>
+                                                                <td style="color:{{$talab['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_talabat'] ?? 0) }}
+                                                                {{ number_format($talab['total_talabat'] ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_talabat'] ?? 0) }}
+                                                                    {{ number_format($talab['converted_total_talab'] ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -98,7 +105,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedTalabat) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedTalabat) }} {{ $talabatBaseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -220,24 +227,28 @@
                                             </div>
                                             <div id="collapseExpense" class="panel-collapse collapse in" style="height: auto;">
                                                 <div class="panel-body" id="body">       
-
+                                                @php
+                                                    $total_loans_count = count($total_talabat);
+                                                    $loansBaseCurrency = collect($total_talabat)->where('is_base', 1)->first();
+                                                    $totalConvertedLoan = collect($total_talabat)->sum('converted_total_loan');
+                                                @endphp
                                                 <!-- قرضه -->
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
                                                         <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">قرضه </th>
-                                                        <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_loan']) ?? 'N/A' }}</td>
+                                                        <td style="width:130px !important;color:{{$loansBaseCurrency['color']}}">{{ $loansBaseCurrency['currency_name'] ?? 'N/A' }}:</td>
+                                                        <td style="color:{{$loansBaseCurrency['color']}}">{{ number_format($loansBaseCurrency['total_loan']) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
-                                                    @foreach ($currencies as $currency)
-                                                        @if (!$currency['is_base']) 
+                                                    @foreach ($talabat as $loans)
+                                                        @if (!$loans['is_base']) 
                                                             <tr>
-                                                                <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
-                                                                <td style="color:{{$currency['color']}}">
+                                                                <td style="color:{{$loans['color']}}">{{ $loans['currency_name'] }} :</td>
+                                                                <td style="color:{{$loans['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_loan'] ?? 0) }}
+                                                                {{ number_format($loans['total_loan'] ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_loan'] ?? 0) }}
+                                                                    {{ number_format($loans['converted_total_loan'] ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif

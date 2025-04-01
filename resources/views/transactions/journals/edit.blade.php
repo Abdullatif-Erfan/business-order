@@ -159,7 +159,7 @@
                                                     
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                         <div class="form-group form-floating-label">
-                                                            <select class="form-control select2" name="from_currency_id" required>
+                                                            <select class="form-control select2" name="from_currency_id"  id="from_currency_id"   required>
                                                             <option value="{{ $journals[0]->currency_id }}">{{ $journals[0]->currencyRelation->name }}</option>
                                                                 @foreach($currencies as $currency)
                                                                     <option value="{{ $currency->id }}">{{ $currency->name }}</option>
@@ -181,11 +181,14 @@
                                                           <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="مبلغ دریافت کننده" value="{{ $journals[1]->amount }}">
                                                            @error('to_amount')<span class="text-danger">{{ $message }}</span>@enderror
                                                         </div> 
+                                                        <div class="badge badge-info" id="rate"></div>
+                                                        <div id="exchange_error" class="error danger"></div>
                                                     </div>
                                                     
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                         <div class="form-group form-floating-label">
-                                                            <select class="form-control select2" name="to_currency_id" required>
+                                                            <select class="form-control select2" name="to_currency_id" required  
+                                                            id="to_currency_id"  onchange="currencyConverter()">
                                                             <option value="{{ $journals[1]->currency_id }}">{{ $journals[1]->currencyRelation->name }}</option>
                                                                 @foreach($currencies as $currency)
                                                                     <option value="{{ $currency->id }}">{{ $currency->name }}</option>
@@ -371,6 +374,74 @@
         from_amount = from_amount.replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas as thousands separator
         this.value = from_amount;
     });
+
+    function currencyConverter() 
+    {
+        let from_currency = parseFloat($('#from_currency_id').val()) || 0;
+        let to_currency = parseFloat($('#to_currency_id').val()) || 0;
+        let fromAmount = $('#from_amount').val().replace(/,/g, '') || "0";
+
+        if (from_currency !== to_currency) {
+            
+            let formData = {
+                from_currency: from_currency,
+                to_currency: to_currency,
+                fromAmount: fromAmount,
+                _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
+            };
+
+            $.ajax({
+                url: '/home/currencyConverter/',
+                type: 'POST',
+                data: formData,
+                dataType: 'json',  
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                success: function (result) 
+                {
+                    if (result.convertedAmount !== undefined && result.exchangeRate !== undefined) {
+                        // $('#to_amount').val(parseFloat(result.convertedAmount).toFixed(2));
+                        $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
+                        $('#rate').text(' نرخ ' + result.exchangeRate).toFixed(2);
+                    } else {
+                        alert('Conversion failed. Invalid response.');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: ", error);
+                    console.error("Response Text: ", xhr.responseText.error);
+                    console.error("Status: ", status);
+
+                    // alert("An error occurred: " + error + "\nDetails: " + xhr.responseText);
+                    try {
+                            let response = JSON.parse(xhr.responseText);
+                            if (response.error) {
+                                $('#exchange_error').text(response.error); // Show error message
+                                alert(response.error); // Optional: Show error as an alert
+                            } else {
+                                $('#exchange_error').text("An unknown error occurred.");
+                            }
+                        } 
+                        catch (e) 
+                        {
+                            $('#exchange_error').text("Failed to parse error response.");
+                            console.error("JSON Parse Error: ", e);
+                        }
+
+                }
+            });
+        }
+        else 
+        {
+            $('#to_amount').val(fromAmount);
+            $('#rate').text('');
+            $('#exchange_error').text('');
+        }
+    }
+
+
+    function number_format(num, decimals = 2) {
+       return num.toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,'); 
+    }
 </script>
 
 @endsection

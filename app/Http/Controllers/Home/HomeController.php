@@ -518,6 +518,62 @@ class HomeController extends Controller
 
     }
 
-   
+
+    public function currencyConverter(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'from_currency' => 'required|integer',
+            'to_currency'   => 'required|integer',
+            'fromAmount'    => 'required|numeric|min:0.01'
+        ]);
+
+        $fromCurrency = $request->input('from_currency');
+        $toCurrency   = $request->input('to_currency');
+        $fromAmount   = $request->input('fromAmount');
+
+        if($fromCurrency == $toCurrency)
+        {
+            return response()->json([
+                'convertedAmount' => number_format($fromAmount, 2),
+                'exchangeRate'    => 0,
+            ]);  
+        }
+
+        $rate = DB::table('rates')
+        ->whereIn('from_currency_id', [$fromCurrency,$toCurrency])
+        ->whereIn('to_currency_id', [$fromCurrency,$toCurrency])
+        ->first();
+
+        if (!$rate) {
+            return response()->json(['error' => 'لطفا نرخ روز را برای این دو کرنسی ثبت نمایید'], 400);
+        }
+
+        
+        /**
+         * from is payer and no need for conversion
+         * to is reciever which may recieve other currency
+         * 
+         * 1: check if to_currency is equal to greater_account_id, it is greater currency and should use division
+         * 2: else it is smaller currency and should use multiplication
+         *
+         */
+        if($rate->greater_account_id == $toCurrency)
+        {
+            $convertedAmount = $fromAmount / $rate->to_currency_amount;
+        }
+        else 
+        {
+            $convertedAmount = $fromAmount * $rate->to_currency_amount;
+        }
+
+        return response()->json([
+            'convertedAmount' => bcdiv($convertedAmount, '1', 2),
+            'exchangeRate'    => $rate->to_currency_amount,
+        ]);       
+    }
+
+    
+    
 
 }
