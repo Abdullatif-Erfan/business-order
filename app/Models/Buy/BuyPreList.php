@@ -8,7 +8,7 @@ use App\Models\Setting\Branch;
 class BuyPreList extends Model
 {
     protected $table = 'bought_item_pre_lists';
-    protected $fillable=['name','branch_id'];
+    protected $fillable=['code','name','branch_id','times','image_path','barcode_path'];
 
     //   this (journal) is belongsTo branch
     public function branchRelation()

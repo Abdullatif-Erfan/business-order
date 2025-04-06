@@ -295,6 +295,67 @@ function print_page_with_image() {
 }
 
 
+function print_page_with_image_grid() 
+{
+    var data = document.getElementById("print_area").innerHTML;
+
+    var printWindow = window.open("", "PrintWindow", "");
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+                body {
+                    direction: rtl;
+                    text-align: center;
+                    margin: 10mm;
+                    font-family: Tahoma, sans-serif;
+                }
+                .print-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: flex-start;
+                    gap: 10px;
+                }
+                .barcode-box {
+                    width: 130px;
+                    border: 1px solid #999;
+                    padding: 8px;
+                    margin-bottom: 10px;
+                    text-align: center;
+                    page-break-inside: avoid;
+                }
+                .barcode-box img {
+                    width: 100px;
+                    height: auto;
+                }
+                .barcode-box p {
+                    margin-top: 5px;
+                    font-size: 14px;
+                }
+                @media print {
+                    .page-break {
+                        page-break-after: always;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-grid">
+                ${Array.from(document.querySelectorAll('#print_area .barcode-box')).map(el => el.outerHTML).join('')}
+            </div>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
 
 // table tr{page-break-before:always;}
 

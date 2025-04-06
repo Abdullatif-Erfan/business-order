@@ -23,7 +23,11 @@
                        
                         <div class="card-body">
 
-                        <h3 style="margin-bottom: 15px">لیست اجناس برای نمایش در ثبت </h3>
+                        <h3 style="margin-bottom: 15px">
+                         <a href="{{ route('buyprelist.print_barcode', ['page' => 1]) }}">
+                            <button class="btn btn-info btn-sm pull-left">چاپ بارکد</button>
+                          </a>
+                        لیست اجناس برای نمایش در ثبت </h3>
                     
                     <!-- insertion -->
                       <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
@@ -35,30 +39,23 @@
                             <div class="box-body">
                             <form  id="buyPreListForm">
                             @csrf
+                            <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}">
                             <div class="form-body">
                                 <div class="row">
                                 
+                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                        <div class="form-group">
+                                            <input class="form-control" id="name" name="name" type="text" required placeholder="نام جنس" >
+                                            <span id="nameError" class="text-danger"></span>
+                                        </div> 
+                                    </div>	
 
-                                       <div class="col-md-4 col-sm-4 col-xs-6">
-                                            <div class="form-group col-12">
-                                            <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="branch_id" name="branch_id"  > 
-                                                    @if ($branchs->count() > 1)
-                                                        <option value="">--- انتخاب شعبه ---</option>
-                                                    @endif
-                                                    @foreach ($branchs as $branch)
-                                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <span id="branchIdError" class="text-danger"></span>
-                                            </div>
+                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                        <div class="form-group col-12">
+                                            <input type="file" name="image" accept="jpg,png,jpeg" class="form-control">
+                                            <span id="imageError" class="text-danger"></span>
                                         </div>
-
-                                         <div class="col-md-4 col-sm-4 col-xs-6">
-                                           <div class="form-group">
-                                                <input class="form-control" id="name" name="name" type="text" required placeholder="نام جنس" >
-                                                <span id="nameError" class="text-danger"></span>
-                                            </div> 
-                                         </div>	
+                                    </div>
 
 
                                     <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
@@ -92,8 +89,11 @@
                                     <thead>
                                         <tr>
                                             <th>شماره</th>
+                                            <th> کد</th>
                                             <th> شعبه</th>
                                             <th>نام جنس</th>
+                                            <th> بارکد</th>
+                                            <th> عکس</th>
                                             <th>ویرایش</th>
                                             <th>حذف</th>
                                         </tr>
@@ -156,8 +156,11 @@ function fetchList() {
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data: 'code', name: 'code' },
                 { data: 'branch', name: 'branch' },
                 { data: 'name', name: 'name' },
+                { data: 'barcode', name: 'barcode', orderable: false, searchable: false }, 
+                { data: 'image', name: 'image', orderable: false, searchable: false }, 
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
             ]
@@ -196,32 +199,81 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
 }
 
 // ====================== add new record =====================
-function addNewRecord(id)
-{
-    // Serialize form data
-    var formData = $('#buyPreListForm').serialize();
+// function addNewRecord(id)
+// {
+//     // Serialize form data
+//     var formData = $('#buyPreListForm').serialize();
 
-    // Show loading state
+//     // Show loading state
+//     $('#loading').show();
+
+//     // Clear previous error messages
+//     $('#branchIdError').text('');
+//     $('#nameError').text('');
+
+//     // AJAX form submission
+//     $.ajax({
+//         url: '/buyprelist/store', // The actual route for saving data
+//         type: 'POST',
+//         data: formData,
+//         success: (response) => {
+//             $('#loading').hide();
+
+//             if (response.status === 'success') {
+//                 fetchList(); 
+//                 if(id == 2){
+//                     $('#add_form_collapse').collapse('hide');
+//                 }
+//                 $('#name').val('');
+//                 showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+//             } else {
+//                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+//             }
+//         },
+//         error: (xhr) => {
+//             $('#loading').hide();
+//             // Handle validation errors
+//             if (xhr.status === 422) { // Laravel validation error status code
+//                 var errors = xhr.responseJSON.errors;
+//                 if (errors?.branch_id) {
+//                     $('#branchIdError').text(errors.branch_id[0]);
+//                 }
+//                 if (errors?.name) {
+//                     $('#nameError').text(errors.name[0]);
+//                 }
+//             } else {
+//                 // General error handling
+//                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+//             }
+//         }
+//     });
+   
+// }
+
+function addNewRecord(id) {
+    var form = $('#buyPreListForm')[0];
+    var formData = new FormData(form);
+
     $('#loading').show();
-
-    // Clear previous error messages
-    $('#branchIdError').text('');
     $('#nameError').text('');
+    $('#imageError').text('');
 
-    // AJAX form submission
     $.ajax({
-        url: '/buyprelist/store', // The actual route for saving data
+        url: '/buyprelist/store',
         type: 'POST',
         data: formData,
+        processData: false, // Required for FormData
+        contentType: false, // Required for FormData
         success: (response) => {
             $('#loading').hide();
 
             if (response.status === 'success') {
                 fetchList(); 
-                if(id == 2){
+                if (id === 2) {
                     $('#add_form_collapse').collapse('hide');
                 }
                 $('#name').val('');
+                $('input[name="image"]').val(''); // clear file input
                 showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
             } else {
                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
@@ -229,24 +281,20 @@ function addNewRecord(id)
         },
         error: (xhr) => {
             $('#loading').hide();
-            // Handle validation errors
-            if (xhr.status === 422) { // Laravel validation error status code
+            if (xhr.status === 422) {
                 var errors = xhr.responseJSON.errors;
-                if (errors?.branch_id) {
-                    $('#branchIdError').text(errors.branch_id[0]);
-                }
                 if (errors?.name) {
                     $('#nameError').text(errors.name[0]);
                 }
+                if (errors?.image) {
+                    $('#imageError').text(errors.image[0]);
+                }
             } else {
-                // General error handling
                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
             }
         }
     });
-   
 }
-
 
 // =============================== edit the record ======================
 $('table').on('click', '.editIcon', function () {
@@ -272,21 +320,27 @@ $('table').on('click', '.editIcon', function () {
 
 
 $('#updateSubmitBtn').on('click', function () {
-    // Serialize form data
-    var formData = $('#updatePreListForm').serialize();
-    
+
+     // Create FormData object
+     var formData = new FormData($('#updatePreListForm')[0]);
+     // Include CSRF token manually
+     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
     // Show loading state
     $('#loading2').show();
 
     // Clear previous error messages
     $('#branchIdError2').text('');
     $('#nameError2').text('');
+    $('#imageError2').text('');
 
     // AJAX form submission
     $.ajax({
         url: '/buyprelist/update', // The actual route for updating data
-        type: 'PATCH',
-        data: formData,
+        type: 'POST', // Laravel supports PATCH, but some servers require POST + _method
+        data: formData ,
+        contentType: false,  // Important for file upload
+        processData: false,  // Prevent jQuery from processing the data
         success: (response) => {
             $('#loading2').hide();
             if (response.status === 'success') {
@@ -307,13 +361,15 @@ $('#updateSubmitBtn').on('click', function () {
                 if (errors?.name) {
                     $('#nameError2').text(errors.name[0]);
                 }
+                if (errors?.image) {
+                    $('#imageError2').text(errors.image[0]);
+                }
             } else {
                 showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
             }
         }
     });
 });
-
 
 // Delete 
 $('table').on('click', '.deleteIcon', function () {
