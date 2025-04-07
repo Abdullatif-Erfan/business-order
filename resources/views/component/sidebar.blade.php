@@ -211,9 +211,14 @@
                         </a>
                         <div class="collapse" id="selling">
                             <ul class="nav nav-collapse">
-                                <li>
+                                 <li>
                                     <a href="{{ route('sales.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> فروشات جدید</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sales.pos_create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  فروشات POS </span>
                                     </a>
                                 </li>
                                 <li>

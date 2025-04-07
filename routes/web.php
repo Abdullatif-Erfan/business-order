@@ -99,6 +99,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/',[SalesController::class,'index'])->name('sales.index')->middleware('access:sales,list');
         Route::get('/data',[SalesController::class,'getData'])->name('sales.data');
         Route::get('/create',[SalesController::class,'create'])->name('sales.create')->middleware('access:sales,create_records');
+        Route::get('/pos_create',[SalesController::class,'pos_create'])->name('sales.pos_create')->middleware('access:sales,create_records');
         Route::post('/store',[SalesController::class,'store'])->name('sales.store');
         Route::get('/details/{billno}',[SalesController::class,'details'])->name('sales.details');
         Route::get('/edit/{billno}',[SalesController::class,'edit'])->name('sales.edit')->middleware('access:sales,edit_records');
