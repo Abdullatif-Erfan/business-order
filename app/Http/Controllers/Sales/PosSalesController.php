@@ -24,7 +24,7 @@ use App\Models\Setting\Account;
 use Yajra\DataTables\Facades\DataTables;
 
 
-class SalesController extends Controller
+class PosSalesController extends Controller
 {
     protected $branch_id, $isAdmin;
     public function __construct()
@@ -50,87 +50,10 @@ class SalesController extends Controller
         return view('sales.list',compact('currencies','todaysDate','orgbios','branchs'));
     }
 
-    public function getData(Request $request)
-    {
-            $soldItems = DB::table('warehouse_sales')
-            ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
-            ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
-            ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
-            ->where('warehouse_sales.branch_id', $this->branch_id)
-            ->orderBy('warehouse_sales.id','DESC');
-            
-
-            // Apply filters if provided
-              if ($request->customer_name) {
-                 $soldItems->where('accounts.name', 'LIKE', "%{$request->customer_name}%");
-            }
-            
-            if ($request->currency_id) {
-                $soldItems->where('currency_id', $request->currency_id);
-            }
-            
-            if ($request->start_date && $request->end_date) {
-                $soldItems->whereBetween('short_date', [$request->start_date, $request->end_date]);
-            } elseif ($request->start_date) {
-                $soldItems->whereDate('short_date', '=', $request->start_date);
-            } elseif ($request->end_date) {
-                $soldItems->whereDate('short_date', '<=', $request->end_date); // Until today
-            }
-            
-            if ($request->bill_number) {
-                $soldItems->where('billno', $request->bill_number);
-            }
-            
-            return DataTables::of($soldItems->get())
-            
-            ->addIndexColumn()
-           
-            ->addColumn('billno', function($soldItem) {
-                $checkIcon = $soldItem->is_cleared == 1 ? '<i class="fas fa-check-circle success"></i>' : '';
-                return $soldItem->billno ? $checkIcon.' '.'SALES_'.$soldItem->billno: 0;
-            })
-
-            ->addColumn('total_price', function ($soldItem) {
-                $total_price = $soldItem->total_price;
-                return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
-            })
-
-            ->addColumn('total_discount', function ($soldItem) {
-                $total_discount = $soldItem->total_discount;
-                return (fmod($total_discount, 1) == 0) ? number_format($total_discount, 0) : number_format($total_discount, 2);
-            })
-
-            ->addColumn('payable', function ($soldItem) {
-                $payable = $soldItem->payable;
-                return (fmod($payable, 1) == 0) ? number_format($payable, 0) : number_format($payable, 2);
-            })
-
-            ->addColumn('cur_pay', function ($soldItem) {
-                $cur_pay = $soldItem->cur_pay;
-                return (fmod($cur_pay, 1) == 0) ? number_format($cur_pay, 0) : number_format($cur_pay, 2);
-            })
-
-            ->addColumn('remained', function ($soldItem) {
-                $remained = $soldItem->remained;
-                return (fmod($remained, 1) == 0) ? number_format($remained, 0) : number_format($remained, 2);
-            })
-            
-        
-            ->addColumn('view', function ($soldItem) {
-                return '<a href="/sales/details/'.$soldItem->billno.'" class="hidden-print"><i class="fas fa-eye viewItems" 
-                data-id="' . $soldItem->id . '" style="font-size:20px;"></i></a>';
-            })
-
-            ->rawColumns(['billno','view'])
-            ->make(true);
-
-    }
-
-
     /**
-     * Show the form for creating a new resource.
+     * POS Create form
      */
-    public function create()
+    public function pos_create()
     {
         $todaysDate = Jalalian::now()->format('Y-m-d');
         // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
@@ -139,7 +62,7 @@ class SalesController extends Controller
                         ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
                         ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
                         ->where('warehouse_items.available_amount', '>', 0)
-                        ->select('warehouse_items.id','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.branch_id','bought_item_pre_lists.id as pre_list_id')
+                        ->select('warehouse_items.id','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.branch_id','bought_item_pre_lists.id as pre_list_id','bought_item_pre_lists.code','image_path')
                         ->where('warehouse_items.branch_id', $this->branch_id)
                         ->get();
 
@@ -153,15 +76,18 @@ class SalesController extends Controller
         
 
         // return response()->json(['data' => $warehouseItems]);
-        return view('sales.create.form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
+        return view('sales.pos.pos_create_form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function pos_store(Request $request)
     {
         // return response()->json(['data' => $request->all()]);
+
+        // $items = $request->input('items'); // This will be an array of items
+        // return response()->json(['items' => $items]);
         
         // Validate the request and return errors if validation fails
         $validator = Validator::make($request->all(), $this->validationRules(), $this->validationMessages());
@@ -179,16 +105,18 @@ class SalesController extends Controller
         try 
         {
             
+            $times = time();
+            $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
             // create warehouse_sales
-            $warehouseSalesId = $this->createWarehouseSales($request);
+            $warehouseSalesId = $this->createWarehouseSales($request, $times);
             
             // create sales_details
-            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId);
+            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId,$times);
 
             // decrease from warehouse_items
             $checkWarehouseItems = $this->decreaseWarehouseItemFromSoldAmount($request);
 
-            $checkJournal =  $this->handleJournalEntry($request);
+            $checkJournal =  $this->handleJournalEntry($request, $times, $journal_code);
             if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
             {
                 DB::rollBack();
@@ -196,7 +124,7 @@ class SalesController extends Controller
                     'message' => 'ثبت نگردید',
                     'type' => 'danger',
                 ]);
-                return redirect()->route('sales.create');
+                return redirect()->route('sales.pos_create');
             }
 
             // Flash error message
@@ -205,64 +133,44 @@ class SalesController extends Controller
                 'message' => 'موفقانه ثبت گردید',
                 'type' => 'success',
             ]);
-             return redirect()->route('sales.create');
+             return redirect()->route('sales.pos_create');
  
  
          } catch (\Exception $e) {
              // Rollback the transaction if an error occurs
              DB::rollBack();
              // Optionally, log the error for debugging
-             \Log::error('Error storing SalesController', ['error' => $e]);
+             \Log::error('Error storing PosSalesController', ['error' => $e]);
 
             // Flash error message
             Session::flash('notification', [
                 'message' => 'ثبت نگردید',
                 'type' => 'danger',
             ]);
-             return redirect()->route('sales.create');
+             return redirect()->route('sales.pos_create');
          }   
     }
 
     /**
      * Validation rules
      */
+
     private function validationRules()
     {
         return [
             'customer_account_id' => 'required|integer|exists:accounts,id',
-            'times'        => 'required',
-            'todays_date' => 'required|date_format:Y-m-d',
             'billno' => 'required|integer',
-            'factor' => 'nullable|string',
-            'warehouse_id'  => 'required',
-            'warehouseItemId' => 'required|array',
-            'warehouseItemId.*' => 'required|integer|exists:warehouse_items,id',
-            'amount' => 'required|array',
-            'amount.*' => 'required|numeric|min:1',
-            'unit_id' => 'required|array',
-            'unit_id.*' => 'required|integer|exists:units,id',
-            'unit_name' => 'required|array',
-            'unit_name.*' => 'required|string|max:255',
-            'avg_up' => 'required|array',
-            'avg_up.*' => 'nullable|numeric|min:0',
-            'sell_up' => 'required|array',
-            'sell_up.*' => 'nullable|numeric|min:0',
-            'discount' => 'required|array',
-            'discount.*' => 'nullable|numeric|min:0',
-            'profit' => 'required|array',
-            'profit.*' => 'nullable|numeric',
-            'total' => 'required|array',
-            'total.*' => 'nullable|numeric|min:0',
-            'total_price' => 'required|numeric|min:0',
-            'general_discount' => 'nullable|numeric|min:0',
-            'payable' => 'required|numeric|min:0',
+            'items.*.warehouse_id'  => 'required|integer',
+            'items.*.id' => 'required|integer|min:1',
+            'items.*.amount' => 'required|numeric|min:1',
+            'items.*.unit_id' => 'required|integer|min:1',
+            'total' => 'required|numeric|min:1',
+            'profit' => 'nullable|numeric|min:0',
+            'payable' => 'required|numeric|min:1',
             'cur_pay' => 'required|numeric|min:0',
-            'remained' => 'required|numeric|min:0',
-            'from_account_id' => 'required|integer|exists:accounts,id',
-            'currency_id' => 'required|integer|exists:currencies,id',
-            'note' => 'nullable|string|max:500',
         ];
     }
+
 
     /**
      * Custom validation messages
@@ -271,66 +179,14 @@ class SalesController extends Controller
     {
         return [
             'customer_account_id.required' => 'انتخاب حساب مشتری الزامی است.',
-            'customer_account_id.integer' => 'حساب مشتری باید یک عدد باشد.',
-            'customer_account_id.exists' => 'حساب مشتری انتخاب شده معتبر نیست.',
-            'todays_date.required' => 'وارد کردن تاریخ امروز الزامی است.',
-            'todays_date.date_format' => 'فرمت تاریخ صحیح نیست.',
             'billno.required' => 'شماره فاکتور الزامی است.',
-            'billno.integer' => 'شماره فاکتور باید عدد باشد.',
-            'factor.string' => 'فاکتور باید یک متن باشد.',
-            'warehouseItemId.required' => 'انتخاب حداقل یک کالا الزامی است.',
-            'warehouseItemId.array' => 'فرمت کالاها صحیح نیست.',
-            'warehouseItemId.*.integer' => 'شناسه کالا باید عدد باشد.',
-            'warehouseItemId.*.exists' => 'کالای انتخاب شده معتبر نیست.',
-            'amount.required' => 'وارد کردن مقدار الزامی است.',
-            'amount.array' => 'فرمت مقدار کالاها صحیح نیست.',
-            'amount.*.numeric' => 'مقدار کالا باید عدد باشد.',
-            'amount.*.min' => 'مقدار کالا نمی‌تواند کمتر از ۱ باشد.',
-            'unit_id.required' => 'انتخاب واحد کالا الزامی است.',
-            'unit_id.array' => 'فرمت واحدها صحیح نیست.',
-            'unit_id.*.integer' => 'شناسه واحد باید عدد باشد.',
-            'unit_id.*.exists' => 'واحد انتخاب شده معتبر نیست.',
-            'unit_name.required' => 'نام واحد کالا الزامی است.',
-            'unit_name.array' => 'فرمت نام واحدها صحیح نیست.',
-            'unit_name.*.string' => 'نام واحد باید متن باشد.',
-            'unit_name.*.max' => 'نام واحد نباید بیشتر از ۲۵۵ کاراکتر باشد.',
-            'avg_up.array' => 'فرمت قیمت میانگین صحیح نیست.',
-            'avg_up.*.numeric' => 'قیمت میانگین باید عدد باشد.',
-            'avg_up.*.min' => 'قیمت میانگین نمی‌تواند منفی باشد.',
-            'sell_up.array' => 'فرمت قیمت فروش صحیح نیست.',
-            'sell_up.*.numeric' => 'قیمت فروش باید عدد باشد.',
-            'sell_up.*.min' => 'قیمت فروش نمی‌تواند منفی باشد.',
-            'discount.array' => 'فرمت تخفیف‌ها صحیح نیست.',
-            'discount.*.numeric' => 'مقدار تخفیف باید عدد باشد.',
-            'discount.*.min' => 'مقدار تخفیف نمی‌تواند منفی باشد.',
-            'profit.array' => 'فرمت سود صحیح نیست.',
-            'profit.*.numeric' => 'سود باید عدد باشد.',
-            'total.required' => 'وارد کردن مجموع مبلغ الزامی است.',
-            'total.array' => 'فرمت مجموع مبلغ صحیح نیست.',
-            'total.*.numeric' => 'مجموع مبلغ باید عدد باشد.',
-            'total.*.min' => 'مجموع مبلغ نمی‌تواند منفی باشد.',
-            'total_price.required' => 'مبلغ کل الزامی است.',
-            'total_price.numeric' => 'مبلغ کل باید عدد باشد.',
-            'total_price.min' => 'مبلغ کل نمی‌تواند منفی باشد.',
-            'general_discount.numeric' => 'تخفیف کلی باید عدد باشد.',
-            'general_discount.min' => 'تخفیف کلی نمی‌تواند منفی باشد.',
+            'items.*.warehouse_id.required' => 'انتخاب گدام الزامی است.',
+            'items.*.id.required' => 'آیدی فروشات ضروری می‌باشد.',
+            'items.*.amount.required' => 'مقدار جنس الزامی است.',
+            'items.*.unit_id.required' => 'انتخاب واحد جنس الزامی است.',
+            'total.required' => 'مجموع فاکتور الزامی است.',
             'payable.required' => 'مبلغ قابل پرداخت الزامی است.',
-            'payable.numeric' => 'مبلغ قابل پرداخت باید عدد باشد.',
-            'payable.min' => 'مبلغ قابل پرداخت نمی‌تواند منفی باشد.',
-            'cur_pay.required' => 'مبلغ پرداختی فعلی الزامی است.',
-            'cur_pay.numeric' => 'مبلغ پرداختی باید عدد باشد.',
-            'cur_pay.min' => 'مبلغ پرداختی نمی‌تواند منفی باشد.',
-            'remained.required' => 'مبلغ باقی‌مانده الزامی است.',
-            'remained.numeric' => 'مبلغ باقی‌مانده باید عدد باشد.',
-            'remained.min' => 'مبلغ باقی‌مانده نمی‌تواند منفی باشد.',
-            'from_account_id.required' => 'انتخاب حساب مبدأ الزامی است.',
-            'from_account_id.integer' => 'شناسه حساب مبدأ باید عدد باشد.',
-            'from_account_id.exists' => 'حساب مبدأ انتخاب شده معتبر نیست.',
-            'currency_id.required' => 'انتخاب ارز الزامی است.',
-            'currency_id.integer' => 'شناسه ارز باید عدد باشد.',
-            'currency_id.exists' => 'ارز انتخاب شده معتبر نیست.',
-            'note.string' => 'توضیحات باید به صورت متن باشد.',
-            'note.max' => 'توضیحات نباید بیشتر از ۵۰۰ کاراکتر باشد.',
+            'cur_pay.required' => 'مبلغ پرداخت شده الزامی است.',
         ];
     }
 
@@ -338,43 +194,42 @@ class SalesController extends Controller
     /**
     *  Create Warehouse Sales
     */
-    private function createWarehouseSales($request)
+    private function createWarehouseSales($request,$times)
     {
         
         try {
             // Prepare date and other fields
-            $full_date = $request->todays_date . ' ' . now()->format('H:i:s A');
+            $full_date = Jalalian::now()->format('Y-m-d H:i:s A');
             $insertedBy = auth()->user()->full_name ?? '';
-            $short_date = $request->todays_date ?? Jalalian::now()->format('Y-m-d');
+            $short_date = Jalalian::now()->format('Y-m-d');
             [$year, $month, $day] = explode('-', $short_date);
     
-            // // Ensure branch_id is an array before accessing the first element
-            $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
+        
             // \Log::info('Start inserting into warehouse sales', ['request' => $request->all()]);
     
            
             // Insert the new warehouse sale record
             $warehouseSales = WarehouseSales::create([
                 'billno' => $request->billno, 
-                'factor' => $request->factor, 
+                'factor' => '', 
                 'account_id' => $request->from_account_id, 
-                'branch_id' => $this->branch_id ?? $branch_id, 
+                'branch_id' => $this->branch_id, 
                 'customer_account_id' => $request->customer_account_id, 
-                'total_price' => $request->total_price, 
-                'total_discount' => $request->total_discount, 
+                'total_price' => $request->total, 
+                'total_discount' => $request->discount, 
                 'payable' => $request->payable, 
                 'cur_pay' => $request->cur_pay,
-                'remained' => $request->remained, 
+                'remained' => $request->payable - $request->cur_pay, 
                 'currency_id' => $request->currency_id,  
-                'note' => $request->note, 
-                'short_date' => $request->todays_date,
+                'note' => 'POS Sales', 
+                'short_date' => $short_date,
                 'ifull_date' => $full_date,
                 'iby' => $insertedBy, 
                 'uby' => '',
                 'year' => $year, 
                 'month' => $month, 
                 'day' => $day,
-                'times' => $request->times,
+                'times' => $times,
                 'is_cleared' => 0,
             ]);
     
@@ -403,26 +258,28 @@ class SalesController extends Controller
     /**
      * Create Sales Details
      */
-    private function createSalesDetails($request, $warehouseSalesId)
+    private function createSalesDetails($request, $warehouseSalesId,$times)
     {
-        $todays_date = $request->todays_date ?? Jalalian::now()->format('Y-m-d');
+        $todays_date = Jalalian::now()->format('Y-m-d');
+        $items = $request->input('items');
 
-        foreach($request->warehouseItemId as $index => $itemId)
+        // foreach($items->id as $index => $itemId)
+        foreach ($items as $item)
         {
-             SalesDetails::create([
-                'billno' => $request->billno, 
-                'branch_id' => $this->branch_id ?? $request->branch_id[$index], 
-                'warehouse_id' => $request->warehouse_id[$index],
-                'warehouse_sales_id' => $warehouseSalesId, 
-                'pre_list_id' => $request->pre_list_id[$index], 
-                'unit_id' => $request->unit_id[$index], 
-                'amount' => $request->amount[$index], 
-                'avg_up' => $request->avg_up[$index], 
-                'sell_up' => $request->sell_up[$index], 
-                'discount' => $request->discount[$index],
-                'profit' => $request->profit[$index], 
-                'total' => $request->total[$index],  
-                'is_returned' => 0, 
+            SalesDetails::create([
+                'billno' => $request->billno,
+                'branch_id' => $this->branch_id,
+                'warehouse_id' => $item['warehouse_id'],
+                'warehouse_sales_id' => $warehouseSalesId,
+                'pre_list_id' => $item['pre_list_id'],
+                'unit_id' => $item['unit_id'],
+                'amount' => $item['amount'],
+                'avg_up' => $item['avg_up'],
+                'sell_up' => $item['sell_up'],
+                'discount' => 0,
+                'profit' => $item['profit'],
+                'total' => $item['total'],
+                'is_returned' => 0,
                 'todays_date' => $todays_date,
             ]);
         }
@@ -435,12 +292,13 @@ class SalesController extends Controller
      */
     private function decreaseWarehouseItemFromSoldAmount($request)
     {
-        foreach ($request->warehouseItemId as $index => $itemId) {
-            $warehouseItem = WarehouseItem::where('id', $itemId)->first(); 
+        $items = $request->input('items');
+        foreach ($items as $item) {
+            $warehouseItem = WarehouseItem::where('id', $item['id'])->first(); 
 
             if ($warehouseItem) {
-                $warehouseItem->out_amount += $request->amount[$index];
-                $warehouseItem->available_amount -= $request->amount[$index];
+                $warehouseItem->out_amount += $item['amount'];
+                $warehouseItem->available_amount -= $item['amount'];
                 $warehouseItem->save();
             } else {
                 return false;
@@ -453,13 +311,15 @@ class SalesController extends Controller
     /**
      * Create Journal
      */
-    private function handleJournalEntry($request)
+    private function handleJournalEntry($request,$times, $journal_code)
     {
-            $date = explode('-', $request->todays_date);
+            $todays_date = Jalalian::now()->format('Y-m-d');
+            $date = explode('-', $todays_date);
             $year = $date[0];
             $month = $date[1];
             $day  = $date[2];
-            $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
+            $full_date = Jalalian::now()->format('Y-m-d H:i:s A');
+            $remained = floatval($request->payable) - floatval($request->cur_pay);
              /**
              * ================================== insert in to journal ========================
              * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
@@ -474,50 +334,50 @@ class SalesController extends Controller
              * خزانه باید طلب ثبت گردد =  paid Loan 
              * مشتری باید قرضدار ثبت گردد = Recieved Loan 
              */
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
+            if(intval($request->cur_pay) === 0 && intval($remained) === intval($request->payable))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
                 $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
                 $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
                 $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
                 $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
-                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
-            else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
+            else if(intval($remained) > 0 && intval($request->cur_pay) > 0) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
                 $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
                 $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
                 $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $request->remained,  
-                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $remained,  
+                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
                
                 // ثبت طلب خزانه = Paid Loan = t2p2
                 $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
                 $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $request->remained,
-                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $remained,
+                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
              // تنها در حساب خزانه اضافه شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
+            else if(intval($remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
                 $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
-                $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
             }
         
             DB::commit();
@@ -527,7 +387,7 @@ class SalesController extends Controller
             // Rollback the transaction if an error occurs
             DB::rollBack();
             // Optionally, log the error for debugging
-            \Log::error('Error storing journal entry in SalesController', ['error' => $e->getMessage()]);
+            \Log::error('Error storing journal entry in PosSalesController', ['error' => $e->getMessage()]);
     
             // Use MessageService to return error message
             Session::flash('notification', [
@@ -538,14 +398,14 @@ class SalesController extends Controller
         }
     }
 
-    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
+    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code)
     {
         $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
         $account_type_id = Account::where('id', $account_id)->value('account_type_id');
 
         Journal::create([
             'bill_no' => $request->billno,
-            'code' =>  $request->code,
+            'code' =>  $journal_code,
             'account_type_id' => $account_type_id,
             'account_id' => $account_id,
             'branch_id' => $this->branch_id ?? $branch_id,
@@ -564,7 +424,7 @@ class SalesController extends Controller
             'inserted_full_date' => $full_date,
             'details' => $details,
             'status' => 8,  
-            'times' => $request->times,
+            'times' => $times,
             'is_single_record' => 1, 
         ]);
     }

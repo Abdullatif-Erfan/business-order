@@ -160,7 +160,6 @@ select.select2{text-align:right !important;direction:rtl !important;}
     justify-content: space-between;
     border-bottom: 1px solid #ddd;
     gap: 3px;
-    padding: 4px;
 }
 
 </style>
@@ -184,14 +183,10 @@ select.select2{text-align:right !important;direction:rtl !important;}
                             </h4>
                         </div>
 
-                        <form id="pos_form" action="{{ route('sales.pos_store') }}" method="POST">
+                        <form id="buyingForm" action="{{ route('sales.store') }}" method="POST">
                         @csrf
 
-                        <input type="hidden"  class="form-control" value="{{ $billno }}" name="billno" id="billno">
-                        <input type="hidden"  class="form-control" value="{{ $ownBanks->first()->id }}" name="from_account_id" >
-
-
-                        
+                        <input type="hidden" tabindex="2" class="form-control" value="{{ $billno }}" name="billno" id="billno">
 
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                             <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -230,13 +225,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                             <h5 class="item-title">{{ $item->item_name }}</h5>
                                                             <div class="badge-group">
                                                                 <span class="amount bordered-badge">{{ $item->available_amount }} {{ $item->unit_name }}</span>
-                                                                <span class="price">قیمت: {{ $item->sell_up }}</span>
-                                                                <input type="hidden" id="avg_up" value="{{ $item->avg_up }}">
-                                                                <input type="hidden" id="pre_list_id" value="{{ $item->pre_list_id }}">
-                                                                <input type="hidden" id="sell_up" value="{{ $item->sell_up }}">
-                                                                <!-- <input type="hidden" name="warehouse_item_id" value="{{ $item->id }}"> -->
-
-
+                                                                <span class="price">قیمت: {{ $item->avg_up }}</span>
                                                             </div>
                                                             <center><span class="badge badge-secondary w-100 m-t-10"> در {{ $item->warehouse_name }}</span></center>
                                                         </div>
@@ -261,42 +250,61 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                         </select>
                                       </div>    
                                     </div>
-
                                       <div class="row m-t-20">
+                                      <ol class="custom-number-list">
+                                        @foreach($warehouseItems as $index => $item)
+                                            <li>
+                                                <div class="col-md-12 col-sm-12 mb-2 px-2 border-bottom position-relative">
+                                                    <div class="warehouse-selected-card">
+                                                        <div class="selected-card-image col-sm-3 col-md-4 col-xs-12">
+                                                            <img src="{{ asset('storage/'. $item->image_path) }}" alt="{{ $item->item_name }}">
+                                                        </div>
+                                                        <div class="col-sm-9 col-md-8 col-xs-12">
+                                                            <h5 class="item-title">{{ $item->item_name }}
+                                                            <span class="pull-left"><i class="fa fa-trash danger"></i></span>
+                                                            </h5>
+                                                            
+                                                            <div class="badge-group">
+                                                               
+                                                                  <input type="number" name="" value="{{ $item->available_amount }}"
+                                                                  style="width:50px;">
+                                                                  <small class="text-info" style="font-size:10px">{{ $item->unit_name }}</small>
 
-                                     <!-- This is where the visual list appears -->
-                                    <ol class="custom-number-list" id="order-items-list"></ol>
-                                    
-                                    <!-- Hidden container for form data -->
-                                    <div id="order-items-data" style="display:none;"></div>
+                                                                <span class="price">مجموع: {{ $item->avg_up }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="circle-number">{{ $index + 1 }}</div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ol>
+
 
                                        <div class="total col-sm-12 col-xs-12">
                                            <div class="total-prices-group">
                                                 <div class="total">قیمت مجموعی:</div>
-                                                <input type="number" id="total-price" name="total" style="width:80px;" 
-                                                required readonly>
+                                                <div class="price">12313.44</div>
                                            </div>
                                            <div class="total-prices-group">
                                                 <div class="total">مفاد:</div>
-                                                <input type="number" id="total-profit" name="profit" style="width:80px;" 
-                                                required readonly >
+                                                <div class="price">12313.44</div>
                                            </div>
                                            <div class="total-prices-group">
                                                 <div class="total">تخفیف:</div>
-                                                <input type="number" id="discount" style="width:80px;" name="discount" value="0" 
-                                                required oninput="recalculateAfterDiscount(this.value)">
+                                                <div class="price">12313.44</div>
                                            </div>
                                            <div class="total-prices-group">
                                                 <div class="total">قابل پرداخت:</div>
-                                                <input type="number" id="payable" style="width:80px;" name="payable"  required>
+                                                <div class="price">12313.44</div>
                                            </div>
                                            <div class="total-prices-group">
                                                 <div class="total">دریافت فعلی:</div>
-                                                <input type="number" id="cur_pay" style="width:80px;" name="cur_pay"  required>
+                                                <div class="price">12313.44</div>
                                            </div>
                                            <div class="total-prices-group m-t-10">
                                                  <button class="btn btn-success btn-sm form-control">ثبت و پرنت</button>
-                                                 <button type="submit" class="btn btn-info btn-sm form-control">ثبت</button>
+                                                 <button class="btn btn-info btn-sm form-control">ثبت</button>
                                            </div>
                                        </div>
 
@@ -321,138 +329,11 @@ function searchByName()
 {
 
 }
+function addItem(item_id)
+{
+    
+}
 </script>
-
-<script>
-    const warehouseItems = @json($warehouseItems);
-    let orderItems = [];
-
-    function addItem(id) {
-        const item = warehouseItems.find(i => i.id === id);
-        if (!item) return;
-
-        const existing = orderItems.find(i => i.id === id);
-        if (existing) {
-            existing.qty += 1;
-        } else {
-            orderItems.push({
-                ...item,
-                qty: 1,
-                pre_list_id: item.pre_list_id,
-                sell_up: item.sell_up,
-                avg_up: item.avg_up
-            });
-        }
-        renderOrderItems();
-    }
-
-    function removeItem(id) {
-        orderItems = orderItems.filter(i => i.id !== id);
-        renderOrderItems();
-    }
-
-    function renderOrderItems() {
-        const list = document.getElementById('order-items-list');
-        const dataContainer = document.getElementById('order-items-data');
-        list.innerHTML = '';
-        dataContainer.innerHTML = '';
-        
-        let total = 0;
-        let profit = 0;
-
-        orderItems.forEach((item, index) => {
-            const itemTotal = item.sell_up * item.qty;
-            const itemCost = item.avg_up * item.qty;
-            const itemProfit = itemTotal - itemCost;
-            
-            total += itemTotal;
-            profit += itemProfit;
-
-            const itemInputs = `
-                <input type="hidden" name="items[${index}][id]" value="${item.id}">
-                <input type="hidden" name="items[${index}][pre_list_id]" value="${item.pre_list_id}">
-                <input type="hidden" name="items[${index}][amount]" value="${item.qty}">
-                <input type="hidden" name="items[${index}][sell_up]" value="${item.sell_up}">
-                <input type="hidden" name="items[${index}][avg_up]" value="${item.avg_up}">
-                <input type="hidden" name="items[${index}][profit]" value="${itemProfit.toFixed(2)}">
-                <input type="hidden" name="items[${index}][total]" value="${itemTotal.toFixed(2)}">
-                <input type="hidden" name="items[${index}][warehouse_id]" value="${item.warehouse_id}">
-                <input type="hidden" name="items[${index}][unit_id]" value="${item.unit_id}">
-            `;
-            dataContainer.insertAdjacentHTML('beforeend', itemInputs);
-
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <div class="col-md-12 col-sm-12 mb-2 px-2 border-bottom position-relative">
-                    <div class="warehouse-selected-card">
-                        <div class="selected-card-image col-sm-3 col-md-4 col-xs-12">
-                            <img src="/storage/${item.image_path}" alt="${item.item_name}">
-                        </div>
-                        <div class="col-sm-9 col-md-8 col-xs-12">
-                            <h5 class="item-title">${item.item_name}
-                                <span class="pull-left" onclick="removeItem(${item.id})" style="cursor:pointer;">
-                                    <i class="fa fa-trash text-danger"></i>
-                                </span>
-                            </h5>
-                            <div class="badge-group">
-                                <input type="number" value="${item.qty}" style="width:50px;" 
-                                       onchange="updateQty(${item.id}, this.value)" min="1">
-                                <small class="text-info" style="font-size:10px">${item.unit_name}</small>
-                                <span class="price">مجموع: ${itemTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="circle-number">${index + 1}</div>
-                </div>
-            `;
-            list.appendChild(li);
-        });
-
-        let discount = parseFloat($('#discount').val()) || 0;
-        let totalFixed = parseFloat(total.toFixed(2));
-        let payable = totalFixed - discount;
-
-        $('#total-price').val(totalFixed.toFixed(2));
-        $('#total-profit').val(profit.toFixed(2));
-        $('#payable').val(payable > 0 ? payable.toFixed(2) : '0.00');
-        $('#cur_pay').val(payable > 0 ? payable.toFixed(2) : '0.00');
-    }
-
-    function updateQty(id, newQty) {
-        const item = orderItems.find(i => i.id === id);
-        if (item) {
-            newQty = parseInt(newQty);
-            item.qty = newQty > 0 ? newQty : 1;
-            renderOrderItems();
-        }
-    }
-
-    function recalculateAfterDiscount() 
-    {
-        let total_price = parseFloat($('#total-price').val()) || 0;
-        let discount = parseFloat($('#discount').val());
-        if (isNaN(discount) || discount < 0) {
-            discount = 0;
-            $('#discount').val(0);
-        }
-
-        let payable = parseFloat($('#payable').val()) || 0;
-        let curPay = parseFloat($('#cur_pay').val()) || 0;
-
-        let newPayable = total_price - discount;
-        let newCurPay = total_price - discount;
-
-
-        if (newPayable < 0) {
-            newPayable = 0;
-        }
-
-        $('#payable').val(newPayable.toFixed(2));
-        $('#cur_pay').val(newCurPay.toFixed(2));
-   }
-
-</script>
-
 @endsection
 
 
