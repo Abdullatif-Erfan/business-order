@@ -91,9 +91,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/delete/{id}', [WarehouseListController::class, 'destroy'])->name('warehousesList.delete')->middleware('access:gudam,delete_records');
     });
 
-   
-
- 
 
     // backup
     Route::prefix('backups')->group(function(){

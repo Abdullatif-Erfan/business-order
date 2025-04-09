@@ -24,6 +24,9 @@
                         <div class="card-body">
 
                         <h3 style="margin-bottom: 15px">
+                         <a href="{{ route('buyprelist.print_barcode', ['page' => 1]) }}">
+                            <button class="btn btn-info btn-sm pull-left">چاپ بارکد</button>
+                          </a>
                         لیست اجناس برای نمایش در ثبت </h3>
                     
                     <!-- insertion -->
@@ -40,12 +43,19 @@
                             <div class="form-body">
                                 <div class="row">
                                 
-                                    <div class="col-md-8 col-sm-8 col-xs-6">
+                                    <div class="col-md-4 col-sm-4 col-xs-6">
                                         <div class="form-group">
                                             <input class="form-control" id="name" name="name" type="text" required placeholder="نام جنس" >
                                             <span id="nameError" class="text-danger"></span>
                                         </div> 
                                     </div>	
+
+                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                        <div class="form-group col-12">
+                                            <input type="file" name="image" accept="jpg,png,jpeg" class="form-control">
+                                            <span id="imageError" class="text-danger"></span>
+                                        </div>
+                                    </div>
 
 
                                     <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
@@ -79,8 +89,11 @@
                                     <thead>
                                         <tr>
                                             <th>شماره</th>
+                                            <th> کد</th>
                                             <th> شعبه</th>
                                             <th>نام جنس</th>
+                                            <th> بارکد</th>
+                                            <th> عکس</th>
                                             <th>ویرایش</th>
                                             <th>حذف</th>
                                         </tr>
@@ -139,12 +152,15 @@ function fetchList() {
             serverSide: true,
             processing: true,
             ajax: {
-                url: '{{ route("buyprelist.data") }}',
+                url: '{{ route("buyprelist.pos_data") }}',
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data: 'code', name: 'code' },
                 { data: 'branch', name: 'branch' },
                 { data: 'name', name: 'name' },
+                { data: 'barcode', name: 'barcode', orderable: false, searchable: false }, 
+                { data: 'image', name: 'image', orderable: false, searchable: false }, 
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
             ]
@@ -184,6 +200,7 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
 
 // ====================== add new record =====================
 
+
 function addNewRecord(id) {
     var form = $('#buyPreListForm')[0];
     var formData = new FormData(form);
@@ -193,7 +210,7 @@ function addNewRecord(id) {
     $('#imageError').text('');
 
     $.ajax({
-        url: '/buyprelist/store',
+        url: '/buyprelist/pos_store',
         type: 'POST',
         data: formData,
         processData: false, // Required for FormData

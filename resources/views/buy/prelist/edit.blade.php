@@ -12,19 +12,21 @@
                 </div> 
             </div>	
 
+            @if(session('package_type') == 4)
             <div class="col-md-6 col-sm-6 col-xs-6">
                 <div class="form-group col-12">
                     <input type="file" name="image" accept="jpg,png,jpeg" class="form-control">
                     <span id="imageError2" class="text-danger"></span>
                 </div>
             </div>
+            @endif
 
-        <div class="col-12">
-            <div id="loading2" style="display:none; text-align: center;">
-                <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+            <div class="col-12">
+                <div id="loading2" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                </div>
             </div>
-        </div>
 
-    </div>
+      </div>
     </div>  <!-- /form-body -->
 </form>

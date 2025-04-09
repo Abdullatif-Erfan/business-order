@@ -854,7 +854,7 @@ function printReceipt() {
                             <th class="text-right" width="40%"> جنس</th>
                             <th class="text-right" width="15%">تعداد</th>
                             <th class="text-right" width="25%">قیمت</th>
-                            <th class="text-right" width="20%">جمع</th>
+                            <th class="text-right" width="20%">مجموع</th>
                         </tr>
                     </thead>
                     <tbody>

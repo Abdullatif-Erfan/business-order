@@ -88,15 +88,15 @@ class WarehouseListController extends Controller
             ->addIndexColumn()
 
             ->addColumn('prelist', function ($WarehouseItem) {
-                return $WarehouseItem->preListRelation->name ? $WarehouseItem->preListRelation->name : '';
+                return optional($WarehouseItem->preListRelation)->name ?? '';
             })
 
             ->addColumn('currency', function ($WarehouseItem) {
-                return $WarehouseItem->currencyRelation->name ? $WarehouseItem->currencyRelation->name : '';
+                return optional($WarehouseItem->currencyRelation)->name ??  '';
             })
 
             ->addColumn('unit', function ($WarehouseItem) {
-                return $WarehouseItem->unitRelation->name ? $WarehouseItem->unitRelation->name : '';
+                return optional($WarehouseItem->unitRelation)->name ?? '';
             })
 
             ->addColumn('available_total', function ($WarehouseItem) {

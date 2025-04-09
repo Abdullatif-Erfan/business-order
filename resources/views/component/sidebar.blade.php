@@ -216,11 +216,14 @@
                                         <span class="sub-item"> فروشات جدید</span>
                                     </a>
                                 </li>
+                                <!-- businessplus + POS -->
+                                @if($packageId == 4)
                                 <li>
                                     <a href="{{ route('sales.pos_create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">  فروشات POS </span>
                                     </a>
                                 </li>
+                                @endif
                                 <li>
                                     <a href="{{ route('sales.index')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> لیست فروشات</span>

@@ -8,9 +8,11 @@ use App\Http\Controllers\Buy\BoughtDetailsController;
 Route::prefix('buyprelist')->group(function(){
     Route::get('/',[BuyPreListController::class, 'index'])->name('buyprelist.index')->middleware('access:buy,list');
     Route::get('/data',[BuyPreListController::class, 'getData'])->name('buyprelist.data');
+    Route::get('/pos_data',[BuyPreListController::class, 'getPosData'])->name('buyprelist.pos_data');
     Route::get('/print_barcode', [BuyPreListController::class, 'print_barcode'])->name('buyprelist.print_barcode');
     Route::get('/{id}',[BuyPreListController::class, 'show'])->name('buyprelist.show')->middleware('access:buy,create_records');
     Route::post('/store',[BuyPreListController::class, 'store'])->name('buyprelist.store')->middleware('access:buy,create_records');
+    Route::post('/pos_store',[BuyPreListController::class, 'pos_store'])->name('buyprelist.pos_store')->middleware('access:buy,create_records');
     Route::post('/update',[BuyPreListController::class, 'update'])->name('buyprelist.update')->middleware('access:buy,edit_records');
     Route::delete('/destroy/{id}',[BuyPreListController::class, 'destroy'])->name('buyprelist.destroy')->middleware('access:buy,delete_records');
 });

@@ -20,15 +20,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BuyPreListController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $branch_id, $isAdmin, $packageId;
     public function __construct()
     {
         if (auth()->check()) {
             $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->packageId = session('package_type') ? session('package_type') : 1;
         } else {
             $this->branch_id = 0;
             $this->isAdmin = false;
+            $this->packageId = 1;
         }
     }
     
@@ -43,14 +45,49 @@ class BuyPreListController extends Controller
         // return response()->json(['data' => $buyPreLists]);
 
         $branchs = Branch::where('id',$this->branch_id)->get();
-        return view('buy.prelist.list', compact('branchs'));
+        if($this->packageId == 4) 
+        {
+           return view('buy.prelist.pos_list', compact('branchs'));
+        }
+        else 
+        {
+            return view('buy.prelist.list', compact('branchs'));
+        }
     }
-
 
     /**
      * Show the journal data
      */
     public function getData(Request $request)
+    {
+        $buyPreLists = BuyPreList::with('branchRelation')
+        ->select('id','code', 'name','image_path','barcode_path','times', 'branch_id')
+        ->where('branch_id',$this->branch_id)
+        ->orderBy('id', 'DESC');
+    
+        return DataTables::of($buyPreLists)
+            
+            ->addIndexColumn()
+
+            ->addColumn('branch', function($buyPreList) {
+                return $buyPreList->branchRelation->name;
+            })
+            ->addColumn('edit', function($buyPreList) {
+                return '<i class="fas fa-pen-square editIcon" data-id="'.$buyPreList->id.'" style="font-size:20px;"></i>';
+            })
+            ->addColumn('delete', function($buyPreList) {
+                return '<i class="fas fa-trash-alt deleteIcon" data-id="'.$buyPreList->id.'" style="font-size:20px; color:red;"></i>';
+            })
+        
+            ->rawColumns(['edit','delete'])
+            ->make(true);
+    }
+    
+
+    /**
+     * Show PosData
+     */
+    public function getPosData(Request $request)
     {
         $buyPreLists = BuyPreList::with('branchRelation')
         ->select('id','code', 'name','image_path','barcode_path','times', 'branch_id')
@@ -88,7 +125,6 @@ class BuyPreListController extends Controller
             ->make(true);
     }
 
-
     /**
      * Show the form for creating a new resource.
      */
@@ -108,7 +144,7 @@ class BuyPreListController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function storeBkp(Request $request)
+    public function store(Request $request)
     {
         $messages = [
             'name.required' => 'نام ضروری میباشد',
@@ -119,35 +155,8 @@ class BuyPreListController extends Controller
             'branch_id.exists' => 'انتخاب شده نامعتبر است',
         ];
 
-        $code = time();
+        $times = time();
 
-        // ✅ Make sure barcodes folder exists
-        $barcodeDir = public_path('barcodes');
-        if (!File::exists($barcodeDir)) {
-            File::makeDirectory($barcodeDir, 0755, true);
-        }
-
-        // Generate barcode image
-        $barcode = new DNS1D();
-        $barcode->setStorPath($barcodeDir);
-        $barcodeImage = $barcode->getBarcodePNG($code, 'C128', 2, 100);
-
-        // Save the barcode image in public folder
-        // $imageName = $code . '.png';
-        // $imagePath = 'barcodes/' . $imageName;
-        // file_put_contents(public_path($imagePath), base64_decode($barcodeImage));
-
-
-        // Save barcode image to storage/app/public/barcodes
-        $barcodeFileName = $code . '.png';
-        $barcodeStoragePath = 'barcodes/' . $barcodeFileName;
-        Storage::disk('public')->put($barcodeStoragePath, base64_decode($barcodeImage));
-
-        $image_path = '';
-        if ($request->hasFile('image')) {
-            $image_path = $request->file('image')->store('item_images', 'public');
-            Log::info('Document uploaded', ['path' => $image_path]);
-        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
@@ -157,9 +166,9 @@ class BuyPreListController extends Controller
         BuyPreList::create([
             'name' => $validated['name'],
             'branch_id' => $validated['branch_id'],
-            'times' => $code,
-            'image_path' => $image_path,
-            'barcode_path' => $barcodeStoragePath
+            'times' => $times,
+            'image_path' => '',
+            'barcode_path' => ''
         ]);
 
         return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
@@ -235,7 +244,7 @@ class BuyPreListController extends Controller
         return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
     }
 
-    public function store(Request $request)
+    public function pos_store(Request $request)
     {
         // Log::info('Starting QR code generation process');
         
