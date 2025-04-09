@@ -50,33 +50,67 @@ class PosSalesController extends Controller
         return view('sales.list',compact('currencies','todaysDate','orgbios','branchs'));
     }
 
+    public function item_list(Request $request)
+    {
+        $query = DB::table('warehouse_items')
+        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+        ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
+        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+        ->where('warehouse_items.available_amount', '>', 0)
+        ->where('warehouse_items.branch_id', $this->branch_id)
+        ->select(
+            'warehouse_items.id',
+            'warehouse_items.unit_id',
+            'avg_up',
+            'sell_up', 
+            'warehouse_items.available_amount', 
+            'units.name as unit_name',
+            'warehouses.id as warehouse_id', 
+            'warehouses.name as warehouse_name', 
+            'bought_item_pre_lists.name as item_name',
+            'bought_item_pre_lists.branch_id',
+            'bought_item_pre_lists.id as pre_list_id',
+            'bought_item_pre_lists.code',
+            'image_path'
+        )
+        ->orderBy('warehouse_items.id','DESC')
+        ->limit(12);
+
+      
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            
+            $query->where(function($q) use ($searchTerm) {
+                if (ctype_digit($searchTerm)) {
+                    // For numeric input - exact match on code
+                    $q->where('bought_item_pre_lists.code', '=', $searchTerm);
+                } else {
+                    // For non-numeric input - partial match on name
+                    $q->where('bought_item_pre_lists.name', 'LIKE', "%{$searchTerm}%");
+                    
+                    // Optional: also allow exact code match if user types the full code
+                    $q->orWhere('bought_item_pre_lists.code', '=', $searchTerm);
+                }
+            });
+        }
+
+        $warehouseItems = $query->get();
+
+        return view('sales.pos.item_card',compact('warehouseItems'));
+    }
+
     /**
      * POS Create form
      */
     public function pos_create()
     {
-        $todaysDate = Jalalian::now()->format('Y-m-d');
-        // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
-        $warehouseItems = DB::table('warehouse_items')
-                        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
-                        ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
-                        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
-                        ->where('warehouse_items.available_amount', '>', 0)
-                        ->select('warehouse_items.id','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.branch_id','bought_item_pre_lists.id as pre_list_id','bought_item_pre_lists.code','image_path')
-                        ->where('warehouse_items.branch_id', $this->branch_id)
-                        ->get();
-
         $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::all();
-        $billno =  WarehouseSales::where('branch_id', $this->branch_id)->max('billno') + 1;
-        $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
-        $times = time();
-        
-
-        // return response()->json(['data' => $warehouseItems]);
-        return view('sales.pos.pos_create_form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
+        $orgbios = OrgBio::all();
+    
+        return view('sales.pos.pos_create_form',compact('customers','ownBanks','currencies','orgbios'));
     }
 
     /**
@@ -107,16 +141,18 @@ class PosSalesController extends Controller
             
             $times = time();
             $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
+            $billno =  WarehouseSales::where('branch_id', $this->branch_id)->max('billno') + 1;
+
             // create warehouse_sales
-            $warehouseSalesId = $this->createWarehouseSales($request, $times);
+            $warehouseSalesId = $this->createWarehouseSales($request, $times, $billno);
             
             // create sales_details
-            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId,$times);
+            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId, $billno);
 
             // decrease from warehouse_items
             $checkWarehouseItems = $this->decreaseWarehouseItemFromSoldAmount($request);
 
-            $checkJournal =  $this->handleJournalEntry($request, $times, $journal_code);
+            $checkJournal =  $this->handleJournalEntry($request, $times, $journal_code ,$billno);
             if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
             {
                 DB::rollBack();
@@ -124,7 +160,8 @@ class PosSalesController extends Controller
                     'message' => 'ثبت نگردید',
                     'type' => 'danger',
                 ]);
-                return redirect()->route('sales.pos_create');
+                // return redirect()->route('sales.pos_create');
+                return response()->json(['status' => 'failed', 'message' => ' ثبت نگردید']);
             }
 
             // Flash error message
@@ -133,7 +170,8 @@ class PosSalesController extends Controller
                 'message' => 'موفقانه ثبت گردید',
                 'type' => 'success',
             ]);
-             return redirect()->route('sales.pos_create');
+            //  return redirect()->route('sales.pos_create');
+            return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
  
  
          } catch (\Exception $e) {
@@ -147,8 +185,30 @@ class PosSalesController extends Controller
                 'message' => 'ثبت نگردید',
                 'type' => 'danger',
             ]);
-             return redirect()->route('sales.pos_create');
+            //  return redirect()->route('sales.pos_create');
+            return response()->json(['status' => 'failed', 'message' => ' ثبت نگردید']);
          }   
+    }
+
+     /**
+     * print pos format
+     */
+    public function pos_print(string $billno)
+    {
+        $orgbios = OrgBio::all();
+        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
+        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
+
+        $customer_account_id = $warehouseSales->first()->customer_account_id ?? 0;
+        $currency_id = $warehouseSales->first()->currency_id ?? 1;
+
+        // get previous balances
+        $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id);
+        
+        // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
+        // return ['customer_balance' => $customer_balance];
+        return view('sales.pos.print',compact('warehouseSales','salesDetails','orgbios','todaysDate','customer_balance'));
     }
 
     /**
@@ -159,7 +219,6 @@ class PosSalesController extends Controller
     {
         return [
             'customer_account_id' => 'required|integer|exists:accounts,id',
-            'billno' => 'required|integer',
             'items.*.warehouse_id'  => 'required|integer',
             'items.*.id' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric|min:1',
@@ -179,7 +238,6 @@ class PosSalesController extends Controller
     {
         return [
             'customer_account_id.required' => 'انتخاب حساب مشتری الزامی است.',
-            'billno.required' => 'شماره فاکتور الزامی است.',
             'items.*.warehouse_id.required' => 'انتخاب گدام الزامی است.',
             'items.*.id.required' => 'آیدی فروشات ضروری می‌باشد.',
             'items.*.amount.required' => 'مقدار جنس الزامی است.',
@@ -194,7 +252,7 @@ class PosSalesController extends Controller
     /**
     *  Create Warehouse Sales
     */
-    private function createWarehouseSales($request,$times)
+    private function createWarehouseSales($request,$times, $billno)
     {
         
         try {
@@ -210,7 +268,7 @@ class PosSalesController extends Controller
            
             // Insert the new warehouse sale record
             $warehouseSales = WarehouseSales::create([
-                'billno' => $request->billno, 
+                'billno' => $billno, 
                 'factor' => '', 
                 'account_id' => $request->from_account_id, 
                 'branch_id' => $this->branch_id, 
@@ -258,7 +316,7 @@ class PosSalesController extends Controller
     /**
      * Create Sales Details
      */
-    private function createSalesDetails($request, $warehouseSalesId,$times)
+    private function createSalesDetails($request, $warehouseSalesId, $billno)
     {
         $todays_date = Jalalian::now()->format('Y-m-d');
         $items = $request->input('items');
@@ -267,7 +325,7 @@ class PosSalesController extends Controller
         foreach ($items as $item)
         {
             SalesDetails::create([
-                'billno' => $request->billno,
+                'billno' => $billno,
                 'branch_id' => $this->branch_id,
                 'warehouse_id' => $item['warehouse_id'],
                 'warehouse_sales_id' => $warehouseSalesId,
@@ -311,7 +369,7 @@ class PosSalesController extends Controller
     /**
      * Create Journal
      */
-    private function handleJournalEntry($request,$times, $journal_code)
+    private function handleJournalEntry($request,$times, $journal_code, $billno)
     {
             $todays_date = Jalalian::now()->format('Y-m-d');
             $date = explode('-', $todays_date);
@@ -337,36 +395,36 @@ class PosSalesController extends Controller
             if(intval($request->cur_pay) === 0 && intval($remained) === intval($request->payable))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
-                $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
+                $details =  ' طلب فروشات - بل '.' SALES_'.$billno;
                 $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
-                $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
+                $details =  ' قرضه فروشات - بل '.' SALES_'.$billno;
                 $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
-                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
+                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
             else if(intval($remained) > 0 && intval($request->cur_pay) > 0) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
-                $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
+                $details =  'دریافت فروشات - بل  '.' SALES_'.$billno;
                 $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
-                $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
+                $details =  ' قرضه فروشات - بل '.' SALES_'.$billno;
                 $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $remained,  
-                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
+                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
                
                 // ثبت طلب خزانه = Paid Loan = t2p2
-                $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
+                $details =  ' طلب فروشات - بل '.' SALES_'.$billno;
                 $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $remained,
-                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
+                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
@@ -374,10 +432,10 @@ class PosSalesController extends Controller
             else if(intval($remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
-                $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
+                $details =  'دریافت فروشات - بل  '.' SALES_'.$billno;
                 $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
-                $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code);
+                $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
             }
         
             DB::commit();
@@ -398,13 +456,13 @@ class PosSalesController extends Controller
         }
     }
 
-    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code)
+    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno)
     {
         $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
         $account_type_id = Account::where('id', $account_id)->value('account_type_id');
 
         Journal::create([
-            'bill_no' => $request->billno,
+            'bill_no' => $billno,
             'code' =>  $journal_code,
             'account_type_id' => $account_type_id,
             'account_id' => $account_id,
@@ -503,7 +561,6 @@ class PosSalesController extends Controller
      */
     public function edit(string $billno)
     {
-
         $orgbios = OrgBio::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
@@ -765,29 +822,42 @@ class PosSalesController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Delete all related records directly
-            WarehouseSales::where('times', $times)->where('branch_id', $this->branch_id)->delete();
-            Journal::where('times',$times)->where('branch_id', $this->branch_id)->delete();
-            
+            $warehouse_sales = WarehouseSales::where('times', $times)
+                ->where('branch_id', $this->branch_id)
+                ->first();
+
+            if ($warehouse_sales) {
+                SalesDetails::where('warehouse_sales_id', $warehouse_sales->id)
+                    ->where('branch_id', $this->branch_id)
+                    ->delete();
+
+                $warehouse_sales->delete();
+            }
+
+            Journal::where('times', $times)
+                ->where('branch_id', $this->branch_id)
+                ->delete();
+
             DB::commit();
-    
+
             Session::flash('notification', [
                 'message' => 'موفقانه حذف گردید',
                 'type' => 'success',
             ]);
-    
-            return redirect()->route('sales.index'); 
+
+            return redirect()->route('sales.index');
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             \Log::error('Error deleting records: ' . $e->getMessage());
-    
+
             Session::flash('notification', [
-                'message' => ' حذف نگردید',
+                'message' => 'حذف نگردید',
                 'type' => 'danger',
             ]);
-    
+
             return back();
         }
     }
+
 }

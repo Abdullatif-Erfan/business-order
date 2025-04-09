@@ -905,29 +905,42 @@ class SalesController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Delete all related records directly
-            WarehouseSales::where('times', $times)->where('branch_id', $this->branch_id)->delete();
-            Journal::where('times',$times)->where('branch_id', $this->branch_id)->delete();
-            
+            $warehouse_sales = WarehouseSales::where('times', $times)
+                ->where('branch_id', $this->branch_id)
+                ->first();
+
+            if ($warehouse_sales) {
+                SalesDetails::where('warehouse_sales_id', $warehouse_sales->id)
+                    ->where('branch_id', $this->branch_id)
+                    ->delete();
+
+                $warehouse_sales->delete();
+            }
+
+            Journal::where('times', $times)
+                ->where('branch_id', $this->branch_id)
+                ->delete();
+
             DB::commit();
-    
+
             Session::flash('notification', [
                 'message' => 'موفقانه حذف گردید',
                 'type' => 'success',
             ]);
-    
-            return redirect()->route('sales.index'); 
+
+            return redirect()->route('sales.index');
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             \Log::error('Error deleting records: ' . $e->getMessage());
-    
+
             Session::flash('notification', [
-                'message' => ' حذف نگردید',
+                'message' => 'حذف نگردید',
                 'type' => 'danger',
             ]);
-    
+
             return back();
         }
     }
+
 }

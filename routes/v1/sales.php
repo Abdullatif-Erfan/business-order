@@ -17,7 +17,9 @@ use App\Http\Controllers\Sales\PosSalesController;
     Route::post('/deleteSingleItem/{id}',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
     Route::get('/destroy/{times}',[SalesController::class,'destroy'])->name('sales.destroy')->middleware('access:sales,delete_records');
     // POS
+    Route::get('/item_list',[PosSalesController::class,'item_list'])->name('sales.item_list')->middleware('access:sales,list');
     Route::get('/pos_create',[PosSalesController::class,'pos_create'])->name('sales.pos_create')->middleware('access:sales,create_records');
     Route::post('/pos_store',[PosSalesController::class,'pos_store'])->name('sales.pos_store')->middleware('access:sales,create_records');
+    Route::get('/pos_print/{billno}',[PosSalesController::class,'pos_print'])->name('sales.pos_print');
 
 });
