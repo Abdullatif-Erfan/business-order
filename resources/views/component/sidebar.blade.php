@@ -189,6 +189,11 @@
                                         <span class="sub-item"> ثبت موجودی گدام</span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('warehousesList.wastage') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> ضایعات اجناس  </span>
+                                    </a>
+                                </li>
                                 @foreach(\App\Models\Setting\Warehouse::where('branch_id', $branch_id)->get() as $warehouse)
                                     <li>
                                         <a href="{{ route('warehousesList.index') }}?id={{ $warehouse->id }}">

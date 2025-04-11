@@ -6,8 +6,6 @@ use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Home\HomeController;
 
-use App\Http\Controllers\Warehouse\WarehouseListController;
-
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\RateController;
 
@@ -27,8 +25,6 @@ use App\Http\Controllers\RateController;
  * http://127.0.0.1:8000/createUser
  */
 Route::get('/createUser',[UserController::class,'createUser'])->name('createUser');
-
-
 
 Route::get('/',[LoginController::class,'login'])->name('login');
 Route::post('/loginMe',[LoginController::class,'loginMe'])->name('loginMe');
@@ -78,20 +74,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
-     // WarehouseList
-     Route::prefix('warehousesList')->group(function(){
-        Route::get('/', [WarehouseListController::class, 'index'])->name('warehousesList.index')->middleware('access:gudam,list');
-        Route::get('/data', [WarehouseListController::class, 'getData'])->name('warehousesList.data');
-        Route::get('/details/{id}', [WarehouseListController::class, 'details'])->name('warehousesList.details');
-        Route::patch('/update', [WarehouseListController::class, 'update'])->name('warehousesList.update')->middleware('access:gudam,edit_records');
-        Route::get('/getWarehouseItemForTransfer/{id}', [WarehouseListController::class, 'getWarehouseItemForTransfer'])->name('warehousesList.getWarehouseItemForTransfer')->middleware('access:gudam,edit_records');
-        Route::post('/updateTransfer', [WarehouseListController::class, 'updateTransfer'])->name('warehousesList.updateTransfer');
-        Route::get('/create', [WarehouseListController::class, 'create'])->name('warehousesList.create')->middleware('access:gudam,create_records');
-        Route::post('/store', [WarehouseListController::class, 'store'])->name('warehousesList.store');
-        Route::delete('/delete/{id}', [WarehouseListController::class, 'destroy'])->name('warehousesList.delete')->middleware('access:gudam,delete_records');
-    });
-
-
     // backup
     Route::prefix('backups')->group(function(){
         Route::get('/', [BackupController::class, 'index'])->name('backups.index');
@@ -121,6 +103,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
  
     // sales
     require __DIR__ . '/v1/sales.php';
+
+     // warehouse
+     require __DIR__ . '/v1/warehouse.php';
 
 
     // clearance

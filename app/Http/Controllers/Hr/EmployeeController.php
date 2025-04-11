@@ -61,7 +61,7 @@ class EmployeeController extends Controller
                 })
 
                 ->addColumn('net_salary', function ($account) {
-                    return $account->net_salary ? number_format($account->net_salary) : '';
+                    return $account->net_salary ? number_format($account->net_salary,2) : '';
                 })
 
                 ->addColumn('edit', function ($account) {

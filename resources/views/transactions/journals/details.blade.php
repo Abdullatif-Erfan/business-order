@@ -60,7 +60,7 @@
                                         </tr>
                                         <tr>
                                             <td>مبلغ</td>
-                                            <td>{{ number_format($journals[0]['amount']) }} {{ $journals[0]->currencyRelation->name }}</td>
+                                            <td>{{ number_format($journals[0]['amount'],2) }} {{ $journals[0]->currencyRelation->name }}</td>
                                         </tr>
                                         <tr>
                                             <td>مبلغ به حروف</td>
@@ -78,7 +78,7 @@
                                         </tr>
                                         <tr style="background-color:#f2fbfb">
                                             <td>مبلغ</td>
-                                            <td>{{ number_format($journals[1]['amount']) }} {{ $journals[1]->currencyRelation->name }}</td>
+                                            <td>{{ number_format($journals[1]['amount'],2) }} {{ $journals[1]->currencyRelation->name }}</td>
                                         </tr>
                                         <tr style="background-color:#f2fbfb">
                                             <td>مبلغ به حروف</td>

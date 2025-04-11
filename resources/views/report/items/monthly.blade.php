@@ -142,29 +142,29 @@
                                                 <tr>
                                                     <td>{{$row->month}} </td>
                                                     <td>{{ number_format($row->total_warehouse_value - $row->total_warehouse_wastage) }}</td>
-                                                    <td>{{ number_format($row->total_sales_payable) }}</td>
-                                                    <td>{{ number_format($row->total_sales_curpay) }}</td>
-                                                    <td>{{ number_format($row->total_sales_remained) }}</td>
-                                                    <td>{{ number_format($row->total_sales_profit) }}</td>
-                                                    <td>{{ number_format($row->total_bought_payable) }}</td>
-                                                    <td>{{ number_format($row->total_bought_curpay) }}</td>
-                                                    <td>{{ number_format($row->total_bought_remained) }}</td>
-                                                    <td>{{ number_format($row->total_bought_transport) }}</td>
+                                                    <td>{{ number_format($row->total_sales_payable,2) }}</td>
+                                                    <td>{{ number_format($row->total_sales_curpay,2) }}</td>
+                                                    <td>{{ number_format($row->total_sales_remained,2) }}</td>
+                                                    <td>{{ number_format($row->total_sales_profit,2) }}</td>
+                                                    <td>{{ number_format($row->total_bought_payable,2) }}</td>
+                                                    <td>{{ number_format($row->total_bought_curpay,2) }}</td>
+                                                    <td>{{ number_format($row->total_bought_remained,2) }}</td>
+                                                    <td>{{ number_format($row->total_bought_transport,2) }}</td>
                                                 </tr>
                                             @endforeach
                                     </tbody>
                                     <tfoot>
                                             <tr style="background-color:#fff8d9">
                                                 <td><strong>مجموع</strong></td>
-                                                <td><strong>{{ number_format($totalWarehouseValue) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesPayable) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesCurPay) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesRemained) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesProfit) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtPayable) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtCurPay) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtRemained) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtTransport) }}</strong></td>
+                                                <td><strong>{{ number_format($totalWarehouseValue,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesPayable,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesCurPay,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesRemained,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesProfit,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtPayable,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtCurPay,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtRemained,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtTransport,2) }}</strong></td>
                                             </tr>
                                         </tfoot>
                                 </table>

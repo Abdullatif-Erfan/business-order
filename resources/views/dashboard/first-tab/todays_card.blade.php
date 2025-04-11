@@ -9,28 +9,28 @@
                 'bgColor' => '#dbf3ff',
                 'textColor' => '#3f7cc7',
                 'title' => 'فروشات',
-                'value' => number_format($data['todays_sold_income']['payable'] ?? 0),
+                'value' => number_format($data['todays_sold_income']['payable'],2 ?? 0),
             ],
             [
                 'icon' => 'far fa-money-bill-alt',
                 'bgColor' => '#dbf3ff',
                 'textColor' => '#3f7cc7',
                 'title' => 'دریافت فروشات',
-                'value' => number_format($data['todays_sold_income']['cur_pay'] ?? 0),
+                'value' => number_format($data['todays_sold_income']['cur_pay'],2 ?? 0),
             ],
             [
                 'icon' => 'fas fa-donate',
                 'bgColor' => '#dbf3ff',
                 'textColor' => '#3f7cc7',
                 'title' => 'طلب فروشات',
-                'value' => number_format($data['todays_sold_income']['remained'] ?? 0),
+                'value' => number_format($data['todays_sold_income']['remained'],2 ?? 0),
             ],
             [
                 'icon' => 'fas fa-money-check-alt',
                 'bgColor' => '#dbf3ff',
                 'textColor' => '#3f7cc7',
                 'title' => 'مفاد فروشات',
-                'value' => number_format($data['todays_sold_income']['profit'] ?? 0),
+                'value' => number_format($data['todays_sold_income']['profit'],2 ?? 0),
             ],
 
             // ------------------- Belongs to BUY ---------------------------------
@@ -39,28 +39,28 @@
                 'bgColor' => '#ebd997',
                 'textColor' => '#3f7cc7',
                 'title' => 'خریداری',
-                'value' => number_format($data['getTodaysBoughtItems']['payable'] ?? 0),
+                'value' => number_format($data['getTodaysBoughtItems']['payable'],2 ?? 0),
             ],
             [
                 'icon' => 'fas fa-hand-holding-usd',
                 'bgColor' => '#ebd997',
                 'textColor' => '#3f7cc7',
                 'title' => 'پرداخت خرید',
-                'value' => number_format($data['getTodaysBoughtItems']['cur_pay'] ?? 0),
+                'value' => number_format($data['getTodaysBoughtItems']['cur_pay'],2 ?? 0),
             ],
             [
                 'icon' => 'fas fa-download',
                 'bgColor' => '#ebd997',
                 'textColor' => '#3f7cc7',
                 'title' => 'قرضه خرید',
-                'value' => number_format($data['getTodaysBoughtItems']['remained'] ?? 0),
+                'value' => number_format($data['getTodaysBoughtItems']['remained'],2 ?? 0),
             ],
             [
                 'icon' => 'fas fa-download',
                 'bgColor' => '#ebd997',
                 'textColor' => '#3f7cc7',
                 'title' => 'مصارف ترانسپورت',
-                'value' => number_format($data['getTodaysBoughtItems']['trans_spend'] ?? 0),
+                'value' => number_format($data['getTodaysBoughtItems']['trans_spend'],2 ?? 0),
             ],
            
             // ---------------- belongs to Income and Outcome --------------------
@@ -69,7 +69,7 @@
                 'bgColor' => '#6eafd9',
                 'textColor' => '#fff',
                 'title' => 'عواید ',
-                'value' => number_format($data['cashIncomeOutcome']['total_income'] ?? 0),
+                'value' => number_format($data['cashIncomeOutcome']['total_income'],2 ?? 0),
                 'style' => 'border: 1px solid #afc7f8;background: linear-gradient(45deg, #ffffff, #d6efff)',
             ],
             [
@@ -77,7 +77,7 @@
                 'bgColor' => '#e6aaaa',
                 'textColor' => '#fff',
                 'title' => 'مصارف ',
-                'value' => number_format($data['cashIncomeOutcome']['total_expense'] ?? 0),
+                'value' => number_format($data['cashIncomeOutcome']['total_expense'],2 ?? 0),
                 'style' => 'border: 1px solid #e7c99c;background: linear-gradient(45deg, #ffffff, #ffd9d9)',
             ],
             [
@@ -85,7 +85,7 @@
                 'bgColor' => '#83d31a',
                 'textColor' => '#fff',
                 'title' => 'آمد نقد خزانه',
-                'value' => number_format($data['cashIncomeOutcome']['total_incomes'] ?? 0),
+                'value' => number_format($data['cashIncomeOutcome']['total_incomes'],2 ?? 0),
                 'style' => 'border: 1px solid #83d31a;background: linear-gradient(45deg, #ffffff, #f0ffd1)',
             ],
             [
@@ -93,7 +93,7 @@
                 'bgColor' => '#d3b33b',
                 'textColor' => '#fff',
                 'title' => ' رفت نقد خزانه ',
-                'value' => number_format($data['cashIncomeOutcome']['total_outcomes'] ?? 0),
+                'value' => number_format($data['cashIncomeOutcome']['total_outcomes'],2 ?? 0),
                 'style' => 'border: 1px solid #d39d1a;background: linear-gradient(45deg, #ffffff, #f9edde)',
             ],
         ];

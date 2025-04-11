@@ -143,8 +143,8 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                   <?=$value['account_name'];?>
                                </a>
                             </td>
-                            <td> <?php if(intval($value['transaction_type']) === 2) { echo number_format($value['amount']); }?> </td>
-                            <td> <?php if(intval($value['transaction_type']) === 1) { echo number_format($value['amount']); }?> </td>
+                            <td> <?php if(intval($value['transaction_type']) === 2) { echo number_format($value['amount'],2); }?> </td>
+                            <td> <?php if(intval($value['transaction_type']) === 1) { echo number_format($value['amount'],2); }?> </td>
                             <td> <?=$value['currency_symbol']?> </td>
                             <td> <?=$value['full_name'];?> </td>
                              <td>

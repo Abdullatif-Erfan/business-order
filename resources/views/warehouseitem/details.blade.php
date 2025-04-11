@@ -167,9 +167,13 @@
                         <hr>
 
                         <div class="col-md-12">
-                            <!-- print button -->
+
                             <button type="button" onclick="transferItems()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print">
-                                <i class="fas fa-exchange-alt"></i> انتقال
+                                <i class="fas fa-exchange-alt"></i> انتقال اجناس
+                            </button>
+
+                            <button type="button" onclick="unitConversion()" class="btn btn-success btn-sm  m-r-10 hidden-print">
+                                <i class="fas fa-recycle"></i> تبادله واحدات اجناس
                             </button>
 
                             <!-- Edit button -->
@@ -222,11 +226,59 @@
 </div>
 
 
+<div class="modal fade" id="conversionModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width:800px !important">
+            <form action="{{ route('warehousesList.updateConversion')}}" method="POST">
+            @csrf
+            <div class="modal-header">
+                <h5 class="modal-title"> تبادله اجناس نظر به واحد اجناس </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="ConversionModalContent"></div>
+                <div id="conversion_loading" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin font-20"></i> در حال بارگذاری...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitTransfer" >ثبت</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @include('warehouseitem.scripts')
 
 <!-- JavaScript for Edit Mode -->
 
 <script>
+
+    function unitConversion()
+    {
+        var id = $('#warehouseItemId').val();
+        $('#conversionModal').modal('show');   
+        $('#conversion_loading').show();
+        $.ajax({
+            url: `/warehousesList/getWarehouseItemForConversion/${id}`,
+            type: 'GET',
+            success: (result) => {
+                $('#ConversionModalContent').html(result);
+                $('#conversion_loading').hide();
+
+                // Initialize Select2 after the form has been injected
+                $(".select2").select2();
+            },
+            error: () => {
+                $('#conversion_loading').hide();
+                alert('اطلاعات یافت نشد');
+            }
+        });
+    }
 
     function transferItems()
     {

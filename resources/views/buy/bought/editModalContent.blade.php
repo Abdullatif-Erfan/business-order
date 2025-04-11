@@ -1,15 +1,26 @@
+@php
+    $unit_name = '';
+    if ($boughtItemDetails && $units) {
+        foreach ($units as $unitItem) {
+            if ($boughtItemDetails->unit_id == $unitItem->id) {
+                $unit_name = $unitItem->name;
+                break;
+            }
+        }
+    }
+@endphp
     <div class="row">
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="item_name">جنس </label>
 
             <input class="form-control" name="id"  type="hidden" 
-            value={{ $boughtItemDetails->id ?? 0 }} >
+            value="{{ $boughtItemDetails->id ?? 0 }}" >
 
             <input class="form-control" name="pre_list_id"  type="hidden"
-            value={{ $boughtItemDetails->pre_list_id ?? 0}} >
+            value="{{ $boughtItemDetails->pre_list_id ?? 0}}" >
 
             <input class="form-control" name="times"  type="hidden"  
-            value={{ $boughtItemDetails->times ?? 0}} >
+            value="{{ $boughtItemDetails->times ?? 0}}" >
 
             <input class="form-control" name="item_name" id="item_name" type="text" readonly value={{ $boughtItemDetails->preListRelation->name ?? ''}} >
         </div>
@@ -18,32 +29,36 @@
             <label for="amount">تعداد </label>
             <input  name="old_amount" id="old_amount" type="hidden" value={{ $boughtItemDetails->amount ?? 0}} >
             <input class="form-control" name="amount" id="amount" type="number" step="0.01" oninput="checkAmountChanges(this.value)"
-            value={{ $boughtItemDetails->amount ?? ''}} required >
+            value="{{ $boughtItemDetails->amount ?? ''}}" required >
         </div>
 
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="bought_up">خرید فی واحد </label>
-            <input  name="old_bought_up" id="old_bought_up" type="hidden" value={{ $boughtItemDetails->bought_up ?? 0}} >
+            <input  name="old_bought_up" id="old_bought_up" type="hidden" value="{{ $boughtItemDetails->bought_up ?? 0}}" >
             <input class="form-control" name="bought_up" id="bought_up" type="number" step="0.01" 
-            value={{ $boughtItemDetails->bought_up ?? 0}} required >
+            value="{{ $boughtItemDetails->bought_up ?? 0}}" required >
+
+            <input class="form-control" name="total" id="total" type="hidden" step="0.01" 
+            value="{{ $boughtItemDetails->total ?? 0 }}" >
+
         </div>
 
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="discount">تخفیف </label>
             <input class="form-control" name="discount" id="discount" type="number" step="0.01"
-            value={{ $boughtItemDetails->discount ?? 0}}  >
+            value="{{ $boughtItemDetails->discount ?? 0}}"  >
         </div>
 
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="transport">ترانسپورت </label>
             <input class="form-control" name="transport" id="transport" type="number" step="0.01" 
-            value={{ $boughtItemDetails->transport ?? 0}} required>
+            value="{{ $boughtItemDetails->transport ?? 0}}" required>
         </div>
 
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="expire_date">تاریخ انقضا </label>
             <input class="form-control" name="expire_date" id="expire_date" type="text" placeholder="1403-03-01"  
-            value={{ $boughtItemDetails->expire_date ?? ''}}  >
+            value="{{ $boughtItemDetails->expire_date ?? ''}}"  >
         </div>
 
         <div class="col-md-3 col-sm-4 col-xs-6">
@@ -51,7 +66,8 @@
             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
                 <option value=""> --- انتخاب واحد ---</option>
                 @foreach($units as $unitItem)
-                    <option value="{{  $unitItem->id }}" {{ $boughtItemDetails->unit_id == $unitItem->id ? 'selected' : '' }} >{{ $unitItem->name }}</option>
+                $unit_name = $boughtItemDetails->unit_id == $unitItem->id ? $unitItem->name : '';
+                 <option value="{{  $unitItem->id }}" {{ $boughtItemDetails->unit_id == $unitItem->id ? 'selected' : '' }} >{{ $unitItem->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -59,7 +75,7 @@
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="notification_amount">مقدار هشدار </label>
             <input class="form-control" name="notification_amount" id="notification_amount" type="number" step="0.01" 
-            value={{ $warehouseItems->first()->notification_amount ?? 0 }} >
+            value="{{ $warehouseItems->first()->notification_amount ?? 0 }}" >
         </div>
     </div>
 
@@ -80,16 +96,16 @@
             $warehouseName = $item->warehouseRelation ? $item->warehouseRelation->name : 'Not Found';
         @endphp
         <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="name"> گدام </label>
+            <label for="name"> موجود در :  </label>
             <input  name="warehouse_id[]" id="wid" type="hidden" value="{{ $item->warehouse_id}} " >
             <select  class="form-control select2" readonly disabled >
                 <option value="">{{ $warehouseName }}</option>
             </select>
         </div>
         <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="available_amount"> تعداد موجود </label>
+            <label for="available_amount"> تعداد موجود به ({{ $unit_name }})  </label>
             <input class="form-control" name="available_amount" id="available_amount" type="number" step="0.01" readonly
-            value={{$item->available_amount}} >
+            value="{{$item->available_amount}}" >
         </div>
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="increment"> تعداد افزایش  </label>
@@ -108,6 +124,10 @@
     function checkAmountChanges(cur_amount) {
         var old_amount = parseFloat($('#old_amount').val());
         var new_amount = parseFloat(cur_amount || 0); // Ensure it's a number
+        var bought_up = parseFloat($('#bought_up').val());
+
+        var new_total = cur_amount * bought_up;
+        $('#total').val(new_total.toFixed(2));
 
         // Empty the fields before applying readonly
         $('input[name="increment[]"]').val('');

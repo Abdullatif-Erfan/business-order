@@ -21,7 +21,11 @@
     background-color: #f6ffe4 !important;
     color: #000 !important;
 }
+.dataTables_filter {
+    display: none !important;
+}
 </style>
+
 
 
 <div class="main-panel">

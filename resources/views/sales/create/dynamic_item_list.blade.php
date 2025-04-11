@@ -2,14 +2,14 @@
     <table class="table table-bordered new" id="itemsTable">
   
             <tr style="background:#e9fffe">
-                <th style="width:22%">انتخاب جنس</th>
+                <th style="width:20%">انتخاب جنس</th>
                 <th style="width:10%">تعداد</th>
                 <th style="width:10%">واحد</th>
                 <th style="width:10%">اوسط خرید</th>
                 <th style="width:10%">فیات فروش</th>
                 <th style="width:10%">تخفیف</th>
-                <th style="width:10%">مفاد</th>
-                <th style="width:10%">مجموع</th>
+                <th style="width:12%">مفاد</th>
+                <th style="width:15%">مجموع</th>
                 <th style="width:15%">علاوه</th>
             </tr>
         

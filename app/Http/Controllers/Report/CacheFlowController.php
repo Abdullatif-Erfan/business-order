@@ -211,21 +211,21 @@ class CacheFlowController extends Controller
             // })
             ->addColumn('cacheRecieved', function ($journal) use ($isCompanyAccount) {
                 if($isCompanyAccount) {
-                    return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount) : null; // آمد نقد حسابات شرکت
+                    return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount,2) : null; // آمد نقد حسابات شرکت
                 } else {
-                    return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount) : null; // رفت نقد حسابات دیگران                   
+                    return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount,2) : null; // رفت نقد حسابات دیگران                   
                 }
             })
             ->addColumn('cachePaid', function ($journal) use ($isCompanyAccount) {
                 
                 if($isCompanyAccount) {
-                    return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount) : null;
+                    return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount,2) : null;
                 } else {
-                    return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount) : null;                    
+                    return ($journal->transaction_type == 1 && $journal->payment_type == 1) ? number_format($journal->amount,2) : null;                    
                 }
             })
             ->addColumn('loanRecieved', function ($journal) {
-                return ($journal->transaction_type == 1 && $journal->payment_type == 2) ? number_format($journal->amount) : null;
+                return ($journal->transaction_type == 1 && $journal->payment_type == 2) ? number_format($journal->amount,2) : null;
             })
             ->addColumn('loanPaid', function ($journal) {
                 return ($journal->transaction_type == 2 && $journal->payment_type == 2) ? number_format($journal->amount) : null;
@@ -238,10 +238,10 @@ class CacheFlowController extends Controller
             })
             ->rawColumns(['currency'])
             ->with([
-                'sumCacheRecieved' => $isCompanyAccount ? number_format($sumsKhazana->sumCacheRecieved) : number_format($else_account->sumCacheRecieved ?? 0),
-                'sumCachePaid' => $isCompanyAccount ? number_format($sumsKhazana->sumCachePaid) : number_format($else_account->sumCachePaid ?? 0),
-                'sumLoanRecieved' => $isCompanyAccount ? number_format($loanAndTalab->cache_paid + $loanAndTalab->loan_paid) : number_format($else_account->sumLoanRecieved ?? 0),
-                'sumLoanPaid' => $isCompanyAccount ? number_format($total_talabat) : number_format($else_account->sumLoanPaid ?? 0),
+                'sumCacheRecieved' => $isCompanyAccount ? number_format($sumsKhazana->sumCacheRecieved,2) : number_format($else_account->sumCacheRecieved,2 ?? 0),
+                'sumCachePaid' => $isCompanyAccount ? number_format($sumsKhazana->sumCachePaid,2) : number_format($else_account->sumCachePaid,2 ?? 0),
+                'sumLoanRecieved' => $isCompanyAccount ? number_format($loanAndTalab->cache_paid + $loanAndTalab->loan_paid,2) : number_format($else_account->sumLoanRecieved,2 ?? 0),
+                'sumLoanPaid' => $isCompanyAccount ? number_format($total_talabat,2) : number_format($else_account->sumLoanPaid,2 ?? 0),
                 'isKhazana' => $isKhazana ? true : false,
                 'isCompanyAccount' => $isCompanyAccount
             ])

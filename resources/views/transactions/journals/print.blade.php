@@ -72,9 +72,9 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                         </tr>
                                         <tr>
                                             <td> مبلغ  </td>
-                                            <td>{{ number_format($journals[0]['amount']) }} {{ $journals[0]['currency_name'] }}</td>
+                                            <td>{{ number_format($journals[0]['amount'],2) }} {{ $journals[0]['currency_name'] }}</td>
                                             <td> مبلغ  </td>
-                                            <td>{{ number_format($journals[1]['amount']) }} {{ $journals[1]['currency_name'] }}</td>
+                                            <td>{{ number_format($journals[1]['amount'],2) }} {{ $journals[1]['currency_name'] }}</td>
                                         </tr>
                                         <tr>
                                             <td>مبلغ   به حروف</td>

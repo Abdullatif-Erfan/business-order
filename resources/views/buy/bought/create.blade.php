@@ -149,7 +149,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                 <input class="form-control" name="amount" id="amount" type="number" step="0.01" >
                                             </div>
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                            <div class="col-md-2 col-sm-4 col-xs-6">
                                                 <label for="unit_id"> واحد <span class="danger">*</span> </label>
                                                 <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
                                                     <option value="">واحد</option>
@@ -160,9 +160,19 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                 
                                             </div>
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                            <div class="col-md-2 col-sm-4 col-xs-6">
                                                 <label for="bought_up"> قیمت فی واحد <span class="danger">*</span> </label>
                                                 <input class="form-control" name="bought_up" id='bought_up' type="number" step="0.01"  oninput="recalculateEachTotal(this)" >
+                                            </div>
+
+                                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                                <label for="note">    واحد پولی <span class="danger">*</span>  </label>
+                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="currency_id" required>
+                                                    <!-- <option value="">حساب پرداخت کننده</option> -->
+                                                    @foreach($currencies as $cur)
+                                                        <option value="{{ $cur->id }}">{{ $cur->name }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
 
                                         </div>
@@ -172,16 +182,6 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <!-- Third Row -->
                                     <div class="col-md-12 m-t-10">
                                         <div class="row">
-                                            
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="note">    واحد پولی <span class="danger">*</span>  </label>
-                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="currency_id" required>
-                                                    <!-- <option value="">حساب پرداخت کننده</option> -->
-                                                    @foreach($currencies as $cur)
-                                                        <option value="{{ $cur->id }}">{{ $cur->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
                                                 <label for="expire_date"> تاریخ انقضا  </label>
@@ -206,6 +206,11 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             <div class="col-md-2 col-sm-4 col-xs-6">
                                                 <label for="notification_amount"> مقدار هشدار </label>
                                                 <input class="form-control" name="notification_amount" id="notification_amount" type="number" value="0">
+                                            </div>
+
+                                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                                <label for="note"> کمنت </label>
+                                                <input class="form-control" name="note" id="note" type="text" placeholder="کمنت">
                                             </div>
                                             
 
@@ -377,6 +382,7 @@ function submiteBuyingForm()
                     $('#discount').val('0');
                     $('#transport').val('0');
                     $('#notification_amount').val('0');
+                    // $('#note').val('');
                     $('.dynamic-row').find('input, select').val('');
                 // ✅ Optionally, remove validation error messages
                 // $('.error-message').text('');

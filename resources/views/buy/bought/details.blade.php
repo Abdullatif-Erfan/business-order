@@ -13,6 +13,10 @@
 </script>
 @endif
 
+@php
+$currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
+@endphp
+
 <style>
 .price-section {
     background-color: #f6f6f6;
@@ -53,7 +57,7 @@
                                         </tr>
                                         <tr>
                                             <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
-                                            <td>   واحد پولی: {{ $boughtItems->first()->currency->name ?? '' }}</td>
+                                            <td>   واحد پولی: {{ $boughtItems->first()->currencyRelation->name ?? '' }}</td>
                                             <td>تاریخ ثبت : {{ $boughtItems->first()->idate ?? '' }}</td>
                                             <td>نمبر بل : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
                                         </tr>
@@ -70,6 +74,7 @@
                                                     <th>واحد</th>
                                                     <th>قیمت فی واحد</th>
                                                     <th>قیمت مجموعی</th>
+                                                    <th>واحد پولی</th>
                                                     <th>تخفیف</th>
                                                     <th>ترانسپورت</th>
                                                     <th>تاریخ انقضا</th>
@@ -84,7 +89,9 @@
                                                 
                                                 <td>
                                                     @php
-                                                        echo number_format($detail->amount);
+                                                    echo fmod($detail->amount, 1) == 0
+                                                        ? number_format($detail->amount, 0)
+                                                        : number_format($detail->amount, 2);
                                                     @endphp
                                                 </td>
                                                 
@@ -92,25 +99,35 @@
 
                                                 <td>
                                                     @php
-                                                        echo number_format($detail->bought_up);
+                                                    echo fmod($detail->bought_up, 1) == 0
+                                                        ? number_format($detail->bought_up, 0)
+                                                        : number_format($detail->bought_up, 2);
                                                     @endphp
                                                 </td>
 
                                                 <td>
                                                     @php
-                                                        echo  number_format($detail->total);
+                                                    echo fmod($detail->total, 1) == 0
+                                                        ? number_format($detail->total, 0)
+                                                        : number_format($detail->total, 2);
+                                                    @endphp
+                                                </td>
+
+                                                <td>{{ $currency_name ?? '' }}</td>
+                                                
+                                                <td>
+                                                    @php
+                                                        echo fmod($detail->discount, 1) == 0
+                                                        ? number_format($detail->discount, 0)
+                                                        : number_format($detail->discount, 2);
                                                     @endphp
                                                 </td>
 
                                                 <td>
                                                     @php
-                                                        echo  number_format($detail->discount);
-                                                    @endphp
-                                                </td>
-
-                                                <td>
-                                                    @php
-                                                        echo number_format($detail->transport);
+                                                        echo fmod($detail->transport, 1) == 0
+                                                        ? number_format($detail->transport, 0)
+                                                        : number_format($detail->transport, 2);
                                                     @endphp
                                                 </td>
                                                 <td>
@@ -127,14 +144,14 @@
                                             <td>مجموع پول &nbsp; </td>
                                             <td>
                                                 @php
-                                                    echo  number_format($boughtItems->first()->total_price);
+                                                    echo  number_format($boughtItems->first()->total_price,2);
                                                 @endphp
                                             </td>
                                             <td> تخفیف </td>
                                             <td> 
                                                 @php
                                                     echo   
-                                                    number_format($boughtItems->first()->discount);
+                                                    number_format($boughtItems->first()->discount,2);
                                                 @endphp
                                             </td>
                                             <td> مصارف ترانسپورت </td>
@@ -148,19 +165,19 @@
                                             <td> قابل پرداخت</td>
                                             <td> @php
                                                     echo 
-                                                    number_format($boughtItems->first()->payable);
+                                                    number_format($boughtItems->first()->payable,2);
                                                  @endphp
                                             </td>
                                             <td> پرداخت فعلی</td>
                                             <td> @php
-                                                    echo  number_format($boughtItems->first()->cur_pay);
+                                                    echo  number_format($boughtItems->first()->cur_pay,2);
                                                     @endphp
                                             </td>
                                             <td> باقی </td>
                                             <td>
                                                 @php
                                                     echo 
-                                                    number_format($boughtItems->first()->remained);
+                                                    number_format($boughtItems->first()->remained,2);
                                                 @endphp
                                             </td>
                                         </tr>
@@ -203,6 +220,7 @@
                                                     <th>واحد</th>
                                                     <th>قیمت فی واحد</th>
                                                     <th>قیمت مجموعی</th>
+                                                    <th>واحد پولی</th>
                                                     <th>تخفیف</th>
                                                     <th>ترانسپورت</th>
                                                 </tr>
@@ -216,7 +234,7 @@
                                                 
                                                 <td>
                                                     @php
-                                                        echo  number_format($detail->amount);
+                                                        echo  number_format($detail->amount,2);
                                                     @endphp
                                                 </td>
                                                 
@@ -224,25 +242,27 @@
 
                                                 <td>
                                                     @php
-                                                        echo number_format($detail->bought_up);
+                                                        echo number_format($detail->bought_up,2);
                                                     @endphp
                                                 </td>
 
                                                 <td>
                                                     @php
-                                                        echo  number_format($detail->total);
+                                                        echo  number_format($detail->total,2);
+                                                    @endphp
+                                                </td>
+
+                                                <td>{{  $boughtItems->first()->currencyRelation->name ?? ''}}</td>
+
+                                                <td>
+                                                    @php
+                                                        echo  number_format($detail->discount,2);
                                                     @endphp
                                                 </td>
 
                                                 <td>
                                                     @php
-                                                        echo  number_format($detail->discount);
-                                                    @endphp
-                                                </td>
-
-                                                <td>
-                                                    @php
-                                                        echo  number_format($detail->transport);
+                                                        echo  number_format($detail->transport,2);
                                                     @endphp
                                                 </td>
                                             </tr>
@@ -261,52 +281,52 @@
                                                          </div>
                                                     </td>
                                                     <td colspan="2" class="price-section">مجموع بل</td>
-                                                    <td colspan="2" class="price-section">
+                                                    <td colspan="3" class="price-section">
                                                        
                                                         @php
-                                                           echo  number_format($boughtItems->first()->total_price);
+                                                           echo  number_format($boughtItems->first()->total_price,2);
                                                         @endphp
 
-                                                        {{ $boughtItems->first()->currency->name ?? '' }}
+                                                        {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  تخفیف </td>
-                                                    <td colspan="2" class="price-section">
+                                                    <td colspan="3" class="price-section">
                                                         @php
                                                            echo 
                                                            number_format($boughtItems->first()->trans_spend);
                                                         @endphp
-                                                        {{ $boughtItems->first()->currency->name ?? '' }}
+                                                        {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  قابل پرداخت </td>
-                                                    <td colspan="2" class="price-section">
+                                                    <td colspan="3" class="price-section">
                                                         @php echo number_format($boughtItems->first()->cur_pay);
                                                         @endphp
-                                                        {{ $boughtItems->first()->currency->name ?? '' }}
+                                                        {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
 
                                                 <tr>
                                                     <td colspan="2" class="price-section"> پرداخت فعلی  </td>
-                                                    <td colspan="2" class="price-section">
+                                                    <td colspan="3" class="price-section">
                                                          @php
                                                            echo 
-                                                           number_format($boughtItems->first()->payable) ;
+                                                           number_format($boughtItems->first()->payable,2) ;
                                                          @endphp
-                                                         {{ $boughtItems->first()->currency->name ?? '' }}
+                                                         {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
 
                                                 <tr>
                                                     <td colspan="2" class="price-section">  باقی  </td>
-                                                    <td colspan="2" class="price-section">
+                                                    <td colspan="3" class="price-section">
                                                           @php
-                                                           echo  number_format($boughtItems->first()->remained);
+                                                           echo  number_format($boughtItems->first()->remained,2);
                                                           @endphp
-                                                          {{ $boughtItems->first()->currency->name ?? '' }}
+                                                          {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
 

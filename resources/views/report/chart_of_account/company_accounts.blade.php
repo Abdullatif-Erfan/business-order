@@ -71,9 +71,9 @@
             <tr >
                 <td class="priceStyle">{{ $loop->iteration }}</td>
                 <td class="priceStyle">{{ $row->name }}</td>
-                <td class="priceStyle">{{ number_format($row->cache_recieved) }}</td>  <!-- آورد نقد -->
-                <td class="priceStyle">{{ number_format($row->cache_paid) }}</td>      <!-- برد نقد -->
-                <td class="priceStyle"> {{ number_format($cache_balance)  }} </td>
+                <td class="priceStyle">{{ number_format($row->cache_recieved,2) }}</td>  <!-- آورد نقد -->
+                <td class="priceStyle">{{ number_format($row->cache_paid,2) }}</td>      <!-- برد نقد -->
+                <td class="priceStyle"> {{ number_format($cache_balance,2)  }} </td>
 
                 <td class="bg-dark"></td>       <!--  طلبات -->
                 <td class="bg-dark"></td>       <!--  قرضه -->
@@ -84,14 +84,14 @@
         <tfoot>
             <tr style="background-color:#edf7ff">
                 <td class="priceStyle" colspan="2">مجموع</td>
-                <td class="priceStyle">{{ number_format($total_cache_recieved) }}</td>  <!-- آورد نقد -->
-                <td class="priceStyle">{{ number_format($total_cache_paid) }}</td>      <!-- برد نقد -->
-                <td class="priceStyle" >{{ number_format($total_cache_balance) }}</td>
+                <td class="priceStyle">{{ number_format($total_cache_recieved,2) }}</td>  <!-- آورد نقد -->
+                <td class="priceStyle">{{ number_format($total_cache_paid,2) }}</td>      <!-- برد نقد -->
+                <td class="priceStyle" >{{ number_format($total_cache_balance,2) }}</td>
 
-                <td class="bg-dark" style="color:green;font-weight:bolder;">{{ number_format($total_talabat) }}</td>  <!--  طلبات -->
-                <td class="bg-dark" style="color:red;font-weight:bolder;">{{ number_format($total_loans) }}</td>       <!--  قرضه -->
-                <td class="bg-dark" style="color:blue;font-weight:bolder;">{{ number_format($total_loan_balance) }}</td>
-                <td class="priceStyle">{{ number_format($general_total_balance) }}</td>
+                <td class="bg-dark" style="color:green;font-weight:bolder;">{{ number_format($total_talabat,2) }}</td>  <!--  طلبات -->
+                <td class="bg-dark" style="color:red;font-weight:bolder;">{{ number_format($total_loans,2) }}</td>       <!--  قرضه -->
+                <td class="bg-dark" style="color:blue;font-weight:bolder;">{{ number_format($total_loan_balance,2) }}</td>
+                <td class="priceStyle">{{ number_format($general_total_balance,2) }}</td>
             </tr>
         </tfoot>
     </table>

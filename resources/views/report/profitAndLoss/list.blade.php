@@ -86,7 +86,7 @@
                                                         <th rowspan="{{ $total_talabat_count + 1 }}" style="width:90px !important;">طلبات</th>
                                                         <td style="width:130px !important;color:{{$talabatBaseCurrency['color']}}">{{ $talabatBaseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$talabatBaseCurrency['color']}}">
-                                                        {{ number_format($talabatBaseCurrency['total_talabat']) ?? 'N/A' }}</td>
+                                                        {{ number_format($talabatBaseCurrency['total_talabat'],2) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
                                                     @foreach ($total_talabat as $talab)
@@ -95,9 +95,9 @@
                                                                 <td style="color:{{$talab['color']}}">{{ $talab['currency_name'] }} :</td>
                                                                 <td style="color:{{$talab['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($talab['total_talabat'] ?? 0) }}
+                                                                {{ number_format($talab['total_talabat'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($talab['converted_total_talab'] ?? 0) }}
+                                                                    {{ number_format($talab['converted_total_talab'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -105,7 +105,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedTalabat) }} {{ $talabatBaseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedTalabat,2) }} {{ $talabatBaseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -124,9 +124,9 @@
                                                                 <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_income'] ?? 0) }}
+                                                                {{ number_format($currency['total_income'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_income'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_income'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -134,7 +134,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedIncome) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedIncome,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -155,7 +155,7 @@
                                                             {{ $baseCurrency3['currency_name'] ?? 'N/A' }}:
                                                         </td>
                                                         <td style="color:{{ $baseCurrency3['color'] ?? '' }}">
-                                                            {{ number_format($baseCurrency3['total_profit'] ?? 0) }}
+                                                            {{ number_format($baseCurrency3['total_profit'],2 ?? 0) }}
                                                         </td>
                                                     </tr>
                                                     
@@ -165,9 +165,9 @@
                                                                 <td style="color:{{ $currency['color'] ?? '' }}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{ $currency['color'] ?? '' }}">
                                                                     <span class="custom_badge custom_badge_info">
-                                                                        {{ number_format($currency['total_profit'] ?? 0) }}
+                                                                        {{ number_format($currency['total_profit'],2 ?? 0) }}
                                                                     </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_profit'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_profit'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -176,7 +176,7 @@
 
                                                     <tr>
                                                         <td> <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedTotalProfit) }} {{ $baseCurrency3['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedTotalProfit,2) }} {{ $baseCurrency3['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -184,7 +184,7 @@
                                                     <tr>
                                                         <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">عواید فروشات +  مفاد شان</th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_sold']) ?? 'N/A' }}</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_sold'],2) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
                                                     @foreach ($currencies as $currency)
@@ -193,9 +193,9 @@
                                                                 <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_sold'] ?? 0) }}
+                                                                {{ number_format($currency['total_sold'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_sold'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_sold'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -203,7 +203,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedSoldIncome) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedSoldIncome,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
                                                 
@@ -237,7 +237,7 @@
                                                     <tr>
                                                         <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">قرضه </th>
                                                         <td style="width:130px !important;color:{{$loansBaseCurrency['color']}}">{{ $loansBaseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$loansBaseCurrency['color']}}">{{ number_format($loansBaseCurrency['total_loan']) ?? 'N/A' }}</td>
+                                                        <td style="color:{{$loansBaseCurrency['color']}}">{{ number_format($loansBaseCurrency['total_loan'],2) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
                                                     @foreach ($talabat as $loans)
@@ -246,9 +246,9 @@
                                                                 <td style="color:{{$loans['color']}}">{{ $loans['currency_name'] }} :</td>
                                                                 <td style="color:{{$loans['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($loans['total_loan'] ?? 0) }}
+                                                                {{ number_format($loans['total_loan'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($loans['converted_total_loan'] ?? 0) }}
+                                                                    {{ number_format($loans['converted_total_loan'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -256,7 +256,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedLoan) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedLoan,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
                                                 
@@ -265,7 +265,7 @@
                                                     <tr>
                                                         <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">مصارف متفرقه </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_expense']) ?? 'N/A' }}</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_expense'],2) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
                                                     @foreach ($currencies as $currency)
@@ -274,9 +274,9 @@
                                                                 <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_expense'] ?? 0) }}
+                                                                {{ number_format($currency['total_expense'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_expense'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_expense'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -284,7 +284,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedExpense) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedExpense,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -294,7 +294,7 @@
                                                     <tr>
                                                         <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> معاشات کارمندان </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_salary']) ?? 'N/A' }}</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_salary'],2) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
                                                     @foreach ($currencies as $currency)
@@ -303,9 +303,9 @@
                                                                 <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_salary'] ?? 0) }}
+                                                                {{ number_format($currency['total_salary'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_salary'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_salary'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -313,7 +313,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedSalary) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedSalary,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -323,7 +323,7 @@
                                                     <tr>
                                                         <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> خرید + ترانسپورت </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
-                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_bought']) ?? 'N/A' }}</td>
+                                                        <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_bought'],2) ?? 'N/A' }}</td>
                                                     </tr>
                                                     
                                                     @foreach ($currencies as $currency)
@@ -332,9 +332,9 @@
                                                                 <td style="color:{{$currency['color']}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color']}}">
                                                                  <span class="custom_badge custom_badge_info">
-                                                                {{ number_format($currency['total_bought'] ?? 0) }}
+                                                                {{ number_format($currency['total_bought'],2 ?? 0) }}
                                                                  </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_bought'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_bought'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -342,7 +342,7 @@
 
                                                     <tr>
                                                         <td>  <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConverted‌‌Bought) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConverted‌‌Bought,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -385,7 +385,7 @@
                                                             {{ $baseCurrency2['currency_name'] ?? 'N/A' }}:
                                                         </td>
                                                         <td style="color:{{ $baseCurrency2['color'] ?? '' }}">
-                                                            {{ number_format($baseCurrency2['total_warehouse_value'] ?? 0) }}
+                                                            {{ number_format($baseCurrency2['total_warehouse_value'],2 ?? 0) }}
                                                         </td>
                                                     </tr>
                                                     
@@ -395,9 +395,9 @@
                                                                 <td style="color:{{ $currency['color'] ?? '' }}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{ $currency['color'] ?? '' }}">
                                                                     <span class="custom_badge custom_badge_info">
-                                                                        {{ number_format($currency['total_warehouse_value'] ?? 0) }}
+                                                                        {{ number_format($currency['total_warehouse_value'],2 ?? 0) }}
                                                                     </span> &nbsp; =   
-                                                                    {{ number_format($currency['converted_total_warehouse_value'] ?? 0) }}
+                                                                    {{ number_format($currency['converted_total_warehouse_value'],2 ?? 0) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -406,7 +406,7 @@
 
                                                     <tr>
                                                         <td> <strong>قیمت مجموعی: </strong></td>
-                                                        <td><strong> {{ number_format($totalConvertedValue) }} {{ $baseCurrency2['symbols'] ?? 'N/A' }} </strong></td>
+                                                        <td><strong> {{ number_format($totalConvertedValue,2) }} {{ $baseCurrency2['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
@@ -420,7 +420,7 @@
                                                         </td>
                                                         <td style="color:{{$baseCurrency['color'] ?? ''}}">
                                                         {{ isset($baseCurrency['total_cache_in'], $baseCurrency['total_cache_out']) 
-                                                            ? number_format(($baseCurrency['total_cache_in'] ?? 0) - ($baseCurrency['total_cache_out'] ?? 0)) 
+                                                            ? number_format(($baseCurrency['total_cache_in'],2 ?? 0) - ($baseCurrency['total_cache_out'] ?? 0)) 
                                                             : 'N/A' }}
                                                         </td>
                                                     </tr>
@@ -437,9 +437,9 @@
                                                                 <td style="color:{{$currency['color'] ?? ''}}">{{ $currency['currency_name'] }} :</td>
                                                                 <td style="color:{{$currency['color'] ?? ''}}">
                                                                     <span class="custom_badge custom_badge_info">
-                                                                        {{ number_format($total_cache_in - $total_cache_out) }}
+                                                                        {{ number_format($total_cache_in - $total_cache_out,2) }}
                                                                     </span> &nbsp; =   
-                                                                    {{ number_format($converted_cache_in - $converted_cache_out) }}
+                                                                    {{ number_format($converted_cache_in - $converted_cache_out,2) }}
                                                                 </td>
                                                             </tr>
                                                         @endif
@@ -448,7 +448,7 @@
                                                     <tr>
                                                         <td><strong>قیمت مجموعی: </strong></td>
                                                         <td><strong> 
-                                                            {{ number_format($finalTotalCache) }} 
+                                                            {{ number_format($finalTotalCache,2) }} 
                                                             {{ $baseCurrency['symbols'] ?? 'N/A' }} 
                                                         </strong></td>
                                                     </tr>
@@ -464,7 +464,7 @@
                                                                        number_format( $totalConvertedValue + 
                                                                       $finalTotalCache + 
                                                                       $totalConvertedTalabat -
-                                                                      $totalConvertedLoan)
+                                                                      $totalConvertedLoan,2)
                                                                       }}</strong></td>
                                                             </tr>
                                                             <tr>

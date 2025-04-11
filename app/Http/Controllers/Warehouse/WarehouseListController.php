@@ -147,12 +147,28 @@ class WarehouseListController extends Controller
     public function getWarehouseItemForTransfer(string $id)
     {
         $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation'])
-        ->where('branch_id', $this->branch_id)->where('id', $id)->get();
+        ->where('branch_id', $this->branch_id)->where('id', $id)->first();
         $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
         $units = Unit::all();
         // return response()->json(['data' => $warehouseItems]);
         // return response()->json(['data' => $warehouse]);
         return view('warehouseitem.modalTransfer',compact('warehouseItems','warehouses','units'));
+
+    }
+
+    /**
+     * Get Warehouse Item for Conversion in the modal
+     */
+    public function getWarehouseItemForConversion(string $id)
+    {
+        $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation'])
+        ->where('branch_id', $this->branch_id)->where('id', $id)->first();
+
+        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
+        $units = Unit::all();
+        // return response()->json(['data' => $warehouseItems]);
+        // return response()->json(['data' => $warehouse]);
+        return view('warehouseitem.modalConversion',compact('warehouseItems','warehouses','units'));
 
     }
 
@@ -254,6 +270,107 @@ class WarehouseListController extends Controller
             return redirect()->route('warehousesList.details', $validated['id']);
         }
     }
+
+    
+    /**
+    *  Convert Item based on unit_id
+    */
+    public function updateConversion(Request $request)
+    { 
+        $validated = $request->validate([
+            'id' => 'required|exists:warehouse_items,id',
+            'source_warehouse_id' => 'required|min:1',
+            'distination_warehouse_id' => 'required|numeric|min:1',
+            'amount' => 'nullable|numeric|min:1',
+        ]);
+
+        DB::beginTransaction();
+        try 
+        {
+            // **Source Warehouse**
+            $sourceWareHouseItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
+            
+            // Check if amount is greater than available amount
+            if ($validated['amount'] > $sourceWareHouseItem->available_amount) {
+                throw new \Exception('Amount exceeds available stock.');
+            }
+
+            // Reduce stock from source warehouse
+            $sourceWareHouseItem->available_amount -= $validated['amount'];
+            $sourceWareHouseItem->out_amount += $validated['amount'];
+            $sourceWareHouseItem->available_total -= ($validated['amount'] * $sourceWareHouseItem->avg_up);
+            $sourceWareHouseItem->save();
+
+            // **Destination Warehouse**
+            $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
+                ->where('warehouse_id', $validated['distination_warehouse_id'])
+                ->first();
+
+            if (!$distWareHouseItem) 
+            {
+                \Log::info('Create New Record in Warehouse during transfer');
+                // Create new record in destination warehouse
+                $distWareHouseItem = new WarehouseItem();
+                $distWareHouseItem->branch_id = $this->branch_id ?? 0;
+                $distWareHouseItem->warehouse_id = $validated['distination_warehouse_id'];
+                $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
+                $distWareHouseItem->name = $sourceWareHouseItem->name;
+                $distWareHouseItem->unit_id = $sourceWareHouseItem->unit_id;
+                $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up;
+                $distWareHouseItem->available_amount = $validated['amount'];
+                $distWareHouseItem->in_amount = $validated['amount'];
+                $distWareHouseItem->out_amount = 0;
+                $distWareHouseItem->wastage_amount = 0;
+                $distWareHouseItem->wastage_total = 0;
+                $distWareHouseItem->avg_up = $sourceWareHouseItem->avg_up;
+                $distWareHouseItem->sell_up = $sourceWareHouseItem->sell_up;
+                $distWareHouseItem->total = $validated['amount'] * $sourceWareHouseItem->bought_up;
+                $distWareHouseItem->available_total = $validated['amount'] * $sourceWareHouseItem->avg_up;
+                $distWareHouseItem->currency_id = $sourceWareHouseItem->currency_id;
+                $distWareHouseItem->notification_amount = $sourceWareHouseItem->currency_id;
+                $distWareHouseItem->inserted_by =  auth()->user()->full_name ?? '';
+                $distWareHouseItem->expire_date =  $sourceWareHouseItem->expire_date;
+                $distWareHouseItem->inserted_short_date =  $sourceWareHouseItem->inserted_short_date;
+                $distWareHouseItem->year =  $sourceWareHouseItem->year;
+                $distWareHouseItem->month =  $sourceWareHouseItem->month;
+                $distWareHouseItem->day =  $sourceWareHouseItem->day;
+                $distWareHouseItem->save();
+
+            } 
+            else 
+            {
+                \Log::info('Increase stock in destination warehouse');
+                $total_available_amount = $distWareHouseItem->available_amount + $validated['amount'];
+                $distWareHouseItem->available_amount = $total_available_amount;
+                $distWareHouseItem->in_amount += $validated['amount'];
+                $distWareHouseItem->available_total = ($total_available_amount * $distWareHouseItem->avg_up);
+                $distWareHouseItem->save();
+            }
+
+            DB::commit();
+
+            Session::flash('notification', [
+                'message' => 'موفقانه انتقال گردید',
+                'type' => 'success',
+            ]);
+
+            return redirect()->route('warehousesList.details', $validated['id']);
+
+        } 
+        catch (\Exception $e) 
+        {
+            DB::rollBack();
+            \Log::error('Error in updateTransfer', ['error' => $e->getMessage()]);
+
+            Session::flash('notification', [
+                'message' => 'انتقال نگردید: ' . $e->getMessage(),
+                'type' => 'danger',
+            ]);
+
+            return redirect()->route('warehousesList.details', $validated['id']);
+        }
+    }
+
 
     /**
      * Show a form for inserting old items

@@ -23,7 +23,7 @@
                   @endif
 
                   @if($account->account_type_id == 2)
-                  <th> معاش خالص ماهانه</th><td>{{ number_format($account->net_salary) }} افغانی </td>
+                  <th> معاش خالص ماهانه</th><td>{{ number_format($account->net_salary,2) }} افغانی </td>
                   @endif
               </tr>
 
@@ -50,7 +50,7 @@
                     @foreach($journals as $index => $item) <!-- Loop through the data -->
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ number_format($item['amount']) }}</td>
+                            <td>{{ number_format($item['amount'],2) }}</td>
                             <td>{{ $item['options'] == 1 ? 'افزایش پول نقد' : ($item['options'] == 2 ? 'ثبت در بخش طلبات' : 'ثبت در بخش قرضه') }}</td>
                             <td>{{ $item->currencyRelation->name }}</td>
                         </tr>

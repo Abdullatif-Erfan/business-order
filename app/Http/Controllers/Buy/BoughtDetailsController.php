@@ -107,7 +107,9 @@ class BoughtDetailsController extends Controller
 
             ->addColumn('total_price', function ($boughtItem) {
                 $total_price = $boughtItem->total_price;
-                return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
+                // return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
+                return  number_format($total_price, 2);
+
             })
 
             ->addColumn('trans_spend', function ($boughtItem) {
@@ -243,7 +245,7 @@ class BoughtDetailsController extends Controller
         $month = $date[1];
         $day = $date[2];
         
-        $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
+        // $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
 
         // Check if a record with the same billno exists
         $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
@@ -262,7 +264,7 @@ class BoughtDetailsController extends Controller
                 'trans_spend'         => $request->trans_spend ?? 0,
                 'account_id'          => $request->from_account_id,
                 'customer_account_id' => $request->customer_account_id,
-                'note'                => $note,
+                'note'                => $request->note ?? '',
                 'is_cleared'         => 0,
             ]);
         } else {
@@ -282,7 +284,7 @@ class BoughtDetailsController extends Controller
                 'customer_account_id' => $request->customer_account_id,
                 'currency_id'         => $request->currency_id,
                 'trans_spend'         => $request->trans_spend ?? 0,
-                'note'                => $note,
+                'note'                => $request->note ?? '',
                 'idate'               => $short_date,
                 'year'                => $year,
                 'month'               => $month,
@@ -450,7 +452,7 @@ class BoughtDetailsController extends Controller
         ]);
     
         // Use proper null coalescing to avoid precedence issues
-        $note = "Total Payable: ".($request->payable ?? 0).", Paid: ".($request->cur_pay ?? 0).", Remained: ".($request->remained ?? 0);
+        // $note = "Total Payable: ".($request->payable ?? 0).", Paid: ".($request->cur_pay ?? 0).", Remained: ".($request->remained ?? 0);
         
         // Ensure you're updating a specific record by using the where clause first
         $BoughtItem = BoughtItem::where('billno', $request->billno)->where('branch_id', $this->branch_id)->first();
@@ -466,7 +468,7 @@ class BoughtDetailsController extends Controller
                 'cur_pay' => $request->cur_pay,
                 'remained' => $request->remained,
                 'trans_spend' => $request->trans_spend,
-                'note' => $note,
+                'note' => $request->note ?? '',
                 'times' => $request->times,
             ]);
     
@@ -743,7 +745,7 @@ class BoughtDetailsController extends Controller
             $boughtItems = BoughtItem::with(['account' => function($query) {
                 $query->select('id', 'name');
             }, 'currencyRelation' => function ($query){
-                $query->select('id','name');
+                $query->select('id','name','symbols');
             }])->where('times', $times)->get();
 
         // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
@@ -817,11 +819,11 @@ class BoughtDetailsController extends Controller
            
             $validated = $request->validate([
                 'journal_code' => 'required',
-                'billno' => 'required|integer|min:1',
+                'billno' => 'required|min:1',
                 'from_account_id' => 'required',
-                'total_price' => 'required|integer|min:1',
-                'payable' => 'required|integer|min:1',
-                'currency_id' => 'required|integer',
+                'total_price' => 'required|min:1',
+                'payable' => 'required|min:1',
+                'currency_id' => 'required',
             ], [
                 'journal_code.required' => 'کد ژورنال یافت نشد',
                 'billno.required' => 'بل نمبر ضروری میباشد',
@@ -834,7 +836,7 @@ class BoughtDetailsController extends Controller
 
             $boughtItem = BoughtItem::where('billno', $request->billno)->first();
 
-            $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
+            // $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
 
             $boughtItem->total_price = $request->total_price;
             $boughtItem->discount = $request->total_discount;
@@ -844,7 +846,7 @@ class BoughtDetailsController extends Controller
             $boughtItem->currency_id = $request->currency_id;
             $boughtItem->trans_spend = $request->trans_spend;
             $boughtItem->account_id = $request->from_account_id;
-            $boughtItem->note = $note;
+            $boughtItem->note = $request->note ?? '';
             $boughtItem->save();
 
             // delete journal records
@@ -907,6 +909,7 @@ class BoughtDetailsController extends Controller
         $warehouseItems = WarehouseItem::with('warehouseRelation')
             ->where('buy_pre_id', (int) $boughtItemDetails->pre_list_id) // Ensure correct type
             ->where('branch_id', $this->branch_id)
+            ->where('unit_id', (int) $boughtItemDetails->unit_id)
             ->get();
 
         //  return response()->json(['boughtItemDetails' => $boughtItemDetails]);
@@ -924,22 +927,22 @@ class BoughtDetailsController extends Controller
         // return response()->json(['formData' => $request->all()]);
         // Validate input data
         $validated = $request->validate([
-            'id'                => 'required|exists:bought_item_details,id',
-            'amount'            => 'required|numeric|min:0',
-            'bought_up'         => 'required|numeric|min:0',
-            'discount'          => 'nullable|numeric|min:0',
-            'transport'         => 'nullable|numeric|min:0',
-            'unit_id'           => 'required|exists:units,id',
-            'warehouse_id'      => 'required|array',
-            'warehouse_id.*'    => 'required|numeric',
-            'pre_list_id'       => 'required|exists:warehouse_items,buy_pre_id',
-            'increment'         => 'nullable|array',
-            'increment.*'       => 'nullable|numeric|min:0',
-            'decrement'         => 'nullable|array',
-            'decrement.*'       => 'nullable|numeric|min:0',
-            'notification_amount' => 'nullable|numeric|min:0',
-            'expire_date'       => 'nullable|date',
-            'times'             => 'required|string',
+            'id'                    => 'required|exists:bought_item_details,id',
+            'amount'                => 'required|numeric|min:0',
+            'bought_up'             => 'required|numeric|min:0',
+            'discount'              => 'nullable|numeric|min:0',
+            'transport'             => 'nullable|numeric|min:0',
+            'unit_id'               => 'required|exists:units,id',
+            'warehouse_id'          => 'required|array',
+            'warehouse_id.*'        => 'required|numeric',
+            'pre_list_id'           => 'required|exists:warehouse_items,buy_pre_id',
+            'increment'             => 'nullable|array',
+            'increment.*'           => 'nullable|numeric|min:0',
+            'decrement'             => 'nullable|array',
+            'decrement.*'           => 'nullable|numeric|min:0',
+            'notification_amount'   => 'nullable|numeric|min:0',
+            'expire_date'           => 'nullable|date',
+            'times'                 => 'required|string',
         ]);
         
 

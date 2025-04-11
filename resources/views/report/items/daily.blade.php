@@ -166,15 +166,15 @@
 
                                                 <tr class="{{ $isToday }}">
                                                     <td>{{ $dayName }}</td>
-                                                    <td>{{ number_format($warehouseValue) }}</td>
-                                                    <td>{{ number_format($salesPayable) }}</td>
-                                                    <td>{{ number_format($salesCurPay) }}</td>
-                                                    <td>{{ number_format($salesRemained) }}</td>
-                                                    <td>{{ number_format($salesProfit) }}</td>
-                                                    <td>{{ number_format($boughtPayable) }}</td>
-                                                    <td>{{ number_format($boughtCurPay) }}</td>
-                                                    <td>{{ number_format($boughtRemained) }}</td>
-                                                    <td>{{ number_format($boughtTransport) }}</td>
+                                                    <td>{{ number_format($warehouseValue,2) }}</td>
+                                                    <td>{{ number_format($salesPayable,2) }}</td>
+                                                    <td>{{ number_format($salesCurPay,2) }}</td>
+                                                    <td>{{ number_format($salesRemained,2) }}</td>
+                                                    <td>{{ number_format($salesProfit,2) }}</td>
+                                                    <td>{{ number_format($boughtPayable,2) }}</td>
+                                                    <td>{{ number_format($boughtCurPay,2) }}</td>
+                                                    <td>{{ number_format($boughtRemained,2) }}</td>
+                                                    <td>{{ number_format($boughtTransport,2) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -182,15 +182,15 @@
                                         <tfoot>
                                             <tr style="background-color:#fff8d9">
                                                 <td><strong>مجموع</strong></td>
-                                                <td><strong>{{ number_format($totalWarehouseValue) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesPayable) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesCurPay) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesRemained) }}</strong></td>
-                                                <td><strong>{{ number_format($totalSalesProfit) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtPayable) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtCurPay) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtRemained) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtTransport) }}</strong></td>
+                                                <td><strong>{{ number_format($totalWarehouseValue,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesPayable,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesCurPay,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesRemained,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalSalesProfit,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtPayable,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtCurPay,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtRemained,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtTransport,2) }}</strong></td>
                                             </tr>
                                         </tfoot>
                                     </table>

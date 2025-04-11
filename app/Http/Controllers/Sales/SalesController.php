@@ -74,7 +74,7 @@ class SalesController extends Controller
             } elseif ($request->start_date) {
                 $soldItems->whereDate('short_date', '=', $request->start_date);
             } elseif ($request->end_date) {
-                $soldItems->whereDate('short_date', '<=', $request->end_date); // Until today
+                $soldItems->whereDate('short_date', '>=', $request->end_date); // Until today
             }
             
             if ($request->bill_number) {

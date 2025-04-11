@@ -76,11 +76,11 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td>{{ number_format($detail->amount) }} </td>
-                                                    <td>{{ $detail->unitRelation->name }}</td>
-                                                    <td>{{ number_format($detail->sell_up) }} </td>
-                                                    <td>{{ number_format($detail->discount) }} </td>
-                                                    <td>{{ number_format($detail->total) }}</td>
+                                                    <td>{{ number_format($detail->amount,2) }} </td>
+                                                    <td>{{ $detail->unitRelation->name,2 }}</td>
+                                                    <td>{{ number_format($detail->sell_up,2) }} </td>
+                                                    <td>{{ number_format($detail->discount,2) }} </td>
+                                                    <td>{{ number_format($detail->total,2) }}</td>
                                                 </tr>
                                                   @endforeach
                                                 <tr>
@@ -97,21 +97,21 @@
                                                     </td>
                                                     <td colspan="2" class="price-section">مجموع بل</td>
                                                     <td class="price-section">
-                                                        {{ number_format($warehouseSales->first()->total_price) }}
+                                                        {{ number_format($warehouseSales->first()->total_price,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  تخفیف </td>
                                                     <td  class="price-section">
-                                                         {{  number_format($warehouseSales->first()->total_discount) }}
+                                                         {{  number_format($warehouseSales->first()->total_discount,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" class="price-section">  قابل پرداخت </td>
                                                     <td class="price-section">
-                                                         {{ number_format($warehouseSales->first()->payable) }}
+                                                         {{ number_format($warehouseSales->first()->payable,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -119,7 +119,7 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section"> پرداخت فعلی  </td>
                                                     <td  class="price-section">
-                                                        {{ number_format($warehouseSales->first()->cur_pay) }}
+                                                        {{ number_format($warehouseSales->first()->cur_pay,2) }}
                                                          {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -132,7 +132,7 @@
                                                   @endphp
                                                     <td colspan="2" class="price-section">  باقی  </td>
                                                     <td  class="price-section">
-                                                          {{  number_format($warehouseSales->first()->remained) }}
+                                                          {{  number_format($warehouseSales->first()->remained,2) }}
                                                           {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -140,7 +140,7 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section">بقایای سابقه</td>
                                                     <td class="price-section">
-                                                        {{ number_format($prev_baqi) }} 
+                                                        {{ number_format($prev_baqi,2) }} 
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -148,7 +148,7 @@
                                                 <tr>
                                                     <td colspan="2" class="price-section">طلبات سابقه</td>
                                                     <td class="price-section">
-                                                        {{ number_format($prev_talab) }}
+                                                        {{ number_format($prev_talab,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
@@ -156,7 +156,7 @@
                                                 <tr>
                                                     <td colspan="2" class="final-total">مبلغ مجموعی قابل پرداخت</td>
                                                     <td class="final-total">
-                                                        {{ number_format($balance) }}
+                                                        {{ number_format($balance,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>

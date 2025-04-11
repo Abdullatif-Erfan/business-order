@@ -84,7 +84,6 @@
                                     <i class="fa fa-arrow-left"></i>
                                 </a>
                                 لیست بارکدها برای چاپ 
-
                                 <button onclick="print_page_with_image_grid()" class="btn btn-info btn-sm pull-left m-l-20">چاپ </button>
                             </h3>
 

@@ -65,7 +65,7 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $value->billno }}</td>
-                                            <td>{{ number_format($value->remained) }}</td>
+                                            <td>{{ number_format($value->remained,2) }}</td>
                                             <td>
                                                 <input type="checkbox" name="check[{{ $key }}]" class="remained-checkbox" checked value="1" data-amount="{{ $value->remained }}">
                                                 <input type="hidden" name="bill_numbers[{{ $key }}]" value="{{ $value->billno }}">
@@ -78,8 +78,8 @@
                                           <tr style="background:#eefcff">
                                               <td colspan="2">مبلغ مجموعی</td>
                                               <td>
-                                                 <strong id="totalAmount">{{ number_format($total) }}</strong>
-                                                 <input type="hidden" name="total" id="total_price" value="{{ number_format($total) }}">
+                                                 <strong id="totalAmount">{{ number_format($total,2) }}</strong>
+                                                 <input type="hidden" name="total" id="total_price" value="{{ number_format($total,2) }}">
                                               
                                               </td>
                                                <td></td>

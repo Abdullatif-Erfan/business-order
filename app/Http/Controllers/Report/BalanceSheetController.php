@@ -198,11 +198,11 @@ class BalanceSheetController extends Controller
             ->addColumn('cache_recieved', function ($account) use ($account_type_id) {
                 if($account_type_id == 1 || $account_type_id == 6)
                 {
-                    return $account->cache_recieved ? number_format($account->cache_recieved) : null;
+                    return $account->cache_recieved ? number_format($account->cache_recieved,2) : null;
                 }
                 else 
                 {
-                    return $account->cache_paid ? number_format($account->cache_paid) : null;
+                    return $account->cache_paid ? number_format($account->cache_paid,2) : null;
                 }
             })
             
@@ -210,11 +210,11 @@ class BalanceSheetController extends Controller
             ->addColumn('cache_paid', function ($account) use ($account_type_id) {
                 if($account_type_id == 1 || $account_type_id == 6)
                 {
-                    return $account->cache_paid ? number_format($account->cache_paid) : null;
+                    return $account->cache_paid ? number_format($account->cache_paid,2) : null;
                 }
                 else 
                 {
-                    return $account->cache_recieved ? number_format($account->cache_recieved) : null;
+                    return $account->cache_recieved ? number_format($account->cache_recieved,2) : null;
                 }
             })
 
@@ -223,11 +223,11 @@ class BalanceSheetController extends Controller
             {
                 if($account_type_id == 1)
                 {
-                    return $total_loans ? number_format($total_loans) : null;
+                    return $total_loans ? number_format($total_loans,2) : null;
                 }
                 else 
                 {
-                    return $account->loan_recieved ? number_format($account->loan_recieved) : null;
+                    return $account->loan_recieved ? number_format($account->loan_recieved,2) : null;
                 }
             })
 
@@ -237,11 +237,11 @@ class BalanceSheetController extends Controller
                 if($account_type_id == 1 || $account_type_id == 6)
                 {
                     // $loans = $account->cust_cache_recieved + $account->loan_recieved;
-                    return $total_talabat ? number_format($total_talabat) : null;
+                    return $total_talabat ? number_format($total_talabat,2) : null;
                 }
                 else 
                 {
-                    return $account->loan_paid ? number_format($account->loan_paid) : null;
+                    return $account->loan_paid ? number_format($account->loan_paid,2) : null;
                 }
             })
             ->addColumn('balance', function ($account) use ($account_type_id, $total_loans, $total_talabat) 
@@ -256,7 +256,7 @@ class BalanceSheetController extends Controller
                 }
                 
                 $account->computed_balance = $balance; // Store it in the object
-                return number_format($balance);
+                return number_format($balance,2);
             })
             ->addColumn('currency', function ($account) use ($currency_symbol, $currency_color) {
                 return '<i style="font-size:14px;color:'.$currency_color.'">'.$currency_symbol.'</i>';

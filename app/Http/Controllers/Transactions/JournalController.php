@@ -135,23 +135,23 @@ class JournalController extends Controller
             
             // cacheRecieved = t1p1 = دریافت نقد
             ->addColumn('cacheRecieved', function ($journal) {
-                if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
+                if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return number_format($journal->amount,2); }
             })
 
                // cachePaid  = t2p1 = پرداخت نقد
             ->addColumn('cachePaid', function ($journal) {
-                if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return number_format($journal->amount); }
+                if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return number_format($journal->amount,2); }
             })
             
             // loanRecieved = t1p2 = قرضه
             ->addColumn('loanRecieved', function ($journal) {
-               if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
+               if (($journal->transaction_type == 1 && $journal->payment_type == 2)) {  return number_format($journal->amount,2); }
             })
             
 
            // loanPaid = t2p2 = طلب
             ->addColumn('loanPaid', function ($journal) {
-               if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return number_format($journal->amount); }
+               if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return number_format($journal->amount,2); }
            })
             
 

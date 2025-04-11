@@ -129,11 +129,11 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td>{{ number_format($detail->amount) }}</td>
+                                                    <td>{{ number_format($detail->amount,2) }}</td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
-                                                    <td>{{ number_format($detail->sell_up) }}</td>
-                                                    <td>{{ number_format($detail->discount) }}</td>
-                                                    <td>{{ number_format($detail->total) }}</td>
+                                                    <td>{{ number_format($detail->sell_up,2) }}</td>
+                                                    <td>{{ number_format($detail->discount,2) }}</td>
+                                                    <td>{{ number_format($detail->total,2) }}</td>
                                                     <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>
                                                         <td class="hidden-print"><i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i></td>
                                                 </tr>

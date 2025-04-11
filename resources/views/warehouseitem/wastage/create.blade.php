@@ -34,25 +34,21 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم فروشات  
+                            <h4 class="card-title">فورم ثبت ضایعات اجناس و تاریخ گذشته  
                                 <span class="pull-left">
-                                    <a href="{{ route('sales.index') }}">
+                                    <a href="{{ route('warehousesList.wastage') }}">
                                         <button class="btn mybtn bg-default"> برگشت به لیست </button>
                                     </a>
                                 </span>
-                                
-                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10"> 
-                                 نوت : </strong>دریک بل نمبر صرف فروش به یک مشتری را ثبت نمایید </small>
                             </h4>
                         </div>
 
-                        <form id="buyingForm" action="{{ route('sales.store') }}" method="POST">
+                        <form id="buyingForm" action="{{ route('warehousesList.wastage.store') }}" method="POST">
                         @csrf
 
                         <!-- {{ json_encode(auth()->user()->full_name) }} -->
                         <!-- {{ json_encode(auth()->user()->id) }} -->
-                        <input type="hidden" name="times" value="{{ $times ?? 0 }}">
-                        <input type="hidden" name="code" value="{{ $journal_code ?? 0 }}">
+                        <input type="hidden" name="todays_date" value="{{ $todays_date ?? 0 }}">
                         
 
                         
@@ -81,54 +77,12 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                      
 
-                                    <!-- First Row -->
-                                    <div class="col-md-12">
-                                        <div class="row">
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="customer_account_id">انتخاب مشتری <span class="danger">*</span></label>
-                                                    <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                                        <option value=""> انتخاب مشتری </option>
-                                                        @foreach($customers as $customer)
-                                                            <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('customer_account_id')
-                                                        <span style='color:red'>{{ $message }}</span>
-                                                    @enderror
-                                            </div>
-
-
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="todays_date">تاریخ <span class="danger">*</span></label>
-                                                <div class="input-group " data-provide="datepicker">
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#todays_date" data-englishnumber="true">
-                                                            <span class="fa fa-calendar"></span> 
-                                                        </span>
-                                                    </div>
-                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="تاریخ ثبت" data-placement="right" data-englishnumber="true">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno"> بل نمبر <span class="danger">*</span></label>
-                                                    <input type="number" tabindex="2" class="form-control" value="{{ $billno }}" name="billno" id="billno" placeholder=" بل نمبر" required readonly>
-                                            </div>
-
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="factor">  فاکتور </label>
-                                                    <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="نمبر فاکتور"  >
-                                            </div>
-
-                                            
-                                        </div>
-                                    </div>
-                                    <!-- / first Row -->
+                                   
 
                                     <!-- Second Row -->
                                     <div class="col-md-12 m-t-20">
                                         <div class="row">
-                                           @include('sales.create.dynamic_item_list')
+                                           @include('warehouseitem.wastage.dynamic_form')
                                         </div>
                                     </div>
                                     <!-- / Second Row -->
@@ -136,13 +90,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <hr />
                                  
 
-                                    <!-- Second Row -->
-                                     <div class="col-md-12 m-t-20">
-                                        <div class="row">
-                                           @include('sales.create.result_form')
-                                        </div>
-                                    </div>
-                                    <!-- / Second Row -->
+                                 
 
 
                                     <!-- Submit and Cancel Buttons -->
@@ -152,7 +100,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left" >
                                             </div>
                                             <div class="col-3 col-xs-6">
-                                            <a href="{{ route('sales.index') }}">
+                                            <a href="{{ route('warehousesList.wastage') }}">
                                             <button type="button"  class="form-control btn bg-danger">لغو</button>
                                             </a>
                                             </div>

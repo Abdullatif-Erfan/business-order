@@ -64,7 +64,7 @@
 											<td><?=$id?></td>
 											<td><?=$value['jcode']?></td>
 											<td><a target="_blank" href="<?=base_url().'ledgerDetails/'.$value['accountId'].'/'.$value['currencys']?>"><?=$value['account_name']?></a></td>
-											<td><?=number_format($value['total_debit'])?></td>
+											<td><?=number_format($value['total_debit'],2)?></td>
 											<td><?=$value['to_account_name']?></td>
 											<td><?=$value['year']?></td>
 											<td><?=show_this_month($value['month'])?></td>
@@ -93,7 +93,7 @@
 								<tfoot>
 									<tr  style="background:#eefcff">
 										<td colspan="3"><center>مجموع</center></td>
-										<td><?=number_format($total)?></td>
+										<td><?=number_format($total,2)?></td>
 										<td colspan="5"></td>
 									</tr>
 								</tfoot>

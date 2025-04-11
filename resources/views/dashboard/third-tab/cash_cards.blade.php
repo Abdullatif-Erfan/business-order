@@ -15,9 +15,9 @@
          $balance = $received - $paid;
          
          // Format the received, paid, and balance values
-         $formatted_received = number_format($received);
-         $formatted_paid = number_format($paid);
-         $formatted_balance = number_format($balance);
+         $formatted_received = number_format($received,2);
+         $formatted_paid = number_format($paid,2);
+         $formatted_balance = number_format($balance,2);
       @endphp
         <div class="col-sm-6 col-lg-5">
             <div class="card p-3">

@@ -141,10 +141,10 @@
                                                         <td>{{ $detail->preListRelation->name }}</td>
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
-                                                        <td>{{ number_format($detail->bought_up) }}</td>
-                                                        <td>{{ number_format($detail->total) }}</td>
-                                                        <td>{{ number_format($detail->discount) }} </td>
-                                                        <td>{{ number_format($detail->transport) }}</td>
+                                                        <td>{{ number_format($detail->bought_up,2) }}</td>
+                                                        <td>{{ number_format($detail->total,2)}}</td>
+                                                        <td>{{ number_format($detail->discount,2) }} </td>
+                                                        <td>{{ number_format($detail->transport,2) }}</td>
                                                         <td>{{ $detail->expire_date }} </td>
                                                     
                                                         <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>
@@ -176,6 +176,11 @@
                                                 <td> باقی </td>
                                                 <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
                                                 value="{{ $payable - $boughtItems->first()->cur_pay }}" ></td>
+                                            </tr>
+                                            <tr>
+                                               <td>نوت</td>
+                                                <td colspan="5"><input type="text"  class="form-control" name="note" id="note"
+                                                value="{{ $boughtItems->first()->note }}" ></td>
                                             </tr>
                                         </table>
 
