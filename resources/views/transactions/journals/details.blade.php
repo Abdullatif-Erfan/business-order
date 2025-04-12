@@ -165,9 +165,9 @@
                                         @else
                                             @php
                                                 $extension = pathinfo($journals[0]['doc'], PATHINFO_EXTENSION);
-                                                $path = asset("storage/{$journals[0]['doc']}");
+                                                $path = asset("{$journals[0]['doc']}");
                                             @endphp
-                                            @if(in_array($extension, ['jpg', 'jpeg', 'png', 'gif']))
+                                            @if(in_array($extension, ['jpg', 'jpeg', 'png','PNG', 'gif']))
                                                 <img class="img-fluid" src="{{ $path }}" alt=""> 
                                             @else
                                                 <a href="{{ $path }}">

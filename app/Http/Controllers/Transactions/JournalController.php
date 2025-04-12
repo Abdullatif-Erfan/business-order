@@ -365,19 +365,28 @@ class JournalController extends Controller
             $to_account_id = $request->to_account_id;
             $to_details = $request->to_details;
 
+
+            $filePath = null;
+            if ($request->hasFile('doc')) {
+                $file = $request->file('doc');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('documents'), $fileName);
+                $filePath = 'documents/' . $fileName;
+            }
+
              // معاملات نقد به نقد
              if(intval($request->options) === 1) 
              {
                 // ثبت پرداخت توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
                 $optionLable = 'پرداخت نقد';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
                 
      
                  // ثبت دریافت توسط دریافت کننده = recieved(ttype=1) cache(ptype=1)
                  $optionLable = 'دریافت نقد';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times);
+                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
              } 
           
              // معاملات نسیه به نسیه
@@ -386,12 +395,12 @@ class JournalController extends Controller
                  // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
                 $optionLable = 'پرداخت قرض';
                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);
+                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
                 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
                  $optionLable = 'دریافت قرض';
                  $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times);
+                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
              }
              // معاملات نقد به نسیه
              else if(intval($request->options) === 3)
@@ -425,24 +434,24 @@ class JournalController extends Controller
                     // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
                     $optionLable = 'پرداخت نقد';
                     $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                             $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                                             $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
     
                     // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
                     $optionLable = 'دریافت قرض';
                     $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                            $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
+                                            $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
                 } 
                 else if($isToCompanyAccount)  // خزانه خودش قرض میگیرد
                 {
                     // دریافت نقد توسط خزانه بطور قرض  = Recieved(ttype=1), Caceh(ptype=1) 
                     $optionLable = 'دریافت قرض';
                     $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                    $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times);
+                    $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
                     
                     // ثبت طلب توسط  مشتری = Paid (ttype=2) loan(ptype=2)
                     $optionLable = 'ثبت طلب';
                     $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                            $ttype = "2", $ptype="2", $full_date, $date, $from_details,  $newJournalCode, $times);
+                                            $ttype = "2", $ptype="2", $full_date, $date, $from_details,  $newJournalCode, $times, $filePath);
                 }
                 else
                 {
@@ -481,24 +490,24 @@ class JournalController extends Controller
                     // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
                     $optionLable = 'دریافت نقد'; 
                     $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                         $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times);
+                         $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
 
                     // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
                     $optionLable = 'رسید قرض';
                     $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                             $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times);    
+                             $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);    
                 }
                 else if($isFromCompanyAccount)  // پرداخت کننده قرض خزانه میباشد
                 {
                     // پرداخت نقد از خزانه = paid(ttype=2), cache(ptype=1)
                     $optionLable = 'پرداخت نقد'; 
                     $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                              $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times);
+                              $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
                     
                     //  دریافت قرض = Received (ttype=1), loan(ptype=2) 
                     $optionLable = 'رسیدگی قرض';
                     $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                           $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times);
+                           $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
                 } 
                 else 
                 {
@@ -605,15 +614,8 @@ class JournalController extends Controller
    
 
     private function createJournalEntry($request, $optionLable, $account_id, $currency_id, $amount, $ttype, $ptype,  
-        $full_date, $date, $details, $code, $times)
+        $full_date, $date, $details, $code, $times, $filePath = null)
     {
-            // Handle the file upload
-            $docPath = '';
-            if ($request->hasFile('doc')) {
-                $docPath = $request->file('doc')->store('documents', 'public');
-                Log::info('Document uploaded', ['path' => $docPath]);
-            }
-
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
 
             // Create the Journal entry
@@ -640,7 +642,7 @@ class JournalController extends Controller
                 'inserted_full_date' => $full_date,
                 'details' => $details,
                 'status' => 2,  
-                'doc' => $docPath,
+                'doc' => $filePath,
                 'times' => $times,
                 'is_single_record' => 1,
             ]);
@@ -727,7 +729,15 @@ class JournalController extends Controller
                 ]);
                 return back();
             }
-        
+
+            $filePath = null;
+            if ($request->hasFile('doc')) {
+                $file = $request->file('doc');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = 'documents/' . $fileName;
+                $file->move(public_path('documents'), $fileName);
+            }
+                    
 
             // Get the current date and time
             $todaysDate = $request->todays_date;
@@ -753,11 +763,8 @@ class JournalController extends Controller
             $journal1->currency_id = $request->from_currency_id;
             $journal1->details = $request->from_details;
             $journal1->user = $this->full_name ?? '';
-            // Handle the file upload if new file is uploaded
-            if ($request->hasFile('doc')) {
-                $docPath = $request->file('doc')->store('documents', 'public');
-                $journal1->doc = $docPath;
-            }
+            $journal1->doc = $filePath;
+
             $journal1->save();
         
             // =========== Update the second journal entry ("received cache") ======================
@@ -773,12 +780,7 @@ class JournalController extends Controller
             $journal2->amount = $to_amount;
             $journal2->currency_id = $request->to_currency_id;
             $journal2->details = $request->to_details;
-            
-            // Handle the file upload if new file is uploaded
-            if ($request->hasFile('doc')) {
-                $docPath = $request->file('doc')->store('documents', 'public');
-                $journal2->doc = $docPath;
-            }
+            $journal2->doc = $filePath;
             $journal2->save();
 
 
@@ -908,7 +910,7 @@ class JournalController extends Controller
     public function update_document(Request $request)
     {
         $request->validate([
-            'doc' => 'required|file|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:2048',
+            'doc' => 'required|file|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:4048',
         ]);
     
         // Fetch all journals based on the given times
@@ -921,7 +923,11 @@ class JournalController extends Controller
     
         // Handle file upload if a new file is uploaded
         if ($request->hasFile('doc')) {
-            $docPath = $request->file('doc')->store('documents', 'public');
+
+            $file = $request->file('doc');
+            $fileName = time() . '_' . $file->getClientOriginalName(); 
+            $file->move(public_path('documents'), $fileName); 
+            $docPath = 'documents/' . $fileName; 
             
             // Loop through each journal and update the doc field
             foreach ($journals as $journal) {
@@ -955,9 +961,11 @@ class JournalController extends Controller
             if ($journals->isNotEmpty()) {
                 // Loop through each journal and delete its associated file
                 foreach ($journals as $journal) {
-                    // Optionally delete the associated file if needed
-                    if (Storage::exists('public/documents/' . $journal->doc)) {
-                        Storage::delete('public/documents/' . $journal->doc);
+                   
+                    $filePath = public_path('documents/' . $journal->doc);
+                    // Check if the file exists and delete it
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
                     }
 
                     // Delete the journal record

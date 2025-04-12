@@ -203,8 +203,14 @@ function print_page() {
 }
 
 
-function print_page_with_image() {
-    var data = document.getElementById("print_area").innerHTML;
+function print_page_with_image(id=null) {
+	if(id == 2) {
+		var data = document.getElementById("print_area"+id).innerHTML;
+	}
+	else 
+	{
+		var data = document.getElementById("print_area").innerHTML;
+	}
 
     var printWindow = window.open("", "PrintWindow", "");
     printWindow.document.write(`

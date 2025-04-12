@@ -11,10 +11,8 @@ use App\Models\Setting\Branch;
 use Morilog\Jalali\Jalalian;
 use Yajra\DataTables\Facades\DataTables;
 
-
 class BoughtController extends Controller
 {
-
     protected $branch_id, $isAdmin;
     public function __construct()
     {
@@ -62,8 +60,8 @@ class BoughtController extends Controller
             ->make(true);
     }
     /**
-     * Show the form for creating a new resource.
-     */
+    * Show the form for creating a new resource.
+    */
     public function create()
     {
         $accounts = Account::where('branch_id', $this->branch_id)->get(); // Fetch all accounts

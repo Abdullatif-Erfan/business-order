@@ -237,12 +237,60 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    </div>
 
+
+
+
+                                    <!-- پارچه گدام -->
+                                    <div class="visible-print" style="width:100%;margin: 35px 0px; overflow:hidden; height: 24px;color:#000"> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ </div>
+                                        <div class="container col-md-12 col-sm-12 col-xs-12 visible-print" id="print_area2">
+                                        <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
+                                            <table style="width:100%">
+                                            <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
+                                                    <td colspan="2">
+                                                    <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>تاریخ ثبت : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
+                                                    <td>نمبر بل : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td> مشتری : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
+                                                    <td> کاربر : {{ $warehouseSales->first()->iby ?? '' }}</td>
+                                                </tr>
+                                            </table>
+                                            <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered new" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>شماره</th>
+                                                            <th> جنس </th>
+                                                            <th>تعداد فروش</th>
+                                                            <th>واحد</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($salesDetails as $key => $detail)
+                                                        <tr>
+                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>{{ $detail->preListRelation->name ?? ' '}}</td>
+                                                            <td>{{ number_format($detail->amount,2) }} </td>
+                                                            <td>{{ $detail->unitRelation->name }}</td>
+                                                        </tr>
+                                                        @endforeach
+
+                                                        
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
 
                                
 
 
-                                </div>
 
                                 <!-- buttons -->
                                 <div class="col-md-8 col-sm-8 col-xs-12 m-t-20">
@@ -251,6 +299,11 @@
                                     <!-- print button -->
                                     <button onclick="print_page_with_image()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
                                     <i class="fas fa-print"></i>  چاپ  بل 
+                                    </button>
+
+
+                                    <button onclick="print_page_with_image(2)" class="btn btn-success btn-sm m-r-10 hidden-print" >
+                                    <i class="fas fa-print"></i>  پارچه گدام   
                                     </button>
                                             
                                     <!-- edit button -->
