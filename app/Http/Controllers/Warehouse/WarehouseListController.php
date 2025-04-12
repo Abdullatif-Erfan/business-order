@@ -70,7 +70,8 @@ class WarehouseListController extends Controller
         $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
         ->where('warehouse_id', $warehouse_id)
         ->where('branch_id', $this->branch_id)
-        ->orderBy('id','DESC');
+        ->orderBy('id','DESC')
+        ->orderBy('buy_pre_id','DESC');
             
     
         if ($request->input('item_name')) {
@@ -136,7 +137,7 @@ class WarehouseListController extends Controller
         ->where('id', $id)->get();
         $warehouse = Warehouse::select('name')->where('id',$warehouseItems->first()->warehouse_id)->where('branch_id', $this->branch_id)->first();
 
-        //  return response()->json(['data' => $WarehouseItems]);
+        //  return response()->json(['warehouseItems' => $WarehouseItems]);
 
          return view('warehouseitem.details',compact('todaysDate','orgbios','warehouseItems','warehouse','currencies','units'));
     }
@@ -204,14 +205,18 @@ class WarehouseListController extends Controller
             // **Destination Warehouse**
             $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
                 ->where('warehouse_id', $validated['distination_warehouse_id'])
+                ->where('branch_id', $this->branch_id)
                 ->first();
+
+
 
             if (!$distWareHouseItem) 
             {
-                \Log::info('Create New Record in Warehouse during transfer');
+                // \Log::info('Create New Record in Warehouse during transfer');
                 // Create new record in destination warehouse
                 $distWareHouseItem = new WarehouseItem();
                 $distWareHouseItem->branch_id = $this->branch_id ?? 0;
+                $distWareHouseItem->name = $validated['item_name'] ?? '';
                 $distWareHouseItem->warehouse_id = $validated['distination_warehouse_id'];
                 $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
                 $distWareHouseItem->name = $sourceWareHouseItem->name;
@@ -234,12 +239,13 @@ class WarehouseListController extends Controller
                 $distWareHouseItem->year =  $sourceWareHouseItem->year;
                 $distWareHouseItem->month =  $sourceWareHouseItem->month;
                 $distWareHouseItem->day =  $sourceWareHouseItem->day;
+                $distWareHouseItem->is_cleared = 0;
                 $distWareHouseItem->save();
 
             } 
             else 
             {
-                \Log::info('Increase stock in destination warehouse');
+                // \Log::info('Increase stock in destination warehouse');
                 $total_available_amount = $distWareHouseItem->available_amount + $validated['amount'];
                 $distWareHouseItem->available_amount = $total_available_amount;
                 $distWareHouseItem->in_amount += $validated['amount'];
@@ -277,55 +283,67 @@ class WarehouseListController extends Controller
     */
     public function updateConversion(Request $request)
     { 
+        // return response()->json(['data' => $request->all()]);
+
         $validated = $request->validate([
             'id' => 'required|exists:warehouse_items,id',
             'source_warehouse_id' => 'required|min:1',
-            'distination_warehouse_id' => 'required|numeric|min:1',
-            'amount' => 'nullable|numeric|min:1',
+            'convertable_amount' => 'required|numeric|min:1',
+            'options' => 'required|numeric|min:1',
+            'new_unit_id' => 'required|numeric|min:1',
+            'converted_amount' => 'required|numeric|min:1',
         ]);
 
         DB::beginTransaction();
         try 
         {
+            /**
+             * مقدار اجناس انتخاب شده باید از مقدار قبلی اش کم شود
+             * مقدار اجناس با واحد جدید اگر قبلا وجود داشت آپدیت شود مقدارش و اگر نداشت جدیدا ثبت شود
+             */
             // **Source Warehouse**
             $sourceWareHouseItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
             
-            // Check if amount is greater than available amount
-            if ($validated['amount'] > $sourceWareHouseItem->available_amount) {
+            // Check if convertable_amount is greater than stock available_amount
+            if ($validated['convertable_amount'] > $sourceWareHouseItem->available_amount) {
                 throw new \Exception('Amount exceeds available stock.');
             }
 
             // Reduce stock from source warehouse
-            $sourceWareHouseItem->available_amount -= $validated['amount'];
-            $sourceWareHouseItem->out_amount += $validated['amount'];
-            $sourceWareHouseItem->available_total -= ($validated['amount'] * $sourceWareHouseItem->avg_up);
+            $sourceWareHouseItem->available_amount -= $validated['convertable_amount'];
+            $sourceWareHouseItem->out_amount += $validated['convertable_amount'];
+            $sourceWareHouseItem->available_total -= ($validated['convertable_amount'] * $sourceWareHouseItem->avg_up);
             $sourceWareHouseItem->save();
 
-            // **Destination Warehouse**
+            // **Destination unit_id**
             $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
-                ->where('warehouse_id', $validated['distination_warehouse_id'])
+                ->where('warehouse_id', $validated['source_warehouse_id'])
+                ->where('unit_id', $validated['new_unit_id'])
+                ->where('branch_id', $this->branch_id)
                 ->first();
 
             if (!$distWareHouseItem) 
             {
-                \Log::info('Create New Record in Warehouse during transfer');
+                // \Log::info('Create New Record in Warehouse during conversion');
                 // Create new record in destination warehouse
+                $avg_up  = $sourceWareHouseItem->avg_up * $validated['convertable_amount'];
                 $distWareHouseItem = new WarehouseItem();
                 $distWareHouseItem->branch_id = $this->branch_id ?? 0;
-                $distWareHouseItem->warehouse_id = $validated['distination_warehouse_id'];
+                $distWareHouseItem->name = $validated['item_name'] ?? '';
+                $distWareHouseItem->warehouse_id = $validated['source_warehouse_id'];
                 $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
                 $distWareHouseItem->name = $sourceWareHouseItem->name;
-                $distWareHouseItem->unit_id = $sourceWareHouseItem->unit_id;
-                $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up;
-                $distWareHouseItem->available_amount = $validated['amount'];
-                $distWareHouseItem->in_amount = $validated['amount'];
+                $distWareHouseItem->unit_id = $validated['new_unit_id'];
+                $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up * $validated['convertable_amount'];
+                $distWareHouseItem->available_amount = $validated['converted_amount'];
+                $distWareHouseItem->in_amount = $validated['converted_amount'];
                 $distWareHouseItem->out_amount = 0;
                 $distWareHouseItem->wastage_amount = 0;
                 $distWareHouseItem->wastage_total = 0;
-                $distWareHouseItem->avg_up = $sourceWareHouseItem->avg_up;
-                $distWareHouseItem->sell_up = $sourceWareHouseItem->sell_up;
-                $distWareHouseItem->total = $validated['amount'] * $sourceWareHouseItem->bought_up;
-                $distWareHouseItem->available_total = $validated['amount'] * $sourceWareHouseItem->avg_up;
+                $distWareHouseItem->avg_up = $avg_up; 
+                $distWareHouseItem->sell_up = $sourceWareHouseItem->sell_up * $validated['convertable_amount'];
+                $distWareHouseItem->total = ($sourceWareHouseItem->total + ($validated['converted_amount'] * $avg_up));
+                $distWareHouseItem->available_total = $validated['converted_amount'] * $avg_up;
                 $distWareHouseItem->currency_id = $sourceWareHouseItem->currency_id;
                 $distWareHouseItem->notification_amount = $sourceWareHouseItem->currency_id;
                 $distWareHouseItem->inserted_by =  auth()->user()->full_name ?? '';
@@ -334,15 +352,15 @@ class WarehouseListController extends Controller
                 $distWareHouseItem->year =  $sourceWareHouseItem->year;
                 $distWareHouseItem->month =  $sourceWareHouseItem->month;
                 $distWareHouseItem->day =  $sourceWareHouseItem->day;
+                $distWareHouseItem->is_cleared = 0;
                 $distWareHouseItem->save();
-
             } 
             else 
             {
-                \Log::info('Increase stock in destination warehouse');
-                $total_available_amount = $distWareHouseItem->available_amount + $validated['amount'];
+                // \Log::info('Increase stock in destination warehouse');
+                $total_available_amount = $distWareHouseItem->available_amount + $validated['converted_amount'];
                 $distWareHouseItem->available_amount = $total_available_amount;
-                $distWareHouseItem->in_amount += $validated['amount'];
+                $distWareHouseItem->in_amount += $validated['converted_amount'];
                 $distWareHouseItem->available_total = ($total_available_amount * $distWareHouseItem->avg_up);
                 $distWareHouseItem->save();
             }
@@ -353,14 +371,14 @@ class WarehouseListController extends Controller
                 'message' => 'موفقانه انتقال گردید',
                 'type' => 'success',
             ]);
-
+            
             return redirect()->route('warehousesList.details', $validated['id']);
 
         } 
         catch (\Exception $e) 
         {
             DB::rollBack();
-            \Log::error('Error in updateTransfer', ['error' => $e->getMessage()]);
+            \Log::error('Error in updateConversion', ['error' => $e->getMessage()]);
 
             Session::flash('notification', [
                 'message' => 'انتقال نگردید: ' . $e->getMessage(),

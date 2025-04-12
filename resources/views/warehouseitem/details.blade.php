@@ -106,7 +106,8 @@
                                         </select>
                                     </td>
                                     <th>مقدار موجود</th>
-                                    <td><input type="number" step="0.01" id="available_amount" name="available_amount" class="form-control" value="{{ $warehouseItems->first()->available_amount ?? '' }}" readonly></td>
+                                    <td><input type="number" step="0.01" id="available_amount" name="available_amount" class="form-control" value="{{ $warehouseItems->first()->available_amount ?? '' }}"
+                                    oninput="updateAvailAbleAmount(this.value)" readonly></td>
                                 </tr>
                                 <tr>
                                     <th> مقدار ورود</th>
@@ -124,7 +125,7 @@
                                 
                                 <tr>
                                     <th> نرخ اوسط فی واحد</th>
-                                    <td><input type="number" id="avg_up"  step="0.01" name="avg_up" class="form-control" value="{{ $warehouseItems->first()->avg_up ?? '' }}" readonly oninput="updateAvailAbleTotal(this.value)"></td>
+                                    <td><input type="number" id="avg_up"  step="0.01" name="avg_up" id="avg_up" class="form-control" value="{{ $warehouseItems->first()->avg_up ?? '' }}" readonly oninput="updateAvailAbleTotal(this.value)"></td>
                                     <th> مجموع ارزش جنس موجود</th>
                                     <td><input type="number"  step="0.01" id="available_total" name="available_total" class="form-control" value="{{ $warehouseItems->first()->available_amount * $warehouseItems->first()->avg_up ?? '' }}" readonly></td>
                                 </tr>
@@ -245,7 +246,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitTransfer" >ثبت</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitConversion" >ثبت</button>
             </div>
             </form>
         </div>
@@ -325,6 +326,15 @@
         var available_amount = parseFloat($('#available_amount').val()) || 0; // Get value and handle NaN
         var avg_price = parseFloat(new_avg_price) || 0; // Ensure new_avg_price is a valid number
         var result = avg_price * available_amount;
+
+        $('#available_total').val(result.toFixed(2)); // Ensure result is formatted correctly
+    }
+
+    function updateAvailAbleAmount(new_available_amount)
+    {
+        var new_amount = parseFloat(new_available_amount) || 0;
+        var avg_price = parseFloat($('#avg_up').val());
+        var result = avg_price * new_amount;
 
         $('#available_total').val(result.toFixed(2)); // Ensure result is formatted correctly
     }
