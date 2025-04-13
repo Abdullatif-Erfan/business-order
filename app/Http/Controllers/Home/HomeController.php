@@ -320,6 +320,7 @@ class HomeController extends Controller
             ->selectRaw("
                 SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
                 SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END) as total_salary,
                 SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
                 SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes
             ")
@@ -339,6 +340,7 @@ class HomeController extends Controller
         return [
             'total_expense' => $result->total_expense ?? 0,
             'total_outcomes' => $result->total_outcomes ?? 0,
+            'total_salary' => $result->total_salary ?? 0,
             'total_incomes' => $result->total_incomes ?? 0,
             'total_income' => $result->total_income ?? 0,
         ];
@@ -370,6 +372,9 @@ class HomeController extends Controller
          */
         $Cache = DB::table('journals')
         ->selectRaw("
+            SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
+            SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
+            SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END) as total_salary,
             SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
             SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes
         ")
@@ -402,7 +407,10 @@ class HomeController extends Controller
         return [
             'total_warehouse_value' => $total_warehouse_value->total_value ?? 0,
             'total_warehouse_wastage' => $total_warehouse_value->total_wastage ?? 0,
-            'total_income' => $Cache->total_incomes ?? 0, 
+            'total_income' => $Cache->total_income ?? 0, 
+            'total_expense' => $Cache->total_expense ?? 0, 
+            'total_salary' => $Cache->total_salary ?? 0, 
+            'total_incomes' => $Cache->total_incomes ?? 0, 
             'total_outcome' => $Cache->total_outcomes ?? 0, 
             'cache_recieved' => $Loans->cache_recieved ?? 0,
             'cache_paid' => $Loans->cache_paid ?? 0,

@@ -5,8 +5,8 @@
           <div class="table-responsive">
            <table class="table table-bordered">
               <tr>
-                <th>نوع حساب</th><td>{{ $account->accountType->name }}</td>
-                <th>نام حساب</th><td>{{ $account->name }}</td>
+                <th>نوع حساب</th><td>{{ $account->accountType->name ?? '' }}</td>
+                <th>نام حساب</th><td>{{ $account->name ?? '' }}</td>
               </tr>
 
               <tr>
@@ -52,7 +52,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ number_format($item['amount'],2) }}</td>
                             <td>{{ $item['options'] == 1 ? 'افزایش پول نقد' : ($item['options'] == 2 ? 'ثبت در بخش طلبات' : 'ثبت در بخش قرضه') }}</td>
-                            <td>{{ $item->currencyRelation->name }}</td>
+                            <td>{{ $item->currencyRelation->name ?? '' }}</td>
                         </tr>
                     @endforeach
                     </table>

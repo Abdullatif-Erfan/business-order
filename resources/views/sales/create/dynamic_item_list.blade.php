@@ -44,8 +44,8 @@
 
                 </td>
                 <td><input name="avg_up[]" class="form-control avg-up" type="number" step="0.01" readonly required></td>
-                <td><input name="sell_up[]" class="form-control sell-up" type="number" required></td>
-                <td><input name="discount[]" class="form-control discount" type="number"  value="0" ></td>
+                <td><input name="sell_up[]" class="form-control sell-up" type="number" step="0.01" required></td>
+                <td><input name="discount[]" class="form-control discount" type="number" step="0.01"  value="0" ></td>
                 <td><input name="profit[]" class="form-control profit" type="number" step="0.01" readonly required></td>
                 <td><input name="total[]" class="form-control total" value="0" type="number" step="0.01" readonly required></td>
                 <td>

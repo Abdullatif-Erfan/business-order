@@ -77,7 +77,7 @@
                 'bgColor' => '#e6aaaa',
                 'textColor' => '#fff',
                 'title' => 'مصارف ',
-                'value' => number_format($data['cashIncomeOutcome']['total_expense'],2 ?? 0),
+                'value' => number_format($data['cashIncomeOutcome']['total_expense'] + $data['cashIncomeOutcome']['total_salary'],2 ?? 0),
                 'style' => 'border: 1px solid #e7c99c;background: linear-gradient(45deg, #ffffff, #ffd9d9)',
             ],
             [

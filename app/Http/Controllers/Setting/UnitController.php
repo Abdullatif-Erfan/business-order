@@ -106,32 +106,34 @@ class UnitController extends Controller
      */
     public function update(Request $request)
     {
-         // Define custom validation messages
-         $messages = [
+        // Find the unit first
+        $unit = Unit::find($request->id);
+    
+        if (!$unit) {
+            return response()->json(['message' => 'ریکارد مورد نظر یافت نشد'], 404);
+        }
+    
+        // Define custom validation messages
+        $messages = [
             'name.required' => 'نام ضروری میباشد',
             'name.string' => 'نام به حروف باشد',
             'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
             'name.min' => 'بالاتر از دو حرف بنویسید',
             'name.unique' => 'این نام قبلاً ثبت شده است',
         ];
-
-        // Validate the request
-         $validated = $request->validate([
-            'name' => 'required|string|max:255|min:2|unique:units,name',
-         ], $messages);
-
-         $unit = Unit::find($request->id);
-
-         if(!$unit) {
-            return response()->json(['message' => 'ریکارد مورد نظر یافت نشد'], 404);
-         }
-     
+    
+        // Validate the request and ignore the current unit's ID in unique rule
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|min:2|unique:units,name,' . $unit->id,
+        ], $messages);
+    
         // Update the unit's name
         $unit->name = $request->input('name');
         $unit->save();
-
-        return response()->json(['status' => 'success','message' => 'ریکارد با موفقیت بروزرسانی شد'], 200);
+    
+        return response()->json(['status' => 'success', 'message' => 'ریکارد با موفقیت بروزرسانی شد'], 200);
     }
+    
 
     /**
      * Remove the specified resource from storage.

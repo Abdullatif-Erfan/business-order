@@ -130,7 +130,7 @@ class JournalController extends Controller
             ->addIndexColumn()
            
             ->addColumn('accountRelation', function ($journal) {
-                return $journal->accountRelation ? $journal->accountRelation->name : '';
+                return optional($journal->accountRelation)->name ?? '';
             })
             
             // cacheRecieved = t1p1 = دریافت نقد
@@ -156,7 +156,7 @@ class JournalController extends Controller
             
 
             ->addColumn('currency', function ($journal) {
-                return '<i style="font-size:14px;color:'.$journal->currencyRelation->color.'">'.$journal->currencyRelation->symbols.'</i>';
+                return '<i style="font-size:14px;color:'.optional($journal->currencyRelation)->color.'">'.optional($journal->currencyRelation)->symbols.'</i>';
             })
             ->addColumn('actions', function ($journal) {
                 return $journal->status == 2 ? '<a href="journal/details/'.$journal->times.'" class="hidden-print"><i class="fas fa-eye viewAccount" data-id="' . $journal->id . '" style="font-size:20px;"></i></a>' : '';

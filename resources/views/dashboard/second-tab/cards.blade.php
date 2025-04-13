@@ -1,38 +1,110 @@
 <div class="col-md-12 col-sm-12 col-xs-12">
    <div class="row m-t-10">
+  
+  <?php 
+  
+    /**
+     * === در نهایت =====
+     *  سرمایه شرکت  = پول نقد + طلبات + اجناس موجود - قرضه
+     */
+    /**
+     * total_assets = total_warehouse_value + total_cache_income(recieved-paid) + total_talabat - (total_warhouse_wastage + total_loan)
+     */
+    $total_talabat = $secondTab['talabat'] + $secondTab['cache_recieved'];
+    $total_loan = $secondTab['loans'] + $secondTab['cache_paid'];
+    $loan_talabat_balance =  $total_talabat - $total_loan;
 
-   
+    // مصارف = معاشات + مصارفات دیگر
+    $total_expense = $secondTab['total_salary'] + $secondTab['total_expense'];
+
+    $total_cache = $secondTab['total_incomes'] - $secondTab['total_outcome'];
+    $total_warehouse_value = $secondTab['total_warehouse_value'] - $secondTab['total_warehouse_wastage'];
+    $total_assets = $total_warehouse_value +  $total_cache + $loan_talabat_balance;
+
+
+    $total_income =  $secondTab['sold_profits'] + $secondTab['total_income'];
+    $net_profit = $total_income - $total_expense;
+
+  ?>
+
+<!-- first row -->
+   <div class="col-sm-6 col-md-4">
+        <div class="card card-stats card-round" style="border-right:2px solid #118eee">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-5">
+                        <div class="icon-big text-center">
+                            <i class="fas fa-chart-line text-info"></i>
+                        </div>
+                    </div>
+                    <div class="col-7 col-stats">
+                        <div class="numbers">
+                            <p class="card-category"> مفاد فروشات + عواید  </p>
+                            <h4 class="card-title"><?=number_format($total_income,2)?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-sm-6 col-md-4">
+        <div class="card card-stats card-round" style="border-right:2px solid #118eee">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-5">
+                        <div class="icon-big text-center">
+                            <i class="fas fa-sort-amount-down text-info"></i>
+                        </div>
+                    </div>
+                    <div class="col-7 col-stats">
+                        <div class="numbers">
+                            <p class="card-category"> مصارف </p>
+                            <h4 class="card-title"><?=number_format($total_expense,2)?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-sm-6 col-md-4">
+        <div class="card card-stats card-round" style="border-right:2px solid #118eee">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-5">
+                        <div class="icon-big text-center">
+                            <i class="fas fa-chart-bar text-info"></i>
+                        </div>
+                    </div>
+                    <div class="col-7 col-stats">
+                        <div class="numbers">
+                            <p class="card-category"> مفاد خالص </p>
+                            <h4 class="card-title"><?=number_format($net_profit, 2)?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- / first row -->
+   
+   <!-- second row -->
+   <div class="col-sm-6 col-md-4">
         <div class="card card-stats card-round">
             <div class="card-body">
                 <div class="row">
                     <div class="col-5">
                         <div class="icon-big text-center">
-                            <i class="fas fa-money-check-alt text-info"></i>
+                            <i class="fas fa-sort-amount-up text-info"></i>
                         </div>
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category">سرمایه شرکت</p>
-                            <h4 class="card-title">
-                            <?php
-                            /**
-                             * === در نهایت =====
-                             *  سرمایه شرکت  = پول نقد + طلبات + اجناس موجود - قرضه
-                             */
-                            /**
-                             * total_assets = total_warehouse_value + total_cache_income(recieved-paid) + total_talabat - (total_warhouse_wastage + total_loan)
-                             */
-                            $total_talabat = $secondTab['talabat'] + $secondTab['cache_recieved'];
-                            $total_loan = $secondTab['loans'] + $secondTab['cache_paid'];
-                            $loan_talabat_balance =  $total_talabat - $total_loan;
-
-                            $total_cache = $secondTab['total_income'] - $secondTab['total_outcome'];
-                            $total_warehouse_value = $secondTab['total_warehouse_value'] - $secondTab['total_warehouse_wastage'];
-                            $total_assets = $total_warehouse_value +  $total_cache + $loan_talabat_balance;
-                            echo number_format($total_assets,2);
-                            
-                            ?></h4>
+                            <p class="card-category"> موجودی گدام </p>
+                            <h4 class="card-title"><?=number_format($total_warehouse_value,2)?></h4>
                         </div>
                     </div>
                 </div>
@@ -60,26 +132,32 @@
         </div>
     </div>
 
+  
+
     <div class="col-sm-6 col-md-4">
         <div class="card card-stats card-round">
             <div class="card-body">
                 <div class="row">
                     <div class="col-5">
                         <div class="icon-big text-center">
-                            <i class="fas fa-chart-line text-info"></i>
+                            <i class="fas fa-money-check-alt text-info"></i>
                         </div>
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> مفاد فروشات </p>
-                            <h4 class="card-title"><?=number_format($secondTab['sold_profits'],2)?></h4>
+                            <p class="card-category">سرمایه شرکت</p>
+                            <h4 class="card-title">
+                            <?php  echo number_format($total_assets,2); ?></h4>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- /second row -->
 
+
+    <!-- third row -->
     <div class="col-sm-6 col-md-4">
         <div class="card card-stats card-round">
             <div class="card-body">
@@ -99,6 +177,7 @@
             </div>
         </div>
     </div>
+    
    
 
     <div class="col-sm-6 col-md-4">
@@ -190,6 +269,11 @@
 
         </div>
        <?php } ?>
+
+ <!-- / third row -->
+
+
+  
 
 
 

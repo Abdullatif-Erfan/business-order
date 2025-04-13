@@ -355,6 +355,7 @@
                                     </div>
                                     <!-- /Expense Section -->
 
+                              
 
                                     <!-- General Section -->
                                     <div class="col-md-12">
@@ -484,17 +485,38 @@
                                                     </table>
 
 
-                                                    <!-- <table class="table table-bordered"  style="width:100%">
+
+                                                    <table class="table table-bordered"  style="width:100%">
                                                             <tr>
-                                                                <th rowspan="2" style="width:150px !important;" >  مفاد خالص شرکت</th>
+                                                                <th rowspan="2" style="width:200px !important;font-weight:bolder" >
+                                                                مفاد خالص شرکت </th>
                                                                   <td style="width:70px !important;">افغانی : </td>
-                                                                  <td>123</td>
+                                                                  <td>   <strong>
+                                                                        @php 
+                                                                            $total_income = $totalConvertedIncome + $totalConvertedTotalProfit;
+
+                                                                            $total_expense = $totalConvertedSalary + $totalConvertedExpense;
+                                                                        @endphp
+                                                                        {{ 
+                                                                            number_format($total_income - $total_expense,2)
+                                                                         }}
+                                                                            </strong> </td>
                                                             </tr>
                                                             <tr>
-                                                                  <td>دالر : </td>
-                                                                  <td>456 </td>
+                                                                  <td>فورمول : </td>
+                                                                  <td> 
+                                                                    <span class="custom_badge custom_badge_info"> مصارف متفرقه</span>
+                                                                     +
+                                                                     <span class="custom_badge custom_badge_info">معاشات کارمندان</span>
+                                                                     -
+                                                                     <span class="custom_badge custom_badge_info">عواید متفرقه</span> 
+                                                                     + 
+                                                                    <span class="custom_badge custom_badge_warning">مفاد خالص فروشات </span>
+                                                                    
+                                                                   </td>
                                                             </tr>
-                                                    </table> -->
+                                                    </table>
+
 
 
                                                 </div>
