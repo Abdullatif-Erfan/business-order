@@ -419,8 +419,9 @@
                                                             {{ $baseCurrency['currency_name'] ?? 'N/A' }}:
                                                         </td>
                                                         <td style="color:{{$baseCurrency['color'] ?? ''}}">
-                                                        {{ isset($baseCurrency['total_cache_in'], $baseCurrency['total_cache_out']) 
-                                                            ? number_format(($baseCurrency['total_cache_in'],2 ?? 0) - ($baseCurrency['total_cache_out'] ?? 0)) 
+                                                        {{ 
+                                                            isset($baseCurrency['total_cache_in'], $baseCurrency['total_cache_out']) 
+                                                            ? number_format(($baseCurrency['total_cache_in'] ?? 0) - ($baseCurrency['total_cache_out'] ?? 0),2) 
                                                             : 'N/A' }}
                                                         </td>
                                                     </tr>
