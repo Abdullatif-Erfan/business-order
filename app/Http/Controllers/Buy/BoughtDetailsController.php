@@ -1328,6 +1328,7 @@ class BoughtDetailsController extends Controller
         DB::beginTransaction();
         try {
             // Delete all related records directly
+            WarehouseItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
             BoughtItemDetails::where('times', $times)->where('branch_id', $this->branch_id)->delete();
             BoughtItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
             Journal::where('times', $times)->where('branch_id', $this->branch_id)->delete();

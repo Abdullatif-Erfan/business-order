@@ -183,6 +183,7 @@ class WarehouseListController extends Controller
             'source_warehouse_id' => 'required|min:1',
             'distination_warehouse_id' => 'required|numeric|min:1',
             'amount' => 'nullable|numeric|min:1',
+            'unit_id' => 'required'
         ]);
 
         DB::beginTransaction();
@@ -206,6 +207,7 @@ class WarehouseListController extends Controller
             $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
                 ->where('warehouse_id', $validated['distination_warehouse_id'])
                 ->where('branch_id', $this->branch_id)
+                ->where('unit_id', $validated['unit_id'])
                 ->first();
 
 

@@ -9,6 +9,9 @@
             <input class="form-control" name="source_warehouse_id"  type="hidden"
             value="{{ $warehouseItems->warehouse_id ?? 0}}" >
 
+            <input class="form-control" name="unit_id"  type="hidden"
+            value="{{ $warehouseItems->unit_id ?? 0}}" >
+
             <input class="form-control" name="item_name" id="item_name" type="text" readonly 
             value="{{ $warehouseItems->preListRelation->name ?? '' }}" >
 
