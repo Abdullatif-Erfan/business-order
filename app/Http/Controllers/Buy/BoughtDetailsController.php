@@ -339,7 +339,7 @@ class BoughtDetailsController extends Controller
     
         /***
          * first:  amount = 30; bought_up = 100; total = 30 * 100 = 3000;
-         * second: amount = 10;  bought_up = 150; total = 10 *  150 = 1500; 
+         * second: amount = 10;  bought_up = 150; total = 10  *  150 = 1500; 
          * find out the new bought unit price ?
          * first_total + second_total  divided by amounts, new_unit_price = ((3000 + 1500) / 40) = 112.5
          */
@@ -358,12 +358,29 @@ class BoughtDetailsController extends Controller
     
             if ($WarehouseItem) 
             {
+
+                /**
+                 * if available_amount is greater than zero udate with new average unit price
+                 * else update with new unit_price without calculating avg price
+                 */
+
                 /**
                  * TODO : this line $new_available_total = $available_amounts * $new_avg_up; do not provide the exact total
                  */
-                $available_amounts = $WarehouseItem->available_amount + $warehouseAmount;
-                $new_avg_up = ($available_amounts > 0) ? (($WarehouseItem->available_total + $new_total) / $available_amounts) : 0;
-                $new_available_total = $available_amounts * $new_avg_up;
+
+                if($WarehouseItem->available_amount > 0)
+                {
+                    $available_amounts = $WarehouseItem->available_amount + $warehouseAmount;
+                    $new_avg_up = ($available_amounts > 0) ? (($WarehouseItem->available_total + $new_total) / $available_amounts) : 0;
+                    $new_available_total = $available_amounts * $new_avg_up;
+                }
+                else
+                {
+                    $available_amounts =  (float) $warehouseAmount;
+                    $new_avg_up =  (float) $request->bought_up;
+                    $new_available_total =  $available_amounts * $new_avg_up;
+                }
+             
 
                 // Update existing warehouse item
                 $warehouseItemsToUpdate[] = [
