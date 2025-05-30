@@ -13,6 +13,9 @@ Route::prefix('buyprelist')->group(function(){
     Route::get('/{id}',[BuyPreListController::class, 'show'])->name('buyprelist.show')->middleware('access:buy,create_records');
     Route::post('/store',[BuyPreListController::class, 'store'])->name('buyprelist.store')->middleware('access:buy,create_records');
     Route::post('/pos_store',[BuyPreListController::class, 'pos_store'])->name('buyprelist.pos_store')->middleware('access:buy,create_records');
+    Route::post('/storeWithBarcodeGeneration',[BuyPreListController::class, 'storeWithBarcodeGeneration'])->name('buyprelist.storeWithBarcodeGeneration')->middleware('access:buy,create_records');
+   
+    
     Route::post('/update',[BuyPreListController::class, 'update'])->name('buyprelist.update')->middleware('access:buy,edit_records');
     Route::delete('/destroy/{id}',[BuyPreListController::class, 'destroy'])->name('buyprelist.destroy')->middleware('access:buy,delete_records');
 });

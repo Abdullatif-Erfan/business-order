@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
+use Milon\Barcode\DNS1D;
+
+
 use App\Models\Setting\Branch;
 use App\Models\Buy\BuyPreList;
 use Illuminate\Validation\Rule;
@@ -114,9 +117,16 @@ class BuyPreListController extends Controller
                 return 'No Image';
             })
             
+            // ->addColumn('barcode', function ($buyPreList) {
+            //     if ($buyPreList->barcode_path) {
+            //         return '<img src="' . asset('storage/' . $buyPreList->barcode_path) . '" width="50" height="50" class="img-thumbnail">';
+            //     }
+            //     return 'No Image';
+            // })
             ->addColumn('barcode', function ($buyPreList) {
                 if ($buyPreList->barcode_path) {
-                    return '<img src="' . asset('storage/' . $buyPreList->barcode_path) . '" width="50" height="50" class="img-thumbnail">';
+                    $url = asset('storage/' . $buyPreList->barcode_path);
+                    return '<img src="' . $url . '" width="100" height="40" class="img-thumbnail">';
                 }
                 return 'No Image';
             })
@@ -338,6 +348,93 @@ class BuyPreListController extends Controller
             Log::error('QR code generation failed: '.$e->getMessage());
             Log::error('Stack trace: '.$e->getTraceAsString());
             throw $e; // Re-throw after logging
+        }
+    }
+
+    public function storeWithBarcodeGeneration(Request $request)
+    {
+        $messages = [
+            'name.required' => 'نام ضروری میباشد',
+            'name.string' => 'نام باید حروف باشد',
+            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
+            'name.min' => 'حداقل باید ۳ حرف باشد',
+            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'branch_id.exists' => 'انتخاب شده نامعتبر است',
+        ];
+    
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
+            'branch_id' => 'required|exists:branches,id',
+        ], $messages);
+    
+        $times = time();
+    
+        // Ensure barcode directory exists
+        $barcodeDir = storage_path('app/public/barcodes');
+        if (!File::exists($barcodeDir)) {
+            File::makeDirectory($barcodeDir, 0755, true);
+        }
+    
+        try {
+            $code = '';
+            // Get next code
+            if($request->input('prev_barcode'))
+            {
+                $code = $request->input('prev_barcode');
+            }
+            else 
+            {
+                $code = DB::table('bought_item_pre_lists')
+                    ->where('branch_id', $validated['branch_id'])
+                    ->lockForUpdate()
+                    ->max('code') + 1;
+            }
+
+            if(!$code)
+            {
+                Log::error('Code is empty');
+                throw new \Exception('Failed to create barcode, code is empty');
+            }
+    
+            // Generate PNG barcode using milon/barcode
+            $barcode = new DNS1D();
+            $barcode->setStorPath($barcodeDir); // Optional, sets temp path
+            $base64Png = $barcode->getBarcodePNG((string) $code, 'C128');
+    
+            $pngData = base64_decode($base64Png);
+    
+            // Save PNG file
+            $barcodeFileName = $code . '.png';
+            $barcodePath = 'barcodes/' . $barcodeFileName;
+    
+            $saveResult = Storage::disk('public')->put($barcodePath, $pngData);
+            if (!$saveResult) {
+                Log::error('Failed to save PNG barcode file');
+                throw new \Exception('Failed to save barcode');
+            }
+    
+            // Handle image upload (optional)
+            $image_path = '';
+            if ($request->hasFile('image')) {
+                $image_path = $request->file('image')->store('item_images', 'public');
+                Log::info('Image uploaded', ['path' => $image_path]);
+            }
+    
+            // Save record
+            BuyPreList::create([
+                'name' => $validated['name'],
+                'code' => $code,
+                'branch_id' => $validated['branch_id'],
+                'times' => $times,
+                'image_path' => $image_path,
+                'barcode_path' => $barcodePath,
+            ]);
+    
+            return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+    
+        } catch (\Exception $e) {
+            Log::error('Barcode generation failed: ' . $e->getMessage());
+            throw $e;
         }
     }
 

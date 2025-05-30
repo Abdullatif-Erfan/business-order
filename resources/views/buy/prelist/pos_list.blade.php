@@ -37,20 +37,28 @@
                         </div>
                         <div id="add_form_collapse" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">
                             <div class="box-body">
-                            <form  id="buyPreListForm">
+                            <form  id="buyPreListForm" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}">
                             <div class="form-body">
                                 <div class="row">
                                 
-                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
                                         <div class="form-group">
                                             <input class="form-control" id="name" name="name" type="text" required placeholder="نام جنس" >
                                             <span id="nameError" class="text-danger"></span>
                                         </div> 
                                     </div>	
 
-                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                                        <div class="form-group">
+                                            <input class="form-control" id="prev_barcode" name="prev_barcode" type="text"  
+                                            placeholder="سکن بارکد خود جنس" >
+                                            <span id="prev‌‌‌‌BarcodeError" class="text-danger"></span>
+                                        </div> 
+                                    </div>	
+
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
                                         <div class="form-group col-12">
                                             <input type="file" name="image" accept="jpg,png,jpeg" class="form-control">
                                             <span id="imageError" class="text-danger"></span>
@@ -64,9 +72,9 @@
                                         </button>
                                     </div>
 
-                                    <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
+                                    <div class="col-md-1 col-sm-4 col-xs-12 center m-t-10">
                                         <button type="button" name="submit" class="btn btn-primary btn-sm m-l-10" onclick="addNewRecord(2)"  >
-                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> ثبت
+                                          <span class="btn-label">  </span> ثبت
                                         </button>
                                     </div>
 
@@ -135,6 +143,17 @@
     </div>
 </div>
 
+
+<script>
+$(document).ready(function() {
+    $('#buyPreListForm').on('keypress', function(event) {
+        // Prevent form submission on Enter key
+        if (event.key === 'Enter') {
+            event.preventDefault();
+        }
+    });
+});
+</script>
 
 <script>
 
@@ -208,9 +227,10 @@ function addNewRecord(id) {
     $('#loading').show();
     $('#nameError').text('');
     $('#imageError').text('');
+    $('#prev_barcode').text('');
 
     $.ajax({
-        url: '/buyprelist/pos_store',
+        url: '/buyprelist/storeWithBarcodeGeneration',
         type: 'POST',
         data: formData,
         processData: false, // Required for FormData
