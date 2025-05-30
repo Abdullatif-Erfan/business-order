@@ -81,16 +81,10 @@ class PosSalesController extends Controller
             $searchTerm = $request->search;
             
             $query->where(function($q) use ($searchTerm) {
-                if (ctype_digit($searchTerm)) {
-                    // For numeric input - exact match on code
-                    $q->where('bought_item_pre_lists.code', '=', $searchTerm);
-                } else {
-                    // For non-numeric input - partial match on name
-                    $q->where('bought_item_pre_lists.name', 'LIKE', "%{$searchTerm}%");
-                    
-                    // Optional: also allow exact code match if user types the full code
-                    $q->orWhere('bought_item_pre_lists.code', '=', $searchTerm);
-                }
+                // For non-numeric input - partial match on name
+                $q->where('bought_item_pre_lists.name', 'LIKE', "%{$searchTerm}%");
+                // Optional: also allow exact code match if user types the full code
+                $q->orWhere('bought_item_pre_lists.code', 'LIKE', "%{$searchTerm}%");
             });
         }
 
