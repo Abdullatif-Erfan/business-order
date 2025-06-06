@@ -384,7 +384,7 @@ class BuyPreListController extends Controller
             }
             else 
             {
-                $code = DB::table('bought_item_pre_lists')
+                $code = (int) DB::table('bought_item_pre_lists')
                     ->where('branch_id', $validated['branch_id'])
                     ->lockForUpdate()
                     ->max('code') + 1;

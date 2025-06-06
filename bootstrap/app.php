@@ -4,6 +4,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+use Illuminate\Session\Middleware\StartSession;
+use App\Http\Middleware\SetLocale;
+
+
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -12,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // $middleware->append(\App\Http\Middleware\AccessMiddleware::class);
+        $middleware->append([
+            StartSession::class,
+            SetLocale::class,
+        ]);
+
+
         $middleware->alias([
             'access' => \App\Http\Middleware\AccessMiddleware::class,
         ]);

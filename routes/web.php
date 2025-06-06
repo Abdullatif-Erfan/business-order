@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Home\HomeController;
-
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\RateController;
 
@@ -24,6 +24,10 @@ use App\Http\Controllers\RateController;
  * Create a demo user by visiting this route
  * http://127.0.0.1:8000/createUser
  */
+
+
+Route::get('set-locale/{locale}', [LocaleController::class, 'setLocale'])->name('set-locale');
+
 Route::get('/createUser',[UserController::class,'createUser'])->name('createUser');
 
 Route::get('/',[LoginController::class,'login'])->name('login');

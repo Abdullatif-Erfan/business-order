@@ -7,6 +7,14 @@
        background: linear-gradient(90deg, #008cfa 10%, #0068dd 50%);
    }
    </style>
+
+<script>
+    function changeLanguage(locale) {
+        window.location.href = '/set-locale/' + locale;
+    }
+</script>
+
+
 <div class="main-header">
     <!-- Logo Header -->
     <div class="logo-header" >
@@ -88,6 +96,14 @@
                     </ul>
                 </li>
                 <!-- / warehouse_item -->
+
+                <li class="nav-item">
+                    <select onchange="changeLanguage(this.value)" class="form-control">
+                        <option value="fa" {{ app()->getLocale() === 'fa' ? 'selected' : '' }}>دری</option>
+                        <option value="pa" {{ app()->getLocale() === 'pa' ? 'selected' : '' }}>پشتو</option>
+                        <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>English</option>
+                    </select>
+                </li>
 
                 <li class="nav-item hidden-caret">
                     <a href="{{ route('login.logout') }}">

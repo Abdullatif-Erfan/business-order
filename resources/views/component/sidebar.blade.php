@@ -50,7 +50,7 @@
                 <li class="nav-item">
                     <a href="{{ route('home') }}">
                         <i class="fas fa-home"></i>
-                        <p>صفحه اصلی  </p>
+                        <p> {{ __('menu.dashboard') }}  </p> 
                     </a>
                 </li>
 
@@ -58,7 +58,7 @@
                     <li class="nav-item">
                         <a href="{{ route('setting') }}">
                             <i class="fas fa-cog"></i>
-                            <p> تنظیمات اولیه </p>
+                            <p> {{ __('menu.settings') }} </p>
                         </a>
                     </li>
                 @endif
@@ -67,7 +67,7 @@
                     <li class="nav-item">
                         <a href="{{ route('rate.index') }}">
                             <i class="fas fa-percent"></i>
-                            <p> نرخ ارزها</p>
+                            <p> {{ __('menu.rate') }}</p>
                         </a>
                     </li>
                  @endif
@@ -75,7 +75,7 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#journal">
                           <i class="fas fa-file-invoice-dollar"></i>
-                            <p> معاملات </p>
+                            <p> {{ __('menu.transaction') }} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="journal">
@@ -83,21 +83,21 @@
                                 @if($permissions['journal'] || $isAdmin)
                                 <li>
                                     <a href="{{ route('journal.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> روزنامچه  </span>
+                                        <span class="sub-item"> {{ __('menu.rooznamcha') }}  </span>
                                     </a>
                                 </li>
                                 @endif
                                 @if(($permissions['income'] || $isAdmin))
                                 <li>
                                     <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> عواید </span>
+                                        <span class="sub-item"> {{ __('menu.income') }} </span>
                                     </a>
                                 </li>
                                 @endif
                                 @if(($permissions['expense'] || $isAdmin))
                                 <li>
                                     <a href="{{ route('expense.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> مصارف</span>
+                                        <span class="sub-item"> {{ __('menu.expense') }}</span>
                                     </a>
                                 </li>
                                 @endif
@@ -115,14 +115,14 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#hr">
                           <i class="fas fa-users"></i>
-                            <p> منابع بشری </p>
+                            <p>  {{ __('menu.hr') }} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="hr">
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{ route('employee.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> لیست کارمندان  </span>
+                                        <span class="sub-item">  {{ __('menu.employee_lists') }}  </span>
                                     </a>
                                 </li>
                                 <!-- <li>
@@ -132,12 +132,12 @@
                                 </li> -->
                                 <li>
                                     <a href="{{ route('salary.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  پرداخت معاشات </span>
+                                        <span class="sub-item">  {{ __('menu.salary') }} </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('salary.report.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> گزارش معاشات</span>
+                                        <span class="sub-item">  {{ __('menu.report') }} </span>
                                     </a>
                                 </li>
                             </ul>
@@ -149,24 +149,24 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#buy-chicken">
                             <i class="fas fa-cart-arrow-down"></i>
-                            <p>خرید عمومی</p>
+                            <p> {{ __('menu.buy') }}</p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="buy-chicken">
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{ route('buyprelist.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> ثبت اجناس برای خرید</span>
+                                        <span class="sub-item"> {{ __('menu.buy_pre_list')}} </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('boughtList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> خرید جدید</span>
+                                        <span class="sub-item">  {{ __('menu.new_buy')}} </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> لیست خرید</span>
+                                        <span class="sub-item">  {{ __('menu.bought_list')}} </span>
                                     </a>
                                 </li>
                             </ul>
@@ -179,19 +179,19 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#items">
                             <i class="fas fa-luggage-cart"></i>
-                            <p> گدام</p>
+                            <p> {{ __('menu.warehouse')}}</p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="items">
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{ route('warehousesList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> ثبت موجودی گدام</span>
+                                        <span class="sub-item">  {{ __('menu.warehouse_add')}} </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('warehousesList.wastage') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> ضایعات اجناس  </span>
+                                        <span class="sub-item">  {{ __('menu.wastage')}}   </span>
                                     </a>
                                 </li>
                                 @foreach(\App\Models\Setting\Warehouse::where('branch_id', $branch_id)->get() as $warehouse)
@@ -211,27 +211,27 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#selling">
                             <i class="fas fa-file-upload"></i>
-                            <p> فروشات</p>
+                            <p> {{ __('menu.sales') }} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="selling">
                             <ul class="nav nav-collapse">
                                  <li>
                                     <a href="{{ route('sales.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> فروشات جدید</span>
+                                        <span class="sub-item"> {{ __('menu.warehouse_add')}} </span>
                                     </a>
                                 </li>
                                 <!-- businessplus + POS -->
                                 @if($packageId == 4)
                                 <li>
                                     <a href="{{ route('sales.pos_create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  فروشات POS </span>
+                                        <span class="sub-item">  {{ __('menu.pos_sales')}} </span>
                                     </a>
                                 </li>
                                 @endif
                                 <li>
                                     <a href="{{ route('sales.index')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> لیست فروشات</span>
+                                        <span class="sub-item">  {{ __('menu.sold_list')}}</span>
                                     </a>
                                 </li>
                             </ul>
@@ -243,19 +243,19 @@
                 <li class="nav-item">
                     <a data-toggle="collapse" href="#clearance">
                         <i class="fas fa-file-invoice-dollar"></i>
-                        <p> تصفیه حسابات </p>
+                        <p>  {{ __('menu.clearance')}} </p>
                         <span class="caret"></span>
                     </a>
                     <div class="collapse" id="clearance">
                         <ul class="nav nav-collapse">
                             <li>
                                 <a href="{{ route('clearance.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                    <span class="sub-item"> تصفیه حساب خرید</span>
+                                    <span class="sub-item"> {{ __('menu.bought_clearance')}}</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('clearance.sales.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                    <span class="sub-item"> تصفیه حساب فروشات</span>
+                                    <span class="sub-item"> {{ __('menu.sold_clearance')}}</span>
                                 </a>
                             </li>
                         </ul>
@@ -267,14 +267,14 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#reports">
                             <i class="fas fa-list-ol"></i>
-                            <p>  گزارشات </p>
+                            <p>  {{ __('menu.report')}} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="reports">
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{route('cacheflow.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">حسابات مشتریان </span>
+                                        <span class="sub-item"> حسابات مشتریان </span>
                                     </a>
                                 </li>
                                 <li>
@@ -291,7 +291,7 @@
                     <li class="nav-item">
                         <a href="{{ route('reports.home') }}">
                             <i class="fas fa-list-ol"></i>
-                            <p> گزارشات</p>
+                            <p>  {{ __('menu.reports')}}</p>
                         </a>
                     </li>
                     @endif
@@ -301,7 +301,7 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
                             <i class="fas fa-users"></i>
-                            <p> مدیریت کاربران  </p>
+                            <p>  {{ __('menu.report')}} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="user">
@@ -309,14 +309,14 @@
                                 @if($isAdmin)
                                 <li>
                                     <a href="{{ route('roles.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> رول</span>
+                                        <span class="sub-item">  {{ __('menu.role')}}</span>
                                     </a>
                                 </li>
                                 @endif
                                 
                                 <li>
                                     <a href="{{ route('user.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> کاربران</span>
+                                        <span class="sub-item">  {{ __('menu.users')}}</span>
                                     </a>
                                 </li>
                             </ul>
@@ -328,7 +328,7 @@
                     <li class="nav-item">
                         <a href="{{ route('backups.index') }}">
                             <i class="fas fa-database"></i>
-                            <p> نسخه پشتبان</p>
+                            <p>   {{ __('menu.backup')}}</p>
                         </a>
                     </li>
                  @endif 

@@ -962,11 +962,15 @@ class JournalController extends Controller
                 // Loop through each journal and delete its associated file
                 foreach ($journals as $journal) {
                    
-                    $filePath = public_path('documents/' . $journal->doc);
-                    // Check if the file exists and delete it
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
+                        $doc = $journal->doc;
+                        if ($doc) {
+                            $filePath = public_path('documents/' . $doc);
+                    
+                            // Make sure it is a file and not a directory
+                            if (file_exists($filePath) && is_file($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
 
                     // Delete the journal record
                     $journal->delete();
