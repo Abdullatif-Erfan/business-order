@@ -28,19 +28,21 @@
                     </span>
                     <div>
                         <h5 class="mb-2"><b>
-                            <small style="border:1px solid #ddd; padding: 1px 12px;margin-left:10px;border-radius:5px;color:#999">   آمد نقد </small>
+                            <small style="border:1px solid #ddd; padding: 1px 12px;margin-left:10px;border-radius:5px;color:#999">  
+                             {{ __('dashboard.cache_in') }} </small>
                             {{ $formatted_received }}
                         </b>
                         </h5>
 
                         <h5 class="mb-2"><b>
-                            <small style="border:1px solid #ddd; padding: 1px 10px;margin-left:10px;border-radius:5px;color:#999">   رفت نقد </small>
+                            <small style="border:1px solid #ddd; padding: 1px 10px;margin-left:10px;border-radius:5px;color:#999">   
+                             {{ __('dashboard.cache_out') }} </small>
                             {{ $formatted_paid }}
                         </b>
                         </h5>
 
                         <h5 class="mb-1"><b>
-                            <small style="border:1px solid #ddd; padding: 1px 14px;margin-left:10px;border-radius:5px;color:#999;margin-top:3px">   بیلانس </small>
+                            <small style="border:1px solid #ddd; padding: 1px 14px;margin-left:10px;border-radius:5px;color:#999;margin-top:3px">   {{ __('dashboard.cache_balance') }} </small>
                             {{ $formatted_balance }}
                         </b>
                         </h5>

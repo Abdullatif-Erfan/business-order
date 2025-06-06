@@ -10,9 +10,10 @@
                   {{ $branch->name }} 
                 </div>
                 @if($branch_id == $branch->id)
-                <button class="btn btn-round btn-sm" style="background:linear-gradient(44deg, #f28639 80%, #0c7eff 51%); color:#fff;border:2px solid #fff;">ورود به این شعبه</button>
+                <button class="btn btn-round btn-sm" style="background:linear-gradient(44deg, #f28639 80%, #0c7eff 51%); color:#fff;border:2px solid #fff;">
+                {{ __('dashboard.open_this_branch') }}</button>
                 @else
-                <button class="btn btn-round btn-sm" onclick="changeBranch({{ $branch->id }})" style="background:linear-gradient(44deg, #f28639 80%, #0c7eff 51%); color:#fff;border:2px solid #fff;">ورود به این شعبه</button>
+                <button class="btn btn-round btn-sm" onclick="changeBranch({{ $branch->id }})" style="background:linear-gradient(44deg, #f28639 80%, #0c7eff 51%); color:#fff;border:2px solid #fff;">{{ __('dashboard.open_this_branch') }} </button>
                 @endif
             </div>
         </div>

@@ -6,7 +6,7 @@
                 <select class="form-control mt-1 mb-1" style="width: 100%; border:1px solid #ddd !important;" 
                     aria-hidden="true" name="currency_id">
                     <option value="{{ $data['currency_id'] ?? '' }}">{{ $data['currency_name'] ?? 'Default Currency' }}</option>
-                    <option value="">-- انتخاب کرنسی --</option>
+                    <option value="">-- {{ __('dashboard.search_currecny') }} --</option>
                     @foreach($data['currency'] as $key => $val)
                         <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>
                     @endforeach
@@ -20,7 +20,7 @@
                     aria-hidden="true" 
                     name="year">
                     <option value="{{ $data['year'] }}">{{ $data['year'] }}</option>
-                    <option value="">-- انتخاب سال --</option>
+                    <option value="">-- {{ __('dashboard.search_year') }} --</option>
                     <?php for ($i = 1400; $i <= 1440; $i++): ?>
                         <option value="<?= $i ?>"><?= $i ?></option>
                     <?php endfor; ?>

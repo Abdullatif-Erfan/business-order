@@ -30,4 +30,6 @@ return [
     'role' => 'Roles',
     'users' => 'Users',
     'backup' => 'Backup',
+    'cacheflow' => 'Cache Flow',
+    'chartOfAccount' => 'Chart of account',
 ];

@@ -7,7 +7,7 @@
             <select  class="form-control mt-1 mb-1" 
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="year"> 
                 <option value="{{ $data['year'] }}">{{ $data['year'] }}</option>
-                <option value="">-- انتخاب سال -- </option>
+                <option value="">-- {{ __('dashboard.search_year') }} -- </option>
                 <?php for($i=1400; $i<=1440; $i++)
                 { ?>
                     <option  value="<?php echo $i; ?>">
@@ -19,9 +19,9 @@
         <div class="col-md-3 col-sm-6  col-xs-6">
             <select  class="form-control mt-1 mb-1" 
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="month"> 
-                <option value="{{ $data['month'] }}">{{ $data['month'] == 100 ? 'همه': $data['month']  }}</option>
-                <option value=""> -- انتخاب  ماه -- </option>
-                <option value="100">همه</option>
+                <option value="{{ $data['month'] }}">{{ $data['month'] == 100 ?  __('dashboard.search_all') : $data['month']  }}</option>
+                <option value=""> -- {{ __('dashboard.search_month') }} -- </option>
+                <option value="100">{{ __('dashboard.search_all') }}</option>
                 <?php for($i=1; $i<=12; $i++)
                 { ?>
                     <option  value="<?=$i?>"><?=$i?></option>
@@ -32,9 +32,9 @@
         <div class="col-md-3 col-sm-6  col-xs-6">
             <select  class="form-control mt-1 mb-1" 
                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="day"> 
-                <option value="{{ $data['day'] }}">{{ intval($data['day']) == 100 ? 'همه' : intval($data['day']) }}</option>
-                <option value=""> -- انتخاب  روز -- </option>
-                <option value="100">همه</option>
+                <option value="{{ $data['day'] }}">{{ intval($data['day']) == 100 ?  __('dashboard.search_all')  : intval($data['day']) }}</option>
+                <option value=""> -- {{ __('dashboard.search_day') }} -- </option>
+                <option value="100">{{ __('dashboard.search_all') }}</option>
                 <?php for($i=1; $i<=31; $i++)
                 { ?>
                     <option  value="<?=$i?>"><?=$i?></option>

@@ -98,14 +98,14 @@ $(document).ready(function () {
         <!-- tab -->
         <div class="col-12 tab-wrapper">
             <ul class="nav my_nave nav-tabs" id="myTab2">
-                <li class="active"><a data-toggle="tab" href="#todaysTransaction">معاملات امروز</a></li>
+                <li class="active"><a data-toggle="tab" href="#todaysTransaction"> {{ __('dashboard.todays_tab') }}</a></li>
                 @if($package_type >= 2)
-                <li><a data-toggle="tab" href="#importantTrans">معاملات مهم تجارت</a></li>
-                <li><a data-toggle="tab" href="#cache">خزانه</a></li>
+                <li><a data-toggle="tab" href="#importantTrans"> {{ __('dashboard.important_trans_tab') }} </a></li>
+                <li><a data-toggle="tab" href="#cache">{{ __('dashboard.khazana') }}</a></li>
                 @endif
 
                 @if(($isAdmin) && $package_type >= 3)
-                <li><a data-toggle="tab" href="#branch">شعبات</a></li>
+                <li><a data-toggle="tab" href="#branch">{{ __('dashboard.branch') }}</a></li>
                 @endif
             </ul>
 
@@ -151,7 +151,7 @@ $(document).ready(function () {
 
 <script>
     function changeBranch(branch_id) {
-    if (confirm('آیا میخواهید به این شعبه وارید شوید ؟')) {
+    if (confirm("{{ __('dashboard.login_to_branch') }}")) {
         fetch("{{ route('login.changeBranch') }}", {
             method: "POST",
             headers: {
@@ -165,7 +165,7 @@ $(document).ready(function () {
             if (data.status === "success") {
                 location.reload(); // Refresh page to reflect new session data
             } else {
-                alert("خطا در تغییر شعبه!");
+                alert("{{ __('dashboard.branch_login_error') }}");
             }
         })
         .catch(error => console.error("Error:", error));

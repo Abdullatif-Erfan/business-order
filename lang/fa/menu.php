@@ -30,4 +30,6 @@ return [
     'role' => 'رول ها',
     'users' => 'کاربران',
     'backup' => 'پشتیبان‌گیری',
+    'cacheflow' => 'حسابات مشتریان',
+    'chartOfAccount' => 'چارت حسابات',
 ];

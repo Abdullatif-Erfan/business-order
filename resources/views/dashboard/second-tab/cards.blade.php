@@ -39,7 +39,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> مفاد فروشات + عواید  </p>
+                            <p class="card-category"> {{  __('dashboard.sales_profit_plus_incom') }}  </p>
                             <h4 class="card-title"><?=number_format($total_income,2)?></h4>
                         </div>
                     </div>
@@ -59,7 +59,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> مصارف </p>
+                            <p class="card-category"> {{  __('dashboard.expense') }} </p>
                             <h4 class="card-title"><?=number_format($total_expense,2)?></h4>
                         </div>
                     </div>
@@ -80,7 +80,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> مفاد خالص </p>
+                            <p class="card-category">  {{  __('dashboard.net_profit') }} </p>
                             <h4 class="card-title"><?=number_format($net_profit, 2)?></h4>
                         </div>
                     </div>
@@ -103,7 +103,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> موجودی گدام </p>
+                            <p class="card-category">  {{  __('dashboard.warehouse_value') }} </p>
                             <h4 class="card-title"><?=number_format($total_warehouse_value,2)?></h4>
                         </div>
                     </div>
@@ -123,7 +123,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> پول نقد شرکت</p>
+                            <p class="card-category">  {{  __('dashboard.company_cache') }} </p>
                             <h4 class="card-title"><?=number_format($total_cache,2)?></h4>
                         </div>
                     </div>
@@ -145,7 +145,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category">سرمایه شرکت</p>
+                            <p class="card-category">{{  __('dashboard.company_capital') }}</p>
                             <h4 class="card-title">
                             <?php  echo number_format($total_assets,2); ?></h4>
                         </div>
@@ -169,7 +169,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> طلبات </p>
+                            <p class="card-category"> {{  __('dashboard.talabat') }} </p>
                             <h4 class="card-title"><?=number_format($total_talabat,2)?></h4>
                         </div>
                     </div>
@@ -191,7 +191,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category">قرضه</p>
+                            <p class="card-category">{{  __('dashboard.loans') }}</p>
                             <h4 class="card-title"><?=number_format($total_loan,2)?></h4>
                         </div>
                     </div>
@@ -213,9 +213,9 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> بیلانس طلبات و قرضه </p>
+                            <p class="card-category"> {{  __('dashboard.belance') }}</p>
                             <h4 class="card-title"><?=number_format($loan_talabat_balance,2)?></h4>
-                            <small>شرکت باقی است</small>
+                            <small> {{ __('dashboard.company_loan')}} </small>
                         </div>
                     </div>
                 </div>
@@ -235,9 +235,9 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                        <p class="card-category"> بیلانس طلبات و قرضه </p>
+                        <p class="card-category"> {{  __('dashboard.belance') }} </p>
                             <h4 class="card-title"><?=number_format($loan_talabat_balance,2)?></h4>
-                            <small>شرکت طلب است</small>
+                            <small>{{ __('dashboard.company_talab')}}</small>
                         </div>
                     </div>
                 </div>
@@ -258,9 +258,9 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                        <p class="card-category"> بیلانس طلبات و قرضه </p>
+                        <p class="card-category"> {{  __('dashboard.belance') }} </p>
                             <h4 class="card-title"><?=number_format($loan_talabat_balance,2)?></h4>
-                            <small>  تصفیه است</small>
+                            <small>   {{ __('dashboard.company_clearance')}}</small>
                         </div>
                     </div>
                 </div>
