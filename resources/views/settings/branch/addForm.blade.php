@@ -3,29 +3,29 @@
    @csrf
    <div class="row">
     <div class="form-group col-md-6">
-            <label for="name">نام شعبه</label>
-            <input type="text" class="form-control" name="name" required placeholder="نام را بنویسید">
+            <label for="name">  {{ __('settings.branch_name')}} </label>
+            <input type="text" class="form-control" name="name" required >
             <span id="bNameError" class="text-danger"></span>
         </div>
         <div class="form-group col-md-6">
-            <label for="responsible">مسؤل شعبه</label>
-            <input type="text" class="form-control" name="responsible" required placeholder="نام مسؤل را بنویسید">
+            <label for="responsible">{{ __('settings.branch_resp')}}</label>
+            <input type="text" class="form-control" name="responsible" required>
             <span id="bResponsibleError" class="text-danger"></span>
         </div>
         <div class="form-group col-md-6">
-            <label for="address">شماره تماس</label>
-            <input type="text" class="form-control" name="phone" required placeholder="شماره تماس / واتساپ">
+            <label for="address">{{ __('settings.branch_phone')}}</label>
+            <input type="text" class="form-control" name="phone" required >
             <span id="bPhoneError" class="text-danger"></span>
         </div>
         <div class="form-group col-md-6">
-            <label for="address">ایمیل آدرس</label>
-            <input type="email" class="form-control" name="email"  placeholder="ایمیل آدرس را بنویسید">
+            <label for="address"> {{ __('settings.branch_email')}}</label>
+            <input type="email" class="form-control" name="email"  >
             <span id="bEmailError" class="text-danger"></span>
         </div>
 
         <div class="form-group col-md-12">
-            <label for="address">آدرس دفتر</label>
-            <input type="text" class="form-control" name="address" required placeholder="آدرس دفتر رابنویسید">
+            <label for="address"> {{ __('settings.branch_address')}}</label>
+            <input type="text" class="form-control" name="address" required >
             <span id="bAddressError" class="text-danger"></span>
         </div>
    </div>

@@ -6,14 +6,14 @@
     <table id="branchTable"  class="table table-bordered table-striped table-hover datatable">
         <thead>
             <tr>
-                <th>شماره</th>
-                <th>نام شعبه</th>
-                <th> مسؤل شعبه </th>
-                <th>شماره تماس</th>
-                <th> ایمیل آدرس</th>
-                <th> آدرس دفتر</th>
-                <th>ویرایش</th>
-                <th>حذف</th>
+                <th>{{ __('common.branch_phone')}}</th>
+                <th>{{ __('settings.branch_name')}} </th>
+                <th>{{ __('settings.branch_resp')}} </th>
+                <th>{{ __('settings.branch_phone')}}</th>
+                <th>{{ __('settings.branch_email')}}</th>
+                <th>{{ __('settings.branch_address')}}</th>
+                <th>{{ __('common.edit')}}</th>
+                <th>{{ __('common.delete')}}</th>
             </tr>
         </thead>
     </table>
@@ -25,7 +25,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">ثبت جدید</h5>
+                <h5 class="modal-title"> {{ __('common.add')}}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -33,12 +33,12 @@
             <div class="modal-body">
                 <div id="branchFormWrapper"></div>
                 <div id="loading_modal" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm " data-dismiss="modal">بستن</button>
-                <button type="button" class="btn btn-success btn-sm m-r-10" id="submitBtnBranch">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm " data-dismiss="modal">{{ __('common.close')}}</button>
+                <button type="button" class="btn btn-success btn-sm m-r-10" id="submitBtnBranch">{{ __('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@
     <div class="modal-dialog" role="document" style="width:900px !important">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> ویرایش </h5>
+                <h5 class="modal-title"> {{ __('common.edit')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -57,12 +57,12 @@
             <div class="modal-body">
                 <div id="EditBranchFormWrapper"></div>
                 <div id="loading_modal2" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditBranchBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditBranchBtn">{{ __('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -101,6 +101,8 @@ $('#submitBtnBranch').on('click', function ()
         // $('#accountTypeIdError').text('');
         // $('#accountNameError').text('');
 
+        // showNotification("{{ __('common.add_failed') }}" , 'danger', 'top', 'right', 'withicon');
+
         // AJAX form submission
         $.ajax({
             url: '/branches/store', 
@@ -113,7 +115,7 @@ $('#submitBtnBranch').on('click', function ()
                     $('#addModal').modal('hide');
                     showNotification(response.message, 'success', 'top', 'right', 'withicon');
                 } else {
-                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.add_failed') }}" , 'danger', 'top', 'right', 'withicon');
                 }
             },
             error: (xhr) => {
@@ -137,7 +139,7 @@ $('#submitBtnBranch').on('click', function ()
                     
                 } else {
                     // General error handling
-                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
             }
         });
@@ -223,9 +225,9 @@ function fetchBranchList() {
                 if (response.status === 'success') {
                     fetchBranchList(); 
                     $('#EditBranchModal').modal('hide');
-                    showNotification('موفقانه ویرایش گردید', 'success', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.updated_successfully') }}", 'success', 'top', 'right', 'withicon');
                 } else {
-                    showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.update_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
             },
             error: (xhr) => {
@@ -249,7 +251,7 @@ function fetchBranchList() {
                     }
                 } else {
                     // General error handling
-                    showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.update_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
 
             }
@@ -259,7 +261,7 @@ function fetchBranchList() {
  // Delete Branch
  $('table').on('click', '.deleteBranch', function () {
     const id = $(this).data('id');
-    if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+    if (id && confirm("{{ __('common.delete_confirm') }}")) {
         $.ajax({
             url: `/branches/${id}`,
             type: 'DELETE',
@@ -270,12 +272,12 @@ function fetchBranchList() {
                     fetchBranchList();
                     showNotification(response.message, 'success', 'top', 'right', 'withicon');
                 } else {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.delete_failed') }}", 'danger', 'top', 'right', 'withicon');
                     alert(response.message);
                 }
             },
             error: () => {
-                showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.delete_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
         });
     }

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'تنظیمات')
+@section('title', __('settings.title'))
 
 @php
     $user = auth()->user();
@@ -22,15 +22,14 @@
                             <!-- card-body -->
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
-                                <li class="active"><a data-toggle="tab"  href="#branch">شعبه</a></li>
-                                <li><a data-toggle="tab"  href="#warehouse">گدام</a></li>
-                                <li><a data-toggle="tab"  href="#unit">واحد اجناس</a></li>
-                                <li><a data-toggle="tab"  href="#currency">واحد پولی</a></li>
-                                <li><a data-toggle="tab"  href="#account"> حساب  </a></li>
-                                <li><a data-toggle="tab"  href="#income_type"> کتگوری عواید  </a></li>
-                                <li><a data-toggle="tab"  href="#expense_type"> کتگوری مصارف  </a></li>
-                                <li><a data-toggle="tab"  href="#company_profile">  پروفایل شرکت  </a></li>
-
+                                <li class="active"><a data-toggle="tab"  href="#branch">{{__('settings.branch')}}</a></li>
+                                <li><a data-toggle="tab"  href="#warehouse">{{__('settings.branch')}}</a></li>
+                                <li><a data-toggle="tab"  href="#unit">{{__('settings.unit')}}</a></li>
+                                <li><a data-toggle="tab"  href="#currency"> {{__('settings.currency')}}</a></li>
+                                <li><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>
+                                <li><a data-toggle="tab"  href="#income_type">  {{__('settings.income_type')}}  </a></li>
+                                <li><a data-toggle="tab"  href="#expense_type">  {{__('settings.expense_type')}}  </a></li>
+                                <li><a data-toggle="tab"  href="#company_profile">  {{__('settings.company_profile')}}   </a></li>
                             </ul>
 
                             <div class="tab-content">
@@ -148,7 +147,7 @@
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
