@@ -6,7 +6,7 @@
     <table id="branchTable"  class="table table-bordered table-striped table-hover datatable">
         <thead>
             <tr>
-                <th>{{ __('common.branch_phone')}}</th>
+                <th>{{ __('common.number')}}</th>
                 <th>{{ __('settings.branch_name')}} </th>
                 <th>{{ __('settings.branch_resp')}} </th>
                 <th>{{ __('settings.branch_phone')}}</th>

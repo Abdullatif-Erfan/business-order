@@ -1,32 +1,26 @@
 <form id="currencyEditForm">
-   @csrf
+    @csrf
     <div class="col-xs-12">
         <div class="row">
-        <input type="hidden" name="id" value="{{ $currency->id }}">
-           <div class="form-group col-sm-6">
-                <label for="name">نام واحد پولی </label>
-                <input type="text" class="form-control" name="name" value="{{ $currency->name }}" required placeholder="نام را وارد کنید">
+            <input type="hidden" name="id" value="{{ $currency->id }}">
+
+            <div class="form-group col-sm-6">
+                <label for="name">{{ __('currency.name_label') }}</label>
+                <input type="text" class="form-control" name="name" value="{{ $currency->name }}" required >
                 <span id="currencyNameError" class="text-danger"></span>
             </div>
 
             <div class="form-group col-sm-6">
-                <label for="symbols">  علامت مختصر را بنویسید </label>
-                <input type="text" class="form-control" name="symbols" value="{{ $currency->symbols }}" required placeholder="سمبول ویا نام مختصر">
+                <label for="symbols">{{ __('currency.symbol_label') }}</label>
+                <input type="text" class="form-control" name="symbols" value="{{ $currency->symbols }}" required >
                 <span id="symbolsError" class="text-danger"></span>
             </div>
 
             <div class="form-group col-sm-12">
-                <label for="symbols">    نمایش رنگ واحد پولی </label>
-                <input type="color" class="form-control" name="color" value="{{ $currency->color }}" placeholder="  نمایش رنگ واحد پولی" style="height: 30px !important;">
+                <label for="color">{{ __('currency.color_label') }}</label>
+                <input type="color" class="form-control" name="color" value="{{ $currency->color }}"  style="height: 30px !important;">
                 <span id="colorError" class="text-danger"></span>
             </div>
-
-        
-
-
         </div>
     </div>
-
-    
 </form>
-

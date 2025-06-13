@@ -12,7 +12,7 @@
         <tr>
             <th>#</th>
             <th>نمبربل</th>
-            <th>نام جنس</th>
+            <th>{{__('common.item_name')}}</th>
             <th>تعداد</th>
             <th>واحد</th>
             <th>فی واحد</th>

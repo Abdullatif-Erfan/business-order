@@ -7,7 +7,7 @@
            
             <div class="col-md-6 col-sm-6 col-xs-6">
                 <div class="form-group">
-                    <input class="form-control" id="name" name="name" value="{{ $buyPreLists[0]->name }}" type="text" required placeholder="نام جنس" >
+                    <input class="form-control" id="name" name="name" value="{{ $buyPreLists[0]->name }}" type="text" required placeholder="{{__('common.item_name')}}" >
                     <span id="nameError2" class="text-danger"></span>
                 </div> 
             </div>	

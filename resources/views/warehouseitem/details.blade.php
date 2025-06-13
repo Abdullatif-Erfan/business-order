@@ -82,7 +82,7 @@
                             <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
                             <table id="warehouseTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <tr>
-                                    <th>نام جنس</th>
+                                    <th>{{__('common.item_name')}}</th>
                                     <td><input type="text" id="name" name="name" class="form-control" value="{{ $warehouseItems->first()->preListRelation->name ?? '' }}" readonly disabled></td>
                                     <th>واحد جنس</th>
                                     <td>

@@ -2,13 +2,13 @@
     <table id="currencyTable" class="table table-bordered table-striped table-hover datatable3">
         <thead>
             <tr>
-                <th>شماره </th>
-                <th> واحد پولی </th>										
-                <th> سمبول / نماد </th>										
-                <th> نمایش رنگ </th>		
+                <th>{{__('common.number')}} </th>
+                <th>  {{ __('currency.name_label') }} </th>										
+                <th>  {{ __('currency.symbol_label') }} </th>										
+                <th>  {{ __('currency.color_label') }} </th>		
                 <th> بیس کرنسی </th>		
-                <th>ویرایش </th>
-                <th>حذف </th>
+                <th>{{__('common.edit')}} </th>
+                <th>{{__('common.delete')}} </th>
             </tr>
         </thead>
         <tbody></tbody>

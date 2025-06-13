@@ -6,13 +6,13 @@
     <table id="warehouseTable" class="table table-bordered table-striped table-hover datatable2">
         <thead>
             <tr>
-                <th>شماره</th>
-                <th>نام</th>
-                <th>شعبه مربوطه</th>
-                <th>مسول گدام</th>
-                <th>آدرس</th>
-                <th>ویرایش</th>
-                <th>حذف</th>
+                <th>{{__('common.number')}}</th>
+                <th>{{__('common.name')}}</th>
+                <th>{{ __('settings.related_branch') }}</th>
+                <th>{{ __('settings.responsible_person') }}</th>
+                <th>{{ __('settings.address') }}</th>
+                <th>{{__('common.edit')}}</th>
+                <th>{{__('common.delete')}}</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -25,7 +25,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">افزودن / ویرایش گدام</h5>
+                <h5 class="modal-title">{{__('common.add')}}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -33,12 +33,12 @@
             <div class="modal-body">
                 <div id="warehouseFormWrapper"></div>
                 <div id="loading_modal2" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addWarehouseBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addWarehouseBtn">{{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -50,7 +50,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> ویرایش گدام</h5>
+                <h5 class="modal-title"> {{__('common.edit')}}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -58,12 +58,12 @@
             <div class="modal-body">
                 <div id="EditWarehouseFormWrapper"></div>
                 <div id="loading_modal22" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditWarehouseBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditWarehouseBtn">{{__('common.save')}}</button>
             </div>
         </div>
     </div>

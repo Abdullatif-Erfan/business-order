@@ -8,6 +8,7 @@ return [
     'save'   => 'ثبت',
     'number' => 'نمبر',
     'name'   => 'نام',
+    'item_name'   => 'نام جنس',
     'loading'   => 'درحال بارگزاری ... ',
 
     // toast message

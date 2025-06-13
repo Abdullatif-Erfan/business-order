@@ -23,7 +23,7 @@
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
                                 <li class="active"><a data-toggle="tab"  href="#branch">{{__('settings.branch')}}</a></li>
-                                <li><a data-toggle="tab"  href="#warehouse">{{__('settings.branch')}}</a></li>
+                                <li><a data-toggle="tab"  href="#warehouse">{{__('settings.warehouse')}}</a></li>
                                 <li><a data-toggle="tab"  href="#unit">{{__('settings.unit')}}</a></li>
                                 <li><a data-toggle="tab"  href="#currency"> {{__('settings.currency')}}</a></li>
                                 <li><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>

@@ -17,17 +17,19 @@ return [
     'branch_email' => 'ایمیل آدرس',
     'branch_address' => 'آدرس دفتر',
 
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    
+    // warehouse
+    'warehouse_name' => 'نام گدام',
+    'enter_warehouse_name' => 'نام گدام را وارد کنید',
+    'related_branch' => 'شعبه مربوطه',
+    'select_branch' => 'انتخاب شعبه',
+    'responsible_person' => 'مسول گدام',
+    'enter_responsible_name' => 'نام مسول را وارد کنید',
+    'address' => 'آدرس',
+    'enter_address' => 'آدرس را وارد کنید',
+    'select_branch_option' => '--- انتخاب شعبه ---',
 
     // general
     "title" => 'تنظیمات',
     'message' => 'پیام ',
-    'a' => '',
-    'a' => '',
+   
 ];

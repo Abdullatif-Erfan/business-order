@@ -42,7 +42,7 @@
                                 
                                     <div class="col-md-8 col-sm-8 col-xs-6">
                                         <div class="form-group">
-                                            <input class="form-control" id="name" name="name" type="text" required placeholder="نام جنس" >
+                                            <input class="form-control" id="name" name="name" type="text" required placeholder="{{__('common.item_name')}}" >
                                             <span id="nameError" class="text-danger"></span>
                                         </div> 
                                     </div>	
@@ -80,7 +80,7 @@
                                         <tr>
                                             <th>شماره</th>
                                             <th> شعبه</th>
-                                            <th>نام جنس</th>
+                                            <th>{{__('common.item_name')}}</th>
                                             <th>ویرایش</th>
                                             <th>حذف</th>
                                         </tr>

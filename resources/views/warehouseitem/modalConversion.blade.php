@@ -1,7 +1,7 @@
 
     <div class="row">
         <div class="col-md-4 col-sm-6 col-xs-6">
-            <label for="item_name"> <strong>نام جنس</strong>  </label>
+            <label for="item_name"> <strong>{{__('common.item_name')}}</strong>  </label>
 
             <input class="form-control" name="id"  type="hidden" 
             value="{{ $warehouseItems->id ?? 0 }}" >

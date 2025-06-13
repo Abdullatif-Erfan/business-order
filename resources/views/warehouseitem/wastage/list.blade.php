@@ -41,7 +41,7 @@
                                 <div class="row">
 
                                     <div class="col-md-3 col-sm-6 col-xs-6">
-                                        <input type="text" id="item_name" placeholder="نام جنس" class="form-control">
+                                        <input type="text" id="item_name" placeholder="{{__('common.item_name')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">

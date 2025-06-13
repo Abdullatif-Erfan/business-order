@@ -6,10 +6,10 @@
     <table id="unitTable" class="table table-bordered table-striped table-hover datatable3">
         <thead>
             <tr>
-                <th>شماره</th>
-                <th>نام</th>
-                <th>ویرایش</th>
-                <th>حذف</th>
+                <th> {{__('common.number')}}</th>
+                <th> {{__('common.name')}}</th>
+                <th> {{__('common.edit')}}</th>
+                <th> {{__('common.delete')}}</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -22,7 +22,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">افزودن </h5>
+                <h5 class="modal-title"> {{__('common.add')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -30,12 +30,12 @@
             <div class="modal-body">
                 <div id="unitFormWrapper"></div>
                 <div id="loading_modal_unit" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i>  {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addUnitBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"> {{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addUnitBtn"> {{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -47,7 +47,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> ویرایش </h5>
+                <h5 class="modal-title">  {{__('common.edit')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -55,12 +55,12 @@
             <div class="modal-body">
                 <div id="EditUnitFormWrapper"></div>
                 <div id="loading_modal_unit2" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i>  {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditUnitBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"> {{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditUnitBtn"> {{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -114,9 +114,9 @@
                 // Call a function to refresh the warehouse list or update the UI
                 fetchUnitList(); // Ensure this function exists in your code
                 $('#addUnitModal').modal('hide');
-                showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.added_successfully') }}", 'success', 'top', 'right', 'withicon');
             } else {
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
         },
         error: (xhr) => {
@@ -131,7 +131,7 @@
                 }
             } else {
                 // General error handling
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
         }
     });
@@ -187,9 +187,9 @@
                 // Call a function to refresh the warehouse list or update the UI
                 fetchUnitList(); // Ensure this function exists in your code
                 $('#EditUnitModal').modal('hide');
-                showNotification('موفقانه ویرایش گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.updated_successfully') }}", 'success', 'top', 'right', 'withicon');
             } else {
-                showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.update_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
         },
         error: (xhr) => {
@@ -204,7 +204,7 @@
                 }
             } else {
                 // General error handling
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
 
         }
@@ -245,7 +245,7 @@ function fetchUnitList() {
 // Delete Warehouse
 $('table').on('click', '.deleteUnit', function () {
     const id = $(this).data('id');
-        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+        if (id && confirm("{{ __('common.delete_confirm') }}")) {
             $.ajax({
                 url: `/units/${id}`,
                 type: 'DELETE',
@@ -255,12 +255,12 @@ $('table').on('click', '.deleteUnit', function () {
                         fetchUnitList();
                         showNotification(response.message, 'success', 'top', 'right', 'withicon');
                     } else {
-                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                       showNotification("{{ __('common.delete_failed') }}", 'danger', 'top', 'right', 'withicon');
                        alert(response.message);
                     }
                 },
                 error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.delete_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
             });
         }
