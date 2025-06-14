@@ -32,7 +32,7 @@
                     <!-- insertion -->
                       <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
                             <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
-                                <span class="fas fa-plus-square"></span>  &nbsp; ثبت جدید </button>
+                                <span class="fas fa-plus-square"></span>  &nbsp; <th>{{__('common.add')}}</th> </button>
                             </a> 
                         </div>
                         <div id="add_form_collapse" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">
@@ -96,14 +96,14 @@
                             <table id="preListTable"  class="table table-bordered table-striped table-hover datatable">
                                     <thead>
                                         <tr>
-                                            <th>شماره</th>
+                                            <th>{{__('common.number')}}</th>
                                             <th> کد</th>
                                             <th> شعبه</th>
                                             <th>{{__('common.item_name')}}</th>
                                             <th> بارکد</th>
                                             <th> عکس</th>
-                                            <th>ویرایش</th>
-                                            <th>حذف</th>
+                                            <th>{{__('common.edit')}}</th>
+                                            <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>

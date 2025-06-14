@@ -3,7 +3,7 @@
         <table id="example8" class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>شماره </th>
+                        <th>{{__('common.number')}}</th>
                         <th> نام پکیج </th>										
                         <th>  نوع پکیج  </th>	
                         <th>فعال توسط </th>

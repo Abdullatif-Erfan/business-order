@@ -59,11 +59,11 @@ function doConfirmRestore()
                     <table id="example4" class="table table-hover rtl">
                         <thead>
                             <tr>
-                               <th>شماره</th>
+                               <th>{{__('common.number')}}</th>
                                 <th>فایل</th> 
                                 <!-- <th>دانلود</th> -->
                                 <th>ریستور</th>
-                                <th>حذف</th>
+                                <th>{{__('common.delete')}}</th>
                             </tr>
                         </thead>
                         <tbody>

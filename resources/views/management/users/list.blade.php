@@ -26,7 +26,7 @@
 
                             <div class="card-header text-center" style="padding:10px;">
                             <a href="{{ route('user.create') }}" class="btn btn-sm btn-default pull-right"> 
-                                <span class="fas fa-plus-square"></span> &nbsp; ثبت جدید 
+                                <span class="fas fa-plus-square"></span> &nbsp; <th>{{__('common.add')}}</th> 
                             </a>
                                 <span class="card-title">   لست کاربران  </span>
                             </div>

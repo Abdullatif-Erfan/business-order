@@ -31,7 +31,7 @@
 
 						<?php } else { ?>
 								<button type="button" class="btn btn-sm mybtn">
-									<i class="fas fa-plus"></i> ثبت جدید
+									<i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
 								</button>
 						<?php } ?>
 						

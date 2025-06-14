@@ -32,15 +32,13 @@ return [
     // currency
     'name_label' => 'Currency Name',
     'name_placeholder' => 'Enter name',
-
     'symbol_label' => 'Currency Symbol',
     'symbol_placeholder' => 'Symbol or abbreviation',
-
     'color_label' => 'Currency Color Display',
     'color_placeholder' => 'Display currency color',
-
     'base_currency_label' => 'Select Base Currency',
     'base_currency_option' => 'Choose base currency',
+    'base_currency' => '‌Base Currency',
     'yes' => 'Yes',
     'no' => 'No',
 

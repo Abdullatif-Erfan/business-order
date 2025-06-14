@@ -34,7 +34,7 @@
                                 </a>
                             @else
                                 <button type="button" onclick="alert('صلاحیت ندارید')" class="btn btn-sm mybtn">
-                                    <i class="fas fa-plus"></i> ثبت جدید
+                                    <i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
                                 </button>
                             @endif
 
@@ -145,8 +145,8 @@
                                             <th>واحد</th>
                                             <th>تاریخ</th>
                                             <th>سند</th>
-                                            <th>ویرایش</th>
-                                            <th>حذف</th>
+                                            <th>{{__('common.edit')}}</th>
+                                            <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>

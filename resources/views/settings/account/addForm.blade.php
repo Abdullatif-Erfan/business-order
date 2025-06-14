@@ -4,9 +4,9 @@
         <div class="row">
           
            <div class="form-group col-sm-6">
-                <label for="account_type_id"> انتخاب نوع حساب </label>
+                <label for="account_type_id"> {{__('settings.account_type_selection')}} </label>
                 <select class="form-control"  name="account_type_id" required onchange="checkAccountType(this.value)">
-                    <option value="">انتخاب نوع حساب</option>
+                    <option value="">{{__('settings.account_type_selection')}}</option>
                     @foreach($accountTypes as $accountType)
                     <option value="{{ $accountType->id }}">{{ $accountType->name }}</option>
                     @endforeach
@@ -15,40 +15,40 @@
             </div>
 
             <div class="form-group col-sm-6">
-                <label for="name"> نام حساب  </label>
-                <input type="text" class="form-control" name="name" required placeholder="نام حساب را بنویسید">
+                <label for="name"> {{__('settings.account_name')}}  </label>
+                <input type="text" class="form-control" name="name" required >
                 <span id="accountNameError" class="text-danger"></span>
             </div>
 
             <div class="form-group col-sm-6">
-                <label for="phone"> شماره تماس </label>
-                <input type="text" class="form-control" name="phone"  placeholder="شماره تماس ...">
+                <label for="phone"> {{__('settings.phone')}}  </label>
+                <input type="text" class="form-control" name="phone" >
                 <span id="phoneError" class="text-danger"></span>
             </div>
 
             <div class="form-group col-sm-6">
-                <label for="address"> آدرس </label>
-                <input type="text" class="form-control" name="address"  placeholder=" آدرس ...">
+                <label for="address">  </label>
+                <input type="text" class="form-control" name="address" >
                 <span id="addressError" class="text-danger"></span>
             </div>
 
             <div class="form-group col-sm-6" id="percent" style="display:none;">
-                <label for="percent"> فیصدی </label>
-                <input type="number" class="form-control" name="percent"  placeholder="فیصدی سهم این سهامدار را بنویسید">
+                <label for="percent"> {{__('settings.percentage')}} </label>
+                <input type="number" class="form-control" name="percent" >
                 <span id="percentError" class="text-danger"></span>
             </div>
 
             <!-- belongs to employee -->
                 <div class="form-group col-sm-6" id="net_salary" style="display:none;">
-                    <label for="percent"> معاش خالص ماهانه </label>
-                    <input type="number" class="form-control" name="net_salary"  placeholder="معاش خالص ماهانه را بنویسید">
+                    <label for="percent"> {{ __('settings.net_salary')}} </label>
+                    <input type="number" class="form-control" name="net_salary" >
                     <span id="netSalaryError" class="text-danger"></span>
                 </div>
 
                 <div class="form-group col-sm-6" id="salary_currency" style="display:none;">
-                    <label for="percent">  پرداخت معاش به کرنسی </label>
+                    <label for="percent"> {{ __('settings.paid_currency')}}</label>
                     <select class="form-control" name="salary_currency">
-                        <option value=""> انتخاب کرنسی </option>
+                        <option value=""> {{ __('settings.paid_currency')}} </option>
                         @foreach($currencies as $currency)
                            <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                         @endforeach
@@ -58,18 +58,18 @@
 
 
             <div class="form-group col-sm-6" id="is_pre_select" style="display:none;">
-                <label for="is_pre_select"> صرف یک حساب پیش فرض انتخاب نمایید    </label>
+                <label for="is_pre_select"> {{ __('settings.default_account') }}    </label>
                 <select class="form-control" name="is_pre_select" >
-                    <option value="0">نخیر</option>
-                    <option value="1">بلی</option>
+                    <option value="0">{{ __('settings.yes') }}</option>
+                    <option value="1">{{ __('settings.no') }}</option>
                 </select>
             </div>
 
             @if(count($branchs) >= 2)
             <div class="form-group col-sm-6">
-                <label for="account_type_id"> انتخاب شعبه </label>
+                <label for="account_type_id"> {{ __('settings.branch') }} </label>
                 <select class="form-control"  name="branch_id" required>
-                    <option value="">انتخاب  شعبه</option>
+                    <option value=""> {{ __('settings.branch') }}</option>
                     @foreach($branchs as $branch)
                     <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                     @endforeach
@@ -83,7 +83,7 @@
 
             <div class="col-12">
               <hr />
-               <h3>رسید حساب سابقه </h3>
+               <h3> {{ __('settings.paid_old_journal')}} </h3>
             </div>
            
 
@@ -91,26 +91,26 @@
                 <div id="formContainer" class="col-12" style="background:#eef2ff;">
                     <div class="repeatable-form row">
                         <div class="form-group col-sm-3">
-                            <label for="amount"> مبلغ </label>
-                            <input type="number" step="0.01" class="form-control" name="amount[]" placeholder=" مبلغ ...">
+                            <label for="amount"> {{ __('settings.amount')}} </label>
+                            <input type="number" step="0.01" class="form-control" name="amount[]">
                             <span class="text-danger"></span>
                         </div>
 
                         <div class="form-group col-sm-4">
-                            <label for="options"> انتخاب گزینه </label>
+                            <label for="options"> {{ __('settings.option_selection')}} </label>
                             <select class="form-control" name="options[]" required>
-                                <option value=""> انتخاب گزینه </option>
-                                <option value="1"> افزایش پول نقد</option>
-                                <option value="2"> ثبت در بخش طلبات </option>
-                                <option value="3"> ثبت در بخش قرضه </option>
+                                <option value="">  {{ __('settings.option_selection')}} </option>
+                                <option value="1"> {{__('settings.increase_cache')}} </option>
+                                <option value="2"> {{__('settings.save_in_talabat')}} </option>
+                                <option value="3"> {{__('settings.save_in_qarza')}} </option>
                             </select>
                             <span class="text-danger"></span>
                         </div>
 
                         <div class="form-group col-sm-3">
-                            <label for="currency_id"> انتخاب واحد پولی </label>
+                            <label for="currency_id"> {{__('settings.currency_selection')}} </label>
                             <select class="form-control" name="currency_id[]" required>
-                                <option value=""> انتخاب واحد پولی </option>
+                                <option value=""> {{__('settings.currency_selection')}} </option>
                                 @foreach($currencies as $currency)
                                  <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                 @endforeach
@@ -120,8 +120,8 @@
 
                         <div class="form-group col-sm-2">
                             <br />
-                            <button type="button" class="btn btn-sm btn-success m-t-10 add-more">➕ افزودن</button>
-                            <button type="button" class="btn btn-sm btn-danger remove" style="display:none;">❌ حذف</button>
+                            <button type="button" class="btn btn-sm btn-success m-t-10 add-more">➕ {{__('common.add')}}</button>
+                            <button type="button" class="btn btn-sm btn-danger remove" style="display:none;">❌ {{__('common.delete')}}</button>
                         </div>
                     </div>
                 </div>

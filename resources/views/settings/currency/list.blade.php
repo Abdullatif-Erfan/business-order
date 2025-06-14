@@ -3,10 +3,10 @@
         <thead>
             <tr>
                 <th>{{__('common.number')}} </th>
-                <th>  {{ __('currency.name_label') }} </th>										
-                <th>  {{ __('currency.symbol_label') }} </th>										
-                <th>  {{ __('currency.color_label') }} </th>		
-                <th> بیس کرنسی </th>		
+                <th>{{ __('settings.name_label') }} </th>										
+                <th>{{ __('settings.symbol_label') }} </th>										
+                <th>{{ __('settings.color_label') }} </th>		
+                <th>{{ __('settings.base_currency') }} </th>		
                 <th>{{__('common.edit')}} </th>
                 <th>{{__('common.delete')}} </th>
             </tr>
@@ -20,7 +20,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">افزودن </h5>
+                <h5 class="modal-title">{{__('common.add')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -28,12 +28,12 @@
             <div class="modal-body">
                 <div id="currencyFormWrapper"></div>
                 <div id="loading_modal_currency" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addCurrencyBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addCurrencyBtn">{{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -45,7 +45,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> ویرایش </h5>
+                <h5 class="modal-title"> {{__('common.edit')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -53,12 +53,12 @@
             <div class="modal-body">
                 <div id="EditCurrencyFormWrapper"></div>
                 <div id="loading_modal_currency2" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditCurrencyBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditCurrencyBtn">{{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -119,9 +119,9 @@
                         // Call a function to refresh the warehouse list or update the UI
                         fetchCurrencyList(); // Ensure this function exists in your code
                         $('#addCurrencyModal').modal('hide');
-                        showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                        showNotification("{{ __('common.added_successfully') }}", 'success', 'top', 'right', 'withicon');
                     } else {
-                        showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                        showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: (xhr) => {
@@ -144,7 +144,7 @@
                         }
                     } else {
                         // General error handling
-                        showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                        showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                     }
                 }
             });
@@ -201,9 +201,9 @@
                     // Call a function to refresh the warehouse list or update the UI
                     fetchCurrencyList(); // Ensure this function exists in your code
                     $('#EditCurrencyModal').modal('hide');
-                    showNotification('موفقانه ویرایش گردید', 'success', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.updated_successfully') }}", 'success', 'top', 'right', 'withicon');
                 } else {
-                    showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.updated_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
             },
             error: (xhr) => {
@@ -227,7 +227,7 @@
                         }
                 } else {
                     // General error handling
-                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
 
             }
@@ -271,7 +271,7 @@ function fetchCurrencyList() {
 // Delete Warehouse
 $('table').on('click', '.deleteCurrency', function () {
     const id = $(this).data('id');
-        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+        if (id && confirm("{{ __('common.delete_confirm') }}")) {
             $.ajax({
                 url: `/currency/${id}`,
                 type: 'DELETE',
@@ -282,11 +282,11 @@ $('table').on('click', '.deleteCurrency', function () {
                         showNotification(response.message, 'success', 'top', 'right', 'withicon');
                     } else {
                        showNotification(response.message, 'danger', 'top', 'right', 'withicon');
-                    //    alert(response.message);
+                       // alert(response.message);
                     }
                 },
                 error: () => {
-                    showNotification(response.message, 'danger', 'top', 'right', 'withicon');
+                       showNotification(response.message, 'danger', 'top', 'right', 'withicon');
                 }
             });
         }

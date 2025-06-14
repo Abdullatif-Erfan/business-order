@@ -63,7 +63,7 @@
                                         <table class="table table-bordered new" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>شماره</th>
+                                                    <th>{{__('common.number')}}</th>
                                                     <th> جنس </th>
                                                     <th>تعداد فروش</th>
                                                     <th>واحد</th>
@@ -134,7 +134,7 @@
                                         <table class="table table-bordered new" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>شماره</th>
+                                                    <th>{{__('common.number')}}</th>
                                                     <th> جنس </th>
                                                     <th>تعداد فروش</th>
                                                     <th>واحد</th>

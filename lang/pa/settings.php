@@ -32,15 +32,13 @@ return [
     // currency
     'name_label' => 'د اسعارو نوم',
     'name_placeholder' => 'نوم ولیکئ',
-
     'symbol_label' => 'سمبول یا لنډ نوم',
     'symbol_placeholder' => 'سمبول یا لنډ نوم ولیکئ',
-
     'color_label' => 'د اسعارو رنګ',
     'color_placeholder' => 'د اسعارو رنګ وښایئ',
-
     'base_currency_label' => 'د اصلي اسعارو ټاکنه',
     'base_currency_option' => 'اصلي اسعار وټاکئ',
+    'base_currency' => 'بیس کرنسی',
     'yes' => 'هو',
     'no' => 'نه',
 

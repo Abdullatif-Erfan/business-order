@@ -58,8 +58,8 @@
                                     <th>تمام صلاحیت</th>
                                     <th> نمایش</th>
                                     <th>ایجاد</th>
-                                    <th>ویرایش</th>
-                                    <th>حذف</th>
+                                    <th>{{__('common.edit')}}</th>
+                                    <th>{{__('common.delete')}}</th>
                                 </tr>
                             </thead>
                             <tbody>

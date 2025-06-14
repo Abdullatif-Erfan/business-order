@@ -116,8 +116,8 @@
                                             <th> سال </th>
                                             <th>ماه</th>
                                             <th>تاریخ</th>
-                                            <th>ویرایش</th>
-                                            <th>حذف</th>
+                                            <th>{{__('common.edit')}}</th>
+                                            <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>

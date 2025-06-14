@@ -3,7 +3,7 @@
         <table id="example4" class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>شماره </th>
+                        <th>{{__('common.number')}}</th>
                         <th> واحد پولی </th>										
                         <th>  سمبول / نماد </th>										
                         <th>  نمایش رنگ </th>		

@@ -40,7 +40,7 @@
 					<div class="card-header" style="padding:10px;">
                         <a class="text-dark" href="<?=base_url().'management/user/addNew'?>" aria-expanded="false">
 							    <button type="button" class="btn btn-sm " style="border-radius:0px;"> 
-								<span class="fas fa-plus-square"></span>  &nbsp; ثبت جدید </button>
+								<span class="fas fa-plus-square"></span>  &nbsp; <th>{{__('common.add')}}</th> </button>
 						</a> 
 					</div>
 					<div class="card-body"><!-- card-body -->
@@ -49,7 +49,7 @@
                     <table id='myTable' class="table table-bordered table-striped table-hover my_table">
                       <thead>
 							<tr>
-								<th>شماره</th>
+								<th>{{__('common.number')}}</th>
 								<th>نام </th>
 								<th>ایمیل</th>
 								<th>شماره مبایل</th>
@@ -58,8 +58,8 @@
 								<th>عکس</th>
 								<th>ورود</th>
 								<!-- <th>تاریخچه</th> -->
-								<th>ویرایش</th>
-								<th>حذف</th>
+								<th>{{__('common.edit')}}</th>
+								<th>{{__('common.delete')}}</th>
 
 							</tr>
                       </thead>

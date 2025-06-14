@@ -29,7 +29,7 @@
                     <div class="card">
                         <div class="card-header" style="padding: 10px;text-align:center">
                             <a href="{{route('warehousesList.wastage.create')}}">
-                               <button type="button" class="btn btn-sm mybtn pull-right"><i class="fas fa-plus"></i> ثبت جدید</button>  
+                               <button type="button" class="btn btn-sm mybtn pull-right"><i class="fas fa-plus"></i> <th>{{__('common.add')}}</th></button>  
                             </a>                         
                             <span class="">   لیست اجناس هایکه خراب شده است ویا تاریخ شان گذشته است </span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>

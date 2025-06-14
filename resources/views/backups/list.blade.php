@@ -70,7 +70,7 @@
                                             <th>زمان</th>
                                             <th>ریستور</th>
                                             <th>دانلود</th>
-                                            <th>حذف</th>
+                                            <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>

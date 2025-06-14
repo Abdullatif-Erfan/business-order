@@ -35,12 +35,12 @@
                                         <table class="table table-bordered table-striped table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th>شماره</th>
+                                                    <th>{{__('common.number')}}</th>
                                                     <th>از</th>
                                                     <th>معادل</th>
                                                     <!-- <th width="30%">عکس آن</th> -->
-                                                    <th>ویرایش</th>
-                                                    <th>حذف</th>
+                                                    <th>{{__('common.edit')}}</th>
+                                                    <th>{{__('common.delete')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>

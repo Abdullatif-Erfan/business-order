@@ -6,14 +6,14 @@
     <table id="branchTable"  class="table table-bordered table-striped table-hover datatable">
         <thead>
             <tr>
-                <th>شماره</th>
+                <th>{{__('common.number')}}</th>
                 <th>نام شعبه</th>
                 <th> مسؤل شعبه </th>
                 <th>شماره تماس</th>
                 <th> ایمیل آدرس</th>
                 <th> آدرس دفتر</th>
-                <th>ویرایش</th>
-                <th>حذف</th>
+                <th>{{__('common.edit')}}</th>
+                <th>{{__('common.delete')}}</th>
             </tr>
         </thead>
     </table>
@@ -25,7 +25,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">ثبت جدید</h5>
+                <h5 class="modal-title"><th>{{__('common.add')}}</th></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

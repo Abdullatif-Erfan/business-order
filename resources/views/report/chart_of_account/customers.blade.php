@@ -17,7 +17,7 @@
     @endphp
     <table class="table table-bordered"  style="width:100%">
         <tr style="background-color:#edf7ff">
-            <th>شماره</th>
+            <th>{{__('common.number')}}</th>
             <th>حساب</th>
             <th>قرضه</th>
             <th>طلبات</th>

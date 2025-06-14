@@ -113,7 +113,7 @@
                                             <table class="table table-bordered new" style="width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>شماره</th>
+                                                        <th>{{__('common.number')}}</th>
                                                         <th width="150">فروشنده</th>
                                                         <th width="150"> جنس </th>
                                                         <th width="100">واحد</th> 

@@ -3,7 +3,7 @@
         <table id="example5" class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>شماره </th>
+                        <th>{{__('common.number')}}</th>
                         <th>حساب اصلی</th>									
                         <th>ویرایش </th>
                         <th>حذف </th>

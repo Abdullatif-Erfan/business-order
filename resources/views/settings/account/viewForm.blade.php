@@ -42,7 +42,7 @@
                 <div id="formContainer" class="col-12" style="padding:10px;">
                     <table class="table table-bordered">
                         <tr>
-                            <th>شماره</th>
+                            <th>{{__('common.number')}}</th>
                             <th>مبلغ</th>
                             <th>طلب / باقی</th>
                             <th>  واحد پولی </th>

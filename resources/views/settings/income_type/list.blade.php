@@ -6,10 +6,10 @@
     <table id="incomeTypeTable" class="table table-bordered table-striped table-hover datatable3">
         <thead>
             <tr>
-                <th>شماره</th>
+                <th>{{__('common.number')}}</th>
                 <th>نام</th>
-                <th>ویرایش</th>
-                <th>حذف</th>
+                <th>{{__('common.edit')}}</th>
+                <th>{{__('common.delete')}}</th>
             </tr>
         </thead>
         <tbody></tbody>

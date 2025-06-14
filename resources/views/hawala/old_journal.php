@@ -21,7 +21,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                 <!-- Insertion -->
                     <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_currency" aria-expanded="false">
                         <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
-                            <span class="fas fa-plus-square"></span>  &nbsp; ثبت جدید </button>
+                            <span class="fas fa-plus-square"></span>  &nbsp; <th>{{__('common.add')}}</th> </button>
                         </a> 
                     </div>
                     <div id="add_currency" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">

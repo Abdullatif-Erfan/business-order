@@ -2,7 +2,7 @@
 <!-- Button to trigger the modal -->
 <button type="button" name="add" class="btn btn-primary btn-sm m-l-10 m-b-10" data-toggle="modal" data-target="#addModal">
     <span class="btn-label"> <i class="fa fa-plus"></i> </span>
-    ثبت جدید
+    <th>{{__('common.add')}}</th>
 </button>
 
 
@@ -14,7 +14,7 @@
     <table id="example" class="table table-bordered table-striped table-hover">
         <thead>
             <tr>
-                <th>شماره </th>
+                <th>{{__('common.number')}}</th>
                 <th>نام شعبه </th>
                 <th>نام شعبه </th>
                 <th>نام شعبه </th>
@@ -34,7 +34,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">ثبت جدید</h5>
+                <h5 class="modal-title" id="exampleModalLabel"><th>{{__('common.add')}}</th></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

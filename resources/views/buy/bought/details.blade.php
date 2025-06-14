@@ -67,7 +67,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                         <table class="table table-bordered new" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>شماره</th>
+                                                    <th>{{__('common.number')}}</th>
                                                     <th>فروشنده</th>
                                                     <th> جنس </th>
                                                     <th>تعداد خرید</th>
@@ -213,7 +213,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                         <table class="table table-bordered new" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>شماره</th>
+                                                    <th>{{__('common.number')}}</th>
                                                     <th>فروشنده</th>
                                                     <th> جنس </th>
                                                     <th>تعداد خرید</th>

@@ -14,7 +14,7 @@ function changePoints(value) {
 
 <div class="box-tools m-t-10 m-b-10 m-r-10">
     <button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" href="#add_currency" style="border-radius:0px;">
-        <span class="fas fa-plus-square"></span> &nbsp; ثبت جدید
+        <span class="fas fa-plus-square"></span> &nbsp; <th>{{__('common.add')}}</th>
     </button>
 </div>
 

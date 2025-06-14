@@ -28,6 +28,37 @@ return [
     'enter_address' => 'آدرس را وارد کنید',
     'select_branch_option' => '--- انتخاب شعبه ---',
 
+    // currency
+    'name_label' => 'واحد پولی',
+    'name_placeholder' => 'نام واحد پولی',
+    'symbol_label' => 'سمبول یا نام مختصر',
+    'symbol_placeholder' => 'سمبول جهانی کرنسی',
+    'color_label' => 'رنگ',
+    'color_placeholder' => 'رنگ مشخص را انتخاب نمایید',
+    'base_currency_label' => 'بیس کرنسی',
+    'base_currency_option' => 'آیا بیس کرنسی میباشد ؟',
+    'base_currency' => 'بیس کرنسی',
+    'yes' => 'بلی',
+    'no' => 'نخیر',
+
+    // account
+    'account_type_selection' => 'انتخاب نوع حساب',
+    'account_name'      => 'نام حساب',
+    'phone'         => 'شماره تماس',
+    'address'   => 'آدرس',
+    'percentage' => 'فیصدی سهم دار',
+    'net_salary' => 'معاش خالص ماهانه',
+    'paid_currency' => 'پرداخت معاش به کرنسی',
+    'default_account' => 'صرف یک حساب پیش فرض انتخاب نمایید',
+    'paid_old_journal' => 'رسید حساب سابقه',
+    'amount'        => 'مبلغ',
+    'option_selection' => 'انتخاب گزینه',
+    'currency_selection' => 'انتخاب واحد پولی',
+    'increase_cache' => 'افزایش پول نقد',
+    'save_in_talabat' => 'ثبت در بخش طلبات',
+    'save_in_qarza' => 'ثبت در بخش قرضه',
+
+
     // general
     "title" => 'تنظیمات',
     'message' => 'پیام ',

@@ -6,7 +6,7 @@
     <table id="orgProfileTable" class="table table-bordered table-striped table-hover datatable3">
         <thead>
             <tr>
-                <th>شماره </th>
+                <th>{{__('common.number')}}</th>
                 <th>نام شرکت </th>
                 <th>شماره تماس</th>
                 <th>آدرس</th>

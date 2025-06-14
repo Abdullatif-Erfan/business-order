@@ -2,7 +2,7 @@
     <table id="accountTable" class="table table-bordered table-striped table-hover datatable3">
         <thead>
             <tr>
-                <th>شماره </th>
+                <th>{{__('common.number')}}</th>
                 <th>شعبه</th>
                 <th> نوع حساب </th>										
                 <th>  نام حساب </th>										
