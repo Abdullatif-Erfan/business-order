@@ -401,7 +401,7 @@ class WarehouseListController extends Controller
        
         $currencies = Currency::select('id','name')->get();
         $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
-        $preLists = BuyPreList::select('id','name','branch_id')->where('branch_id', $this->branch_id)->get();
+        $preLists = BuyPreList::select('id','name','code','branch_id')->where('branch_id', $this->branch_id)->get();
 
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();

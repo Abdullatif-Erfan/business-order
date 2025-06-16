@@ -42,6 +42,24 @@ return [
     'yes' => 'هو',
     'no' => 'نه',
 
+    // account
+    'account_type_selection' => 'د حساب ډول انتخاب کړئ',
+    'account_name'           => 'د حساب نوم',
+    'phone'                  => 'د تماس شمېره',
+    'address'                => 'پته',
+    'percentage'             => 'د شریک فیصدي',
+    'net_salary'             => 'خالص میاشتنی معاش',
+    'paid_currency'          => 'معاش په کومه کرنسي ورکول شوی',
+    'default_account'        => 'یوازې یو اصلي (پیش فرض) حساب انتخاب کړئ',
+    'paid_old_journal'       => 'د پخواني حساب رسید',
+    'amount'                 => 'مقدار',
+    'option_selection'       => 'اختیار انتخاب کړئ',
+    'currency_selection'     => 'واحد پول انتخاب کړئ',
+    'increase_cache'         => 'نغدي زیاتوالی',
+    'save_in_talabat'        => 'په طلباتو کې ثبت کړئ',
+    'save_in_qarza'          => 'په پورونو کې ثبت کړئ',
+
+
      // general
      "title" => 'تنظیمات',
      'message' => 'پیام ',

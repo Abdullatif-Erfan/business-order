@@ -29,7 +29,7 @@
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 >
                                 {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})
-                                - {{ $item->warehouse_name }}
+                                - {{ $item->warehouse_name }} / ( کد = {{ $item->code }}  ) 
                             </option>
                         @endforeach
                     </select>

@@ -8,8 +8,14 @@ return [
     'save'   => 'ثبتول',
     'number' => 'شمېره',
     'name'   => 'نوم',
+    'view'  => 'نمایش',
+    'details'  => 'جزییات',
     'item_name'   => 'د جنس نوم',
     'loading' => 'بار وړل کېږي...',
+
+    // @TODO Need translation
+    'talab' => 'طلب',
+    'baqi'  => 'باقی',
 
     // toast message
     'added_successfully'    => 'په بریالیتوب سره اضافه شو',

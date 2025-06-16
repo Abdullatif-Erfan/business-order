@@ -9,7 +9,11 @@ return [
     'number' => 'Number',
     'name'   => 'Name',
     'item_name'   => 'Item Name',
+    'view'  => 'View',
+    'details'  => 'Details',
     'loading' => 'Loading...',
+    'talab' => 'Talab',
+    'baqi'  => 'Baqi',
 
     // toast message
     'added_successfully'    => 'Added successfully',

@@ -43,12 +43,25 @@ return [
     'no' => 'No',
 
 
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
-    'a' => '',
+    // account
+    'account_type_selection' => 'Select Account Type',
+    'account_name'           => 'Account Name',
+    'phone'                  => 'Phone Number',
+    'address'                => 'Address',
+    'percentage'             => 'Share Percentage',
+    'net_salary'             => 'Monthly Net Salary',
+    'paid_currency'          => 'Salary Payment Currency',
+    'default_account'        => 'Only one default account should be selected',
+    'paid_old_journal'       => 'Old Account Receipt',
+    'amount'                 => 'Amount',
+    'option_selection'       => 'Select Option',
+    'currency_selection'     => 'Select Currency',
+    'increase_cache'         => 'Increase Cash',
+    'save_in_talabat'        => 'Save in Talabat Section',
+    'save_in_qarza'          => 'Save in Qarza Section',
+
+    // general
+    "title" => 'settings',
+    'message' => 'Notification',
+
 ];

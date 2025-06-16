@@ -42,14 +42,14 @@ return [
     'no' => 'نخیر',
 
     // account
-    'account_type_selection' => 'انتخاب نوع حساب',
+    'account_type_selection' => 'نوع حساب',
     'account_name'      => 'نام حساب',
     'phone'         => 'شماره تماس',
     'address'   => 'آدرس',
     'percentage' => 'فیصدی سهم دار',
     'net_salary' => 'معاش خالص ماهانه',
     'paid_currency' => 'پرداخت معاش به کرنسی',
-    'default_account' => 'صرف یک حساب پیش فرض انتخاب نمایید',
+    'default_account' => ' حساب پیش فرض ',
     'paid_old_journal' => 'رسید حساب سابقه',
     'amount'        => 'مبلغ',
     'option_selection' => 'انتخاب گزینه',

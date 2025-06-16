@@ -8,8 +8,12 @@ return [
     'save'   => 'ثبت',
     'number' => 'نمبر',
     'name'   => 'نام',
-    'item_name'   => 'نام جنس',
+    'view'  => 'نمایش',
+    'item_name' => 'نام جنس',
+    'details'  => 'جزییات',
     'loading'   => 'درحال بارگزاری ... ',
+    'talab' => 'طلب',
+    'baqi'  => 'باقی',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',

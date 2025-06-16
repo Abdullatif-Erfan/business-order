@@ -115,7 +115,8 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
                                                 <label for="billno"> بل نمبر <span class="danger">*</span></label>
-                                                    <input type="number" tabindex="2" onkeyup="checkBillNoDuplication(this.value)" class="form-control" value="{{ $billno }}" name="billno" id="billno" placeholder=" بل نمبر" required readonly>
+                                                <input type="number" tabindex="2" onkeyup="checkBillNoDuplication(this.value)" class="form-control" value="{{ $billno }}" name="billno" id="billno"
+                                                    placeholder=" بل نمبر" required readonly>
                                                  <span id="successMsg" style="display:none"><div style="color:green">تایید است</div></span>
                                                  <span id="failurMsg" style="display:none"><div style="color:red"> بل نمبر تکراری است</div></span>
                                             </div>
@@ -139,7 +140,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                 <select class="form-control select2" tabindex="4" style="width: 100%; background-color:#ddd;" name="pre_list_id" id="pre_list_id">
                                                     <option value="0">انتخاب جنس</option>
                                                     @foreach($preLists as $item)
-                                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                                        <option value="{{ $item->id }}" data-code="{{ $item->code }}" data-name="{{ $item->name }}"> ( کد = {{ $item->code }}  )  / {{ $item->name }} </option>
                                                     @endforeach
                                                 </select>
                                             </div>

@@ -71,7 +71,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                         
                                             <div class="col-md-3 col-sm-4 col-xs-6">
                                                 <label for="todays_date">تاریخ ثبت <span class="danger">*</span></label>
-                                                <div class="input-group " data-provide="datepicker">
+                                                 <div class="input-group " data-provide="datepicker">
                                                     <div class="input-group-append">
                                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#todays_date" data-englishnumber="true">
                                                             <span class="fa fa-calendar"></span> 
@@ -86,7 +86,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                 <select class="form-control select2" tabindex="4" style="width: 100%; background-color:#ddd;" name="pre_list_id" id="pre_list_id">
                                                     <option value="0">انتخاب جنس</option>
                                                     @foreach($preLists as $item)
-                                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}" data-code="{{ $item->code }}" data-name="{{ $item->name }}"> ( کد  = {{ $item->code }}  ) /  {{ $item->name }} </option>
                                                     @endforeach
                                                 </select>
                                             </div>

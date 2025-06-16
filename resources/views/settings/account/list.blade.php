@@ -3,14 +3,14 @@
         <thead>
             <tr>
                 <th>{{__('common.number')}}</th>
-                <th>شعبه</th>
-                <th> نوع حساب </th>										
-                <th>  نام حساب </th>										
-                <th>  شماره تماس </th>		
-                <th> آدرس  </th>		
-                <th> نمایش  </th>		
-                <th>ویرایش </th>
-                <th>حذف </th>
+                <th>{{__('settings.branch')}}</th>
+                <th>  {{ __('settings.account_type_selection') }} </th>										
+                <th>   {{ __('settings.account_name') }} </th>										
+                <th>  {{ __('settings.phone') }}  </th>		
+                <th> {{ __('settings.address') }}   </th>		
+                <th> {{ __('common.view') }}   </th>		
+                <th>{{ __('common.edit') }} </th>
+                <th>{{ __('common.delete') }} </th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -22,7 +22,7 @@
     <div class="modal-dialog" role="document" style="width:900px !important">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">افزودن </h5>
+                <h5 class="modal-title">{{ __('common.add') }} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -30,12 +30,12 @@
             <div class="modal-body">
                 <div id="accountFormWrapper"></div>
                 <div id="loading_modal_account" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addAccountBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addAccountBtn">{{ __('common.save') }}</button>
             </div>
         </div>
     </div>
@@ -47,7 +47,7 @@
     <div class="modal-dialog" role="document" style="width:900px !important">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> ویرایش </h5>
+                <h5 class="modal-title"> {{ __('common.edit') }} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -55,12 +55,12 @@
             <div class="modal-body">
                 <div id="EditAccountFormWrapper"></div>
                 <div id="loading_modal_account2" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditAccountBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditAccountBtn">{{ __('common.save') }}</button>
             </div>
         </div>
     </div>
@@ -72,7 +72,7 @@
     <div class="modal-dialog" role="document" style="width:900px !important">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> جزییات </h5>
+                <h5 class="modal-title"> {{ __('common.details') }} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -80,11 +80,11 @@
             <div class="modal-body">
                 <div id="ViewFormWrapper"></div>
                 <div id="loading_modal_account3" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
             </div>
         </div>
     </div>
@@ -143,9 +143,9 @@
                         // Call a function to refresh the warehouse list or update the UI
                         fetchAccountList(); // Ensure this function exists in your code
                         $('#addAccountModal').modal('hide');
-                        showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                        showNotification("{{ __('common.added_successfully') }}", 'success', 'top', 'right', 'withicon');
                     } else {
-                        showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                        showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: (xhr) => {
@@ -162,7 +162,7 @@
                         }
                     } else {
                         // General error handling
-                        showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                        showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                     }
                 }
             });
@@ -221,9 +221,9 @@
                     // Call a function to refresh the warehouse list or update the UI
                     fetchAccountList(); // Ensure this function exists in your code
                     $('#EditAccountModal').modal('hide');
-                    showNotification('موفقانه ویرایش گردید', 'success', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.updated_successfully') }}", 'success', 'top', 'right', 'withicon');
                 } else {
-                    showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.update_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
             },
             error: (xhr) => {
@@ -240,7 +240,7 @@
                         }
                 } else {
                     // General error handling
-                    showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
                 }
 
             }
@@ -308,7 +308,7 @@ $('table').on('click', '.viewAccount', function () {
 // Delete Warehouse
 $('table').on('click', '.deleteAccount', function () {
     const id = $(this).data('id');
-        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+        if (id && confirm("{{ __('common.delete_confirm') }}")) {
             $.ajax({
                 url: `/account/${id}`,
                 type: 'DELETE',

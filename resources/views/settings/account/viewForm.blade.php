@@ -5,25 +5,25 @@
           <div class="table-responsive">
            <table class="table table-bordered">
               <tr>
-                <th>نوع حساب</th><td>{{ $account->accountType->name ?? '' }}</td>
-                <th>نام حساب</th><td>{{ $account->name ?? '' }}</td>
+                <th>{{ __('settings.account_type_selection') }} </th><td>{{ $account->accountType->name ?? '' }}</td>
+                <th> {{ __('settings.account_name') }}</th><td>{{ $account->name ?? '' }}</td>
               </tr>
 
               <tr>
-                <th> شماره تماس </th><td>{{ $account->phone }}</td>
-                <th> آدرس </th><td>{{ $account->address }}</td>
+                <th> {{ __('settings.phone') }} </th><td>{{ $account->phone }}</td>
+                <th> {{ __('settings.address') }} </th><td>{{ $account->address }}</td>
               </tr>
               <tr>
                   @if($account->account_type_id == 5)
-                  <th>فیصدی</th><td>{{ $account->percent > 0  ? $account->percent .' % ' : '' }}</td>
+                  <th>{{ __('settings.percentage') }}</th><td>{{ $account->percent > 0  ? $account->percent .' % ' : '' }}</td>
                   @endif
 
                   @if($account->account_type_id == 1)
-                  <th> حساب پیش فرض</th><td>{{ $account->is_pre_select == 1 ? 'بلی':'نخیر' }}</td>
+                  <th>{{ __('settings.default_account') }}</th><td>{{ $account->is_pre_select == 1 ? {{ __('common.yes') }}:{{ __('common.no') }} }}</td>
                   @endif
 
                   @if($account->account_type_id == 2)
-                  <th> معاش خالص ماهانه</th><td>{{ number_format($account->net_salary,2) }} افغانی </td>
+                  <th> {{ __('settings.net_salary') }}</th><td>{{ number_format($account->net_salary,2) }}  </td>
                   @endif
               </tr>
 
@@ -34,7 +34,7 @@
             @if($journals->count() > 0)
             <div class="col-12">
               <hr />
-               <h3>رسید حساب سابقه</h3>
+               <h3> {{ __('settings.paid_old_journal')}} </h3>
             </div>
            
 
@@ -43,8 +43,8 @@
                     <table class="table table-bordered">
                         <tr>
                             <th>{{__('common.number')}}</th>
-                            <th>مبلغ</th>
-                            <th>طلب / باقی</th>
+                            <th>{{__('settings.amount')}}</th>
+                            <th>{{__('common.talab')}} / {{__('common.baqi')}}</th>
                             <th>  واحد پولی </th>
                         </tr>
                     @foreach($journals as $index => $item) <!-- Loop through the data -->

@@ -157,9 +157,7 @@ class BoughtDetailsController extends Controller
      */
     public function create()
     {
-       
         // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
-       
         $currencies = Currency::select('id','name')->get();
         // account_id 3 and 4 is belongs to customers and sellers
         // TODO : filter by branch_id
@@ -168,14 +166,13 @@ class BoughtDetailsController extends Controller
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
         $billno =  BoughtItem::where('branch_id', $this->branch_id)->max('billno') + 1;
     
-        $preLists = BuyPreList::select('id','name','branch_id')->where('branch_id', $this->branch_id)->get();
+        $preLists = BuyPreList::select('id','name','code','branch_id')->where('branch_id', $this->branch_id)->get();
         // TODO : filter by branch_id
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
         $newJournalCode =  Journal::where('branch_id', $this->branch_id)->max('code') + 1;
 
         $times = time();
-
 
         // return response()->json($preLists);
         return view('buy.bought.create',compact('currencies','customers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno'));
