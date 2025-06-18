@@ -61,6 +61,9 @@
                             </div>
                             <form action="{{ route('journal.store') }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}" required >
+                            <input type="hidden" name="conversion_flag" id="conversion_flag" value="0" >
+                            <input type="hidden" id="default_currency_id" name="default_currency" value="{{ $default_currency->id }}" >
+                            <input type="hidden"  name="default_currency_symbol" value="{{ $default_currency->symbols }}">
                             
                                 @csrf
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -140,7 +143,7 @@
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                         <div class="form-group form-floating-label">
                                                             <select class="form-control select2" name="from_currency_id" required 
-                                                            id="from_currency_id">
+                                                            id="from_currency_id" onchange="currencyConverter()">
                                                                 @foreach($currencies as $currency)
                                                                     <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                                                 @endforeach
@@ -358,64 +361,70 @@
         let from_currency = parseFloat($('#from_currency_id').val()) || 0;
         let to_currency = parseFloat($('#to_currency_id').val()) || 0;
         let fromAmount = $('#from_amount').val().replace(/,/g, '') || "0";
-
-        if (from_currency !== to_currency) {
-            
-            let formData = {
-                from_currency: from_currency,
-                to_currency: to_currency,
-                fromAmount: fromAmount,
-                _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
-            };
-
-            $.ajax({
-                url: '/home/currencyConverter',
-                type: 'POST',
-                data: formData,
-                dataType: 'json',  
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                success: function (result) 
-                {
-                    if (result.convertedAmount !== undefined && result.exchangeRate !== undefined) {
-                        // $('#to_amount').val(parseFloat(result.convertedAmount).toFixed(2));
-                        $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
-                        $('#rate').text(' نرخ ' + result.exchangeRate).toFixed(2);
-                    } else {
-                        alert('Conversion failed. Invalid response.');
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX Error: ", error);
-                    console.error("Response Text: ", xhr.responseText.error);
-                    console.error("Status: ", status);
-
-                    // alert("An error occurred: " + error + "\nDetails: " + xhr.responseText);
-                    try {
-                            let response = JSON.parse(xhr.responseText);
-                            if (response.error) {
-                                $('#exchange_error').text(response.error); // Show error message
-                                alert(response.error); // Optional: Show error as an alert
-                            } else {
-                                $('#exchange_error').text("An unknown error occurred.");
-                            }
-                        } 
-                        catch (e) 
-                        {
-                            $('#exchange_error').text("Failed to parse error response.");
-                            console.error("JSON Parse Error: ", e);
-                        }
-
-                }
-            });
-        }
-        else 
+        if(from_currency > 0 && to_currency > 0)
         {
-            $('#to_amount').val(fromAmount);
-            $('#rate').text('');
-            $('#exchange_error').text('');
+            if (from_currency !== to_currency) 
+            {
+                $('#conversion_flag').val(1);
+                let formData = {
+                    from_currency: from_currency,
+                    to_currency: to_currency,
+                    fromAmount: fromAmount,
+                    _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
+                };
+
+                $.ajax({
+                    url: '/home/currencyConverter',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',  
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    success: function (result) 
+                    {
+                        if (result.convertedAmount !== undefined && result.exchangeRate !== undefined) 
+                        {
+                            // $('#to_amount').val(parseFloat(result.convertedAmount).toFixed(2));
+                            $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
+                            $('#rate').text(' نرخ ' + result.exchangeRate).toFixed(2);
+                        } 
+                        else 
+                        {
+                            alert('Conversion failed. Invalid response.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error: ", error);
+                        console.error("Response Text: ", xhr.responseText.error);
+                        console.error("Status: ", status);
+
+                        // alert("An error occurred: " + error + "\nDetails: " + xhr.responseText);
+                        try {
+                                let response = JSON.parse(xhr.responseText);
+                                if (response.error) {
+                                    $('#exchange_error').text(response.error); // Show error message
+                                    alert(response.error); // Optional: Show error as an alert
+                                } else {
+                                    $('#exchange_error').text("An unknown error occurred.");
+                                }
+                            } 
+                            catch (e) 
+                            {
+                                $('#exchange_error').text("Failed to parse error response.");
+                                console.error("JSON Parse Error: ", e);
+                            }
+
+                    }
+                });
+            }
+            else 
+            {
+                $('#conversion_flag').val(0);
+                $('#to_amount').val(fromAmount);
+                $('#rate').text('');
+                $('#exchange_error').text('');
+            }
         }
     }
-
 
     function number_format(num, decimals = 2) {
        return num.toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,'); 

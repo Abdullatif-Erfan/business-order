@@ -234,8 +234,9 @@ class JournalController extends Controller
         $currencies = Currency::all();
         $branchs = Branch::where('id',$this->branch_id)->get();
         $todaysDate = Jalalian::now()->format('Y-m-d');
+        $default_currency = Currency::select('id','name','symbols')->where('is_base','=','yes')->first();
 
-        return view('transactions.journals.create',compact('accounts','currencies','branchs','todaysDate'));
+        return view('transactions.journals.create',compact('accounts','currencies','branchs','default_currency','todaysDate'));
     }
 
     /**
@@ -372,6 +373,12 @@ class JournalController extends Controller
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path('documents'), $fileName);
                 $filePath = 'documents/' . $fileName;
+            }
+
+             if($request->conversion_flag == 1)
+            {
+                $from_currency = $request->to_currency_id;
+                $from_amount = str_replace(',', '', $request->to_amount);
             }
 
              // معاملات نقد به نقد
@@ -526,6 +533,217 @@ class JournalController extends Controller
              return false;
         }
     }
+   
+    // private function handleJournalEntry($request,$newJournalCode)
+    // {
+    //     $todaysDate = $request->todays_date;
+    //     $date = explode('-', $todaysDate);
+    //     $year = $date[0];
+    //     $month = $date[1];
+    //     $day = $date[2];
+    //     $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
+
+    //     $times = time();
+    
+    //      /**
+    //      * ================================== Journal Roles ========================
+    //      * status:           1: old journal,  2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+    //      * 
+    //      * transaction_type: 1: recieved      2:paid = 
+    //      * payment_type:     1: cache,        2: loan
+    //      * options:          1: cache2cache,  2:loan2loan, 3:cache2loan, 4:loan2cache
+    //      * 
+    //      * Recieved Loan = قرض گرفتن = t1p2
+    //      * Paid Loan = طلب = t2p2
+    //      * Cache Recieved = دریافت نقد = t1p1
+    //      * Cache Paid = پرداخت نقد = t2p1
+    //      * 
+    //      */
+            
+
+    //     // Start the transaction
+    //     DB::beginTransaction();
+    
+    //     try 
+    //     {
+    //         $from_amount = str_replace(',', '', $request->from_amount);
+    //         $from_currency = $request->from_currency_id;
+    //         $from_account_id = $request->from_account_id;
+    //         $from_details = $request->from_details;
+
+    //         $to_amount = str_replace(',', '', $request->to_amount);
+    //         $to_currency = $request->to_currency_id;
+    //         $to_account_id = $request->to_account_id;
+    //         $to_details = $request->to_details;
+
+
+    //         $filePath = null;
+    //         if ($request->hasFile('doc')) {
+    //             $file = $request->file('doc');
+    //             $fileName = time() . '_' . $file->getClientOriginalName();
+    //             $file->move(public_path('documents'), $fileName);
+    //             $filePath = 'documents/' . $fileName;
+    //         }
+
+    //          if($request->conversion_flag == 1)
+    //         {
+    //             $from_currency = $request->to_currency_id;
+    //             $from_amount = str_replace(',', '', $request->to_amount);
+    //         }
+
+
+    //          // معاملات نقد به نقد
+    //          if(intval($request->options) === 1) 
+    //          {
+    //             // ثبت پرداخت توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
+    //             $optionLable = 'پرداخت نقد';
+    //             $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+    //                                       $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                
+     
+    //              // ثبت دریافت توسط دریافت کننده = recieved(ttype=1) cache(ptype=1)
+    //              $optionLable = 'دریافت نقد';
+    //              $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+    //                                       $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
+    //          } 
+          
+    //          // معاملات نسیه به نسیه
+    //          else if(intval($request->options) === 2)
+    //          {
+    //              // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
+    //             $optionLable = 'پرداخت قرض';
+    //             $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+    //                                       $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                
+    //              // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
+    //              $optionLable = 'دریافت قرض';
+    //              $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+    //                                       $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
+    //          }
+    //          // معاملات نقد به نسیه
+    //          else if(intval($request->options) === 3)
+    //          {
+
+    //             /**
+    //              * اگر خزانه یا حساب شرکت باشد یعنی خزانه جدیدا قرض  پرداخت میکند که باید نقد از خزانه کم شود 
+    //              * if(from_account_id === company_account_id) { Paid Cache = p1t2 } 
+    //              * ومشتری باید قرضدار ثبت گردد
+    //              * else { Recieved Loan = t1p2 }
+    //              * 
+    //              * اگر شرکت از مشتری پول قرض بیگیرد در اینصورت شرکت یا خزانه باید نقد دریافت کنند
+    //              * if(to_account_id === company_account_id) { Cache Recieved = p1t1 }
+    //              * و مشتری باید طلب ثبت گردد
+    //              * else { Paid Loan = p2t2 }
+    //              * 
+    //              */
+
+    //             // Fetch both account types in a single query
+    //             $companyAccounts = Account::whereIn('account_type_id', [1,6])
+    //             ->whereIn('id', [$request->from_account_id, $request->to_account_id])
+    //             ->where('branch_id', $this->branch_id)
+    //             ->pluck('id')
+    //             ->toArray();
+
+    //             $isFromCompanyAccount = in_array($request->from_account_id, $companyAccounts);
+    //             $isToCompanyAccount = in_array($request->to_account_id, $companyAccounts);
+                
+    //             if($isFromCompanyAccount) // خزانه خودش قرض میدهد
+    //             {
+    //                 // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
+    //                 $optionLable = 'پرداخت نقد';
+    //                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+    //                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+    
+    //                 // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
+    //                 $optionLable = 'دریافت قرض';
+    //                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+    //                                         $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
+    //             } 
+    //             else if($isToCompanyAccount)  // خزانه خودش قرض میگیرد
+    //             {
+    //                 // دریافت نقد توسط خزانه بطور قرض  = Recieved(ttype=1), Caceh(ptype=1) 
+    //                 $optionLable = 'دریافت قرض';
+    //                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+    //                 $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
+                    
+    //                 // ثبت طلب توسط  مشتری = Paid (ttype=2) loan(ptype=2)
+    //                 $optionLable = 'ثبت طلب';
+    //                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+    //                                         $ttype = "2", $ptype="2", $full_date, $date, $from_details,  $newJournalCode, $times, $filePath);
+    //             }
+    //             else
+    //             {
+    //                 return false;
+    //             }
+
+    //         }
+    //         // معاملات نسیه به نقد
+    //         else if(intval($request->options) === 4)
+    //         {
+    //              /**
+    //              * اگر خزانه یا حساب شرکت باشد یعنی خزانه قبلا قرضدار بوده و حالا قرض خود را پرداخت میکند یعنی پرداخت نقد 
+    //              * if(to_account_id === company_account_id) { Paid Cache = p1t2 } 
+    //              * ومشتری باید قرضدار ثبت گردد تااینکه طلب مشتری کم گرد
+    //              * else { Recieved Loan = t1p2 }
+    //              * 
+    //              * اگر خزانه قرض شانرا 
+    //              * if(to_account_id === company_account_id) { Cache Recieved = p1t1 }
+    //              * و مشتری باید طلب ثبت گردد
+    //              * else { Paid Loan = p2t2 }
+    //              * 
+    //              */
+
+    //             // Fetch both account types in a single query
+    //             $companyAccounts = Account::whereIn('account_type_id', [1,6])
+    //             ->whereIn('id', [$request->from_account_id, $request->to_account_id])
+    //             ->where('branch_id', $this->branch_id)
+    //             ->pluck('id')
+    //             ->toArray();
+
+    //             $isFromCompanyAccount = in_array($request->from_account_id, $companyAccounts);
+    //             $isToCompanyAccount = in_array($request->to_account_id, $companyAccounts);
+
+    //             if($isToCompanyAccount) // پرداخت کننده قرض مشتری میباشد
+    //             {
+    //                 // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
+    //                 $optionLable = 'دریافت نقد'; 
+    //                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+    //                      $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
+
+    //                 // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
+    //                 $optionLable = 'رسید قرض';
+    //                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+    //                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);    
+    //             }
+    //             else if($isFromCompanyAccount)  // پرداخت کننده قرض خزانه میباشد
+    //             {
+    //                 // پرداخت نقد از خزانه = paid(ttype=2), cache(ptype=1)
+    //                 $optionLable = 'پرداخت نقد'; 
+    //                 $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
+    //                           $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                    
+    //                 //  دریافت قرض = Received (ttype=1), loan(ptype=2) 
+    //                 $optionLable = 'رسیدگی قرض';
+    //                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
+    //                        $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
+    //             } 
+    //             else 
+    //             {
+    //                 return false;
+    //             }
+
+    //         }
+
+    //         // Commit the transaction
+    //         DB::commit();
+    //         return true; 
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         \Log::error('Error storing journal entry: ' . $e->getMessage());
+    //          return false;
+    //     }
+    // }
   
     private function checkPrevCode($request)
     {
@@ -617,6 +835,16 @@ class JournalController extends Controller
         $full_date, $date, $details, $code, $times, $filePath = null)
     {
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
+            $new_details = $request->bijak_code > 0 ? $details.' BN_'.$request->bijak_code : $details;
+            /**
+             * if conversion_flag == 1, means that foreign currency conversion is done
+             *  check if $currency_id != $default_currency_id, means in this recrod should insert 
+             *                           (converted_currency,converted_amount,converted_curr_symbol)
+             */
+
+            $converted_currency = null;
+            $converted_amount   = null;
+            $converted_curr_symbol = null;
 
             // Create the Journal entry
             Journal::create([
@@ -627,6 +855,11 @@ class JournalController extends Controller
                 'branch_id' => $request->branch_id,
                 'amount' => $amount,
                 'currency_id' => $currency_id,
+
+                'converted_currency' => $converted_currency,
+                'converted_amount'   => $converted_amount,
+                'converted_curr_symbol' => $converted_curr_symbol,
+                
                 'transaction_type' => $ttype,
                 'payment_type' => $ptype,
                 'options' => $request->options,
