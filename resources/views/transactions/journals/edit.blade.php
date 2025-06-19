@@ -67,7 +67,12 @@
                                 <input type="hidden" name="prev_code" value="{{ $journals[0]->dynamic_type }}"> 
                                 <input type="hidden" name="old_amount" id="old_amount" value="{{ $journals[0]->amount }}">
                                 <input type="hidden" name="increment" id="increment" value=""> 
-                                <input type="hidden" name="decrement" id="decrement" value=""> 
+                                <input type="hidden" name="decrement" id="decrement" value="">
+
+                                <input type="hidden" name="conversion_flag" id="conversion_flag" value="0" >
+                                <input type="hidden" id="default_currency_id" name="default_currency" value="{{ $default_currency->id }}" >
+                                <input type="hidden"  name="default_currency_symbol" value="{{ $default_currency->symbols }}">
+
 
                                 @csrf
                                 @method('PATCH') 
@@ -159,8 +164,8 @@
                                                     
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                         <div class="form-group form-floating-label">
-                                                            <select class="form-control select2" name="from_currency_id"  id="from_currency_id"   required>
-                                                            <option value="{{ $journals[0]->currency_id }}">{{ $journals[0]->currencyRelation->name }}</option>
+                                                            <select class="form-control select2" name="from_currency_id"  id="from_currency_id"  onchange="currencyConverter()"   required>
+                                                            <option value="{{ $journals[0]->currency_id }}"  onchange="currencyConverter()">{{ $journals[0]->currencyRelation->name }}</option>
                                                                 @foreach($currencies as $currency)
                                                                     <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                                                 @endforeach
@@ -177,8 +182,8 @@
                                           <div class="col-md-6">
                                                 <div class="row">
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
-                                                       <div class="form-group">
-                                                          <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="مبلغ دریافت کننده" value="{{ $journals[1]->amount }}">
+                                                       <div class="form-group"> 
+                                                          <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="مبلغ دریافت کننده"  value="{{ $journals[1]->amount }}">
                                                            @error('to_amount')<span class="text-danger">{{ $message }}</span>@enderror
                                                         </div> 
                                                         <div class="badge badge-info" id="rate"></div>
@@ -381,8 +386,9 @@
         let to_currency = parseFloat($('#to_currency_id').val()) || 0;
         let fromAmount = $('#from_amount').val().replace(/,/g, '') || "0";
 
-        if (from_currency !== to_currency) {
-            
+        if (from_currency !== to_currency) 
+        {
+            $('#conversion_flag').val(1);
             let formData = {
                 from_currency: from_currency,
                 to_currency: to_currency,
@@ -432,6 +438,7 @@
         }
         else 
         {
+            $('#conversion_flag').val(0);
             $('#to_amount').val(fromAmount);
             $('#rate').text('');
             $('#exchange_error').text('');

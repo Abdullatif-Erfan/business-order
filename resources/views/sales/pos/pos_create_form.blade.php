@@ -741,24 +741,24 @@ function printReceipt() {
             <title>فاکتور فروش</title>
             <style>
                 // uncomment for pos small size print
-                // @page { size: auto; margin: 0; }
-                // body { 
-                //     font-family: Tahoma, Arial, sans-serif; 
-                //     width: 80mm; 
-                //     margin: 0 auto; 
-                //     padding: 5px;
-                //     padding: 0px;
-                //     direction: rtl;
-                // }
-
-                @page { size: A4; margin: 20mm; }
+                @page { size: auto; margin: 0; }
                 body { 
                     font-family: Tahoma, Arial, sans-serif; 
-                    width: 100%;
+                    width: 80mm; 
                     margin: 0 auto; 
+                    padding: 5px;
                     padding: 0px;
                     direction: rtl;
                 }
+
+                // @page { size: A4; margin: 20mm; }
+                // body { 
+                //     font-family: Tahoma, Arial, sans-serif; 
+                //     width: 100%;
+                //     margin: 0 auto; 
+                //     padding: 0px;
+                //     direction: rtl;
+                // }
 
                 .receipt-container {
                     border: 2px solid #333;

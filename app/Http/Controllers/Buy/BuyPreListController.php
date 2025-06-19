@@ -285,7 +285,7 @@ class BuyPreListController extends Controller
         try {
 
             $code = DB::table('bought_item_pre_lists')->where('branch_id', $this->branch_id)->lockForUpdate()->max('code') + 1;
-
+    
             // Log::debug('Generating base QR code SVG');
             $qrSvg = QrCode::format('svg')
                 ->size(300)
@@ -384,10 +384,17 @@ class BuyPreListController extends Controller
             }
             else 
             {
-                $code = (int) DB::table('bought_item_pre_lists')
-                    ->where('branch_id', $validated['branch_id'])
-                    ->lockForUpdate()
-                    ->max('code') + 1;
+                // $code = (int) DB::table('bought_item_pre_lists')
+                //     ->where('branch_id', $validated['branch_id'])
+                //     ->lockForUpdate()
+                //     ->max('code') + 1;
+            
+                $lastItem = DB::table('bought_item_pre_lists')
+                ->where('branch_id', $validated['branch_id'])
+                ->orderBy('id', 'DESC')
+                ->first();
+
+                $code = $lastItem ? (int) $lastItem->code + 1 : 1;
             }
 
             if(!$code)
@@ -395,7 +402,8 @@ class BuyPreListController extends Controller
                 Log::error('Code is empty');
                 throw new \Exception('Failed to create barcode, code is empty');
             }
-    
+
+        
             // Generate PNG barcode using milon/barcode
             $barcode = new DNS1D();
             $barcode->setStorPath($barcodeDir); // Optional, sets temp path

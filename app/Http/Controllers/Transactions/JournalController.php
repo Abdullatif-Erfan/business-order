@@ -859,7 +859,7 @@ class JournalController extends Controller
                 'converted_currency' => $converted_currency,
                 'converted_amount'   => $converted_amount,
                 'converted_curr_symbol' => $converted_curr_symbol,
-                
+
                 'transaction_type' => $ttype,
                 'payment_type' => $ptype,
                 'options' => $request->options,
@@ -916,7 +916,7 @@ class JournalController extends Controller
         $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $branchs = Branch::where('id', $this->branch_id)->get();
-
+        $default_currency = Currency::select('id','name','symbols')->where('is_base','=','yes')->first();
         $journals = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
         ->where('times', $times)
         ->where('branch_id', $this->branch_id)
@@ -924,7 +924,7 @@ class JournalController extends Controller
         ->get();
 
         // return response()->json(['data' => $journals]);
-        return view('transactions.journals.edit',compact('accounts','currencies','branchs','journals'));
+        return view('transactions.journals.edit',compact('accounts','default_currency','currencies','branchs','journals'));
     }
 
     /**
@@ -970,6 +970,7 @@ class JournalController extends Controller
                 $filePath = 'documents/' . $fileName;
                 $file->move(public_path('documents'), $fileName);
             }
+
                     
 
             // Get the current date and time
@@ -982,6 +983,13 @@ class JournalController extends Controller
 
             $from_amount = str_replace(',', '', $request->from_amount);
             $to_amount = str_replace(',', '', $request->to_amount);
+            $from_currency =  $request->from_currency_id;
+
+            if($request->conversion_flag == 1)
+            {
+                $from_currency = $request->to_currency_id;
+                $from_amount = str_replace(',', '', $request->to_amount);
+            }
 
             // Update the first journal entry ("paid cache")
             $journal1->bill_no = $request->bill_no ?? 0;
@@ -993,7 +1001,8 @@ class JournalController extends Controller
             $journal1->account_id = $request->from_account_id;
             $journal1->account_type_id = $from_account_type_id;
             $journal1->amount = $from_amount;
-            $journal1->currency_id = $request->from_currency_id;
+            // $journal1->currency_id = $request->from_currency_id;
+            $journal1->currency_id = $from_currency;
             $journal1->details = $request->from_details;
             $journal1->user = $this->full_name ?? '';
             $journal1->doc = $filePath;

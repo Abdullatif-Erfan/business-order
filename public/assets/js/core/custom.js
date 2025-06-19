@@ -301,7 +301,7 @@ function print_page_with_image(id=null) {
 }
 
 
-function print_page_with_image_grid() 
+function print_page_with_image_grid_bkp() 
 {
     var data = document.getElementById("print_area").innerHTML;
 
@@ -361,6 +361,73 @@ function print_page_with_image_grid()
         printWindow.close();
     }, 500);
 }
+
+function print_page_with_image_grid() {
+    const barcodeBoxes = Array.from(document.querySelectorAll('#print_area .barcode-box'));
+
+    const printWindow = window.open("", "PrintWindow", "");
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+                @page {
+                    size: 60mm 40mm; /* Adjust to your actual label size */
+                    margin: 0;
+                }
+
+                body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: Tahoma, sans-serif;
+                    direction: rtl;
+                    text-align: center;
+                }
+
+                .label-page {
+                    width: 60mm;
+                    height: 40mm;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    page-break-after: always;
+                    box-sizing: border-box;
+                }
+
+                .barcode-box {
+                    border: none;
+                    width: 100%;
+                    padding: 0;
+                }
+
+                .barcode-box img {
+                    width: 100%;
+                    height: auto;
+                    max-width: 50mm;
+                }
+
+                .barcode-box p {
+                    margin: 2mm 0 0;
+                    font-size: 12px;
+                    line-height: 1.2;
+                }
+            </style>
+        </head>
+        <body>
+            ${barcodeBoxes.map(box => `<div class="label-page">${box.outerHTML}</div>`).join('')}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
 
 
 // table tr{page-break-before:always;}
