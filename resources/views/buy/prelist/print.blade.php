@@ -84,7 +84,14 @@
                                     <i class="fa fa-arrow-left"></i>
                                 </a>
                                 لیست بارکدها برای چاپ 
-                                <button onclick="print_page_with_image_grid()" class="btn btn-info btn-sm pull-left m-l-20">چاپ </button>
+                                
+                               
+                                <button onclick="print_page_with_image_grid()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد A4</button>
+                                
+
+                                <button onclick="print_page_with_image_grid_labelPrinter()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد توسط لیبل پرنتر</button>
+                            
+
                             </h3>
 
                             <div class="container p10">

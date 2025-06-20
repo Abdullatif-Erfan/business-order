@@ -351,6 +351,7 @@ class BuyPreListController extends Controller
         }
     }
 
+    // used 
     public function storeWithBarcodeGeneration(Request $request)
     {
         $messages = [
@@ -377,10 +378,12 @@ class BuyPreListController extends Controller
     
         try {
             $code = '';
+            $is_prev_barcode = 0; // 0:no, 1:yes
             // Get next code
             if($request->input('prev_barcode'))
             {
                 $code = $request->input('prev_barcode');
+                $is_prev_barcode = 1;
             }
             else 
             {
@@ -391,10 +394,12 @@ class BuyPreListController extends Controller
             
                 $lastItem = DB::table('bought_item_pre_lists')
                 ->where('branch_id', $validated['branch_id'])
+                ->where('is_prev_barcode',0)
                 ->orderBy('id', 'DESC')
                 ->first();
 
                 $code = $lastItem ? (int) $lastItem->code + 1 : 1;
+                $is_prev_barcode = 0;
             }
 
             if(!$code)
@@ -433,6 +438,7 @@ class BuyPreListController extends Controller
                 'name' => $validated['name'],
                 'code' => $code,
                 'branch_id' => $validated['branch_id'],
+                'is_prev_barcode' => $is_prev_barcode,
                 'times' => $times,
                 'image_path' => $image_path,
                 'barcode_path' => $barcodePath,

@@ -301,7 +301,7 @@ function print_page_with_image(id=null) {
 }
 
 
-function print_page_with_image_grid_bkp() 
+function print_page_with_image_grid() 
 {
     var data = document.getElementById("print_area").innerHTML;
 
@@ -362,7 +362,7 @@ function print_page_with_image_grid_bkp()
     }, 500);
 }
 
-function print_page_with_image_grid() {
+function print_page_with_image_grid_labelPrinter() {
     const barcodeBoxes = Array.from(document.querySelectorAll('#print_area .barcode-box'));
 
     const printWindow = window.open("", "PrintWindow", "");

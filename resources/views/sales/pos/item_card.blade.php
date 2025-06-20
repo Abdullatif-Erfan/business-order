@@ -14,7 +14,11 @@
 
      <div class="warehouse-card shadow-sm">
             <div class="card-image">
-                <img src="{{ asset('storage/' . $item->image_path) }}" alt="{{ $item->item_name }}" >
+                @if($item->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->image_path))
+                    <img src="{{ asset('storage/' . $item->image_path) }}" alt="{{ $item->item_name }}">
+                @else
+                    <img src="{{ asset('assets/img/no_image.png') }}" alt="{{ $item->item_name }}">
+                @endif
             </div>
             <div class="card-body">
                 <h5 class="item-title">{{ $item->item_name }}</h5>

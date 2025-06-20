@@ -29,7 +29,11 @@
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 >
                                 {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})
-                                - {{ $item->warehouse_name }} / ( کد = {{ $item->code }}  ) 
+                                - {{ $item->warehouse_name }}
+                                @if(session('package_type') == 4)
+                                  / ( کد = {{ $item->code }}  ) 
+                                @endif
+                                                          
                             </option>
                         @endforeach
                     </select>
@@ -43,7 +47,7 @@
                     <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
 
                 </td>
-                <td><input name="avg_up[]" class="form-control avg-up" type="number" step="0.01" readonly required></td>
+                <td><input name="avg_up[]" class="form-control avg-up" type="number" step="0.01" required></td>
                 <td><input name="sell_up[]" class="form-control sell-up" type="number" step="0.01" required></td>
                 <td><input name="discount[]" class="form-control discount" type="number" step="0.01"  value="0" ></td>
                 <td><input name="profit[]" class="form-control profit" type="number" step="0.01" readonly required></td>

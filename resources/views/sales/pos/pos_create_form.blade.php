@@ -77,7 +77,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
     .card-image img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
         display: block;
         cursor:pointer;
     }
@@ -140,7 +140,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
     .selected-card-image img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
         display: block;
         cursor:pointer;
         border-radius: 5px;
@@ -563,7 +563,8 @@ function renderOrderItems() {
             <div class="col-md-12 col-sm-12 mb-2 px-2 border-bottom position-relative">
                 <div class="warehouse-selected-card">
                     <div class="selected-card-image col-sm-3 col-md-4 col-xs-12">
-                        <img src="/storage/${item.image_path}" alt="${item.item_name}">
+                      <img src="/storage/${item.image_path}" alt="${item.item_name}"
+                     onerror="this.onerror=null; this.src='/assets/img/no_image.png';">
                     </div>
                     <div class="col-sm-9 col-md-8 col-xs-12">
                         <h5 class="item-title">${item.item_name}
@@ -741,13 +742,12 @@ function printReceipt() {
             <title>فاکتور فروش</title>
             <style>
                 // uncomment for pos small size print
-                @page { size: auto; margin: 0; }
+                @page { size: 80mm auto; margin: 5mm; }
                 body { 
                     font-family: Tahoma, Arial, sans-serif; 
                     width: 80mm; 
                     margin: 0 auto; 
                     padding: 5px;
-                    padding: 0px;
                     direction: rtl;
                 }
 
@@ -763,68 +763,67 @@ function printReceipt() {
                 .receipt-container {
                     border: 2px solid #333;
                     border-radius: 5px;
-                    padding: 10px;
+                    padding: 5px;
                 }
                 .header { 
                     text-align: center; 
-                    margin-bottom: 10px;
+                    margin-bottom: 5px;
                     border-bottom: 1px dashed #333;
-                    padding-bottom: 10px;
+                    padding-bottom: 5px;
                 }
                 .company-logo {
-                    max-width: 80px;
-                    max-height: 60px;
-                    margin: 0 auto;
+                    max-width: 60px;
+                    max-height: 50px;
+                    margin: 0 auto 5px;
                 }
                 .company-name {
-                    font-size: 16px;
+                    font-size: 10px;
                     font-weight: bold;
-                    margin: 5px 0;
+                    // margin: 5px 0;
                 }
                 .company-info {
                     font-size: 12px;
                     margin: 3px 0;
                 }
                 .receipt-title {
-                    font-size: 18px;
+                    font-size: 14px;
                     font-weight: bold;
-                    margin: 10px 0;
+                    margin: 8px 0;
                     text-align: center;
                 }
                 table {
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 10px 0;
+                    font-size:10px;
                 }
                 th {
                     background-color: #187ba5;
                     color: white;
-                    padding: 5px;
+                    padding: 3px;
                     text-align: center;
-                    font-size: 12px;
                 }
                 td {
-                    padding: 5px;
+                    padding: 3px;
                     border-bottom: 1px solid #ddd;
-                    font-size: 12px;
                 }
                 .text-center { text-align: center; }
                 .text-right { text-align: right; }
                 .text-left { text-align: left; }
-                .total-row {
+                .total-row td {
                     font-weight: bold;
+                    font-size: 11px;
                     background-color: #f5f5f5;
                 }
                 .footer {
                     text-align: center;
-                    margin-top: 15px;
-                    font-size: 11px;
+                    margin-top: 10px;
+                    font-size: 10px;
                     border-top: 1px dashed #333;
-                    padding-top: 10px;
+                    padding-top: 5px;
                 }
                 .receipt-no {
                     text-align: right;
-                    font-size: 11px;
+                    font-size: 10px;
                     margin-bottom: 5px;
                 }
             </style>
