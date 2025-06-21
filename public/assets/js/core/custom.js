@@ -203,8 +203,10 @@ function print_page() {
 }
 
 
-function print_page_with_image(id=null) {
-	if(id == 2) {
+function print_page_with_image(id=null) 
+{
+	if(id == 2) 
+	{
 		var data = document.getElementById("print_area"+id).innerHTML;
 	}
 	else 
@@ -362,8 +364,8 @@ function print_page_with_image_grid()
     }, 500);
 }
 
-function print_page_with_image_grid_labelPrinter() {
-    const barcodeBoxes = Array.from(document.querySelectorAll('#print_area .barcode-box'));
+function print_page_with_image_grid_single_column() {
+    const data = Array.from(document.querySelectorAll('#print_area .barcode-box'));
 
     const printWindow = window.open("", "PrintWindow", "");
     printWindow.document.write(`
@@ -372,7 +374,84 @@ function print_page_with_image_grid_labelPrinter() {
             <title>Print</title>
             <style>
                 @page {
-                    size: 60mm 40mm; /* Adjust to your actual label size */
+                    size: A4;
+                    margin: 10mm;
+                }
+
+                body {
+                    direction: rtl;
+                    font-family: Tahoma, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .print-grid {
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5mm;
+                }
+
+                .barcode-box {
+                    height: 40mm;
+                    border: 1px solid #999;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    box-sizing: border-box;
+                    padding: 5mm;
+                    page-break-inside: avoid;
+                }
+
+                .barcode-box img {
+                    max-height: 25mm;
+                    width: auto;
+                    max-width: 90%;
+                    object-fit: contain;
+                }
+
+                .barcode-box p {
+                    margin: 3mm 0 0;
+                    font-size: 13px;
+                    line-height: 1.2;
+                    white-space: nowrap;
+                }
+
+                @media print {
+                    .barcode-box {
+                        page-break-inside: avoid;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-grid">
+                ${data.map(el => el.outerHTML).join('')}
+            </div>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
+function print_page_with_image_grid_single_image_per_page() {
+	const barcodeBoxes = Array.from(document.querySelectorAll('#print_area .barcode-box'));
+
+    const printWindow = window.open("", "PrintWindow", "");
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+                @page {
+                    size: A4;
                     margin: 0;
                 }
 
@@ -385,31 +464,35 @@ function print_page_with_image_grid_labelPrinter() {
                 }
 
                 .label-page {
-                    width: 60mm;
-                    height: 40mm;
+                    width: 210mm;
+                    height: 297mm;
                     display: flex;
-                    align-items: center;
+                    flex-direction: column;
                     justify-content: center;
-                    page-break-after: always;
+                    align-items: center;
                     box-sizing: border-box;
+                    page-break-after: always;
                 }
 
                 .barcode-box {
-                    border: none;
                     width: 100%;
-                    padding: 0;
+                    height: 40mm;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    box-sizing: border-box;
                 }
 
                 .barcode-box img {
-                    width: 100%;
-                    height: auto;
-                    max-width: 50mm;
+                    max-height: 25mm;
+                    max-width: 90%;
+                    object-fit: contain;
                 }
 
                 .barcode-box p {
-                    margin: 2mm 0 0;
-                    font-size: 12px;
-                    line-height: 1.2;
+                    margin-top: 4mm;
+                    font-size: 14px;
                 }
             </style>
         </head>
@@ -427,6 +510,76 @@ function print_page_with_image_grid_labelPrinter() {
         printWindow.close();
     }, 500);
 }
+
+
+function print_page_with_image_grid_labelPrinter() {
+    const barcodeBoxes = Array.from(document.querySelectorAll('#print_area .barcode-box'));
+
+    const printWindow = window.open("", "PrintWindow", "");
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+                @page {
+                    size: 58mm 38mm;
+                    margin: 0;
+                }
+
+                body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: Tahoma, sans-serif;
+                    direction: rtl;
+                    text-align: center;
+                }
+
+                .label-page {
+                    width: 58mm;
+                    height: 38mm;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    page-break-after: always;
+                    box-sizing: border-box;
+                }
+
+                .barcode-box {
+                    border: none;
+                    width: 100%;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+
+                .barcode-box img {
+                    width: 100%;
+                    height: auto;
+                    max-width: 52mm;
+                }
+
+                .barcode-box p {
+                    margin: 1mm 0 0;
+                    font-size: 11px;
+                    line-height: 1.2;
+                    white-space: nowrap;
+                }
+            </style>
+        </head>
+        <body>
+            ${barcodeBoxes.map(box => `<div class="label-page">${box.outerHTML}</div>`).join('')}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
 
 
 

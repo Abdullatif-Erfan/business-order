@@ -70,6 +70,82 @@
 </style>
 
 
+<!-- Scripts required for exporting to Word -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.min.js"></script>
+
+<script>
+    async function exportToWord() {
+        const container = document.getElementById("print_area").cloneNode(true);
+
+        // Remove error and pagination messages
+        container.querySelectorAll('.text-danger').forEach(el => el.remove());
+        container.querySelectorAll('.pagination-wrapper-custom').forEach(el => el.remove());
+
+        // Convert all images to base64
+        const images = container.querySelectorAll("img");
+        for (let img of images) {
+            const base64 = await toDataUrl(img.src);
+            img.setAttribute("src", base64);
+        }
+
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Barcodes</title>
+                <style>
+                    body {
+                        font-family: Tahoma, sans-serif;
+                        direction: rtl;
+                        text-align: center;
+                    }
+                    .barcode-box {
+                        width: 130px;
+                        border: 1px solid #999;
+                        padding: 10px;
+                        margin: 10px;
+                        display: inline-block;
+                        text-align: center;
+                        page-break-inside: avoid;
+                    }
+                    .barcode-box img {
+                        width: 100px;
+                        height: auto;
+                        display: block;
+                        margin: 0 auto;
+                    }
+                    .barcode-box p {
+                        margin-top: 10px;
+                        font-size: 14px;
+                    }
+                </style>
+            </head>
+            <body>
+                ${container.innerHTML}
+            </body>
+            </html>
+        `;
+
+        const converted = htmlDocx.asBlob(html, { orientation: 'portrait' });
+        saveAs(converted, 'barcodes.docx');
+    }
+
+    // Helper: Convert image URL to base64
+    function toDataUrl(url) {
+        return fetch(url)
+            .then(response => response.blob())
+            .then(blob => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            }));
+    }
+
+</script>
+
 
 <div class="main-panel">
     <div class="content">
@@ -84,13 +160,20 @@
                                     <i class="fa fa-arrow-left"></i>
                                 </a>
                                 لیست بارکدها برای چاپ 
+                                   
+                                <button onclick="print_page_with_image_grid()"  class="btn btn-info btn-sm pull-left m-l-10">
+                                چاپ بارکد - چهارکالم</button>
+
+                                <button onclick="print_page_with_image_grid_single_column()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد - یک کالم</button>
                                 
-                               
-                                <button onclick="print_page_with_image_grid()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد A4</button>
+                                
+
+                                <button onclick="print_page_with_image_grid_single_image_per_page()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد - یک کالم - یک بارکد</button>
                                 
 
                                 <button onclick="print_page_with_image_grid_labelPrinter()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد توسط لیبل پرنتر</button>
-                            
+
+                                <button onclick="exportToWord()" class="btn btn-success btn-sm pull-left m-l-10">اکسپورت به Word</button>
 
                             </h3>
 
@@ -152,5 +235,6 @@
         </div>
     </div>
 </div>
+
 
 @endsection
