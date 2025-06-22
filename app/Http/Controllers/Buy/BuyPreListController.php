@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 
 use Milon\Barcode\DNS1D;
 
-
 use App\Models\Setting\Branch;
 use App\Models\Buy\BuyPreList;
 use Illuminate\Validation\Rule;
@@ -366,6 +365,7 @@ class BuyPreListController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
             'branch_id' => 'required|exists:branches,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], $messages);
     
         $times = time();
@@ -373,64 +373,72 @@ class BuyPreListController extends Controller
         // Ensure barcode directory exists
         $barcodeDir = storage_path('app/public/barcodes');
         if (!File::exists($barcodeDir)) {
-            File::makeDirectory($barcodeDir, 0755, true);
+             File::makeDirectory($barcodeDir, 0755, true);
+             Log::info('Barcode directory created', ['path' => $barcodeDir]);
         }
+    
+        DB::beginTransaction();
     
         try {
             $code = '';
-            $is_prev_barcode = 0; // 0:no, 1:yes
-            // Get next code
-            if($request->input('prev_barcode'))
-            {
+            $is_prev_barcode = 0;
+    
+            // Use previous barcode if provided
+            if ($request->input('prev_barcode')) {
                 $code = $request->input('prev_barcode');
                 $is_prev_barcode = 1;
-            }
-            else 
-            {
-                // $code = (int) DB::table('bought_item_pre_lists')
-                //     ->where('branch_id', $validated['branch_id'])
-                //     ->lockForUpdate()
-                //     ->max('code') + 1;
-            
+            } else {
+                // Safely get next code using lock to prevent race condition
                 $lastItem = DB::table('bought_item_pre_lists')
-                ->where('branch_id', $validated['branch_id'])
-                ->where('is_prev_barcode',0)
-                ->orderBy('id', 'DESC')
-                ->first();
-
+                    ->where('branch_id', $validated['branch_id'])
+                    ->where('is_prev_barcode', 0)
+                    ->lockForUpdate()
+                    ->orderBy('id', 'DESC')
+                    ->first();
+    
                 $code = $lastItem ? (int) $lastItem->code + 1 : 1;
                 $is_prev_barcode = 0;
             }
-
-            if(!$code)
-            {
-                Log::error('Code is empty');
-                throw new \Exception('Failed to create barcode, code is empty');
+    
+            // Validate code
+            $code = preg_replace('/\D/', '', (string) $code); // ensure it's numeric
+            if (!$code || strlen($code) > 20) {
+                Log::error('Invalid barcode code', ['code' => $code]);
+                throw new \Exception('Invalid barcode code generated');
             }
+    
+            $code = str_pad($code, 4, '0', STR_PAD_LEFT); // e.g., 0001, 0002
 
-        
             // Generate PNG barcode using milon/barcode
             $barcode = new DNS1D();
-            $barcode->setStorPath($barcodeDir); // Optional, sets temp path
-            $base64Png = $barcode->getBarcodePNG((string) $code, 'C128');
+            $barcode->setStorPath($barcodeDir); // Optional
+            $base64Png = $barcode->getBarcodePNG($code, 'C128');
+
+    
+            if (empty($base64Png)) {
+                Log::error('Failed to generate base64 PNG for barcode', ['code' => $code]);
+                throw new \Exception('Failed to generate barcode PNG');
+            }
     
             $pngData = base64_decode($base64Png);
     
-            // Save PNG file
-            $barcodeFileName = $code . '.png';
+            // Save file with unique name
+            $barcodeFileName = $code . '_' . uniqid() . '.png';
+            // $barcodeFileName = $code . '.png';
             $barcodePath = 'barcodes/' . $barcodeFileName;
     
             $saveResult = Storage::disk('public')->put($barcodePath, $pngData);
             if (!$saveResult) {
-                Log::error('Failed to save PNG barcode file');
-                throw new \Exception('Failed to save barcode');
+                Log::error("Failed to save barcode image", ['path' => $barcodePath]);
+                throw new \Exception('Failed to save barcode image');
             }
+            Log::info('Barcode image saved', ['path' => $barcodePath]);
     
-            // Handle image upload (optional)
+            // Handle optional image upload
             $image_path = '';
             if ($request->hasFile('image')) {
                 $image_path = $request->file('image')->store('item_images', 'public');
-                Log::info('Image uploaded', ['path' => $image_path]);
+                Log::info('Item image uploaded', ['path' => $image_path]);
             }
     
             // Save record
@@ -444,11 +452,14 @@ class BuyPreListController extends Controller
                 'barcode_path' => $barcodePath,
             ]);
     
-            return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+            DB::commit();
+            Log::info('BuyPreList created', ['code' => $code]);
     
+            return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
         } catch (\Exception $e) {
-            Log::error('Barcode generation failed: ' . $e->getMessage());
-            throw $e;
+            DB::rollBack();
+            Log::error('Barcode generation failed', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'خطا هنگام ثبت: ' . $e->getMessage()], 500);
         }
     }
 
