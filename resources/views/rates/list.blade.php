@@ -18,7 +18,7 @@
                 <div class="col-md-12 mt-3">
                     <div class="card">
                         <div class="card-header" style="padding:10px">
-                            <h4 class="card-title">   نرخ ارزها
+                            <h4 class="card-title">   {{ __('rate.page_title') }}
                             </h4>
                         </div>
 
@@ -35,12 +35,11 @@
                                         <table class="table table-bordered table-striped table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th>{{__('common.number')}}</th>
-                                                    <th>از</th>
-                                                    <th>معادل</th>
-                                                    <!-- <th width="30%">عکس آن</th> -->
-                                                    <th>{{__('common.edit')}}</th>
-                                                    <th>{{__('common.delete')}}</th>
+                                                    <th>{{ __('common.number') }}</th>
+                                                    <th>{{ __('rate.from_currency') }}</th>
+                                                    <th>{{ __('rate.to_currency') }}</th>
+                                                    <th>{{ __('common.edit') }}</th>
+                                                    <th>{{ __('common.delete') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -71,7 +70,7 @@
                                                                     <div class="modal-content">
                                                                         <div class="modal-header bg-blue3">
                                                                             <button type="button" class="close" data-dismiss="modal">×</button>
-                                                                            <h5 class="modal-title">ویرایش</h5>
+                                                                            <h5 class="modal-title">{{__('common.edit')}}</h5>
                                                                         </div>
                                                                         <div class="modal-body">
                                                                             <form action="{{ route('rate.update') }}" method="POST">
@@ -80,17 +79,21 @@
                                                                                 <input type="hidden" name="id" value="{{ $rate->id }}">
                                                                                 <div class="form-group">
                                                                                     <select class="form-control" name="from_currency_id" required>
-                                                                                        <option value="{{ $rate->from_currency_id }}"> یک {{ $rate->fromCurrency->name ?? 'Unknown' }}</option>
+                                                                                        <option value="{{ $rate->from_currency_id }}">
+                                                                                         {{__('rate.one')}} {{ $rate->fromCurrency->name ?? 'Unknown' }}</option>
                                                                                         @foreach($currencies as $currency)
-                                                                                            <option value="{{ $currency->id }}">یک {{ $currency->name }}</option>
+                                                                                            <option value="{{ $currency->id }}">{{__('rate.one')}}  {{ $currency->name }}</option>
                                                                                         @endforeach
                                                                                     </select>
                                                                                 </div>
                                                                                 <div class="form-group">
                                                                                     <select class="form-control" name="to_currency_id" required>
-                                                                                        <option value="{{ $rate->to_currency_id }}"> معادل به {{ $rate->toCurrency->name ?? 'Unknown' }}</option>
+                                                                                        <option value="{{ $rate->to_currency_id }}"> 
+                                                                                        {{__('rate.equivalent_to')}}
+                                                                                         {{ $rate->toCurrency->name ?? 'Unknown' }}</option>
                                                                                         @foreach($currencies as $currency)
-                                                                                            <option value="{{ $currency->id }}">معادل به {{ $currency->name }}</option>
+                                                                                            <option value="{{ $currency->id }}">
+                                                                                            {{__('rate.equivalent_to')}}  {{ $currency->name }}</option>
                                                                                         @endforeach
                                                                                     </select>
                                                                                 </div>
@@ -111,9 +114,9 @@
                                                                                 </div> -->
                                                                                 <div class="modal-footer">
                                                                                     <button type="submit" class="btn btn-info btn-sm m-l-10">
-                                                                                        <span class="btn-label"><i class="fa fa-save"></i></span> ثبت
+                                                                                        <span class="btn-label"><i class="fa fa-save"></i></span> {{__('common.save')}}
                                                                                     </button>
-                                                                                    <button type="button" class="btn btn-warning btn-sm" data-dismiss="modal">لغو</button>
+                                                                                    <button type="button" class="btn btn-warning btn-sm" data-dismiss="modal">{{__('common.cancel')}}</button>
                                                                                 </div>
                                                                             </form>
                                                                         </div>
@@ -123,7 +126,7 @@
                                                         </td>
                                                         <td>
                                                             @if(auth()->user()->isAdmin)
-                                                                <form action="{{ route('rate.destroy', $rate->id) }}" method="POST" onsubmit="return confirm('آیا مطمئن هستید؟');">
+                                                                <form action="{{ route('rate.destroy', $rate->id) }}" method="POST" onsubmit="return confirm('{{ __('commont.are_you_sure') }}');">
                                                                     @csrf
                                                                     @method('DELETE')
                                                                     <button type="submit" class="btn outline btn-sm">
@@ -155,7 +158,7 @@
 function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';

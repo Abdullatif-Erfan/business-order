@@ -42,10 +42,10 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم ثبت ژورنال ویا روزنامچه
+                            <h4 class="card-title">{{ __('journal.form_title') }}
                                 <span class="pull-left">
                                     <a href="{{  route('journal.index') }}">
-                                        <button class="btn mybtn bg-default"> برگشت به لیست </button>
+                                        <button class="btn mybtn bg-default">{{ __('journal.back_to_list') }}</button>
                                     </a>
                                 </span>
                             </h4>
@@ -86,9 +86,9 @@
                                               <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" 
                                                     aria-hidden="true" name="options" required onchange="selectAccountsLabel(this.value)"> 
                                                     <option value="{{ $journals[0]->options }}">
-                                                        @if($journals[0]->options == 1) معاملات نقده
-                                                        @elseif($journals[0]->options == 2) معاملات نسیه 
-                                                        @elseif($journals[0]->options == 3) معاملات نقد
+                                                        @if($journals[0]->options == 1) {{__('jounral.cache_transaction')}}
+                                                        @elseif($journals[0]->options == 2) {{__('jounral.loan_transaction')}}
+                                                        @elseif($journals[0]->options == 3) {{__('jounral.cache_transaction')}}
                                                         @elseif($journals[0]->options == 4) معاملات نسیه به نقد
                                                         @endif
                                                     </option>
@@ -104,7 +104,7 @@
 
                                         <div class="col-md-3">
                                            <div class="form-group">
-                                                <input class="form-control" id="bill_no" name="bill_no" type="number" placeholder="بل نمبر" value="{{ $journals[0]->bill_no > 0 ? $journals[0]->bill_no : ''  }}" >
+                                                <input class="form-control" id="bill_no" name="bill_no" type="number" placeholder="{{ __('journal.bill_no') }}" value="{{ $journals[0]->bill_no > 0 ? $journals[0]->bill_no : ''  }}" >
                                                 @error('bill_no')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div> 
                                         </div>
@@ -120,7 +120,7 @@
                                                 </div>
                                                     <input class="form-control" name="todays_date" id="todays_date" required
                                                     data-targetselector="#todays_date"  value="{{ $journals[0]->inserted_short_date }}" 
-                                                    data-mddatetimepicker="true"  placeholder="تاریخ ثبت"  data-placement="right" data-englishnumber="true"  >
+                                                    data-mddatetimepicker="true"  placeholder="{{ __('journal.register_date') }}"  data-placement="right" data-englishnumber="true"  >
                                                 </div>
                                                 @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
                                         </div>
@@ -130,7 +130,7 @@
                                                 <span class="typing-effect" id="from_account_label"></span>
                                                 <select class="form-control select2" name="from_account_id" required>
                                                 <option value="{{ $journals[0]->account_id }}">{{ $journals[0]->accountRelation->name }}</option>
-                                                    <option value="">حساب پرداخت کننده</option>
+                                                    <option value="">{{ __('journal.payer_account') }}</option>
                                                     @foreach($accounts as $account)
                                                         <option value="{{ $account->id }}">{{ $account->name }}</option>
                                                     @endforeach
@@ -143,7 +143,7 @@
                                                 <span class="typing-effect" id="to_account_label"></span>
                                                 <select class="form-control select2" name="to_account_id" required>
                                                 <option value="{{ $journals[1]->account_id }}">{{ $journals[1]->accountRelation->name }}</option>
-                                                    <option value="">حساب دریافت کننده</option>
+                                                    <option value="">{{ __('journal.reciever_account') }}</option>
                                                     @foreach($accounts as $account)
                                                         <option value="{{ $account->id }}">{{ $account->name }}</option>
                                                     @endforeach
@@ -157,7 +157,7 @@
                                                 <div class="row">
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                        <div class="form-group">
-                                                            <input class="form-control" id="from_amount" name="from_amount" type="text" required placeholder="مبلغ پرداخت کننده" oninput="updateToAmountWithThisValue(this.value)" value="{{ $journals[0]->amount }}">
+                                                            <input class="form-control" id="from_amount" name="from_amount" type="text" required placeholder="{{__('journal.payer_amount')}}" oninput="updateToAmountWithThisValue(this.value)" value="{{ $journals[0]->amount }}">
                                                             @error('from_amount')<span class="text-danger">{{ $message }}</span>@enderror
                                                         </div> 
                                                     </div>
@@ -183,7 +183,7 @@
                                                 <div class="row">
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                        <div class="form-group"> 
-                                                          <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="مبلغ دریافت کننده"  value="{{ $journals[1]->amount }}">
+                                                          <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="{{__('journal.receiver_amount')}}"  value="{{ $journals[1]->amount }}">
                                                            @error('to_amount')<span class="text-danger">{{ $message }}</span>@enderror
                                                         </div> 
                                                         <div class="badge badge-info" id="rate"></div>
@@ -209,21 +209,21 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="تفصیلات دریافت کننده" required value="{{ $journals[0]->details }}">
+                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="{{__('jounral.receiver_details')}}" required value="{{ $journals[0]->details }}">
                                                 @error('from_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="to_details" name="to_details" type="text" placeholder="تفصیلات  پرداخت کننده" required value="{{ $journals[1]->details }}">
+                                                <input class="form-control" id="to_details" name="to_details" type="text" placeholder="{{__('journal.payer_details')}}" required value="{{ $journals[1]->details }}">
                                                 @error('to_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>اسناد</label>
+                                                <label>{{__('journal.attachment')}}</label>
                                                 <input type="file" class="form-control" name="doc" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
                                                 @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
@@ -231,10 +231,10 @@
                                         <div class="col-md-6 m-t-30">
                                             <div class="row">
                                                 <div class="col-6">
-                                                    <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue">
+                                                    <input type="submit" id="submit_button" name="submit" value="{{__('journal.submit')}}" class="form-control btn bg-blue">
                                                 </div>
                                                 <div class="col-6">
-                                                    <a href="{{ route('journal.index') }}" class="btn bg-danger">لغو</a>
+                                                    <a href="{{ route('journal.index') }}" class="btn bg-danger">{{__('journal.cancel')}}</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -278,17 +278,18 @@
     {
         const rawAmount = from_amount.replace(/,/g, '');   
         $('#to_amount').val(formatNumberWithCommas(rawAmount));  
-   }
+    }
+    
    function selectAccountsLabel(paymentType)
    {
     /**
     *  نقد به نقد
     * پرداخ نقد یک ریکارد و دریافت کننده نقد ریکارد دیگر ثبت شود
     */
-     if(parseInt(paymentType) === 1) 
+    if(parseInt(paymentType) === 1) 
      {
-         $('#from_account_label').html('حساب رسیدگی (پرداخت کننده)');
-         $('#to_account_label').html('حساب بردگی (دریافت کننده)');
+         $('#from_account_label').html(@json(__('journal.payer')));
+         $('#to_account_label').html(@json(__('journal.reciever')));
      } 
      /**
      *   نسیه به نسیه
@@ -296,8 +297,8 @@
      */
      else if(parseInt(paymentType) === 2) 
      {
-        $('#from_account_label').html('حساب رسیدگی ( حساب که طلب میشود)');
-        $('#to_account_label').html('حساب بردگی (حساب که قرضدار میشود)');
+        $('#from_account_label').html(@json(__('journal.credit_debtor_label')));
+        $('#to_account_label').html(@json(__('journal.credit_creditor_label')));
      }
      /**
      * نقد به نسیه
@@ -306,8 +307,8 @@
      */
      else if(parseInt(paymentType) === 3) 
      {
-        $('#from_account_label').html('حساب رسیدگی (پرداخت کننده نقد)');
-        $('#to_account_label').html('حساب بردگی (دریافت کننده قرض)');
+        $('#from_account_label').html(@json(__('journal.cash_payer_label')));
+        $('#to_account_label').html(@json(__('journal.mixed_receiver_label')));
      }
     
     /**
@@ -317,10 +318,9 @@
      */
      else if(parseInt(paymentType) === 4) 
      {
-        $('#from_account_label').html('حساب رسیدگی (پرداخت کننده قرضه بطور نقد)');
-        $('#to_account_label').html('حساب بردگی (دریافت کننده / طلب)');
+        $('#from_account_label').html(@json(__('journal.reverse_payer_label')));
+        $('#to_account_label').html(@json(__('journal.reverse_receiver_label')));
      }
-    
    }
 
 </script>

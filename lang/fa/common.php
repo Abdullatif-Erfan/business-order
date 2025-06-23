@@ -8,12 +8,13 @@ return [
     'save'   => 'ثبت',
     'number' => 'نمبر',
     'name'   => 'نام',
-    'view'  => 'نمایش',
+    'view'   => 'نمایش',
     'item_name' => 'نام جنس',
-    'details'  => 'جزییات',
+    'details'   => 'جزییات',
     'loading'   => 'درحال بارگزاری ... ',
-    'talab' => 'طلب',
-    'baqi'  => 'باقی',
+    'talab'     => 'طلب',
+    'baqi'      => 'باقی',
+    'cancel'    => 'لغو',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',
@@ -25,7 +26,15 @@ return [
     'delete_confirm' => 'آیا میخواهید حذف نمایید ؟',
     'no_data_found' => 'اطلاعات یافت نشد',
     'not_authorized' => 'اطلاعات یافت نشد / عدم صلاحیت ویرایش ریکاردهای دیگران',
+    'not_allowed' => 'صلاحیت ندارید',
     'try_again' => 'خطای سرور، دوباره امتحان کنید',
+    'are_you_sure' => 'آیا مطمین هستید ؟',
+
+    'currency' => 'واحد پولی',
+    'start_date' => 'تاریخ شروع',
+    'end_date' => 'تاریخ ختم',
+    'total' => 'مجموع',
+
 
 
 

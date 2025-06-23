@@ -1,8 +1,7 @@
 @extends('layouts.app')
-@section('title', 'روزنامچه')
-
 @section('content')
 
+@section('title', __('journal.title'))
 
 @if(Session::has('notification'))
     @php
@@ -39,11 +38,11 @@
                             @if(auth()->user()->hasAccess('journal','create_records'))
                                 <a href="{{ route('journal.create') }}">
                                     <button type="button" class="btn btn-sm mybtn">
-                                        <i class="fas fa-plus"></i> ثبت ژورنال جدید
+                                        <i class="fas fa-plus"></i> {{ __('journal.add_new')}}
                                     </button>
                                 </a>
                             @else
-                                <button type="button" onclick="alert('صلاحیت ندارید')" class="btn btn-sm mybtn">
+                                <button type="button" onclick="alert('{{ __('commont.not_allowed') }}')" class="btn btn-sm mybtn">
                                     <i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
                                 </button>
                             @endif
@@ -61,7 +60,7 @@
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_id" style="width:100%">
-                                            <option value=""> حساب </option>
+                                            <option value=""> {{__('journal.account')}} </option>
                                             @foreach($accounts as $account)
                                               <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
@@ -69,7 +68,7 @@
                                     </div>
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="currency_id" style="width:100%">
-                                            <option value=""> واحد پولی </option>
+                                            <option value=""> {{__('common.currency')}} </option>
                                             @foreach($currencies as $currency)
                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
@@ -87,7 +86,8 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true" 
+                                            placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -103,18 +103,18 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
                                   
 
                                     <div class="col-md-1 col-sm-6 col-xs-6">
-                                        <input class="form-control" id="code_number" placeholder="کد">
+                                        <input class="form-control" id="code_number" placeholder="{{__('journal.code')}}">
                                     </div>
 
                                     <div class="col-md-1 col-sm-6 col-xs-6">
-                                        <input class="form-control" id="bill_number" placeholder="بل">
+                                        <input class="form-control" id="bill_number" placeholder="{{__('journal.bill_no')}}">
                                     </div>
 
                                     <div class="col-md-1">
@@ -129,7 +129,7 @@
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
-                                <span class="pull-left visible-print">تاریخ چاپ: {{ now()->format('Y-m-d') }}</span>
+                                <span class="pull-left visible-print">{{__('journal.print_date')}}: {{ now()->format('Y-m-d') }}</span>
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -141,15 +141,15 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="12">
                                                 <center>
-                                                    روزنامچه   
+                                                  {{__('journal.print_date')}}   
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره </th>
-                                            <th> کد </th>
-                                            <th> حساب </th>
-                                            <th> جزییات </th>
+                                            <th> {{__('common.number')}} </th>
+                                            <th> {{__('journal.code')}} </th>
+                                            <th> {{__('journal.account')}} </th>
+                                            <th> {{__('journal.details')}} </th>
                                             
                                             <!-- <th> رفت / قرض  </th>
                                             <th>  آمد / طلب </th> -->
@@ -165,20 +165,20 @@
                                             <th>بردگی <br> قرض</th>
                                             <th>رسیدگی <br> قرض / طلب</th> -->
 
-                                            <th> دریافت <br> نقد (+)</th>
-                                            <th>پرداخت <br> نقد (-)</th>
-                                            <th> برد قرض</th>
-                                            <th> رسید قرض <br>/ طلب  </th>
+                                            <th> {{__('journal.recieved')}} <br> {{__('journal.cache')}} (+)</th>
+                                            <th>{{__('journal.paid')}} <br> {{__('journal.cache')}} (-)</th>
+                                            <th> {{__('journal.recieved_loan')}}</th>
+                                            <th> {{__('journal.paid_loan')}} <br>/ {{__('journal.talab')}}  </th>
                                             
-                                            <th>واحد</th>
+                                            <th>{{__('journal.unit')}}</th>
                                             <!-- <th>  نوع معامله  </th> -->
-                                            <th>تاریخ</th>
-                                            <th>جزییات</th>
+                                            <th>{{__('journal.date')}}</th>
+                                            <th>{{__('common.details')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
+                                            <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -204,25 +204,6 @@
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
 
 
 <script>
