@@ -58,6 +58,17 @@ return [
     'save_in_talabat' => 'ثبت در بخش طلبات',
     'save_in_qarza' => 'ثبت در بخش قرضه',
 
+    // ---------------------------- need translation -------------------------------
+    'income_category' => 'نام کتگوری عواید',
+    'expense_category' => 'کتگوری مصارف',
+    // company profile
+    'profile_name' => 'نام شرکت',
+    'note_for_print' => 'نوت برای پرنت',
+    'header' => 'هیدر / سربرگ',
+    'logo'  => 'لوگو',
+    'expired_after_days' => 'قبل از چند روز تاریخ انقضا پیام نشان داده شود ؟',
+
+
 
     // general
     "title" => 'تنظیمات',

@@ -19,7 +19,7 @@
                   @endif
 
                   @if($account->account_type_id == 1)
-                  <th>{{ __('settings.default_account') }}</th><td>{{ $account->is_pre_select == 1 ? {{ __('common.yes') }}:{{ __('common.no') }} }}</td>
+                  <th>{{ __('settings.default_account') }}</th><td>{{ $account->is_pre_select == 1 ?  __('common.yes') : __('common.no') }}</td>
                   @endif
 
                   @if($account->account_type_id == 2)
@@ -45,13 +45,14 @@
                             <th>{{__('common.number')}}</th>
                             <th>{{__('settings.amount')}}</th>
                             <th>{{__('common.talab')}} / {{__('common.baqi')}}</th>
-                            <th>  واحد پولی </th>
+                            <th>  {{__('settings.name_label')}} </th>
                         </tr>
                     @foreach($journals as $index => $item) <!-- Loop through the data -->
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ number_format($item['amount'],2) }}</td>
-                            <td>{{ $item['options'] == 1 ? 'افزایش پول نقد' : ($item['options'] == 2 ? 'ثبت در بخش طلبات' : 'ثبت در بخش قرضه') }}</td>
+                            <td>{{ $item['options'] == 1 ? __('settings.increase_cache') 
+                            : ($item['options'] == 2 ? __('settings.save_in_talabat') : __('settings.save_in_qarza')) }}</td>
                             <td>{{ $item->currencyRelation->name ?? '' }}</td>
                         </tr>
                     @endforeach
