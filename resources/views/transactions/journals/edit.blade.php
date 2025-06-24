@@ -86,9 +86,9 @@
                                               <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" 
                                                     aria-hidden="true" name="options" required onchange="selectAccountsLabel(this.value)"> 
                                                     <option value="{{ $journals[0]->options }}">
-                                                        @if($journals[0]->options == 1) {{__('jounral.cache_transaction')}}
-                                                        @elseif($journals[0]->options == 2) {{__('jounral.loan_transaction')}}
-                                                        @elseif($journals[0]->options == 3) {{__('jounral.cache_transaction')}}
+                                                        @if($journals[0]->options == 1) {{__('journal.cache_transaction')}}
+                                                        @elseif($journals[0]->options == 2) {{__('journal.loan_transaction')}}
+                                                        @elseif($journals[0]->options == 3) {{__('journal.cache_transaction')}}
                                                         @elseif($journals[0]->options == 4) معاملات نسیه به نقد
                                                         @endif
                                                     </option>
@@ -209,7 +209,7 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="{{__('jounral.receiver_details')}}" required value="{{ $journals[0]->details }}">
+                                                <input class="form-control" id="from_details" name="from_details" type="text" placeholder="{{__('journal.receiver_details')}}" required value="{{ $journals[0]->details }}">
                                                 @error('from_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>

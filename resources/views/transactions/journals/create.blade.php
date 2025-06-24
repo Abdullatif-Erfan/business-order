@@ -196,7 +196,7 @@
                                         <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group">
                                                 <input class="form-control" id="to_details" name="to_details" type="text"  
-                                                placeholder="{{__('jounral.receiver_details')}}" required>
+                                                placeholder="{{__('journal.receiver_details')}}" required>
                                                 @error('to_details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>

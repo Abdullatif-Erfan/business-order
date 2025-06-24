@@ -11,6 +11,8 @@
     // Show the notification using the data from the session
     $(document).ready(function(){
         showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
+        // showNotification("message", 'success', 'top', 'right', 'withicon');
+        // showNotification(@json($notification['message']), @json($notification['type']), 'top', 'right', 'withicon');
     });
 </script>
 @endif
@@ -24,7 +26,6 @@
     display: none !important;
 }
 </style>
-
 
 
 <div class="main-panel">
@@ -210,7 +211,7 @@
 function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
