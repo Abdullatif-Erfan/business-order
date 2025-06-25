@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'ویرایش عواید')
+@section('title', __('journal.income_title'))
 @section('content')
 <div class="main-panel">
     <div class="content">
@@ -8,10 +8,10 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">ویرایش عواید  
+                            <h4 class="card-title"> {{__('journal.edit_title')}}  
                                 <span class="pull-left">
                                     <a href="{{ route('income.index') }}">
-                                        <button class="btn mybtn bg-default"> برگشت به لیست </button>
+                                        <button class="btn mybtn bg-default"> {{__('common.back_to_list')}} </button>
                                     </a>
                                 </span>
                             </h4>
@@ -29,10 +29,10 @@
                                         <!-- Row:1 - Col:1 -->
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                               <label for=""> انتخاب شعبه </label>
+                                               <label for=""> {{__('journal.branch_selection')}} </label>
                                                 <select class="form-control select2" name="branch_id" required>
                                                     @if ($branchs->count() > 1)
-                                                        <option value="">--- انتخاب شعبه ---</option>
+                                                        <option value="">--- {{__('journal.branch_selection')}} ---</option>
                                                     @endif
                                                     @foreach ($branchs as $branch)
                                                         <option value="{{ $branch->id }}" 
@@ -47,32 +47,32 @@
 
                                         <!-- Row:1 - Col:2  -->
                                         <div class="col-md-4">
-                                            <label for=""> بل نمبر </label>
+                                            <label for=""> {{__('journal.bill_no')}}  </label>
                                            <div class="form-group">
                                                 <input class="form-control" id="bill_no" name="bill_no" type="number" 
-                                                placeholder="بل نمبر" value="{{ old('bill_no', $income->first()->bill_no) }}">
+                                                placeholder="{{__('journal.bill_no')}}" value="{{ old('bill_no', $income->first()->bill_no) }}">
                                                 @error('bill_no')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div> 
                                         </div>
 
                                         <!-- Row:1 - Col:3  -->
                                         <div class="col-md-4">
-                                        <label for=""> تاریخ ثبت </label>
+                                        <label for="">  {{__('common.save_date')}} </label>
                                             <div class="form-group" data-provide="datepicker">
                                                 <input class="form-control" name="todays_date" id="todays_date" required
                                                     value="{{ old('todays_date', $income->first()->inserted_short_date) }}" 
-                                                    data-mddatetimepicker="true" placeholder="تاریخ ثبت" data-englishnumber="true">
+                                                    data-mddatetimepicker="true" placeholder="{{__('common.save_date')}} " data-englishnumber="true">
                                             </div>
                                             @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
                                         </div>
 
                                         <!-- Row:2 - Col:1  -->
                                         <div class="col-md-4">
-                                        <label for="">  نوع عواید</label>
+                                        <label for=""> {{__('journal.income_type')}} </label>
                                             <div class="form-group">
                                                 <span class="typing-effect" id="dynamic_type"></span>
                                                 <select class="form-control select2" name="dynamic_type" required>
-                                                    <option value=""> انتخاب نوع عواید</option>
+                                                    <option value=""> --- {{__('journal.income_type')}} --- </option>
                                                     @foreach($incomeTypes as $type)
                                                         <option value="{{ $type->id }}" 
                                                             {{ $income->first()->dynamic_type == $type->id ? 'selected' : '' }}>
@@ -86,17 +86,17 @@
 
                                         <!-- Row:2 - Col:2  -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
-                                        <label for=""> مبلغ </label>
+                                        <label for=""> {{__('common.amount')}} </label>
                                             <div class="form-group">
                                                 <input class="form-control" id="amount" name="amount" type="number" step="0.01" required 
-                                                placeholder="مبلغ " value="{{ old('amount', $income->first()->amount) }}">
+                                                placeholder="{{__('common.amount')}} " value="{{ old('amount', $income->first()->amount) }}">
                                                 @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div> 
                                         </div>
 
                                         <!-- Row:2 - Col:3  -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
-                                        <label for=""> واحد پولی </label>
+                                        <label for=""> {{__('common.currency')}}  </label>
                                             <div class="form-group form-floating-label">
                                                 <select class="form-control select2" name="currency_id" required>
                                                     @foreach($currencies as $currency)
@@ -112,17 +112,17 @@
 
                                         <!-- Row:3 - Col:1  -->
                                         <div class="col-md-6">
-                                        <label for=""> تفصیلات </label>
+                                        <label for=""> {{__('common.details')}} </label>
                                             <div class="form-group">
                                                 <input class="form-control" id="details" name="details" type="text" 
-                                                placeholder="تفصیلات " required value="{{ old('details', $income->first()->details) }}">
+                                                placeholder="{{__('common.details')}}" required value="{{ old('details', $income->first()->details) }}">
                                                 @error('details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
 
                                         <!-- Row:3 - Col:2  -->
                                         <div class="col-md-6">
-                                        <label for=""> سند </label>
+                                        <label for=""> {{__('journal.document')}} </label>
                                             <div class="form-group">
                                                 <input type="file" class="form-control" name="doc" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
                                                 @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
@@ -133,10 +133,10 @@
                                         <div class="col-md-6 m-t-30">
                                             <div class="row">
                                                 <div class="col-6">
-                                                    <input type="submit" id="submit_button" name="submit" value="بروزرسانی" class="form-control btn bg-blue">
+                                                    <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue">
                                                 </div>
                                                 <div class="col-6">
-                                                    <a href="{{ route('income.index') }}" class="btn bg-danger">لغو</a>
+                                                    <a href="{{ route('income.index') }}" class="btn bg-danger">{{__('common.cancel')}}</a>
                                                 </div>
                                             </div>
                                         </div>

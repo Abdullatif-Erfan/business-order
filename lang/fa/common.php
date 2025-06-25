@@ -7,6 +7,7 @@ return [
     'close'  => 'بستن',
     'save'   => 'ثبت',
     'number' => 'نمبر',
+    'amount' => 'مقدار',
     'name'   => 'نام',
     'view'   => 'نمایش',
     'item_name' => 'نام جنس',
@@ -15,6 +16,10 @@ return [
     'talab'     => 'طلب',
     'baqi'      => 'باقی',
     'cancel'    => 'لغو',
+    'bill'      => 'بل',
+    'code'      => 'کد',
+    'recieved'  => 'دریافت',
+    'document' => 'سند',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',
@@ -29,10 +34,14 @@ return [
     'not_allowed' => 'صلاحیت ندارید',
     'try_again' => 'خطای سرور، دوباره امتحان کنید',
     'are_you_sure' => 'آیا مطمین هستید ؟',
+    'back' => 'برگشت به لیست',
 
     'currency' => 'واحد پولی',
+    'date'      => 'تاریخ',
     'start_date' => 'تاریخ شروع',
+    'save_date' => 'تاریخ ثبت',
     'end_date' => 'تاریخ ختم',
+    'print_date' => 'تاریخ چاپ',
     'total' => 'مجموع',
 
 

@@ -93,6 +93,30 @@
 
     <!-- Additional Head Content -->
     @stack('head')
+    
+    @if(session()->has('notification'))
+    @php
+      $notification = session()->pull('notification');
+    @endphp
+
+    <script>
+        $(document).ready(function () {
+            showNotification(
+                {!! json_encode($notification['message']) !!},
+                {!! json_encode($notification['type']) !!},
+                'top',
+                'right',
+                'withicon'
+            );
+
+            // Automatically hide after 2 seconds (if you're using a custom alert)
+            setTimeout(function () {
+                $('.alert').fadeOut(); // adjust if your alert uses a different class
+            }, 2000);
+        });
+    </script>
+@endif
+
 </head>
 <body>
  <div class="wrapper">
@@ -129,6 +153,31 @@
             $(".select2").select2();
         });
     </script>
+
+<script>
+    function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
+        var content = {};
+        content.message = '<span style="font-size:16px;">' + message + '</span>';
+        content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
+        
+        if (style === "withicon") {
+            content.icon = 'fa fa-bell';
+        } else {
+            content.icon = 'none';
+        }
+        content.url = '#';
+        content.target = '_blank';
+
+        $.notify(content, {
+            type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+            placement: {
+                from: from, // top, bottom
+                align: align // right, center, left
+            },
+            time: 500
+        });
+    }
+</script>
         
     <!-- Inject script from a view -->
     @stack('scripts')

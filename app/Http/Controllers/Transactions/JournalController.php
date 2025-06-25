@@ -60,6 +60,8 @@ class JournalController extends Controller
         // $branch_id = $user->branch_id ?? 0;
         // $this->branch_id = $branch_id;
 
+        // dd(session('notification'));
+
         $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
@@ -271,8 +273,8 @@ class JournalController extends Controller
            if(!$check)
            { 
                 DB::rollBack();
-                Session::flash('notification', [
-                    'message' => ' ثبت نگردید',
+                Session::put('notification', [
+                    'message' => __('common.added_successfully'),
                     'type' => 'danger',
                 ]);
                 return back();
@@ -280,17 +282,23 @@ class JournalController extends Controller
 
             // Commit the transaction
             DB::commit();
-            Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+            // Session::flash('notification', [
+            //     'message' => 'موفقانه ثبت گردید',
+            //     'type' => 'success',
+            // ]);
+
+            session()->put('notification', [
+                'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
+
             return redirect()->route('journal.index'); 
 
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error storing journal entry: ' . $e->getMessage());
-            Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+            Session::put('notification', [
+                'message' => __('common.add_failed'),
                 'type' => 'danger',
             ]);
              return back();
@@ -956,7 +964,7 @@ class JournalController extends Controller
 
         
             if (!$journal1 || !$journal2) {
-                Session::flash('notification', [
+                Session::put('notification', [
                     'message' => 'ریکارد یافت نگردید',
                     'type' => 'danger',
                 ]);
@@ -1028,17 +1036,20 @@ class JournalController extends Controller
 
             // Commit the transaction
             DB::commit();
-            Session::flash('notification', [
-                'message' => 'موفقانه ویرایش گردید',
+           
+
+            session()->put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
+
             return redirect()->route('journal.index'); 
 
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error  Updating journal entry: ' . $e->getMessage());
-            Session::flash('notification', [
-                'message' => ' ویرایش نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
              return back();
@@ -1222,9 +1233,9 @@ class JournalController extends Controller
 
                 // Commit the transaction if everything goes well
                 DB::commit();
-                session()->flash('notification', [
+                session()->put('notification', [
                     'type' => 'success',
-                    'message' => 'موفقانه حذف گردید',
+                    'message' => __('common.deleted_successfully'),
                 ]);
                 return redirect()->route('journal.index');
 
@@ -1240,7 +1251,7 @@ class JournalController extends Controller
             // Return error message
             return [
                 'status' => 'failed',
-                'message' => 'خطا در حذف، لطفا دوباره تلاش کنید',
+                'message' => __('common.deleted_successfully'),
             ];
         }
     }

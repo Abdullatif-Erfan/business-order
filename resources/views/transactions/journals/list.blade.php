@@ -1,21 +1,6 @@
 @extends('layouts.app')
 @section('content')
-
 @section('title', __('journal.title'))
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-        // showNotification("message", 'success', 'top', 'right', 'withicon');
-        // showNotification(@json($notification['message']), @json($notification['type']), 'top', 'right', 'withicon');
-    });
-</script>
-@endif
 
 <style>
 .clearance-row {
@@ -47,6 +32,8 @@
                                     <i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
                                 </button>
                             @endif
+
+                            {{-- <p>Session: {{ session()->has('notification') ? 'Yes' : 'No' }}</p> --}}
 
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
 
@@ -205,32 +192,6 @@
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
-
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
     $(document).ready(function() {

@@ -5,7 +5,9 @@ return [
     'add_new' => 'ثبت ژورنال جدید',
     'print_date' => 'تاریخ چاپ',
     'back_to_list' => 'برگشت به لیست',
+    'branch_selection' => 'انتخاب شعبه',
     'transaction_type' => '--- انتخاب نوع معامله ---',
+    'income_type' => 'نوع عواید',
     'cash_transaction' => 'معاملات نقده  (انتقال میان حسابات )',
     'credit_transaction' => 'معاملات نسیه',
     'bill_no' => 'بل نمبر',
@@ -60,6 +62,24 @@ return [
     'upload_document' => 'ذخیره سند',
     'download' => 'دانلود',
     'select_account' => 'حساب را انتخاب نمایید',
-
     'account' => 'حساب',
+
+    // income
+    'income_title' => 'عواید',
+    'create_title' => 'فورم ثبت عواید',
+    'edit_title' => 'ویرایش عواید',
+    'income_list' => 'لیست عواید',
+    'reciever' => 'دریافت کننده',
+    'default_account' => 'لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید',
+
+
+
+    // expense
+    'expense_title' => 'مصارف',
+    'expense_type' => 'نوع مصارف',
+    'expense_list' => 'لیست مصارف',
+    'payer' => 'پرداخت کننده',
+    'expense_create_title' => 'فورم ثبت عواید',
+    'expense_type_selection' => 'انتخاب نوع مصارف',
+
 ];

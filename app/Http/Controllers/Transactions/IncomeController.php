@@ -186,7 +186,7 @@ class IncomeController extends Controller
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
         if(!$ownBanks) {
-            return "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ";
+            return __('journal.default_account');
             die();
         }
 
@@ -266,8 +266,8 @@ class IncomeController extends Controller
             // Commit the transaction
             DB::commit();
     
-            Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+            Session::put('notification', [
+                'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('income.index'); 
@@ -279,8 +279,8 @@ class IncomeController extends Controller
             \Log::error('Error storing income entry: ' . $e->getMessage());
     
             // Use MessageService to return error message
-            Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+            Session::put('notification', [
+                'message' => __('common.add_failed'),
                 'type' => 'danger',
             ]);
              return back();
@@ -329,8 +329,8 @@ class IncomeController extends Controller
         
             if (!$journal) {
                 
-                Session::flash('notification', [
-                    'message' => 'ویرایش نگردید',
+                Session::put('notification', [
+                    'message' => __('common.update_failed'),
                     'type' => 'success',
                 ]);
                 return back();
@@ -373,8 +373,8 @@ class IncomeController extends Controller
             // Commit the transaction if both entries were saved successfully
           
                 DB::commit();
-                Session::flash('notification', [
-                    'message' => 'موفقانه ویرایش گردید',
+                Session::put('notification', [
+                    'message' => __('common.updated_successfully'),
                     'type' => 'success',
                 ]);
                 return redirect()->route('income.index'); 
@@ -383,8 +383,8 @@ class IncomeController extends Controller
         { 
             DB::rollBack();
             \Log::error('Error occured in income update' . $e->getMessage());
-            Session::flash('notification', [
-                'message' => ' ویرایش نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
             return back();
@@ -414,19 +414,19 @@ class IncomeController extends Controller
                 $docs->delete();
             }
 
-            // Optionally, flash a success message to session
-            session()->flash('notification', [
+            // Optionally, put a success message to session
+            session()->put('notification', [
                 'type' => 'success',
-                'message' => 'موفقانه حذف گردید',
+                'message' => __('common.deleted_successfully')
             ]);
 
             // Redirect to the income listing page (or wherever you want)
             return redirect()->route('income.index');
         } else {
             // If no journal found with the given 'times' value, return back with error message
-            session()->flash('notification', [
+            session()->put('notification', [
                 'type' => 'danger',
-                'message' => 'حذف نگردید',
+                'message' => __('common.delete_failed')
             ]);
 
             return back();

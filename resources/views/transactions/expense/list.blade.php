@@ -1,22 +1,7 @@
 @extends('layouts.app')
-@section('title', 'مصارف')
+@section('title', __('journal.expense_title'))
 
 @section('content')
-
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
-
 
 <div class="main-panel">
     <div class="content">
@@ -29,11 +14,12 @@
                             @if(auth()->user()->hasAccess('expense','create_records'))
                                 <a href="{{ route('expense.create') }}">
                                     <button type="button" class="btn btn-sm mybtn">
-                                        <i class="fas fa-plus"></i> ثبت  جدید
+                                        <i class="fas fa-plus"></i> 
+                                        {{__('common.add')}}
                                     </button>
                                 </a>
                             @else
-                                <button type="button" onclick="alert('صلاحیت ندارید')" class="btn btn-sm mybtn">
+                                <button type="button" onclick="alert('{{__('common.not_allowed')}}')" class="btn btn-sm mybtn">
                                     <i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
                                 </button>
                             @endif
@@ -51,7 +37,7 @@
                                 <div class="row">
                                     <div class="col-md-2">
                                         <select class="form-control select2" id="type_id">
-                                            <option value=""> نوع مصارف </option>
+                                            <option value=""> {{__('journal.expense_type')}} </option>
                                             @foreach($types as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
                                             @endforeach
@@ -59,7 +45,7 @@
                                     </div>
                                     <div class="col-md-2">
                                         <select class="form-control select2" id="currency_id">
-                                            <option value=""> واحد پولی </option>
+                                            <option value=""> {{ __('common.currency') }} </option>
                                             @foreach($currencies as $currency)
                                                 <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
@@ -77,7 +63,7 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{ __('common.start_date') }}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -93,18 +79,18 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{ __('common.end_date') }}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
                                   
 
                                     <div class="col-md-1">
-                                        <input class="form-control" id="code_number" placeholder="کد">
+                                        <input class="form-control" id="code_number" placeholder="{{ __('common.code') }}">
                                     </div>
 
                                     <div class="col-md-1">
-                                        <input class="form-control" id="bill_number" placeholder="بل">
+                                        <input class="form-control" id="bill_number" placeholder="{{ __('common.bill') }}">
                                     </div>
 
                                     <div class="col-md-1">
@@ -119,39 +105,39 @@
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
-                                <span class="pull-left visible-print">تاریخ چاپ: {{ now()->format('Y-m-d') }}</span>
+                                <span class="pull-left visible-print">{{ __('common.print_date') }}: {{ now()->format('Y-m-d') }}</span>
                                 <table id="expenseTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="11">
-                                              <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                              <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                             
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="11">
                                                 <center>
-                                                    لست مصارف   
+                                                  {{ __('common.expense_list') }}   
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره </th>
-                                            <th> کد </th>
-                                            <th> نوع مصارف </th>
-                                            <th> پرداخت کننده </th>
-                                            <th> جزییات </th>
-                                            <th>  مبلغ  </th>
-                                            <th>واحد</th>
-                                            <th>تاریخ</th>
-                                            <th>سند</th>
+                                            <th> {{ __('common.number') }} </th>
+                                            <th> {{ __('common.code') }} </th>
+                                            <th> {{ __('journal.expense_type') }}</th>
+                                            <th> {{ __('journal.payer') }}  </th>
+                                            <th> {{ __('common.details') }} </th>
+                                            <th>  {{ __('common.amount') }}  </th>
+                                            <th>{{ __('common.currency') }}</th>
+                                            <th>{{ __('common.date') }}</th>
+                                            <th>{{ __('common.document') }}</th>
                                             <th>{{__('common.edit')}}</th>
                                             <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="5">مجموع</td>
+                                            <td colspan="5">{{ __('common.total') }}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -193,32 +179,6 @@
     $('[data-name="enable-button"]').click(function () {
         $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
     });
-</script>
-
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
 </script>
 
 <script>
