@@ -2,17 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
 
 
 <!-- main content -->
@@ -28,7 +17,9 @@
                                     <i class="fas fa-arrow-left"></i>  
                                 </button>
                             </a>
-                            <span class="card-title pull-right">  فورم ایجاد کارمند جدید : <strong>همزمان حساب نیز ساخته میشود</strong> </span>
+                            <span class="card-title pull-right">  
+                             {{__('hr.emp_create_title')}} : <strong>{{__('hr.emp_create_title_note')}}</strong>
+                            </span>
                         </div>
 
 
@@ -42,34 +33,34 @@
                                     <div class="row">
 
                                         <div class="form-group col-sm-4">
-                                            <label for="name"> نام حساب  </label>
-                                            <input type="text" class="form-control" name="name" required placeholder="نام حساب را بنویسید" value="{{ $account->name }}">
+                                            <label for="name"> {{__('settings.account')}} {{__('common.name')}}   </label>
+                                              <input type="text" class="form-control" name="name" required  value="{{ $account->name }}">
                                             <span id="accountNameError" class="text-danger"></span>
                                         </div>
 
                                         <div class="form-group col-sm-4">
-                                            <label for="phone"> شماره تماس </label>
-                                            <input type="text" class="form-control" name="phone" value="{{ $account->phone }}"  placeholder="شماره تماس ...">
+                                            <label for="phone"> {{__('common.phone')}}  </label>
+                                            <input type="text" class="form-control" name="phone" value="{{ $account->phone }}"  placeholder="{{__('common.phone')}}  ...">
                                             <span id="phoneError" class="text-danger"></span>
                                         </div>
 
                                         <div class="form-group col-sm-4">
-                                            <label for="address"> آدرس </label>
-                                            <input type="text" class="form-control" name="address" value="{{ $account->address }}"  placeholder=" آدرس ...">
+                                            <label for="address"> {{__('common.address')}}  </label>
+                                            <input type="text" class="form-control" name="address" value="{{ $account->address }}"  placeholder=" {{__('common.address')}}  ...">
                                             <span id="addressError" class="text-danger"></span>
                                         </div>
 
 
                                             <div class="form-group col-sm-4" id="net_salary" >
-                                                <label for="percent"> معاش خالص ماهانه </label>
-                                                <input type="number" class="form-control" name="net_salary"  required placeholder="معاش خالص ماهانه را بنویسید" value="{{ $account->net_salary }}">
+                                                <label for="percent"> {{__('hr.net_salary')}} </label>
+                                                <input type="number" class="form-control" name="net_salary"  required value="{{ $account->net_salary }}">
                                                 <span id="netSalaryError" class="text-danger"></span>
                                             </div>
 
                                             <div class="form-group col-sm-4" id="salary_currency" >
-                                                <label for="percent">  پرداخت معاش به کرنسی </label>
+                                                <label for="percent">   {{__('hr.salary_currency')}}  </label>
                                                 <select class="form-control" name="salary_currency" required>
-                                                    <option value=""> انتخاب کرنسی </option>
+                                                    <option value=""> {{__('common.currency')}} </option>
                                                     @foreach($currencies as $currency)
                                                     <option value="{{ $currency->id }}" {{ $currency->id == $account->salary_currency ? 'selected' : '' }}>{{ $currency->name }}</option>
                                                     @endforeach
@@ -79,9 +70,9 @@
 
                                         @if(count($branchs) >= 2)
                                         <div class="form-group col-sm-4">
-                                            <label for="account_type_id"> انتخاب شعبه </label>
+                                            <label for="account_type_id"> {{__('journal.branch_selection')}} </label>
                                             <select class="form-control"  name="branch_id" required>
-                                                <option value="">انتخاب  شعبه</option>
+                                                <option value="">{{__('journal.branch_selection')}}</option>
                                                 @foreach($branchs as $branch)
                                                 <option value="{{ $branch->id }}" {{ $branch->id == $account->branch_id ? 'selected' : ''  }}>{{ $branch->name }}</option>
                                                 @endforeach
@@ -96,10 +87,10 @@
                                         <div class="col-md-6 m-t-30 m-b-30">
                                             <div class="row">
                                                 <div class="col-6">
-                                                    <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue">
+                                                    <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue">
                                                 </div>
                                                 <div class="col-6">
-                                                    <a href="{{ route('employee.index') }}" class="btn bg-danger">لغو</a>
+                                                    <a href="{{ route('employee.index') }}" class="btn bg-danger">{{__('common.cancel')}}</a>
                                                 </div>
                                             </div>
                                         </div>

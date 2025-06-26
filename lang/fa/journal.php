@@ -64,6 +64,7 @@ return [
     'select_account' => 'حساب را انتخاب نمایید',
     'account' => 'حساب',
 
+
     // income
     'income_title' => 'عواید',
     'create_title' => 'فورم ثبت عواید',
@@ -71,6 +72,7 @@ return [
     'income_list' => 'لیست عواید',
     'reciever' => 'دریافت کننده',
     'default_account' => 'لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید',
+    'store_income_option_label' => 'دریافت عواید',
 
 
 
@@ -81,5 +83,6 @@ return [
     'payer' => 'پرداخت کننده',
     'expense_create_title' => 'فورم ثبت عواید',
     'expense_type_selection' => 'انتخاب نوع مصارف',
+    'store_expense_option_label' => 'پرداخت مصارف',
 
 ];

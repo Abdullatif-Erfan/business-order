@@ -16,7 +16,7 @@ return [
     'talab'     => 'طلب',
     'baqi'      => 'باقی',
     'cancel'    => 'لغو',
-    'bill'      => 'بل',
+    'bill'      => 'بل نمبر',
     'code'      => 'کد',
     'recieved'  => 'دریافت',
     'document' => 'سند',
@@ -43,6 +43,8 @@ return [
     'end_date' => 'تاریخ ختم',
     'print_date' => 'تاریخ چاپ',
     'total' => 'مجموع',
+    'phone' => 'شماره',
+    'address' => 'آدرس',
 
 
 

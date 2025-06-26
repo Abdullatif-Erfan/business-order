@@ -2,18 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 
 <!-- main content -->
 <div class="main-panel">
@@ -25,17 +13,17 @@
                         <div class="card-header" style="padding: 10px; text-align:center;">
                             <a href="{{ route('employee.create') }}" class="pull-right">
                                 <button type="button" class="btn btn-sm mybtn">
-                                    <i class="fas fa-plus"></i> ثبت کارمند جدید
+                                    <i class="fas fa-plus"></i> {{__('common.add')}}
                                 </button>
                             </a>
-                            <span class="card-title"> لیست کارمندان </span>
+                            <span class="card-title"> {{__('hr.emp_list')}} </span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
 
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
-                                <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
+                                <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="employeeTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -45,23 +33,23 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="9">
-                                                <center> لیست کارمندان </center>
+                                                <center> {{__('hr.emp_list')}} </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>شماره </th>									
-                                            <th>  نام کارمند  </th>										
-                                            <th>  شماره تماس </th>		
-                                            <th> آدرس  </th>		
-                                            <th> معاش خالص ماهانه  </th>		
-                                            <th> واحد پولی  </th>	
-                                            <th>ویرایش </th>
-                                            <th>حذف </th>
+                                            <th>{{__('common.number')}} </th>									
+                                            <th>  {{__('common.name')}} </th>										
+                                            <th> {{__('common.phone')}} </th>		
+                                            <th> {{__('common.address')}}  </th>		
+                                            <th> {{__('hr.net_salary')}}  </th>		
+                                            <th>{{__('common.currency')}}  </th>	
+                                            <th>{{__('common.edit')}} </th>
+                                            <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
+                                            <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -103,31 +91,6 @@
     });
 </script>
 
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
 $(document).ready(function() {

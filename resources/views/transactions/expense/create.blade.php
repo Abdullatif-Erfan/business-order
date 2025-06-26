@@ -31,7 +31,7 @@
                                             <div class="form-group">
                                                 <select class="form-control select2" name="branch_id" required>
                                                     @if ($branchs->count() > 1)
-                                                        <option value="">--- {{__('journal.branch_selection)'}} ---</option>
+                                                        <option value="">--- {{ __('journal.branch_selection') }} ---</option>
                                                     @endif
                                                     @foreach ($branchs as $branch)
                                                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>

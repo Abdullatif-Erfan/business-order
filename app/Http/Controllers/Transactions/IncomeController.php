@@ -260,7 +260,7 @@ class IncomeController extends Controller
             $journal->details = $validated['details'];
             $journal->transaction_type = 1; // 1: received, 2: paid
             $journal->payment_type = 1; // 1: cache, 2: loan, 3: Talab
-            $journal->option_label = 'دریافت عواید';
+            $journal->option_label = __('journal.store_income_option_label');
             $journal->save();
     
             // Commit the transaction

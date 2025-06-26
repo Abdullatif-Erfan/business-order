@@ -117,7 +117,7 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="11">
                                                 <center>
-                                                  {{ __('common.expense_list') }}   
+                                                  {{ __('journal.expense_list') }}   
                                                 </center>
                                             </td>
                                         </tr>

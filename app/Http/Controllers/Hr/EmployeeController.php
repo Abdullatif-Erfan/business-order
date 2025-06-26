@@ -114,14 +114,14 @@ class EmployeeController extends Controller
             // Create Account
             $account = Account::create($validated);
 
-            Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید ',
+            Session::put('notification', [
+                'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('employee.index');
         } catch (\Exception $e) {
-            Session::flash('notification', [
-                'message' => 'ثبت نگردید',
+            Session::put('notification', [
+                'message' => __('common.add_failed'),
                 'type' => 'danger',
             ]);
             return redirect()->route('employee.index');
@@ -168,14 +168,14 @@ class EmployeeController extends Controller
         $account = Account::findOrFail($request->id);
         $account->update($validated);
 
-        session()->flash('notification', [
-            'message' => 'موفقانه ویرایش شد',
+        session()->put('notification', [
+            'message' => __('common.updated_successfully'),
             'type' => 'success',
         ]);
         return redirect()->route('employee.index');
     } catch (\Exception $e) {
-        session()->flash('notification', [
-            'message' => 'ویرایش نشد',
+        session()->put('notification', [
+            'message' => __('common.update_failed'),
             'type' => 'danger',
         ]);
         return redirect()->route('employee.index');
@@ -192,16 +192,16 @@ class EmployeeController extends Controller
 
         // Check if account exists before accessing properties
         if (!$account) {
-            session()->flash('notification', [
-                'message' => 'حذف نگردید',
+            session()->put('notification', [
+                'message' => __('common.delete_failed'),
                 'type' => 'danger',
             ]);
             return redirect()->route('employee.index');
         }
 
         $account->delete();
-        session()->flash('notification', [
-            'message' => 'موفقانه حذف گردید',
+        session()->put('notification', [
+            'message' => __('common.deleted_successfully'),
             'type' => 'success',
         ]);
         return redirect()->route('employee.index');

@@ -116,7 +116,7 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="11">
                                                 <center>
-                                                    {{__('common.income_list')}} 
+                                                    {{__('journal.income_list')}} 
                                                 </center>
                                             </td>
                                         </tr>
