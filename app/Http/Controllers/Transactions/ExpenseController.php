@@ -132,7 +132,7 @@ class ExpenseController extends Controller
 
             ->addColumn('delete', function ($expense) {
                 return '<a href="expense/destroy/'.$expense->id.'" class="hidden-print" 
-                            onClick="return confirm(\'آیا میخواهید حذف نمایید ؟\')">
+                        onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
                             <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $expense->id . '" style="font-size:20px;"></i>
                         </a>';
             })

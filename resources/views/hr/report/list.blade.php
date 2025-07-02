@@ -1,20 +1,6 @@
 @extends('layouts.app')
-@section('title', 'معاشات')
+@section('title', __('hr.salary'))
 @section('content')
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
-
 
 <div class="main-panel">
     <div class="content">
@@ -23,7 +9,7 @@
                 <div class="col-md-12 col-sm-12 col-xs-12 mt-2">
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
-                            <span class="m-r-20">گزارش معاشات کارمندان</span>
+                            <span class="m-r-20">{{ __('hr.emp_salary') }}</span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
                                 <i class="fas fa-filter"></i>
@@ -37,7 +23,7 @@
                                    
                                     <div class="col-md-3 col-sm-6 col-xs-12">
                                         <select class="form-control select2" id="account_id">
-                                            <option value="">  انتخاب کارمند </option>
+                                            <option value="">  {{__('hr.emp_selection')}} </option>
                                             @foreach($employees as $employee)
                                                 <option value="{{ $employee->id }}">{{ $employee->name }}</option>
                                             @endforeach
@@ -56,7 +42,7 @@
 
                                     <div class="col-md-2 col-sm-6 col-xs-12">
                                         <select class="form-control select2" id="month">
-                                            <option value="">  ماه </option>
+                                            <option value="">  {{__('common.month')}} </option>
                                             @foreach($months as $key => $month)
                                                 <option value="{{ $key }}">{{ $month }}</option>
                                             @endforeach
@@ -65,7 +51,7 @@
 
                                     <div class="col-md-2 col-sm-6 col-xs-12">
                                         <select class="form-control select2" id="year">
-                                            <option value="">  سال </option>
+                                            <option value="">  {{__('common.year')}}  </option>
                                             @for($i=1400; $i<=1440; $i++)
                                                 <option value="{{ $i }}" >{{ $i }}</option>
                                             @endfor
@@ -74,7 +60,7 @@
 
 
                                     <div class="col-md-2 col-sm-6 col-xs-12">
-                                        <input class="form-control" id="code_number" placeholder="کد نمبر">
+                                        <input class="form-control" id="code_number" placeholder="{{__('common.code')}} ">
                                     </div>
 
                                     <div class="col-md-1 col-sm-6 col-xs-12">
@@ -89,7 +75,7 @@
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
-                                <span class="pull-left visible-print">تاریخ چاپ: {{ now()->format('Y-m-d') }}</span>
+                                <span class="pull-left visible-print"> {{__('common.save_date')}} : {{ now()->format('Y-m-d') }}</span>
                                 <table id="dataTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -101,26 +87,26 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="10">
                                                 <center>
-                                                    گزارش معاشات کارمندان   
+                                                  {{__('hr.emp_salary')}}  
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره </th>
-                                            <th> کد </th>
+                                            <th> {{__('common.number')}} </th>
+                                            <th> {{__('common.code')}} </th>
                                             <th>  نام کارمند </th>
-                                            <th> جزییات </th>
-                                            <th> مبلغ  </th>
-                                            <th>واحد</th>
-                                            <th> سال </th>
-                                            <th>ماه</th>
-                                            <th>تاریخ</th>
-                                            <th>کاربر</th>
+                                            <th> {{__('common.details')}} </th>
+                                            <th> {{__('common.amount')}}  </th>
+                                            <th>{{__('common.unit')}}</th>
+                                            <th> {{__('common.year')}} </th>
+                                            <th>{{__('common.month')}}</th>
+                                            <th>{{__('common.date')}}</th>
+                                            <th>{{__('common.user')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
+                                            <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -143,52 +129,6 @@
 <!-- For Persian Date Picker -->
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
-
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
     $(document).ready(function() {

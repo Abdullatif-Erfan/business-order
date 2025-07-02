@@ -1,16 +1,6 @@
 @extends('layouts.app')
 @section('content')
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -126,7 +116,7 @@
                                                         </td>
                                                         <td>
                                                             @if(auth()->user()->isAdmin)
-                                                                <form action="{{ route('rate.destroy', $rate->id) }}" method="POST" onsubmit="return confirm('{{ __('commont.are_you_sure') }}');">
+                                                                <form action="{{ route('rate.destroy', $rate->id) }}" method="POST" onsubmit="return confirm('{{ __('common.delete_confirm') }}');">
                                                                     @csrf
                                                                     @method('DELETE')
                                                                     <button type="submit" class="btn outline btn-sm">
@@ -154,30 +144,6 @@
     </div>
 </div>
 
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
     function calculateReverseAmountEdit(id) {

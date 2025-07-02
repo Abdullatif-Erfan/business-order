@@ -43,8 +43,8 @@ class RateController extends Controller
         $request['greater_account_id'] = $request->from_currency_id;
         Rate::create($request->all());
 
-        Session::flash('notification', [
-            'message' => 'موفقانه ثبت گردید',
+        Session::put('notification', [
+            'message' => __('common.added_successfully'),
             'type' => 'success',
         ]);
 
@@ -77,8 +77,8 @@ class RateController extends Controller
         $rate = Rate::findOrFail($request->id);
         $rate->update($request->all());
 
-        Session::flash('notification', [
-            'message' => 'موفقانه ویرایش گردید',
+        Session::put('notification', [
+            'message' => __('common.updated_successfully'),
             'type' => 'success',
         ]);
 
@@ -93,8 +93,8 @@ class RateController extends Controller
         $rate = Rate::findOrFail($id);
         $rate->delete();
 
-        Session::flash('notification', [
-            'message' => 'موفقانه حذف گردید',
+        Session::put('notification', [
+            'message' => __('common.deleted_successfully'),
             'type' => 'success',
         ]);
 

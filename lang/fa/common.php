@@ -18,6 +18,7 @@ return [
     'cancel'    => 'لغو',
     'bill'      => 'بل نمبر',
     'code'      => 'کد',
+    'unit'      => 'واحد',
     'recieved'  => 'دریافت',
     'document' => 'سند',
 
@@ -45,6 +46,10 @@ return [
     'total' => 'مجموع',
     'phone' => 'شماره',
     'address' => 'آدرس',
+    'year' => 'سال',
+    'month' => 'ماه',
+    'day' => 'روز',
+    'user' => 'کاربر',
 
 
 

@@ -119,9 +119,10 @@ class SalaryController extends Controller
                 return  '<a href="salary/edit/'.$salary->id.'" class="hidden-print"><i class="fas fa-pen-square editIcon" data-id="' . $salary->id . '" style="font-size:20px;"></i></a>';
             })
 
+
             ->addColumn('delete', function ($salary) {
                 return '<a href="salary/destroy/'.$salary->times.'" class="hidden-print" 
-                            onClick="return confirm(\'آیا میخواهید حذف نمایید ؟\')">
+                        onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
                             <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $salary->id . '" style="font-size:20px;"></i>
                         </a>';
             })
@@ -153,7 +154,7 @@ class SalaryController extends Controller
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
         if(!$ownBanks) {
-            return "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ";
+            return __('journal.default_account');
             die();
         }
 
@@ -274,8 +275,8 @@ class SalaryController extends Controller
             // Commit the transaction
             DB::commit();
     
-            Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+            Session::put('notification', [
+                'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('salary.index'); 
@@ -287,8 +288,8 @@ class SalaryController extends Controller
             \Log::error('Error storing salary entry: ' . $e->getMessage());
     
             // Use MessageService to return error message
-            Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+            Session::put('notification', [
+                'message' => __('common.add_failed'),
                 'type' => 'danger',
             ]);
             return redirect()->route('salary.index'); 
@@ -412,8 +413,8 @@ class SalaryController extends Controller
 
             DB::commit(); // Commit transaction
 
-            Session::flash('notification', [
-                'message' => 'موفقانه ویرایش گردید',
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('salary.index'); 
@@ -422,8 +423,8 @@ class SalaryController extends Controller
         { 
             DB::rollBack(); // Rollback on error
             \Log::error('Error occurred in salary update: ' . $e->getMessage());
-            Session::flash('notification', [
-                'message' => ' ویرایش نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
             return back();
@@ -450,9 +451,9 @@ class SalaryController extends Controller
                 // Commit transaction
                 DB::commit();
 
-                session()->flash('notification', [
+                session()->put('notification', [
                     'type' => 'success',
-                    'message' => 'موفقانه حذف گردید',
+                    'message' => __('common.deleted_successfully'),
                 ]);
 
                 return redirect()->route('salary.index');
@@ -460,9 +461,9 @@ class SalaryController extends Controller
                 // Rollback transaction in case no records were found
                 DB::rollBack();
 
-                session()->flash('notification', [
+                session()->put('notification', [
                     'type' => 'danger',
-                    'message' => 'حذف نگردید',
+                    'message' => __('common.delete_failed'),
                 ]);
 
                 return back();
@@ -473,9 +474,9 @@ class SalaryController extends Controller
 
             \Log::error('Error deleting journal entry: ' . $e->getMessage());
 
-            session()->flash('notification', [
+            session()->put('notification', [
                 'type' => 'danger',
-                'message' => 'حذف نشد، خطا رخ داد!',
+                'message' => __('common.delete_failed'),
             ]);
 
             return back();
