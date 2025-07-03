@@ -46,6 +46,8 @@ return [
     'total' => 'مجموع',
     'phone' => 'شماره',
     'address' => 'آدرس',
+    'branch' => 'شعبه',
+    'image'  => 'عکس',
     'year' => 'سال',
     'month' => 'ماه',
     'day' => 'روز',

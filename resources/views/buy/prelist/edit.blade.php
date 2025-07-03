@@ -23,7 +23,7 @@
 
             <div class="col-12">
                 <div id="loading2" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i> {{__('common.loading')}}
                 </div>
             </div>
 

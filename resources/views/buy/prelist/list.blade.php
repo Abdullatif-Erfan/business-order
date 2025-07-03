@@ -1,17 +1,4 @@
 @extends('layouts.app')
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 @section('content')
 
 <div class="main-panel">
@@ -24,12 +11,12 @@
                         <div class="card-body">
 
                         <h3 style="margin-bottom: 15px">
-                        لیست اجناس برای نمایش در ثبت </h3>
+                        {{__('buy.list_title')}} </h3>
                     
                     <!-- insertion -->
                       <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
                             <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
-                                <span class="fas fa-plus-square"></span>  &nbsp; <th>{{__('common.add')}}</th> </button>
+                                <span class="fas fa-plus-square"></span>  &nbsp; {{__('common.add')}} </button>
                             </a> 
                         </div>
                         <div id="add_form_collapse" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">
@@ -50,19 +37,19 @@
 
                                     <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
                                         <button type="button" name="submit" class="btn btn-info btn-sm m-l-10" onclick="addNewRecord(1)"  >
-                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> ثبت و ماندن
+                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> {{__('buy.save_and_resume')}}
                                         </button>
                                     </div>
 
                                     <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
                                         <button type="button" name="submit" class="btn btn-primary btn-sm m-l-10" onclick="addNewRecord(2)"  >
-                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> ثبت
+                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> {{__('common.save')}}
                                         </button>
                                     </div>
 
                                     <div class="col-12">
                                         <div id="loading" style="display:none; text-align: center;">
-                                            <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                                            <i class="fa fa-spinner fa-spin"></i>{{__('common.loading')}}
                                         </div>
                                     </div>
 
@@ -78,11 +65,11 @@
                             <table id="preListTable"  class="table table-bordered table-striped table-hover datatable">
                                     <thead>
                                         <tr>
-                                            <th>{{__('common.number')}}</th>
-                                            <th> شعبه</th>
-                                            <th>{{__('common.item_name')}}</th>
-                                            <th>{{__('common.edit')}}</th>
-                                            <th>{{__('common.delete')}}</th>
+                                            <th>{{__('common.number')}}     </th>
+                                            <th>{{__('common.branch')}}     </th>
+                                            <th>{{__('common.item_name')}}  </th>
+                                            <th>{{__('common.edit')}}       </th>
+                                            <th>{{__('common.delete')}}     </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -103,7 +90,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> ویرایش </h5>
+                <h5 class="modal-title"> {{__('common.edit')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -111,12 +98,12 @@
             <div class="modal-body">
                 <div id="EditFormWrapper"></div>
                 <div id="edit_loader" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin"></i>  {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="updateSubmitBtn">ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"> {{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="updateSubmitBtn"> {{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -124,6 +111,29 @@
 
 
 <script>
+function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
+    var content = {};
+    content.message = '<span style="font-size:16px;">' + message + '</span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
+    
+    if (style === "withicon") {
+        content.icon = 'fa fa-bell';
+    } else {
+        content.icon = 'none';
+    }
+    content.url = '#';
+    content.target = '_blank';
+
+    $.notify(content, {
+        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        placement: {
+            from: from, // top, bottom
+            align: align // right, center, left
+        },
+        time: 500
+    });
+}
+
 
 $(document).ready(function() {
     fetchList();
@@ -159,29 +169,6 @@ function fetchList() {
 
 
 <script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-
 // ====================== add new record =====================
 
 function addNewRecord(id) {
@@ -208,9 +195,9 @@ function addNewRecord(id) {
                 }
                 $('#name').val('');
                 $('input[name="image"]').val(''); // clear file input
-                showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
             } else {
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('common.add_failed')}}", 'danger', 'top', 'right', 'withicon');
             }
         },
         error: (xhr) => {
@@ -224,7 +211,7 @@ function addNewRecord(id) {
                     $('#imageError').text(errors.image[0]);
                 }
             } else {
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('common.add_failed')}}", 'danger', 'top', 'right', 'withicon');
             }
         }
     });
@@ -279,10 +266,10 @@ $('#updateSubmitBtn').on('click', function () {
             $('#loading2').hide();
             if (response.status === 'success') {
                 fetchList();
-                showNotification('موفقانه ویرایش گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{__('common.updated_successfully')}}", 'success', 'top', 'right', 'withicon');
                 $('#EditModal').modal('hide');
             } else {
-                showNotification('ویرایش نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('common.update_failed')}}", 'danger', 'top', 'right', 'withicon');
             }
         },
         error: (xhr) => {
@@ -299,7 +286,7 @@ $('#updateSubmitBtn').on('click', function () {
                     $('#imageError2').text(errors.image[0]);
                 }
             } else {
-                showNotification('ثبت نگردید', 'danger', 'top', 'right', 'withicon');
+                showNotification({{__('common.update_failed')}}, 'danger', 'top', 'right', 'withicon');
             }
         }
     });
@@ -308,7 +295,7 @@ $('#updateSubmitBtn').on('click', function () {
 // Delete 
 $('table').on('click', '.deleteIcon', function () {
     const id = $(this).data('id');
-        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+        if (id && confirm("{{ __('common.delete_confirm') }}")) {
             $.ajax({
                 url: `/buyprelist/destroy/${id}`,
                 type: 'DELETE',
@@ -316,13 +303,13 @@ $('table').on('click', '.deleteIcon', function () {
                 success: (response) => {
                     if(response.status === 'success') {
                         fetchList();
-                        showNotification(response.message, 'success', 'top', 'right', 'withicon');
+                        showNotification("{{__('common.deleted_successfully')}}", 'success', 'top', 'right', 'withicon');
                     } else {
-                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                       showNotification("{{__('common.delete_failed')}}", 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{__('common.delete_failed')}}", 'danger', 'top', 'right', 'withicon');
                 }
             });
         }

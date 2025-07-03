@@ -159,21 +159,22 @@
                                 <a href="{{ route('buyprelist.index') }}" class="pull-left">
                                     <i class="fa fa-arrow-left"></i>
                                 </a>
-                                لیست بارکدها برای چاپ 
+                                {{__('buy.barcode_list_for_print')}} 
                                    
                                 <button onclick="print_page_with_image_grid()"  class="btn btn-info btn-sm pull-left m-l-10">
-                                چاپ بارکد - چهارکالم</button>
+                                 {{__('buy.4columns')}}
+                                </button>
 
-                                <button onclick="print_page_with_image_grid_single_column()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد - یک کالم</button>
+                                <button onclick="print_page_with_image_grid_single_column()"  class="btn btn-info btn-sm pull-left m-l-10"> {{__('buy.1column')}}</button>
                                 
                                 
 
-                                <button onclick="print_page_with_image_grid_single_image_per_page()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد - یک کالم - یک بارکد</button>
+                                <button onclick="print_page_with_image_grid_single_image_per_page()"  class="btn btn-info btn-sm pull-left m-l-10">{{__('buy.1column1barcode')}}</button>
                                 
 
-                                <button onclick="print_page_with_image_grid_labelPrinter()"  class="btn btn-info btn-sm pull-left m-l-10">چاپ بارکد توسط لیبل پرنتر</button>
+                                <button onclick="print_page_with_image_grid_labelPrinter()"  class="btn btn-info btn-sm pull-left m-l-10">{{__('buy.labelprinter')}}</button>
 
-                                <button onclick="exportToWord()" class="btn btn-success btn-sm pull-left m-l-10">اکسپورت به Word</button>
+                                <!-- <button onclick="exportToWord()" class="btn btn-success btn-sm pull-left m-l-10">اکسپورت به Word</button> -->
 
                             </h3>
 
@@ -188,12 +189,12 @@
                                             </div>
                                         @else
                                             <div class="barcode-box">
-                                                <span class="text-danger">ندارد</span>
+                                                <span class="text-danger">{{__('buy.noData')}}</span>
                                             </div>
                                         @endif
                                     @empty
                                         <div class="col-12 text-center text-danger">
-                                            هیچ داده‌ای موجود نیست
+                                            {{__('buy.noRecords')}}
                                         </div>
                                     @endforelse
                                 </div>
@@ -206,9 +207,9 @@
                                     <div class="pagination-custom">
                                         {{-- Previous Button --}}
                                         @if ($preList->onFirstPage())
-                                            <span class="disabled page-link">قبلی</span>
+                                            <span class="disabled page-link">{{__('buy.prev_record')}}</span>
                                         @else
-                                            <a href="{{ $preList->previousPageUrl() }}" class="page-link">قبلی</a>
+                                            <a href="{{ $preList->previousPageUrl() }}" class="page-link">{{__('buy.prev_record')}}</a>
                                         @endif
 
                                         {{-- Page Numbers --}}
@@ -219,9 +220,9 @@
 
                                         {{-- Next Button --}}
                                         @if ($preList->hasMorePages())
-                                            <a href="{{ $preList->nextPageUrl() }}" class="page-link">بعدی</a>
+                                            <a href="{{ $preList->nextPageUrl() }}" class="page-link">{{__('buy.next_record')}}</a>
                                         @else
-                                            <span class="disabled page-link">بعدی</span>
+                                            <span class="disabled page-link">{{__('buy.next_record')}}</span>
                                         @endif
                                     </div>
                                </div>

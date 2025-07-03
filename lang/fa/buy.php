@@ -1,0 +1,20 @@
+<?php
+return [
+    'list_title' => 'لیست اجناس برای نمایش در ثبت',
+    'save_and_resume' => 'ثبت و ماندن',
+    'print_barcode' => 'چاپ بارکد',
+    'prev_barcode_scan' => 'سکن بارکد خود جنس',
+    'barcode' => 'بارکد',
+    'image' => 'عکس',
+    'barcode_list_for_print' => 'لیست بارکدها برای چاپ',
+    '4columns' => ' چاپ بارکد - چهارکالم',
+    '1column' => 'چاپ بارکد - یک کالم',
+    '1column1barcode' => 'چاپ بارکد - یک کالم - یک بارکد',
+    'labelprinter' => 'چاپ بارکد توسط لیبل پرنتر',
+    'noData' => 'ندارد',
+    'noRecords' => 'هیچ داده‌ای موجود نیست',
+    'prev_record' => 'قبلی',
+    'next_record' => 'بعدی',
+    '' => '',
+    '' => '',
+];

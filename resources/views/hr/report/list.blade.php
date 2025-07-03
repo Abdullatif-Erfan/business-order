@@ -94,7 +94,7 @@
                                         <tr>
                                             <th> {{__('common.number')}} </th>
                                             <th> {{__('common.code')}} </th>
-                                            <th>  نام کارمند </th>
+                                            <th>  {{__('hr.employee_name')}} </th>
                                             <th> {{__('common.details')}} </th>
                                             <th> {{__('common.amount')}}  </th>
                                             <th>{{__('common.unit')}}</th>
