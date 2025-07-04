@@ -36,14 +36,16 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم خریداری  
+                            <h4 class="card-title">  {{__('buy.create_title')}}
                                 <span class="pull-left">
                                     <a href="{{ url('boughtList') }}">
-                                        <button class="btn mybtn bg-default"> برگشت به لیست </button>
+                                        <button class="btn mybtn bg-default"> {{__('common.back')}}</button>
                                     </a>
                                 </span>
                                 
-                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10"> نوت:</strong>دریک بل نمبر صرف خرید یک مشتری را ثبت نمایید</small>
+                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10"> {{__('buy.note')}}:</strong>
+                                  {{__('buy.note_text')}}
+                                 </small>
                             </h4>
                         </div>
 
@@ -78,9 +80,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-12">
                                         <div class="row">
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="customer_account_id">انتخاب فروشنده <span class="danger">*</span></label>
+                                                    <label for="customer_account_id"> {{__('buy.seller_selection')}} <span class="danger">*</span></label>
                                                     <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                                        <option value=""> انتخاب فروشنده </option>
+                                                        <option value="">  {{__('buy.seller_selection')}} </option>
                                                         @foreach($customers as $customer)
                                                             <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
                                                         @endforeach
@@ -91,7 +93,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="from_account_id">   حساب شرکت <span class="danger">*</span></label>
+                                                <label for="from_account_id">  {{__('buy.company_account')}} <span class="danger">*</span></label>
                                                 <select class="form-control select2" tabindex="3" style="width: 100%; background-color:#ddd;" name="from_account_id" required>
                                                     <!-- <option value="">حساب پرداخت کننده</option> -->
                                                     @foreach($ownBanks as $acc)
@@ -102,28 +104,31 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="todays_date">تاریخ <span class="danger">*</span></label>
+                                                <label for="todays_date">{{__('common.date')}}  <span class="danger">*</span></label>
                                                 <div class="input-group " data-provide="datepicker">
                                                     <div class="input-group-append">
                                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#todays_date" data-englishnumber="true">
                                                             <span class="fa fa-calendar"></span> 
                                                         </span>
                                                     </div>
-                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="تاریخ ثبت" data-placement="right" data-englishnumber="true">
+                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true"
+                                                     placeholder="{{__('common.start_date')}} " data-placement="right" data-englishnumber="true">
                                                 </div>
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="billno"> بل نمبر <span class="danger">*</span></label>
+                                                <label for="billno"> {{__('common.bill')}}   <span class="danger">*</span></label>
                                                 <input type="number" tabindex="2" onkeyup="checkBillNoDuplication(this.value)" class="form-control" value="{{ $billno }}" name="billno" id="billno"
-                                                    placeholder=" بل نمبر" required readonly>
-                                                 <span id="successMsg" style="display:none"><div style="color:green">تایید است</div></span>
-                                                 <span id="failurMsg" style="display:none"><div style="color:red"> بل نمبر تکراری است</div></span>
+                                                    placeholder="{{__('common.bill')}}" required readonly>
+                                                 <span id="successMsg" style="display:none">
+                                                 <div style="color:green">{{__('buy.confirmed')}}</div></span>
+                                                 <span id="failurMsg" style="display:none"><div style="color:red">
+                                                 {{__('buy.repeated_billno')}}</div></span>
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="factor">  فاکتور </label>
-                                                <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="شماره فاکتور" >
+                                                <label for="factor">  {{__('buy.factor')}} </label>
+                                                <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="{{__('buy.factor')}}" >
                                             </div>
 
                                             
@@ -136,9 +141,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                         <div class="row">
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="pre_list_id">انتخاب جنس <span class="danger">*</span> </label>
+                                                <label for="pre_list_id"> {{__('buy.item_selection')}}<span class="danger">*</span> </label>
                                                 <select class="form-control select2" tabindex="4" style="width: 100%; background-color:#ddd;" name="pre_list_id" id="pre_list_id">
-                                                    <option value="0">انتخاب جنس</option>
+                                                    <option value="0">{{__('buy.item_selection')}}</option>
                                                     @foreach($preLists as $item)
                                                         <option value="{{ $item->id }}" data-code="{{ $item->code }}" data-name="{{ $item->name }}">
                                                         @if(session('package_type') == 4)
@@ -150,14 +155,14 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="amount">تعداد <span class="danger">*</span> </label>
+                                                <label for="amount">{{__('buy.amount')}} <span class="danger">*</span> </label>
                                                 <input class="form-control" name="amount" id="amount" type="number" step="0.01" >
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="unit_id"> واحد <span class="danger">*</span> </label>
+                                                <label for="unit_id"> {{__('common.unit')}} <span class="danger">*</span> </label>
                                                 <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
-                                                    <option value="">واحد</option>
+                                                    <option value="">{{__('common.unit')}}</option>
                                                     @foreach($units as $unitItem)
                                                         <option value="{{ $unitItem->id }}">{{ $unitItem->name }}</option>
                                                     @endforeach
@@ -166,12 +171,12 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="bought_up"> قیمت فی واحد <span class="danger">*</span> </label>
+                                                <label for="bought_up">{{__('common.unit_price')}}<span class="danger">*</span> </label>
                                                 <input class="form-control" name="bought_up" id='bought_up' type="number" step="0.01"  oninput="recalculateEachTotal(this)" >
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="note">    واحد پولی <span class="danger">*</span>  </label>
+                                                <label for="note">{{__('common.currency')}} <span class="danger">*</span>  </label>
                                                 <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="currency_id" required>
                                                     <!-- <option value="">حساب پرداخت کننده</option> -->
                                                     @foreach($currencies as $cur)
@@ -189,33 +194,34 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                         <div class="row">
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="expire_date"> تاریخ انقضا  </label>
+                                                <label for="expire_date"> {{__('common.end_date')}}  </label>
                                                 <div class="input-group" style="margin-top:2px" data-provide="datepicker">&nbsp;&nbsp;
                                                     <input class="form-control"  name="expire_date" id="expire_date"  
                                                     data-targetselector="#expire_date" value="" 
-                                                    data-mddatetimepicker="true"  placeholder="تاریخ ختم"  data-placement="right" data-englishnumber="true"  >
+                                                    data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true"  >
                                                 </div>
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                               <label for="discount">  تخفیف </label>
+                                               <label for="discount">  {{__('buy.discount')}} </label>
                                                 <input class="form-control" name="discount" id="discount" type="number" value="0" step="0.01">
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="transport"> ترانسپورت </label>
+                                                <label for="transport"> {{__('buy.transport')}} </label>
                                                 <input class="form-control" name="transport" id="transport" value="0" type="number" step="0.01">
                                                 
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
-                                                <label for="notification_amount"> مقدار هشدار </label>
+                                                <label for="notification_amount">
+                                                {{__('buy.notify_amount')}}  </label>
                                                 <input class="form-control" name="notification_amount" id="notification_amount" type="number" value="0">
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="note"> کمنت </label>
-                                                <input class="form-control" name="note" id="note" type="text" placeholder="کمنت">
+                                                <label for="note"> {{__('buy.comment')}} </label>
+                                                <input class="form-control" name="note" id="note" type="text" placeholder="{{__('buy.comment')}}">
                                             </div>
                                             
 
@@ -226,7 +232,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <!-- Fourth Row -->
                                      <div class="col-12">
                                         <div class="col-12" style="background-color:#f3f3f3; margin-top:10px;padding: 5px;">
-                                           <strong><center>بخش انتقالات</center></strong>
+                                           <strong><center>{{__('buy.transfer_section')}}</center></strong>
                                         </div>
                                      </div>
                                     <!-- / Fourth Row -->
@@ -242,7 +248,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                      <!-- Add to list button  -->
                                      <div class="col-12">
                                         <div class="col-12" style="margin-top:10px;padding: 5px;">
-                                           <button type="button" class="form-control btn btn-sm btn-info" onclick="submiteBuyingForm()">افزودن به لیست خرید</button>
+                                           <button type="button" class="form-control btn btn-sm btn-info" onclick="submiteBuyingForm()">{{__('buy.add_to_buy_list')}}</button>
                                         </div>
                                      </div>
                                     <!-- /  Add to list button  -->
@@ -263,7 +269,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-8 m-t-20">
                                         <div class="row">
                                             <div class="col-12">
-                                                <input type="submit" id="submit_button" name="submit" value="ثبت نهایی" class="form-control btn bg-blue pull-left btn-sm">
+                                                <input type="submit" id="submit_button" name="submit" value="{{__('buy.final_submit')}}" class="form-control btn bg-blue pull-left btn-sm">
                                             </div>
                                         </div>
                                     </div>
@@ -283,30 +289,15 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-
-});
-
-
-</script>
 @endpush
 
 
 
 <script>
-
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام  </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }}  </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
@@ -336,7 +327,7 @@ function updateCurPay(curPay) {
     // Hide submit button if curPay is greater than payable
     if (curPayVal > payable) {
         $('#submit_button').hide(); // Hides the submit button
-        alert('پرداخت فعلی بیشتر از مبلغ قابل پرداخت نادرست میباشد')
+        alert("{{__('buy.over_pay')}}")
     } else {
         $('#submit_button').show(); // Shows the submit button
     }
@@ -373,7 +364,7 @@ function submiteBuyingForm()
             {
                 $('#loader').hide();
                 $('#errorWrapper').fadeOut(10);
-                showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
                 $('#insertedResult').html(response);
 
                 // ✅ Clear the form after successful submission
@@ -428,9 +419,9 @@ function submiteBuyingForm()
                 $('#validationErrors').html(errorHtml).show();
                 $('#errorWrapper').fadeIn(10);
 
-                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('buy.fill_all_fields')}}", 'danger', 'top', 'right', 'withicon');
             } else {
-                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('buy.all_fields_required')}}", 'danger', 'top', 'right', 'withicon');
             }
         }
 
@@ -455,10 +446,10 @@ function validateWarehouseAmounts()
     console.log('warehouse_amount', sumWarehouseAmount);
 
     if (sumWarehouseAmount > totalAmount) {
-        showNotification('مجموع تعداد انتقال به گدام بیشتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        showNotification("{{__('buy.over_amount')}}", 'danger', 'top', 'right', 'withicon');
         return false;
     } else if (sumWarehouseAmount < totalAmount) {
-        showNotification('مجموع تعداد انتقال به گدام کمتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        showNotification("{{__('buy.select_less_than')}}", 'danger', 'top', 'right', 'withicon');
         return false;
     } else {
         $('#warehouseAmountError').text(''); // Clear error if valid

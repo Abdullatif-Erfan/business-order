@@ -1,8 +1,8 @@
 <div class="row dynamic-row">
     <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="billno">انتخاب گدام <span class="danger">*</span></label>
+        <label for="billno"> {{__('wh.wh_selection')}} <span class="danger">*</span></label>
         <select class="form-control select2 warehouse-select" style="width: 100%; background-color:#ddd;" name="warehouse_id[]" >
-            <option value="">انتخاب گدام</option>
+            <option value=""> {{__('wh.wh_selection')}} </option>
             @foreach($warehouses as $wh)
                 <option value="{{ $wh->id }}">{{ $wh->name }}</option>
             @endforeach
@@ -10,13 +10,13 @@
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="warehouse_amount">تعداد <span class="danger">*</span></label>
-        <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="تعداد انتقال در گدام" >
+        <label for="warehouse_amount"> {{__('buy.amount')}} <span class="danger">*</span></label>
+        <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="{{__('wh.wh_amount')}}" >
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="warehouse_sell_up">فروش فی واحد <span class="danger">*</span></label>
-        <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="قیمت فروش" >
+        <label for="warehouse_sell_up">{{__('buy.sold_up')}}  <span class="danger">*</span></label>
+        <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="{{__('buy.sold_up')}}" >
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6">
@@ -36,7 +36,7 @@ $(document).ready(function () {
     let warehouseOptions = `{!! json_encode($warehouses) !!}`;
     warehouseOptions = JSON.parse(warehouseOptions);
 
-    let warehouseDropdown = '<option value="">انتخاب گدام</option>';
+    let warehouseDropdown = '<option value=""> {{__('wh.wh_selection')}} </option>';
     warehouseOptions.forEach(wh => {
         warehouseDropdown += `<option value="${wh.id}">${wh.name}</option>`;
     });
@@ -45,20 +45,21 @@ $(document).ready(function () {
         let newRow = `
             <div class="row dynamic-row">
                 <div class="col-md-3 col-sm-4 col-xs-6">
-                    <label>انتخاب گدام <span class="danger">*</span></label>
+                    <label> {{__('wh.wh_selection')}} <span class="danger">*</span></label>
                     <select class="form-control select2 warehouse-select" style="width: 100%; background-color:#ddd;" name="warehouse_id[]" required>
                         ${warehouseDropdown}
                     </select>
                 </div>
 
                 <div class="col-md-3 col-sm-4 col-xs-6">
-                    <label>تعداد <span class="danger">*</span></label>
-                    <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="تعداد انتقال در گدام" required>
+                    <label>{{__('buy.amount')}} <span class="danger">*</span></label>
+                    <input type="number" name="warehouse_amount[]" step="0.01" class="form-control"
+                     placeholder="{{__('wh.wh_amount')}}" required>
                 </div>
 
                 <div class="col-md-3 col-sm-4 col-xs-6">
-                    <label>فروش فی واحد <span class="danger">*</span></label>
-                    <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="قیمت فروش" required>
+                    <label> {{__('buy.sold_up')}} <span class="danger">*</span></label>
+                    <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="{{__('buy.sold_up')}}" required>
                 </div>
 
                 <div class="col-md-3 col-sm-4 col-xs-6">

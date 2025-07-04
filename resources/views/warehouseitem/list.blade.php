@@ -2,18 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 
 <!-- main content -->
 <div class="main-panel">
@@ -23,7 +11,7 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px;">
-                            <span class="card-title">   لست موجودی  {{ $warehouse->name ?? ''}} </span>
+                            <span class="card-title">   {{__('wh.existing_list')}} {{ $warehouse->name ?? ''}} </span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
@@ -58,7 +46,7 @@
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <input type="hidden" id="warehouse_id" value="{{ $warehouse->id }}" >
-                                <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
+                                <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="warehouseItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -68,28 +56,28 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="13">
-                                            <center> لست موجودی  {{ $warehouse->name ?? '' }}  </center>
+                                            <center> {{__('wh.existing_list')}}  {{ $warehouse->name ?? '' }}  </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره &nbsp; </th>
-                                            <th> نام </th>
-                                           <th> واحد پولی </th>                                            
-                                            <th> واحد </th>
-                                            <th> آمد </th>
-                                            <th> رفت </th>
-                                            <th>  موجود  </th>
-                                            <th>   خرید آخر </th>
-                                            <th> نرخ اوسط</th>
-                                            <th> نرخ فروش </th>
-                                            <th>  موجودی گدام </th> 
-                                            <th>  ضایعات </th> 
-                                            <th> جزییات </th>
+                                            <th> {{__('common.number')}} &nbsp; </th>
+                                            <th> {{__('common.name')}} </th>
+                                           <th> {{__('common.currency')}}  </th>                                            
+                                            <th> {{__('common.unit')}} </th>
+                                            <th> {{__('common.in')}} </th>
+                                            <th> {{__('common.out')}} </th>
+                                            <th>  {{__('common.available')}}  </th>
+                                            <th>   {{__('wh.last_bought')}} </th>
+                                            <th> {{__('wh.average')}}</th>
+                                            <th> {{__('buy.sold_price')}} </th>
+                                            <th>  {{__('wh.available_in_wh')}} </th> 
+                                            <th> {{__('wh.wastage')}}  </th> 
+                                            <th> {{__('common.details')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="3">مجموع</td>
+                                            <td colspan="3">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>

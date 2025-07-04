@@ -2,17 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
 
 <style>
     /* When input fields are readonly or disabled, make them white */
@@ -43,12 +32,11 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px; text-align:center;">
-                            
-                            <span class="card-title pull-right">    جزییات  {{ $warehouseItems->first()->preListRelation->name ?? ''}} در  {{ $warehouse->name }} </span>
+                            <span class="card-title pull-right">    {{__('wh.details')}}  {{ $warehouseItems->first()->preListRelation->name ?? ''}} {{__('wh.at')}}  {{ $warehouse->name }} </span>
 
                             <!-- <button class="printBtn" onclick="print_page()"><i class="fas fa-print"></i></button> -->
                             <a href="{{ route('warehousesList.index') }}?id={{ $warehouseItems->first()->warehouse_id }}">
-                               <button class="btn btn-default btn-sm pull-left">برگشت به لست</button>
+                               <button class="btn btn-default btn-sm pull-left">{{__('common.back')}}</button>
                             </a>
                         </div>
 
@@ -79,12 +67,12 @@
                         @csrf
                         @method('PATCH') 
                         <div class="table-responsive" id="print_area" style="padding:5px;">
-                            <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
+                            <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                             <table id="warehouseTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <tr>
                                     <th>{{__('common.item_name')}}</th>
                                     <td><input type="text" id="name" name="name" class="form-control" value="{{ $warehouseItems->first()->preListRelation->name ?? '' }}" readonly disabled></td>
-                                    <th>واحد جنس</th>
+                                    <th> {{__('common.unit')}}</th>
                                     <td>
                                        <select class="form-control" style="width: 100%; border:none !important;   background-color:#ddd;" aria-hidden="true" id="unit_id" name="unit_id" readonly>
                                             <!-- <option value="">  واحد پولی </option> -->
@@ -96,7 +84,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th>واحد پولی</th>
+                                    <th> {{__('common.currency')}}</th>
                                     <td>
                                         <select class="form-control" style="width: 100%; border:none !important;   background-color:#ddd;" aria-hidden="true" id="currency_id" name="currency_id" readonly>
                                             <!-- <option value="">  واحد پولی </option> -->
@@ -105,60 +93,63 @@
                                             @endforeach
                                         </select>
                                     </td>
-                                    <th>مقدار موجود</th>
+                                    <th>{{__('buy.available_amount')}}</th>
                                     <td><input type="number" step="0.01" id="available_amount" name="available_amount" class="form-control" value="{{ $warehouseItems->first()->available_amount ?? '' }}"
                                     oninput="updateAvailAbleAmount(this.value)" readonly></td>
                                 </tr>
                                 <tr>
-                                    <th> مقدار ورود</th>
-                                    <td><input type="number"  step="0.01" id="in_amount" name="in_amount" class="form-control" value="{{ $warehouseItems->first()->in_amount ?? '' }}" readonly min="0"></td>
-                                    <th> مقدار خروج</th>
-                                    <td><input type="number"  step="0.01" id="out_amount" name="out_amount" class="form-control" value="{{ $warehouseItems->first()->out_amount ?? '' }}" readonly min="0"></td>
+                                    <th> {{__('wh.in_amount')}} </th>
+                                    <td><input type="number"  step="0.01" id="in_amount" name="in_amount" class="form-control" 
+                                    value="{{ $warehouseItems->first()->in_amount ?? '' }}" readonly min="0"></td>
+                                    <th> {{__('wh.out_amount')}}</th>
+                                    <td><input type="number"  step="0.01" id="out_amount" name="out_amount" class="form-control" 
+                                    value="{{ $warehouseItems->first()->out_amount ?? '' }}" readonly min="0"></td>
                                 </tr>
 
                                 <tr>
-                                    <th> خرید آخر فی واحد</th>
+                                    <th> {{__('wh.last_bought_up')}} </th>
                                     <td><input type="number"  step="0.01" id="bought_up" name="bought_up" class="form-control" value="{{ $warehouseItems->first()->bought_up ?? '' }}" readonly min="0"></td>
-                                    <th> قیمت فروش فی واحد</th>
+                                    <th> {{__('wh.sales_up')}} </th>
                                     <td><input type="number" id="sell_up"  step="0.01" name="sell_up" class="form-control" value="{{ $warehouseItems->first()->sell_up ?? '' }}" readonly min="0"></td>
                                 </tr>
                                 
                                 <tr>
-                                    <th> نرخ اوسط فی واحد</th>
+                                    <th> {{__('wh.avg_up')}} </th>
                                     <td><input type="number" id="avg_up"  step="0.01" name="avg_up" id="avg_up" class="form-control" value="{{ $warehouseItems->first()->avg_up ?? '' }}" readonly oninput="updateAvailAbleTotal(this.value)"></td>
-                                    <th> مجموع ارزش جنس موجود</th>
+                                    <th> {{__('wh.total_available_value')}}</th>
                                     <td><input type="number"  step="0.01" id="available_total" name="available_total" class="form-control" value="{{ $warehouseItems->first()->available_amount * $warehouseItems->first()->avg_up ?? '' }}" readonly></td>
                                 </tr>
                                 
                                 <tr>
-                                    <th> مقدار هشدار</th>
+                                    <th>   {{__('buy.notify_amount')}}</th>
                                     <td><input type="number" id="notification_amount" name="notification_amount" class="form-control"  value="{{ $warehouseItems->first()->notification_amount ?? '' }}" min="0" readonly></td>
-                                    <th> تاریخ انقضا</th>
+                                    <th> {{__('buy.notify_amount')}}</th>
                                     <td>
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                             <input class="form-control" name="expire_date" id="expire_date"
-                                            data-targetselector="#expire_date" value="{{ $warehouseItems->first()->expire_date ?? '' }}"  readonly data-mddatetimepicker="true"  placeholder="تاریخ انقضا "  data-placement="right" data-englishnumber="true" >
+                                            data-targetselector="#expire_date" value="{{ $warehouseItems->first()->expire_date ?? '' }}"  readonly data-mddatetimepicker="true"  placeholder="{{__('common.expired_date')}} "  data-placement="right" data-englishnumber="true" >
                                         </div>
                                     </td>
                                 </tr>
 
                                 <tr>
-                                     <th>ضایعات</th>
-                                    <td><input type="number" id="wastage_amount" name="wastage_amount" class="form-control" value="{{ $warehouseItems->first()->wastage_amount ?? '' }}" readonly  min="0" ></td>
-                                    <th>قیمت ضایعات</th>
+                                     <th>{{__('wh.wastage')}}</th>
+                                    <td><input type="number" id="wastage_amount" name="wastage_amount" class="form-control" 
+                                    value="{{ $warehouseItems->first()->wastage_amount ?? '' }}" readonly  min="0" ></td>
+                                    <th> {{__('wh.wastage_price')}} </th>
                                     <td><input type="number" step="0.01" id="wastage_total" name="wastage_total" class="form-control" value="{{ $warehouseItems->first()->wastage_total ?? '' }}" readonly></td>
                                 </tr>
 
                                 <tr>
-                                    <th>آخرین تاریخ ثبت / ویرایش</th>
+                                    <th>{{__('wh.last_saved_date')}} / {{__('common.edit')}}</th>
                                     <td>
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                             <input class="form-control" name="inserted_short_date" id="inserted_short_date"
                                             data-targetselector="#inserted_short_date" value="{{ $warehouseItems->first()->inserted_short_date ?? '' }}"  readonly
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
                                     </td>
-                                    <th>ثبت توسط</th>
+                                    <th> {{__('common.user')}} </th>
                                     <td>{{ $warehouseItems->first()->inserted_by ?? '' }}</td>
                                 </tr>
 
@@ -170,25 +161,25 @@
                         <div class="col-md-12">
 
                             <button type="button" onclick="transferItems()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print">
-                                <i class="fas fa-exchange-alt"></i> انتقال اجناس
+                                <i class="fas fa-exchange-alt"></i> {{__('wh.exchange')}}
                             </button>
 
                             <button type="button" onclick="unitConversion()" class="btn btn-success btn-sm  m-r-10 hidden-print">
-                                <i class="fas fa-recycle"></i> تبادله واحدات اجناس
+                                <i class="fas fa-recycle"></i> {{__('wh.unit_conversion')}}
                             </button>
 
                             <!-- Edit button -->
                             <button type="button" onclick="toggleEdit()" class="btn btn-primary btn-sm m-r-10" id="editBtn">
-                                <i class="fas fa-pen"></i> ویرایش
+                                <i class="fas fa-pen"></i> {{__('common.edit')}}
                             </button>
 
                             <!-- Save button -->
                             <button type="submit" class="btn btn-success btn-sm m-r-10" id="saveBtn" style="display: none;">
-                                <i class="fas fa-save"></i> ذخیره تغییرات
+                                <i class="fas fa-save"></i> {{__('wh.resave')}}
                             </button>
 
                             <button type="button" onclick="deleteAnItem()" class="btn btn-danger btn-sm m-r-10" id="editBtn">
-                                <i class="fas fa-trash"></i> حذف
+                                <i class="fas fa-trash"></i> {{__('common.delete')}}
                             </button>
                         </div>
                         </form>
@@ -206,7 +197,7 @@
             <form action="{{ route('warehousesList.updateTransfer')}}" method="POST">
             @csrf
             <div class="modal-header">
-                <h5 class="modal-title"> انتقال از گدام به گدام </h5>
+                <h5 class="modal-title"> {{__('wh.wh2wh_movement')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -214,12 +205,12 @@
             <div class="modal-body">
                 <div id="ModalContent"></div>
                 <div id="loading" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin font-20"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin font-20"></i> {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitTransfer" >ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitTransfer" >{{__('common.save')}}</button>
             </div>
             </form>
         </div>
@@ -233,7 +224,7 @@
             <form action="{{ route('warehousesList.updateConversion')}}" method="POST">
             @csrf
             <div class="modal-header">
-                <h5 class="modal-title"> تبادله اجناس نظر به واحد اجناس </h5>
+                <h5 class="modal-title">{{__('wh.conversion_base_unit')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -241,12 +232,12 @@
             <div class="modal-body">
                 <div id="ConversionModalContent"></div>
                 <div id="conversion_loading" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin font-20"></i> در حال بارگذاری...
+                    <i class="fa fa-spinner fa-spin font-20"></i> {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitConversion" >ثبت</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="submitConversion" >{{__('common.save')}}</button>
             </div>
             </form>
         </div>
@@ -355,7 +346,7 @@
     var whid = $('#whid').val();
     var warehouseItemId = $('#warehouseItemId').val();
 
-    if (warehouseItemId && confirm('آیا میخواهید حذف نمایید؟')) {
+    if (warehouseItemId && confirm("{{__('common.delete_confirm')}}")) {
             $.ajax({
                 url: `/warehousesList/delete/${warehouseItemId}`,
                 type: 'DELETE',
@@ -364,7 +355,7 @@
                 {
                     if (response.status === 'success') 
                     {
-                        showNotification(response.message, 'success', 'top', 'right', 'withicon');
+                        showNotification("{{__('common.deleted_successfully')}}", 'success', 'top', 'right', 'withicon');
                 
                         // Redirect after a short delay
                         setTimeout(() => {
@@ -373,11 +364,11 @@
                     } 
                     else 
                     {
-                        showNotification(response.message , 'danger', 'top', 'right', 'withicon');
+                        showNotification("{{__('common.delete_failed')}}" , 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{__('common.delete_failed')}}", 'danger', 'top', 'right', 'withicon');
                 }
             });
         }

@@ -1,18 +1,5 @@
 @extends('layouts.app')
-
 @section('content')
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 @php
 $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
 @endphp
@@ -36,10 +23,10 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">جزییات فورم خریداری
+                            <h4 class="card-title"> {{__('buy.details_form_title')}}
                                 <span class="pull-left">
                                     <a href="{{ url('boughtList') }}">
-                                        <button class="btn mybtn bg-default">برگشت به لیست</button>
+                                        <button class="btn mybtn bg-default"> {{__('common.back')}} </button>
                                     </a>
                                 </span>
                             </h4>
@@ -56,10 +43,10 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
-                                            <td>   واحد پولی: {{ $boughtItems->first()->currencyRelation->name ?? '' }}</td>
-                                            <td>تاریخ ثبت : {{ $boughtItems->first()->idate ?? '' }}</td>
-                                            <td>نمبر بل : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
+                                            <td> {{__('common.account_payer')}}: {{ $boughtItems->first()->account->name ?? '' }}</td>
+                                            <td>   {{__('common.currency')}}: {{ $boughtItems->first()->currencyRelation->name ?? '' }}</td>
+                                            <td> {{__('common.save_date')}} : {{ $boughtItems->first()->idate ?? '' }}</td>
+                                            <td> {{__('common.bill')}} : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -68,16 +55,16 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             <thead>
                                                 <tr>
                                                     <th>{{__('common.number')}}</th>
-                                                    <th>فروشنده</th>
-                                                    <th> جنس </th>
-                                                    <th>تعداد خرید</th>
-                                                    <th>واحد</th>
-                                                    <th>قیمت فی واحد</th>
-                                                    <th>قیمت مجموعی</th>
-                                                    <th>واحد پولی</th>
-                                                    <th>تخفیف</th>
-                                                    <th>ترانسپورت</th>
-                                                    <th>تاریخ انقضا</th>
+                                                    <th>{{__('common.seller')}}</th>
+                                                    <th>{{__('buy.item')}} </th>
+                                                    <th>{{__('buy.bought_amount')}}</th>
+                                                    <th>{{__('common.unit')}}</th>
+                                                    <th>{{__('common.unit_price')}}</th>
+                                                    <th>{{__('common.total_price')}}</th>
+                                                    <th>{{__('common.unit')}}</th>
+                                                    <th>{{__('buy.discount')}}</th>
+                                                    <th>{{__('buy.transport')}}</th>
+                                                    <th>{{__('common.expired_date')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -141,20 +128,20 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                     </div>
                                     <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
                                         <tr>
-                                            <td>مجموع پول &nbsp; </td>
+                                            <td>{{__('common.total_price')}} &nbsp; </td>
                                             <td>
                                                 @php
                                                     echo  number_format($boughtItems->first()->total_price,2);
                                                 @endphp
                                             </td>
-                                            <td> تخفیف </td>
+                                            <td> {{__('buy.discount')}}  </td>
                                             <td> 
                                                 @php
                                                     echo   
                                                     number_format($boughtItems->first()->discount,2);
                                                 @endphp
                                             </td>
-                                            <td> مصارف ترانسپورت </td>
+                                            <td> {{__('buy.transport_expense')}}  </td>
                                             <td> @php
                                                     echo 
                                                     number_format($boughtItems->first()->trans_spend);
@@ -162,18 +149,18 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> قابل پرداخت</td>
+                                            <td>{{__('buy.payable')}} </td>
                                             <td> @php
                                                     echo 
                                                     number_format($boughtItems->first()->payable,2);
                                                  @endphp
                                             </td>
-                                            <td> پرداخت فعلی</td>
+                                            <td>  {{__('buy.cur_pay')}} </td>
                                             <td> @php
                                                     echo  number_format($boughtItems->first()->cur_pay,2);
                                                     @endphp
                                             </td>
-                                            <td> باقی </td>
+                                            <td> {{__('buy.remained')}} </td>
                                             <td>
                                                 @php
                                                     echo 
@@ -182,7 +169,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>نوت</td>
+                                            <td>{{__('buy.note')}}</td>
                                             <td colspan="5">{{$boughtItems->first()->note}}</td>
                                         </tr>
                                     </table>
@@ -192,7 +179,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                 <div class=" visible-print" style="width:100%;margin: 35px 0px; overflow:hidden; height: 24px;color:#000"> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ </div>
 
                                 <div class="container col-md-12 col-sm-12 col-xs-12 visible-print" id="print_area">
-                                 <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
+                                 <p class="d-none">{{__('common.print_date')}}‌ : {{ now()->format('Y-m-d') }}</p>
                                     <table style="width:100%">
                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="2">
@@ -200,12 +187,12 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>تاریخ ثبت : {{ $boughtItems->first()->idate ?? '' }}</td>
-                                            <td>نمبر بل : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
+                                            <td>{{__('common.print_date')}}‌ : {{ $boughtItems->first()->idate ?? '' }}</td>
+                                            <td>{{__('common.bill')}}‌ : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
                                         </tr>
                                         <tr>
-                                            <td> حساب پرداخت کننده: {{ $boughtItems->first()->account->name ?? '' }}</td>
-                                            <td>   کاربر : {{ $boughtItems->first()->iby ?? '' }}</td>
+                                            <td> {{__('common.account_payer')}}‌: {{ $boughtItems->first()->account->name ?? '' }}</td>
+                                            <td>   {{__('common.user')}}‌ : {{ $boughtItems->first()->iby ?? '' }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -214,15 +201,15 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             <thead>
                                                 <tr>
                                                     <th>{{__('common.number')}}</th>
-                                                    <th>فروشنده</th>
-                                                    <th> جنس </th>
-                                                    <th>تعداد خرید</th>
-                                                    <th>واحد</th>
-                                                    <th>قیمت فی واحد</th>
-                                                    <th>قیمت مجموعی</th>
-                                                    <th>واحد پولی</th>
-                                                    <th>تخفیف</th>
-                                                    <th>ترانسپورت</th>
+                                                    <th>{{__('common.seller')}}</th>
+                                                    <th> {{__('buy.item')}} </th>
+                                                    <th>{{__('buy.bought_amount')}}</th>
+                                                    <th>{{__('common.unit')}}</th>
+                                                    <th>{{__('common.unit_price')}}</th>
+                                                    <th>{{__('common.total_price')}}</th>
+                                                    <th>{{__('common.currency')}}</th>
+                                                    <th>{{__('buy.discount')}}</th>
+                                                    <th>{{__('buy.transport')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -271,16 +258,16 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <tr>
                                                     <td colspan="5" rowspan="7" style="padding: 40px;">
                                                         <div class="col-md-12" style="border:2px dotted #999; min-height:80px;background-color:#f8f8f8;border-top-right-radius:10px; border-bottom-left-radius:10px; padding: 10px;">
-                                                            نوت : {{ $orgbios[0]->note_for_print }}
+                                                        {{__('buy.note')}} : {{ $orgbios[0]->note_for_print }}
                                                         </div>
                                                          <div class="col-md-12 m-t-20">
                                                               <br>
                                                              <strong>
-                                                                 <h3>مهر و امضا ---------------------</h3>
+                                                                 <h3> {{__('buy.sign_and_stamp')}} ---------------------</h3>
                                                              </strong>
                                                          </div>
                                                     </td>
-                                                    <td colspan="2" class="price-section">مجموع بل</td>
+                                                    <td colspan="2" class="price-section">{{__('buy.total_bill_price')}}</td>
                                                     <td colspan="3" class="price-section">
                                                        
                                                         @php
@@ -291,7 +278,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td colspan="2" class="price-section">  تخفیف </td>
+                                                    <td colspan="2" class="price-section">  {{__('buy.discount')}} </td>
                                                     <td colspan="3" class="price-section">
                                                         @php
                                                            echo 
@@ -301,7 +288,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td colspan="2" class="price-section">  قابل پرداخت </td>
+                                                    <td colspan="2" class="price-section"> {{__('buy.payable')}} </td>
                                                     <td colspan="3" class="price-section">
                                                         @php echo number_format($boughtItems->first()->cur_pay);
                                                         @endphp
@@ -310,7 +297,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="price-section"> پرداخت فعلی  </td>
+                                                    <td colspan="2" class="price-section"> {{__('buy.cur_pay')}}  </td>
                                                     <td colspan="3" class="price-section">
                                                          @php
                                                            echo 
@@ -321,7 +308,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="price-section">  باقی  </td>
+                                                    <td colspan="2" class="price-section">  {{__('buy.remained')}}  </td>
                                                     <td colspan="3" class="price-section">
                                                           @php
                                                            echo  number_format($boughtItems->first()->remained,2);
@@ -359,14 +346,14 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                     
                                     <!-- print button -->
                                     <button onclick="print_page_with_image()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
-                                    <i class="fas fa-print"></i>  چاپ  بل 
+                                    <i class="fas fa-print"></i> {{__('buy.print_bill')}}  
                                     </button>
                                             
                                     <!-- edit button -->
                                     @if($boughtItems->first()->is_cleared == 0)
                                     <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}"   class="hidden-print">
                                         <button class="btn btn-primary btn-sm m-r-10">
-                                        <i class="fas fa-pen"></i>  ویرایش 
+                                        <i class="fas fa-pen"></i> {{__('common.edit')}}
                                         </button>
                                     </a>
                                     @endif
@@ -386,29 +373,6 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
     </div>
 </div>
 
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
 
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 @endsection

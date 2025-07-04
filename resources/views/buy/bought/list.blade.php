@@ -2,18 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 
 <!-- main content -->
 <div class="main-panel">
@@ -25,11 +13,10 @@
                         <div class="card-header" style="padding: 10px; text-align:center;">
                             <a href="{{ route('boughtList.create') }}" class="pull-right">
                                 <button type="button" class="btn btn-sm mybtn">
-                                    <i class="fas fa-plus"></i> ثبت خریداری جدید
+                                    <i class="fas fa-plus"></i> {{__('common.add')}}
                                 </button>
                             </a>
-                            <span class="card-title"> لیست خرید </span>
-
+                            <span class="card-title">  {{__('buy.buy_title')}} </span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
@@ -38,12 +25,12 @@
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="customer_name" placeholder="فروشنده" class="form-control">
+                                        <input type="text" id="customer_name" placeholder="{{__('common.seller')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
                                         <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
-                                            <option value="">  واحد پولی </option>
+                                            <option value="">  {{__('common.currency')}} </option>
                                             @foreach($currencies as $currency)
                                                 <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
@@ -51,7 +38,7 @@
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input class="form-control" id="bill_number" placeholder="بل نمبر">
+                                        <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
                                     <!-- <div class="col-md-2 col-sm-6 col-xs-6">
@@ -68,7 +55,7 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -83,7 +70,7 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
@@ -100,7 +87,7 @@
 
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
-                                <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
+                                <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -110,27 +97,27 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="12">
-                                                <center> لیست خرید </center>
+                                                <center> {{__('common.buy_title')}} </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره &nbsp; </th>
-                                            <th> بل </th>
-                                            <th> فروشنده </th>                                            
-                                            <th> مبلغ مجموعی </th>
-                                            <th> ترانسپورت </th>
-                                            <th> تخفیف </th>
-                                            <th>  قابل پرداخت  </th>
-                                            <th> رسید نقد </th>
-                                            <th> قرض </th>
-                                            <th> واحد پولی </th>
-                                            <th> تاریخ </th>
-                                            <th> جزییات </th>
+                                            <th> {{__('common.number')}} &nbsp; </th>
+                                            <th> {{__('common.bill')}} </th>
+                                            <th> {{__('common.seller')}} </th>                                            
+                                            <th> {{__('common.total_price')}} </th>
+                                            <th> {{__('buy.transport')}} </th>
+                                            <th> {{__('buy.discount')}} </th>
+                                            <th> {{__('buy.payable')}}  </th>
+                                            <th> {{__('buy.cache_paid')}} </th>
+                                            <th> {{__('buy.loan')}} </th>
+                                            <th>  {{__('common.currency')}} </th>
+                                            <th> {{__('common.date')}} </th>
+                                            <th> {{__('common.details')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="3">مجموع</td>
+                                            <td colspan="3">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -156,52 +143,6 @@
 <!-- For Persian Date Picker -->
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
-
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
 $(document).ready(function() {

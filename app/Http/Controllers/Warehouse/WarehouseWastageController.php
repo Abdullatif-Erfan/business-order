@@ -155,8 +155,8 @@ class WarehouseWastageController extends Controller
             if(!$check || !$checkWarehouseItems)
             {
                 DB::rollBack();
-                Session::flash('notification', [
-                    'message' => 'ثبت نگردید',
+                Session::put('notification', [
+                    'message' => __('common.add_failed'),
                     'type' => 'danger',
                 ]);
                 return redirect()->route('warehousesList.wastage.create');
@@ -164,8 +164,8 @@ class WarehouseWastageController extends Controller
 
             // Flash error message
             DB::commit();
-            Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+            Session::put('notification', [
+                'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
              return redirect()->route('warehousesList.wastage');
@@ -178,8 +178,8 @@ class WarehouseWastageController extends Controller
              \Log::error('Error storing WarehouseWastageController', ['error' => $e]);
 
             // Flash error message
-            Session::flash('notification', [
-                'message' => 'ثبت نگردید',
+            Session::put('notification', [
+                'message' => __('common.add_failed'),
                 'type' => 'danger',
             ]);
              return redirect()->route('warehousesList.wastage.create');

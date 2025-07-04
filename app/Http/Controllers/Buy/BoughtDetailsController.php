@@ -491,8 +491,8 @@ class BoughtDetailsController extends Controller
             if(!$check)
             {
                 DB::rollBack();
-                Session::flash('notification', [
-                    'message' => 'ثبت نگردید',
+                Session::put('notification', [
+                    'message' => __('common.add_failed'),
                     'type' => 'danger',
                 ]);
     
@@ -501,8 +501,8 @@ class BoughtDetailsController extends Controller
             }
      
                // Flash success message
-                Session::flash('notification', [
-                    'message' => 'موفقانه ثبت گردید',
+                Session::put('notification', [
+                     'message' => __('common.added_successfully'),
                     'type' => 'success',
                 ]);
     
@@ -517,8 +517,8 @@ class BoughtDetailsController extends Controller
             // $this->deleteBoughtRecords($request);
     
             // Flash error message
-            Session::flash('notification', [
-                'message' => 'ثبت نگردید',
+            Session::put('notification', [
+                'message' => __('common.add_failed'),
                 'type' => 'danger',
             ]);
     
@@ -541,8 +541,8 @@ class BoughtDetailsController extends Controller
  
             if ($WarehouseItems->isEmpty()) {
                 DB::rollBack();
-                Session::flash('notification', [
-                    'message' => 'ریکارد در گدام یافت نشد',
+                Session::put('notification', [
+                    'message' => __('common.no_data_found'),
                     'type' => 'danager',
                 ]);
 
@@ -706,8 +706,8 @@ class BoughtDetailsController extends Controller
             \Log::error('Error storing journal entry in BoughtDetailsController', ['error' => $e]);
     
             // Use MessageService to return error message
-            Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+            Session::put('notification', [
+                'message' =>  __('common.add_failed'),
                 'type' => 'danger',
             ]);
              return false;
@@ -872,8 +872,8 @@ class BoughtDetailsController extends Controller
             if(!$check)
             {
                 DB::rollBack();
-                Session::flash('notification', [
-                    'message' => 'ویرایش نگردید',
+                Session::put('notification', [
+                    'message' => __('common.update_failed'),
                     'type' => 'danger',
                 ]);
         
@@ -881,8 +881,8 @@ class BoughtDetailsController extends Controller
             }
 
             // Flash success message
-            Session::flash('notification', [
-                'message' => 'موفقانه ویرایش گردید',
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
 
@@ -895,8 +895,8 @@ class BoughtDetailsController extends Controller
             \Log::error('Error occurred during the journal update', ['error' => $e]);
     
             // Flash error message
-            Session::flash('notification', [
-                'message' => 'ویرایش نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
     
@@ -1187,8 +1187,8 @@ class BoughtDetailsController extends Controller
         
 
             DB::commit();
-            Session::flash('notification', [
-                'message' => 'موفقانه ویرایش گردید',
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
 
@@ -1198,8 +1198,8 @@ class BoughtDetailsController extends Controller
             DB::rollBack();
             \Log::error('Error in updateItemAndWarehouseItems: ' . $e->getMessage());
 
-            Session::flash('notification', [
-                'message' => 'ویرایش نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
 
@@ -1313,8 +1313,8 @@ class BoughtDetailsController extends Controller
     
             DB::commit();
     
-            Session::flash('notification', [
-                'message' => 'موفقانه حذف گردید',
+            Session::put('notification', [
+                'message' => __('common.deleted_successfully'),
                 'type' => 'success',
             ]);
     
@@ -1324,8 +1324,8 @@ class BoughtDetailsController extends Controller
     
             \Log::error('Error deleting records: ' . $e->getMessage());
     
-            Session::flash('notification', [
-                'message' => ' حذف نگردید',
+            Session::put('notification', [
+                'message' => __('common.delete_failed'),
                 'type' => 'danger',
             ]);
     
@@ -1349,8 +1349,8 @@ class BoughtDetailsController extends Controller
 
             DB::commit();
     
-            Session::flash('notification', [
-                'message' => 'موفقانه حذف گردید',
+            Session::put('notification', [
+                'message' => __('common.deleted_successfully'),
                 'type' => 'success',
             ]);
     
@@ -1360,8 +1360,8 @@ class BoughtDetailsController extends Controller
     
             \Log::error('Error deleting records: ' . $e->getMessage());
     
-            Session::flash('notification', [
-                'message' => ' حذف نگردید',
+            Session::put('notification', [
+                'message' => __('common.delete_failed'),
                 'type' => 'danger',
             ]);
     

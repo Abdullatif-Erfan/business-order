@@ -19,6 +19,8 @@ return [
     'bill'      => 'بل نمبر',
     'code'      => 'کد',
     'unit'      => 'واحد',
+    'unit_price'      => 'قیمت فی واحد',
+    'total_price'     => 'قیمت مجموعی',
     'recieved'  => 'دریافت',
     'document' => 'سند',
 
@@ -30,6 +32,8 @@ return [
     'deleted_successfully' => 'موفقانه حذف گردید',
     'delete_failed' => 'حذف نگردید',
     'delete_confirm' => 'آیا میخواهید حذف نمایید ؟',
+    'moved_successfully' => 'موفقانه انتقال گردید',
+    'operation_failed' => 'عملیات ناموفق بود',
     'no_data_found' => 'اطلاعات یافت نشد',
     'not_authorized' => 'اطلاعات یافت نشد / عدم صلاحیت ویرایش ریکاردهای دیگران',
     'not_allowed' => 'صلاحیت ندارید',
@@ -43,7 +47,9 @@ return [
     'save_date' => 'تاریخ ثبت',
     'end_date' => 'تاریخ ختم',
     'print_date' => 'تاریخ چاپ',
+    'expired_date' => 'تاریخ انقضا',
     'total' => 'مجموع',
+    'total_price' => 'قیمت مجموعی',
     'phone' => 'شماره',
     'address' => 'آدرس',
     'branch' => 'شعبه',
@@ -52,7 +58,15 @@ return [
     'month' => 'ماه',
     'day' => 'روز',
     'user' => 'کاربر',
+    'in' => 'آمد',
+    'out' => 'رفت',
+    'available' => 'موجود',
 
+    // Accounts
+    "account_payer" => 'حساب پرداخت کننده',
+    'seller' => 'فروشنده',
+    'a' => '',
+    'a' => '',
 
 
 
@@ -75,9 +89,4 @@ return [
     'a' => '',
     
 
-    // general
-    "title" => 'تنظیمات',
-    'a' => '',
-    'a' => '',
-    'a' => '',
 ];

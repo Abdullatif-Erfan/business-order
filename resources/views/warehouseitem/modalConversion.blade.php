@@ -17,7 +17,7 @@
         <div class="col-md-4 col-sm-6 col-xs-6">
             <input class="form-control" name="available_amount" id="available_amount"  type="hidden"
             value="{{ $warehouseItems->available_amount ?? 0}}" > 
-            <label for="available_amount"> <strong>مقدار موجود</strong>  </label>
+            <label for="available_amount"> <strong>{{__('common.available')}}</strong>  </label>
             <div>
                  {{ $warehouseItems->available_amount ?? '' }} 
                  <span id="unit_name">{{ $warehouseItems->unitRelation->name ?? '' }}</span> 
@@ -25,7 +25,7 @@
         </div>
 
         <div class="col-md-4 col-sm-6 col-xs-6">
-            <label for="convert_amount"> <strong>مقدار تبادله </strong>  </label>
+            <label for="convert_amount"> <strong> </strong> {{__('wh.convert_amount')}} </label>
             <div style="display:flex;gap:5px">
                  <input class="form-control" name="convertable_amount" id="convert_amount" type="number" step="0.01"
                   oninput="checkAmountChanges(this.value)" required>
@@ -35,20 +35,20 @@
 
 
         <div class="col-md-4 col-sm-6 col-xs-6 m-t-20">
-            <label for="amount">  <strong> انتخاب گزینه </strong> </label>
+            <label for="amount">  <strong> {{__('wh.option_selection')}} </strong> </label>
             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="options" id="options" required
             onchange="createLabel()">
-                <option value="">--- انتخاب  گزینه ---</option>
-                <option value="1">تبدیل به واحد کوچکتر</option>
-                <option value="2">تبدیل به واحد بزرگتر</option>
+                <option value="">--- {{__('wh.option_selection')}} ---</option>
+                <option value="1">{{__('wh.convert2smaller')}}</option>
+                <option value="2">{{__('wh.convert2greater')}}</option>
             </select>
         </div>
 
         <div class="col-md-4 col-sm-6 col-xs-6 m-t-20">
-            <label for="amount">  <strong>واحد جدید </strong> </label>
+            <label for="amount">  <strong>{{__('wh.new_unit')}} </strong> </label>
             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="new_unit_id" id="new_unit_id" required
             onchange="createLabel()">
-                <option value="">--- انتخاب واحد جدید ---</option>
+                <option value="">--- {{__('wh.new_unit')}} ---</option>
                 @foreach($units as $unit)
                     <option value="{{  $unit->id }}" >{{ $unit->name }}</option>
                 @endforeach
@@ -75,7 +75,7 @@ function checkAmountChanges(input)
     var enteredAmount = parseFloat(input) || 0;
 
     if (enteredAmount > available_amount) {
-        alert('مقدار وارد شده نباید بیشتر از مقدار موجود باشد!');
+        alert("{{__('wh.greater_amount_msg')}}");
         input = available_amount; // Reset to max allowed value
         $('#submitConversion').fadeOut(1);
     } else {
@@ -83,6 +83,8 @@ function checkAmountChanges(input)
         createLabel();
     }
 }
+
+
 function createLabel() 
 {
     var unit_name = $('#unit_name').text().trim();
@@ -90,21 +92,21 @@ function createLabel()
     var options = parseInt($('#options').val());
     var convert_amount = parseFloat($('#convert_amount').val());
 
-    if (!convert_amount || !unit_name || !new_unit_text || new_unit_text === '--- انتخاب واحد جدید ---') {
+    if (!convert_amount || !unit_name || !new_unit_text || new_unit_text === '--- "{{__('wh.new_unit_selection')}}"  ---') {
         $('#label-description').html('');
         return;
     }
 
     if(options === 1)
     {
-        var label = convert_amount +' ' + unit_name + ' چند ' + new_unit_text + ' میشود؟';
+        var label = convert_amount +' ' + unit_name + ' "{{__('wh.howMuch')}}" ' + new_unit_text + ' "{{__('wh.become')}}"';
         $('#label-description').html('<h5>' + label + '</h5>');
     }
     else 
     {
         // var label =  convert_amount +' ' + new_unit_text + ' چند ' + unit_name + ' میشود؟' +'  / ویا '+' در  ' + convert_amount + new_unit_text + ' چند ' 
         // + unit_name + ' گذاشته میشود ؟  ';
-        var label =  'مجموع به ' + new_unit_text + ' ? ';
+        var label =   "{{__('wh.total_in')}}" + new_unit_text + ' ? ';
         $('#label-description').html('<h5>' + label + '</h5>');
     }
 

@@ -257,8 +257,8 @@ class WarehouseListController extends Controller
 
             DB::commit();
 
-            Session::flash('notification', [
-                'message' => 'موفقانه انتقال گردید',
+            Session::put('notification', [
+                'message' => __('common.moved_successfully'),
                 'type' => 'success',
             ]);
 
@@ -270,8 +270,8 @@ class WarehouseListController extends Controller
             DB::rollBack();
             \Log::error('Error in updateTransfer', ['error' => $e->getMessage()]);
 
-            Session::flash('notification', [
-                'message' => 'انتقال نگردید: ' . $e->getMessage(),
+            Session::put('notification', [
+                'message' => __('common.move_failed') . $e->getMessage(),
                 'type' => 'danger',
             ]);
 
@@ -369,8 +369,8 @@ class WarehouseListController extends Controller
 
             DB::commit();
 
-            Session::flash('notification', [
-                'message' => 'موفقانه انتقال گردید',
+            Session::put('notification', [
+                'message' => __('common.moved_successfully'),
                 'type' => 'success',
             ]);
             
@@ -382,8 +382,8 @@ class WarehouseListController extends Controller
             DB::rollBack();
             \Log::error('Error in updateConversion', ['error' => $e->getMessage()]);
 
-            Session::flash('notification', [
-                'message' => 'انتقال نگردید: ' . $e->getMessage(),
+            Session::put('notification', [
+                'message' => __('common.move_failed') . $e->getMessage(),
                 'type' => 'danger',
             ]);
 
@@ -655,8 +655,8 @@ class WarehouseListController extends Controller
             ]);
 
         
-            Session::flash('notification', [
-                'message' => 'موفقانه ویرایش گردید',
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
 
@@ -674,12 +674,12 @@ class WarehouseListController extends Controller
             // Delete all related records directly
             WarehouseItem::where('id',$id)->delete();
     
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']); 
+            return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]); 
         } catch (\Exception $e) {
     
             \Log::error('Error deleting record in WarehouseListController: ' . $e->getMessage());
     
-            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید']); 
+            return response()->json(['status' => 'failed', 'message' => __('common.delete_failed')]); 
         }
     }
 }

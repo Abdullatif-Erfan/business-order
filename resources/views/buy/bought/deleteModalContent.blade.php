@@ -7,27 +7,28 @@
             <input type="hidden" id="times" name="times" value={{ $times  }} >
 
 
-            <div class="alert alert-success"> به تعداد {{ $boughtItemDetailsAmount }} {{ $units->first()->name ?? '' }} {{ $preListName ?? ''}}  از کدام گدام میخواهید کم شود ؟</div>
+            <div class="alert alert-success"> {{__('buy.in_amount')}} {{ $boughtItemDetailsAmount }} {{ $units->first()->name ?? '' }} {{ $preListName ?? ''}}  {{__('buy.stock_decrease_msg')}}</div>
         </div>
         @foreach($warehouseItems as $item)
         @php
             $warehouseName = $item->warehouseRelation ? $item->warehouseRelation->name : 'Not Found';
         @endphp
         <div class="col-md-4 col-sm-4 col-xs-6">
-            <label for="name"> گدام </label>
+            <label for="name"> {{__('buy.warehouse')}} </label>
             <input  name="warehouse_id[]" id="wid" type="hidden" value="{{ $item->warehouse_id }} " >
             <select  class="form-control select2" readonly disabled >
                 <option value="">{{ $warehouseName }}</option>
             </select>
         </div>
         <div class="col-md-4 col-sm-4 col-xs-6">
-            <label for="available_amount"> تعداد موجود </label>
+            <label for="available_amount"> {{__('buy.available_amount')}} </label>
             <input class="form-control" name="available_amount" id="available_amount" type="number" step="0.01" readonly
             value={{ $item->available_amount }} >
         </div>
         <div class="col-md-4 col-sm-4 col-xs-6">
-            <label for="decrement"> تعداد کاهش  </label>
-            <input class="form-control" name="decrement[]" id="decrement" type="number" step="0.01"  placeholder="تعداد که میخواهید حذف نماییید" >
+            <label for="decrement">{{__('buy.decrease_amount')}}  </label>
+            <input class="form-control" name="decrement[]" id="decrement" type="number" step="0.01"  
+            placeholder="{{__('buy.decreaseable_amount')}}" >
         </div>
         @endforeach
 
@@ -47,7 +48,7 @@
                 let availableAmount = parseFloat($(this).closest('.col-xs-6').prev().find('input[name="available_amount"]').val()) || 0;
 
                 if (decrementValue > availableAmount) {
-                    alert('⚠️ مقدار کاهش نمی‌تواند بیشتر از مقدار موجود باشد.');
+                    alert("{{__('buy.over_decrease')}}");
                     $(this).val(availableAmount); // Auto-correct value
                     isValid = false;
                 }
