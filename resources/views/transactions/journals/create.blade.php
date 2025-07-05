@@ -49,6 +49,8 @@
                                         <button class="btn mybtn bg-default"> {{ __('journal.back_to_list') }} </button>
                                     </a>
                                 </span>
+
+                                <center> <i class="fa fa-spinner fa-spin" id="loader" style="display:none"></i></center>
                             </h4>
                         </div>
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
@@ -163,22 +165,25 @@
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                        <div class="form-group">                                                          <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="{{__('journal.receiver_amount')}}">
                                                            @error('to_amount')<span class="text-danger">{{ $message }}</span>@enderror
-                                                        </div> 
-                                                        <div class="badge badge-info" id="rate"></div>
-                                                        <div id="exchange_error" class="error danger"></div>
+                                                        </div>                                                        
 
+                                                        <div class="form-group"> 
+                                                            <span class="badge badge-info" id="rate"></span>
+                                                            <input type="text" name="newRate" id="newRate" style="display:none" class="form-control" placeholder="نرخ جدید" oninput="currencyConverter()" />
+                                                            <div id="exchange_error" class="error danger"></div>
+                                                        </div>
                                                     </div>
                                                     
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
-                                                        <div class="form-group form-floating-label">
-                                                            <select class="form-control select2" name="to_currency_id" required
-                                                            id="to_currency_id" onchange="currencyConverter()">
-                                                                @foreach($currencies as $currency)
-                                                                    <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                            @error('to_currency_id')<span class="text-danger">{{ $currency }}</span>@enderror
-                                                        </div> 
+                                                            <div class="form-group form-floating-label">
+                                                                <select class="form-control select2" name="to_currency_id" required
+                                                                id="to_currency_id" onchange="currencyConverter()">
+                                                                    @foreach($currencies as $currency)
+                                                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                                @error('to_currency_id')<span class="text-danger">{{ $currency }}</span>@enderror
+                                                            </div> 
                                                     </div>
 
                                                 </div>
@@ -235,26 +240,6 @@
 <!-- For Persian Date Picker -->
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
 
 <script>
    function checkPrevCode()
@@ -360,59 +345,53 @@
         let from_currency = parseFloat($('#from_currency_id').val()) || 0;
         let to_currency = parseFloat($('#to_currency_id').val()) || 0;
         let fromAmount = $('#from_amount').val().replace(/,/g, '') || "0";
+        let newRate =  parseFloat($('#newRate').val()) || 0;
         if(from_currency > 0 && to_currency > 0)
         {
             if (from_currency !== to_currency) 
             {
                 $('#conversion_flag').val(1);
+                $('#newRate').fadeIn(1);
                 let formData = {
                     from_currency: from_currency,
                     to_currency: to_currency,
                     fromAmount: fromAmount,
+                    newRate: newRate,
                     _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
                 };
 
-                $.ajax({
+                   $.ajax({
                     url: '/home/currencyConverter',
                     type: 'POST',
                     data: formData,
-                    dataType: 'json',  
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    success: function (result) 
-                    {
-                        if (result.convertedAmount !== undefined && result.exchangeRate !== undefined) 
-                        {
-                            // $('#to_amount').val(parseFloat(result.convertedAmount).toFixed(2));
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.convertedAmount !== undefined && result.exchangeRate !== undefined) {
                             $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
-                            $('#rate').text(' نرخ ' + result.exchangeRate).toFixed(2);
-                        } 
-                        else 
-                        {
+                            $('#rate').text(' نرخ  ' + result.exchangeRate.toFixed(2));
+                            // $('#newRate').val(result.exchangeRate.toFixed(2));
+                        } else {
                             alert('Conversion failed. Invalid response.');
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("AJAX Error: ", error);
-                        console.error("Response Text: ", xhr.responseText.error);
+                        console.error("Response Text: ", xhr.responseText);
                         console.error("Status: ", status);
 
-                        // alert("An error occurred: " + error + "\nDetails: " + xhr.responseText);
                         try {
-                                let response = JSON.parse(xhr.responseText);
-                                if (response.error) {
-                                    $('#exchange_error').text(response.error); // Show error message
-                                    alert(response.error); // Optional: Show error as an alert
-                                } else {
-                                    $('#exchange_error').text("An unknown error occurred.");
-                                }
-                            } 
-                            catch (e) 
-                            {
-                                $('#exchange_error').text("Failed to parse error response.");
-                                console.error("JSON Parse Error: ", e);
+                            let response = JSON.parse(xhr.responseText);
+                            if (response.error) {
+                                $('#exchange_error').text(response.error);
+                                alert(response.error);
+                            } else {
+                                $('#exchange_error').text("An unknown error occurred.");
                             }
-
-                    }
+                        } catch (e) {
+                            $('#exchange_error').text("Failed to parse error response.");
+                            console.error("JSON Parse Error: ", e);
+                        }
+                    },
                 });
             }
             else 
@@ -421,6 +400,7 @@
                 $('#to_amount').val(fromAmount);
                 $('#rate').text('');
                 $('#exchange_error').text('');
+                $('#newRate').fadeOut(1);
             }
         }
     }

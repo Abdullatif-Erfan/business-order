@@ -18,7 +18,7 @@
 			
 						<a href="<?php echo base_url(); ?>exchangeRateAddForm">
 							<button type="button" class="btn btn-sm mybtn">
-								<i class="fas fa-plus"></i>   <th>{{__('common.add')}}</th>
+								<i class="fas fa-plus"></i>   {{__('common.add')}}
 							</button>
 						</a>
 

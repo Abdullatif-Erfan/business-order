@@ -539,6 +539,8 @@ class HomeController extends Controller
         $fromCurrency = $request->input('from_currency');
         $toCurrency   = $request->input('to_currency');
         $fromAmount   = $request->input('fromAmount');
+        $newRate   = $request->input('newRate');
+
 
         if($fromCurrency == $toCurrency)
         {
@@ -568,16 +570,30 @@ class HomeController extends Controller
          */
         if($rate->greater_account_id == $toCurrency)
         {
-            $convertedAmount = $fromAmount / $rate->to_currency_amount;
+            if(!empty($newRate) && intval($newRate) > 0)
+            {
+               $convertedAmount = $fromAmount / $newRate;
+            }
+            else
+            {
+                $convertedAmount = $fromAmount / $rate->to_currency_amount;
+            }
         }
         else 
         {
-            $convertedAmount = $fromAmount * $rate->to_currency_amount;
+            if(!empty($newRate) && intval($newRate) > 0)
+            {
+               $convertedAmount = $fromAmount * $newRate;
+            }
+            else
+            {
+                $convertedAmount = $fromAmount * $rate->to_currency_amount;
+            }
         }
 
         return response()->json([
             'convertedAmount' => bcdiv($convertedAmount, '1', 2),
-            'exchangeRate'    => $rate->to_currency_amount,
+            'exchangeRate'    => floatval($newRate) > 0 ? floatval($newRate) : $rate->to_currency_amount,
         ]);       
     }
 
