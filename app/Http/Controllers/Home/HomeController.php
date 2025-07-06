@@ -597,7 +597,71 @@ class HomeController extends Controller
         ]);       
     }
 
-    
+    public function getBalance(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'currency_id' => 'required|integer',
+            'account_id'   => 'required|integer',
+        ]);
+
+        $currencyId = $request->input('currency_id');
+        $accountId   = $request->input('account_id');
+        $branch_id = $this->branch_id;
+
+        if(empty($currencyId) || empty($accountId))
+        {
+            return response()->json([
+                'cur_balance'    => 0,
+            ]);  
+        }
+       
+        $totalBalance = 0;
+        $finalBalance = 0;
+        $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->where('branch_id', $this->branch_id)->exists();
+
+        if($isCompanyAccount)
+        {
+            // صرف موضوع نقدی حسابات شرکت محاسبه گردد و بیلانس شان کشیده شود
+            $totalBalance = DB::table('journals')
+            ->select(
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_paid'),
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_recieved')
+            )
+            ->where('journals.account_id', $accountId)
+            ->where('journals.branch_id', $branch_id)
+            ->where('journals.currency_id', $currencyId)
+            ->where('is_cleared', '=', 0)
+            ->first();
+
+            $finalBalance = $totalBalance->total_recieved - $totalBalance->total_paid;
+        }
+        else 
+        {
+            $totalBalance = DB::table('journals')
+            ->select(
+                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumCachePaid'),
+                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumCacheRecieved'),
+                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 2 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumLoanRecieved'),
+                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumLoanPaid')
+            )
+            ->where('journals.account_id', $accountId)
+            ->where('journals.branch_id', $branch_id)
+            ->where('journals.currency_id', $currencyId)
+            ->where('is_cleared', '=', 0)
+            ->first();
+            
+            $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid) - 
+            ($totalBalance->sumCachePaid + $totalBalance->sumLoanRecieved));
+        }
+
+        
+        return response()->json([
+            // 'cur_balance' => floatval($totalBalance),
+            'cur_balance' => $finalBalance,
+            // 'cur_balance' => $totalBalance->sumLoanRecieved,
+        ]);  
+    }
     
 
 }

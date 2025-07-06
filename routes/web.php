@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/',[HomeController::class,'index'])->name('home');
         Route::post('/search',[HomeController::class,'index'])->name('home.search');
         Route::post('/currencyConverter',[HomeController::class,'currencyConverter'])->name('home.currencyConverter');
+        Route::post('/getBalance',[HomeController::class,'getBalance'])->name('home.getBalance');
         Route::get('/cleanAll',[HomeController::class,'cleanAll'])->name('home.cleanAll')->middleware('access:users,list');
         Route::post('warehouse_item_notify_amount', [HomeController::class, 'warehouseItemNotifyAmount'])->name('home.warehouse_item_notify_amount');
         Route::post('expired_date_notify_amount',[HomeController::class, 'expiredDateNotifyAmount'])->name('home.expired_date_notify_amount');

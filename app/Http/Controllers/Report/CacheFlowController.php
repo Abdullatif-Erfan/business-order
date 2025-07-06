@@ -217,7 +217,6 @@ class CacheFlowController extends Controller
                 }
             })
             ->addColumn('cachePaid', function ($journal) use ($isCompanyAccount) {
-                
                 if($isCompanyAccount) {
                     return ($journal->transaction_type == 2 && $journal->payment_type == 1) ? number_format($journal->amount,2) : null;
                 } else {

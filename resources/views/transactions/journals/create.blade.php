@@ -65,7 +65,7 @@
                             <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}" required >
                             <input type="hidden" name="conversion_flag" id="conversion_flag" value="0" >
                             <input type="hidden" id="default_currency_id" name="default_currency" value="{{ $default_currency->id }}" >
-                            <input type="hidden"  name="default_currency_symbol" value="{{ $default_currency->symbols }}">
+                            <input type="hidden" name="default_currency_symbol" value="{{ $default_currency->symbols }}">
                             
                                 @csrf
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -76,7 +76,7 @@
                                             <div class="form-group form-floating-label">
                                                 <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" id="options" required 
                                                 onchange="selectAccountsLabel(this.value)" > 
-                                                    <option value="">  {{ __('journal.transaction_type') }} </option>
+                                                    <option value=""> {{ __('journal.transaction_type') }} </option>
                                                     <option value="1">{{ __('journal.cash_transaction') }}</option>
                                                     <option value="2">{{ __('journal.credit_transaction') }}</option>
                                                  </select> 
@@ -94,24 +94,26 @@
 
 
                                         <div class="col-md-3">
-                                                <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                                <div class="input-group-append">
-                                                <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                                    data-targetselector="#todays_date" data-englishnumber="true">
-                                                    <span class="fa fa-calendar"></span> 
-                                                </span>
-                                                </div>
-                                                    <input class="form-control" name="todays_date" id="todays_date" required
-                                                    data-targetselector="#todays_date" value="{{ $todaysDate }}" 
-                                                    data-mddatetimepicker="true"  placeholder="{{ __('journal.register_date') }}"  data-placement="right" data-englishnumber="true"  >
-                                                </div>
-                                                @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
+                                            <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
+                                            <div class="input-group-append">
+                                            <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
+                                                data-targetselector="#todays_date" data-englishnumber="true">
+                                                <span class="fa fa-calendar"></span> 
+                                            </span>
+                                            </div>
+                                                <input class="form-control" name="todays_date" id="todays_date" required
+                                                data-targetselector="#todays_date" value="{{ $todaysDate }}" 
+                                                data-mddatetimepicker="true"  placeholder="{{ __('journal.register_date') }}"  data-placement="right" data-englishnumber="true"  >
+                                            </div>
+                                            @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <span class="typing-effect" id="from_account_label"></span>
-                                                <select class="form-control select2" name="from_account_id" required>
+                                                <span class="typing-effect" style="color:red; margin-right:10px" id="from_balance"></span>
+                                                <select class="form-control select2" name="from_account_id" id="from_account_id"
+                                                onchange="getFromBalance('from_balance',this.value)" required>
                                                     <option value="">{{ __('journal.payer_account') }}</option>
                                                     @foreach($accounts as $account)
                                                         <option value="{{ $account->id }}">{{ $account->name }}</option>
@@ -123,10 +125,12 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <span class="typing-effect" id="to_account_label"></span>
-                                                <select class="form-control select2" name="to_account_id" required>
+                                                <span class="typing-effect" style="color:red; margin-right:10px" id="to_balance"></span>
+                                                <select class="form-control select2" name="to_account_id" id="to_account_id"
+                                                onchange="getToBalance('to_balance',this.value)" required>
                                                     <option value="">{{ __('journal.receiver_account') }}</option>
                                                     @foreach($accounts as $account)
-                                                        <option value="{{ $account->id }}">{{ $account->name }}</option>
+                                                       <option value="{{ $account->id }}">{{ $account->name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('to_account_id')<span class="text-danger">{{ $message }}</span>@enderror
@@ -146,7 +150,7 @@
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                         <div class="form-group form-floating-label">
                                                             <select class="form-control select2" name="from_currency_id" required 
-                                                            id="from_currency_id" onchange="currencyConverter()">
+                                                            id="from_currency_id" onchange="currencyConverter(1)">
                                                                 @foreach($currencies as $currency)
                                                                     <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                                                 @endforeach
@@ -169,7 +173,7 @@
 
                                                         <div class="form-group"> 
                                                             <span class="badge badge-info" id="rate"></span>
-                                                            <input type="text" name="newRate" id="newRate" style="display:none" class="form-control" placeholder="نرخ جدید" oninput="currencyConverter()" />
+                                                            <input type="text" name="newRate" id="newRate" style="display:none" class="form-control" placeholder="نرخ جدید" oninput="currencyConverter(0)" />
                                                             <div id="exchange_error" class="error danger"></div>
                                                         </div>
                                                     </div>
@@ -177,7 +181,7 @@
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                             <div class="form-group form-floating-label">
                                                                 <select class="form-control select2" name="to_currency_id" required
-                                                                id="to_currency_id" onchange="currencyConverter()">
+                                                                id="to_currency_id" onchange="currencyConverter(2)">
                                                                     @foreach($currencies as $currency)
                                                                         <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                                                     @endforeach
@@ -340,8 +344,11 @@
         this.value = from_amount;
     });
 
-    function currencyConverter() 
+    function currencyConverter(flag=0) 
     {
+        let from_account_id = parseInt($('#from_account_id').val()) || 0;
+        let to_account_id = parseInt($('#to_account_id').val()) || 0;
+
         let from_currency = parseFloat($('#from_currency_id').val()) || 0;
         let to_currency = parseFloat($('#to_currency_id').val()) || 0;
         let fromAmount = $('#from_amount').val().replace(/,/g, '') || "0";
@@ -393,6 +400,16 @@
                         }
                     },
                 });
+
+                // check flag and upate the current balance
+                if(parseInt(flag) === 1) // from
+                {
+                    getBalance(from_currency,'from_balance',from_account_id);
+                }
+                else if(parseInt(flag) === 2) // to
+                {
+                    getBalance(to_currency,'to_balance',to_account_id);
+                }
             }
             else 
             {
@@ -409,6 +426,52 @@
        return num.toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,'); 
     }
 
+
+  function getFromBalance(balanceLabel,account_id)
+  {
+     let currency_id = parseFloat($('#from_currency_id').val()) || 0;
+     getBalance(currency_id,balanceLabel,account_id);
+  }
+
+  function getToBalance(balanceLabel,account_id)
+  {
+     let currency_id = parseFloat($('#to_currency_id').val()) || 0;
+     getBalance(currency_id,balanceLabel,account_id);
+  }
+
+  // check balance
+  function getBalance(currency_id,balanceLabel,account_id)
+  {
+    //  $('#'+balanceLabel).text(value);
+    if (currency_id > 0 &&  account_id > 0) 
+    {
+            let formData = {
+                currency_id: currency_id,
+                account_id: account_id,
+                _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
+            };
+
+            $.ajax({
+            url: '/home/getBalance',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function (result) {
+                if (result.cur_balance !== undefined) {
+                    // $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
+                    // $('#rate').text(' نرخ  ' + result.exchangeRate.toFixed(2));
+                    // $('#newRate').val(result.exchangeRate.toFixed(2));
+                    $('#'+balanceLabel).text(number_format(parseFloat(result.cur_balance),2));
+                } else {
+                    alert('Getting Balance failed. Invalid response.');
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#'+balanceLabel).text('Not found');
+            },
+        });
+    }
+  }
 </script>
 
 @endsection
