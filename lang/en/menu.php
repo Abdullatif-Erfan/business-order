@@ -14,7 +14,7 @@ return [
     'buy' => 'buy',
     'buy_pre_list' => 'Buy Pre List',
     'new_buy' => 'New Buy',
-    'bought_list' => 'Bought_list',
+    'bought_list' => 'Bought List',
     'warehouse' => 'Warehouse',
     'warehouse_add' => 'Add Prev Items',
     'wastage' => 'Wastage',

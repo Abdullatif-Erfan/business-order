@@ -1,19 +1,5 @@
 @extends('layouts.app')
-
 @section('content')
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 
 <style>
 
@@ -34,10 +20,10 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم ثبت ضایعات اجناس و تاریخ گذشته  
+                            <h4 class="card-title">{{__('wh.wastage_create_title')}}  
                                 <span class="pull-left">
                                     <a href="{{ route('warehousesList.wastage') }}">
-                                        <button class="btn mybtn bg-default"> برگشت به لیست </button>
+                                        <button class="btn mybtn bg-default"> {{__('common.back')}} </button>
                                     </a>
                                 </span>
                             </h4>
@@ -97,11 +83,11 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-8 col-sm-8 col-xs-12 m-t-20">
                                         <div class="row">
                                             <div class="col-3 col-xs-6">
-                                            <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left" >
+                                            <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue pull-left" >
                                             </div>
                                             <div class="col-3 col-xs-6">
                                             <a href="{{ route('warehousesList.wastage') }}">
-                                            <button type="button"  class="form-control btn bg-danger">لغو</button>
+                                            <button type="button"  class="form-control btn bg-danger">{{__('common.cancel')}}</button>
                                             </a>
                                             </div>
                                         </div>
@@ -124,19 +110,6 @@ select.select2{text-align:right !important;direction:rtl !important;}
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
-<script type="text/javascript">
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-
-});
-
-
-</script>
 @endpush
 
 
@@ -148,7 +121,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام  </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }}  </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
@@ -194,7 +167,7 @@ function updateCurPay(curPay) {
     // Hide submit button if curPay is greater than payable
     if (curPayVal > payable) {
         $('#submit_button').hide(); // Hides the submit button
-        alert('پرداخت فعلی بیشتر از مبلغ قابل پرداخت نادرست میباشد')
+        alert("{{__('buy.over_pay')}}")
     } else {
         $('#submit_button').show(); // Shows the submit button
     }
@@ -231,7 +204,7 @@ function submiteBuyingForm()
             {
                 $('#loader').hide();
                 $('#errorWrapper').fadeOut(10);
-                showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
                 $('#insertedResult').html(response);
 
                 // ✅ Clear the form after successful submission
@@ -276,9 +249,9 @@ function submiteBuyingForm()
                 $('#validationErrors').html(errorHtml).show();
                 $('#errorWrapper').fadeIn(10);
 
-                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('buy.fill_all_fields')}}", 'danger', 'top', 'right', 'withicon');
             } else {
-                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('buy.all_fields_required')}}", 'danger', 'top', 'right', 'withicon');
             }
         }
 
@@ -302,10 +275,10 @@ function validateWarehouseAmounts()
     console.log('warehouse_amount', sumWarehouseAmount);
 
     if (sumWarehouseAmount > totalAmount) {
-        showNotification('مجموع تعداد انتقال به گدام بیشتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        showNotification("{{__('buy.invalid_amount')}}", 'danger', 'top', 'right', 'withicon');
         return false;
     } else if (sumWarehouseAmount < totalAmount) {
-        showNotification('مجموع تعداد انتقال به گدام کمتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        showNotification("{{__('buy.invalid_amount')}}", 'danger', 'top', 'right', 'withicon');
         return false;
     } else {
         $('#warehouseAmountError').text(''); // Clear error if valid

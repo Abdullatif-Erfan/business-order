@@ -2,18 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 <style>
 .dataTables_filter {
     display: none !important;
@@ -29,9 +17,9 @@
                     <div class="card">
                         <div class="card-header" style="padding: 10px;text-align:center">
                             <a href="{{route('warehousesList.wastage.create')}}">
-                               <button type="button" class="btn btn-sm mybtn pull-right"><i class="fas fa-plus"></i> <th>{{__('common.add')}}</th></button>  
+                               <button type="button" class="btn btn-sm mybtn pull-right"><i class="fas fa-plus"></i> {{__('common.add')}}</button>  
                             </a>                         
-                            <span class="">   لیست اجناس هایکه خراب شده است ویا تاریخ شان گذشته است </span>
+                            <span class="">  {{__('wh.wastage_title')}} </span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
@@ -63,7 +51,7 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -78,7 +66,7 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
@@ -94,7 +82,7 @@
 
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
-                                <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
+                                <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="warehouseItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -104,25 +92,25 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="10">
-                                            <center> لیست ضایعات اجناس  </center>
+                                            <center> {{__('wh.wastage_list_title')}}  </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره &nbsp; </th>
-                                            <th> نام </th>
-                                            <th> مقدارضایعات </th>
-                                            <th> واحد </th>
-                                            <th> قیمت فی واحد </th>
-                                            <th> قیمت مجوعی </th>
-                                            <th> واحد پولی </th>                                            
-                                            <th> تاریخ انقضا</th>
-                                            <th> تاریخ ثبت</th>
-                                            <th>کاربر </th>
+                                            <th> {{__('common.number')}} &nbsp; </th>
+                                            <th> {{__('common.name')}} </th>
+                                            <th> {{__('wh.wastage_amount')}} </th>
+                                            <th> {{__('common.unit')}} </th>
+                                            <th> {{__('wh.wastage_up')}} </th>
+                                            <th>  {{__('common.total')}} </th>
+                                            <th>  {{__('common.currency')}} </th>                                            
+                                            <th> {{__('common.expired_date')}} </th>
+                                            <th>{{__('common.save_date')}}</th>
+                                            <th>{{__('common.user')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
+                                            <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>

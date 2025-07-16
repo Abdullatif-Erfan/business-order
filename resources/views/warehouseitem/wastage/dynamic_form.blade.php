@@ -2,19 +2,19 @@
     <table class="table table-bordered new" id="itemsTable">
   
             <tr style="background:#e9fffe">
-                <th style="width:20%">انتخاب جنس</th>
-                <th style="width:10%">مقدار ضایعات</th>
-                <th style="width:10%">واحد</th>
-                <th style="width:10%">اوسط خرید</th>
-                <th style="width:15%">مجموع</th>
-                <th style="width:15%">تاریخ انقضا</th>
-                <th style="width:15%">علاوه</th>
+                <th style="width:20%">{{__('wh.wh_item_selection')}}</th>
+                <th style="width:10%">{{__('wh.wastage_amount')}} </th>
+                <th style="width:10%">{{__('common.unit')}}</th>
+                <th style="width:10%">{{__('wh.average')}}</th>
+                <th style="width:15%">{{__('common.total')}}</th>
+                <th style="width:15%"> {{__('common.expired_date')}}</th>
+                <th style="width:15%">{{__('common.add')}}</th>
             </tr>
         
             <tr class="item-row">
                 <td>
                     <select class="form-control select2 item-select" name="warehouseItemId[]" style="width: 100%;" required >
-                        <option value="">انتخاب جنس</option>
+                        <option value=""> {{__('wh.wh_item_selection')}}</option>
                         @foreach($warehouseItems as $item)
                             <option value="{{ $item->id }}"
                                 data-available-amount="{{ $item->available_amount }}"
@@ -27,7 +27,6 @@
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 data-expire-date="{{ $item->expire_date }}"
                                 data-currency-id="{{ $item->currency_id }}"
-
                                 >
                                 {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})
                                 - {{ $item->warehouse_name }}
@@ -35,7 +34,7 @@
                         @endforeach
                     </select>
                 </td>
-                <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="تعداد" required></td>
+                <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
                     <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>
@@ -99,11 +98,11 @@ $(document).ready(function () {
         const maxAvailable = parseFloat(row.find('.item-select option:selected').data('available-amount')) || 0;
 
         if (enteredAmount > maxAvailable) {
-            alert("مقدار ضایعات نمی‌تواند بیشتر از موجودی انبار باشد (" + maxAvailable + ")");
+            alert("{{__('common.over_pay')}} (" + maxAvailable + ")");
             $(this).val(maxAvailable);
         } else if(enteredAmount < 0) 
         {
-            alert('مقدار ضایعات بالاتراز صفر انتخاب گردد');
+            alert("{{__('wh.greater_than_zero')}}");
         }
 
         recalculate(row);
