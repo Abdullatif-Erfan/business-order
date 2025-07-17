@@ -36,6 +36,7 @@ return [
     'new_unit' => 'واحد جدید',
     'greater_amount_msg' => 'مقدار وارد شده نباید بیشتر از مقدار موجود باشد!',
     'new_unit_selection' => 'انتخاب واحد جدید',
+    'unit_selection' => 'انتخاب واحد ',
     'howMuch' => 'چند',
     'become' => ' میشود؟ ',
     'total_in' => 'مجموع به',

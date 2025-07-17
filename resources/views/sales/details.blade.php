@@ -1,17 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
+
 
 <style>
 .price-section {
@@ -32,10 +22,10 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">جزییات فورم فروشات
+                            <h4 class="card-title"> {{__('sales.sales_details_title')}}
                                 <span class="pull-left">
                                     <a href="{{ route('sales.index') }}">
-                                        <button class="btn mybtn bg-default">برگشت به لیست</button>
+                                        <button class="btn mybtn bg-default">{{__('common.back')}}</button>
                                     </a>
                                 </span>
                             </h4>
@@ -52,10 +42,10 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> مشتری : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
-                                            <td>   واحد پولی: {{ $warehouseSales->first()->currencyRelation->name ?? '' }}</td>
-                                            <td>تاریخ ثبت : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
-                                            <td>نمبر بل : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
+                                            <td> {{__('sales.customer')}} : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
+                                            <td> {{__('common.unit')}}: {{ $warehouseSales->first()->currencyRelation->name ?? '' }}</td>
+                                            <td> {{__('common.save_date')}} : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
+                                            <td> {{__('common.bill')}} : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -63,14 +53,14 @@
                                         <table class="table table-bordered new" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>{{__('common.number')}}</th>
-                                                    <th> جنس </th>
-                                                    <th>تعداد فروش</th>
-                                                    <th>واحد</th>
-                                                    <th>قیمت فی واحد</th>
-                                                    <th>تخفیف</th>
-                                                    <th>مفاد</th>
-                                                    <th>قیمت مجموعی</th>
+                                                    <th> {{__('common.number')}} </th>
+                                                    <th>  {{__('sales.item')}} </th>
+                                                    <th> {{__('buy.sold_amount')}} </th>
+                                                    <th>  {{__('sales.customer')}}</th>
+                                                    <th> {{__('common.unit_price')}}</th>
+                                                    <th> {{__('common.discount')}} </th>
+                                                    <th> {{__('sales.profit')}}</th>
+                                                    <th> {{__('common.total_price')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -91,19 +81,19 @@
                                     </div>
                                     <table class="table table-bordered new" style="background-color:#f6f6f6; width:100%;margin-top:20px">
                                         <tr>
-                                            <td> مبلغ مجموعی &nbsp; </td>
+                                            <td> {{__('common.total_price')}} &nbsp; </td>
                                             <td>{{  number_format($warehouseSales->first()->total_price,2) }}</td>
-                                            <td> مجموع تخفیف </td>
+                                            <td> {{__('sales.total_discount')}} </td>
                                             <td> {{ number_format($warehouseSales->first()->total_discount,2) }} </td>
-                                            <td> قابل پرداخت</td>
+                                            <td> {{__('buy.payable')}} </td>
                                             <td> {{ number_format($warehouseSales->first()->payable,2) }}</td>
                                         </tr>
                                         <tr>
-                                        <td> پرداخت فعلی</td>
+                                        <td> {{__('buy.cur_pay')}} </td>
                                             <td> {{ number_format($warehouseSales->first()->cur_pay,2)  }} </td>
-                                            <td> باقی </td>
+                                            <td> {{__('buy.remained')}} </td>
                                             <td>{{  number_format($warehouseSales->first()->remained,2) }}</td>
-                                            <td>نوت</td>
+                                            <td>{{__('buy.note')}}</td>
                                             <td>{{$warehouseSales->first()->note}}</td>
                                         </tr>
                                     </table>
@@ -113,7 +103,7 @@
                                 <div class="visible-print" style="width:100%;margin: 35px 0px; overflow:hidden; height: 24px;color:#000"> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ </div>
 
                                 <div class="container col-md-12 col-sm-12 col-xs-12 visible-print" id="print_area">
-                                 <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
+                                 <p class="d-none">{{__('common.print_data')}}‌ : {{ now()->format('Y-m-d') }}</p>
                                     <table style="width:100%">
                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="2">
@@ -121,12 +111,12 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>تاریخ ثبت : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
-                                            <td>نمبر بل : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
+                                            <td> {{__('common.save_data')}}‌ : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
+                                            <td> {{__('common.bill')}}‌ : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
                                         </tr>
                                         <tr>
-                                            <td> مشتری : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
-                                            <td> کاربر : {{ $warehouseSales->first()->iby ?? '' }}</td>
+                                            <td> {{__('sales.customer')}}‌ : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
+                                            <td> {{__('common.user')}}‌ : {{ $warehouseSales->first()->iby ?? '' }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -135,12 +125,12 @@
                                             <thead>
                                                 <tr>
                                                     <th>{{__('common.number')}}</th>
-                                                    <th> جنس </th>
-                                                    <th>تعداد فروش</th>
-                                                    <th>واحد</th>
-                                                    <th>قیمت فی واحد</th>
-                                                    <th>تخفیف</th>
-                                                    <th>قیمت مجموعی</th>
+                                                    <th>{{__('sales.item')}} </th>
+                                                    <th>{{__('sales.sales_amount')}}</th>
+                                                    <th>{{__('common.unit')}}</th>
+                                                    <th>{{__('common.unit_price')}}</th>
+                                                    <th>{{__('common.discount')}}</th>
+                                                    <th>{{__('common.total_price')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -158,30 +148,30 @@
                                                 <tr>
                                                     <td colspan="4" rowspan="8" style="padding: 40px;">
                                                         <div class="col-md-12" style="border:2px dotted #999; min-height:80px;background-color:#f8f8f8;border-top-right-radius:10px; border-bottom-left-radius:10px; padding: 10px;">
-                                                            نوت :  {{ $orgbios[0]->note_for_print }}
+                                                            {{__('buy.note')}} :  {{ $orgbios[0]->note_for_print }}
                                                         </div>
                                                          <div class="col-md-12 m-t-20">
                                                               <br>
                                                              <strong>
-                                                                 <h3>مهر و امضا ---------------------</h3>
+                                                                 <h3>{{__('sales.sign_and_stamp')}} ---------------------</h3>
                                                              </strong>
                                                          </div>
                                                     </td>
-                                                    <td colspan="2" class="price-section">مجموع بل</td>
+                                                    <td colspan="2" class="price-section"> {{__('buy.total_bill_price')}} </td>
                                                     <td class="price-section">
                                                         {{ number_format($warehouseSales->first()->total_price,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td colspan="2" class="price-section">  تخفیف </td>
+                                                    <td colspan="2" class="price-section">  {{__('common.discount')}} </td>
                                                     <td  class="price-section">
                                                          {{  number_format($warehouseSales->first()->total_discount,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td colspan="2" class="price-section">  قابل پرداخت </td>
+                                                    <td colspan="2" class="price-section">  {{__('buy.payable')}} </td>
                                                     <td class="price-section">
                                                          {{ number_format($warehouseSales->first()->payable,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -189,7 +179,7 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="price-section"> پرداخت فعلی  </td>
+                                                    <td colspan="2" class="price-section">  {{__('buy.cur_pay')}}  </td>
                                                     <td  class="price-section">
                                                         {{ number_format($warehouseSales->first()->cur_pay,2) }}
                                                          {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -202,7 +192,7 @@
                                                     $prev_talab =  $customer_balance['talabat'];
                                                     $balance =  $customer_balance['loans'] -  $customer_balance['talabat'];
                                                   @endphp
-                                                    <td colspan="2" class="price-section">  باقی  </td>
+                                                    <td colspan="2" class="price-section">  {{__('buy.remained')}}  </td>
                                                     <td  class="price-section">
                                                           {{  number_format($warehouseSales->first()->remained,2) }}
                                                           {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -210,7 +200,7 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="price-section">بقایای سابقه</td>
+                                                    <td colspan="2" class="price-section">{{__('buy.old_remained')}}</td>
                                                     <td class="price-section">
                                                         {{ number_format($prev_baqi,2) }} 
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -218,7 +208,7 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="price-section">طلبات سابقه</td>
+                                                    <td colspan="2" class="price-section"> {{__('buy.old_talabat')}}</td>
                                                     <td class="price-section">
                                                         {{ number_format($prev_talab,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -226,7 +216,7 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" class="final-total">مبلغ مجموعی قابل پرداخت</td>
+                                                    <td colspan="2" class="final-total"> {{__('buy.total_payable')}} </td>
                                                     <td class="final-total">
                                                         {{ number_format($balance,2) }}
                                                         {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -245,7 +235,7 @@
                                     <!-- پارچه گدام -->
                                     <div class="visible-print" style="width:100%;margin: 35px 0px; overflow:hidden; height: 24px;color:#000"> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ </div>
                                         <div class="container col-md-12 col-sm-12 col-xs-12 visible-print" id="print_area2">
-                                        <p class="d-none">تاریخ چاپ‌ : {{ now()->format('Y-m-d') }}</p>
+                                        <p class="d-none"> {{__('common.print_data')}} : {{ now()->format('Y-m-d') }}</p>
                                             <table style="width:100%">
                                             <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                                     <td colspan="2">
@@ -253,12 +243,12 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td>تاریخ ثبت : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
-                                                    <td>نمبر بل : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
+                                                    <td>{{__('common.save_data')}} : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
+                                                    <td>{{__('common.bill')}} : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td> مشتری : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
-                                                    <td> کاربر : {{ $warehouseSales->first()->iby ?? '' }}</td>
+                                                    <td> {{__('sales.customer')}} : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
+                                                    <td> {{__('common.user')}} : {{ $warehouseSales->first()->iby ?? '' }}</td>
                                                 </tr>
                                             </table>
                                             <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -267,9 +257,9 @@
                                                     <thead>
                                                         <tr>
                                                             <th>{{__('common.number')}}</th>
-                                                            <th> جنس </th>
-                                                            <th>تعداد فروش</th>
-                                                            <th>واحد</th>
+                                                            <th> {{__('sales.item')}} </th>
+                                                            <th> {{__('sales.sales_amount')}}</th>
+                                                            <th>{{__('common.unit')}}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -298,19 +288,19 @@
                                     
                                     <!-- print button -->
                                     <button onclick="print_page_with_image()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
-                                    <i class="fas fa-print"></i>  چاپ  بل 
+                                    <i class="fas fa-print"></i>    {{__('sales.print_bill')}} 
                                     </button>
 
 
                                     <button onclick="print_page_with_image(2)" class="btn btn-success btn-sm m-r-10 hidden-print" >
-                                    <i class="fas fa-print"></i>  پارچه گدام   
+                                    <i class="fas fa-print"></i> {{__('sales.warehouse_bill')}}   
                                     </button>
                                             
                                     <!-- edit button -->
                                     @if($warehouseSales->first()->is_cleared == 0)
                                     <a href="{{ route('sales.edit', $warehouseSales->first()->billno) }}"   class="hidden-print">
                                         <button class="btn btn-primary btn-sm m-r-10">
-                                        <i class="fas fa-pen"></i>  ویرایش 
+                                        <i class="fas fa-pen"></i>  {{__('common.edit')}} 
                                         </button>
                                     </a>
                                     @endif
@@ -329,29 +319,6 @@
     </div>
 </div>
 
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
 
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 @endsection

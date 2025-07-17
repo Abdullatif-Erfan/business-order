@@ -6,6 +6,8 @@ return [
     'delete' => 'حذف',
     'close'  => 'بستن',
     'save'   => 'ثبت',
+    'confirm' => 'تایید',
+    'save_and_print' => 'ثبت و پرنت',
     'number' => 'نمبر',
     'amount' => 'مقدار',
     'name'   => 'نام',
@@ -17,12 +19,15 @@ return [
     'baqi'      => 'باقی',
     'cancel'    => 'لغو',
     'bill'      => 'بل نمبر',
+    'factor'    => 'فاکتور',
     'code'      => 'کد',
     'unit'      => 'واحد',
+    'price'     => 'قیمت',
     'unit_price'      => 'قیمت فی واحد',
     'total_price'     => 'قیمت مجموعی',
+    'total'     => 'مجموع',
     'recieved'  => 'دریافت',
-    'document' => 'سند',
+    'document'  => 'سند',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',
@@ -66,7 +71,7 @@ return [
     // Accounts
     "account_payer" => 'حساب پرداخت کننده',
     'seller' => 'فروشنده',
-    'a' => '',
+    'discount' => 'تخفیف',
     'a' => '',
 
 

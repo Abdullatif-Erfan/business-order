@@ -2,21 +2,21 @@
     <table class="table table-bordered new" id="itemsTable">
   
             <tr style="background:#e9fffe">
-                <th style="width:20%">انتخاب جنس</th>
-                <th style="width:10%">تعداد</th>
-                <th style="width:10%">واحد</th>
-                <th style="width:10%">اوسط خرید</th>
-                <th style="width:10%">فیات فروش</th>
-                <th style="width:10%">تخفیف</th>
-                <th style="width:12%">مفاد</th>
-                <th style="width:15%">مجموع</th>
-                <th style="width:15%">علاوه</th>
+                <th style="width:20%">{{__('wh.item_selection')}}</th>
+                <th style="width:10%">{{__('common.amount')}}</th>
+                <th style="width:10%">{{__('common.unit')}}</th>
+                <th style="width:10%"> {{__('wh.average')}}</th>
+                <th style="width:10%">{{__('sales.sold_up')}}</th>
+                <th style="width:10%">{{__('buy.discount')}}</th>
+                <th style="width:12%">{{__('sales.profit')}}</th>
+                <th style="width:15%">{{__('common.total')}}</th>
+                <th style="width:15%">{{__('common.add')}}</th>
             </tr>
         
             <tr class="item-row">
                 <td>
                     <select class="form-control select2 item-select" name="warehouseItemId[]" style="width: 100%;" required >
-                        <option value="">انتخاب جنس</option>
+                        <option value="">{{__('wh.item_selection')}}</option>
                         @foreach($warehouseItems as $item)
                             <option value="{{ $item->id }}"
                                 data-available-amount="{{ $item->available_amount }}"
@@ -38,7 +38,7 @@
                         @endforeach
                     </select>
                 </td>
-                <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="تعداد" required></td>
+                <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
                     <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>

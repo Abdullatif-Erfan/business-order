@@ -2,18 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 
 <style>
 
@@ -34,15 +22,15 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم فروشات  
+                            <h4 class="card-title"> {{__('sales.create_title')}} 
                                 <span class="pull-left">
                                     <a href="{{ route('sales.index') }}">
-                                        <button class="btn mybtn bg-default"> برگشت به لیست </button>
+                                        <button class="btn mybtn bg-default">  {{__('common.back')}}  </button>
                                     </a>
                                 </span>
                                 
                                  <small class="badge badge-info badge-sm"> <strong class="m-r-10"> 
-                                 نوت : </strong>دریک بل نمبر صرف فروش به یک مشتری را ثبت نمایید </small>
+                                  {{__('sales.note_description')}} : </strong>  </small>
                             </h4>
                         </div>
 
@@ -60,24 +48,24 @@ select.select2{text-align:right !important;direction:rtl !important;}
                             <div class="form-body" style="padding: 0px 0px 15px !important;">
                                 <div class="row" style="padding: 10px 20px;">
 
-                                @if ($errors->any())
-                                    <div class="col-md-12">
+                                    @if ($errors->any())
                                         <div class="col-md-12">
-                                            <div class="row">
-                                                <div class="alert alert-danger col-12" role="alert">
-                                                    <button type="button" class="close pull-left" data-dismiss="alert" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                    <ul>
-                                                        @foreach ($errors->all() as $error)
-                                                            <li>{{ $error }}</li>
-                                                        @endforeach
-                                                    </ul>
+                                            <div class="col-md-12">
+                                                <div class="row">
+                                                    <div class="alert alert-danger col-12" role="alert">
+                                                        <button type="button" class="close pull-left" data-dismiss="alert" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                        <ul>
+                                                            @foreach ($errors->all() as $error)
+                                                                <li>{{ $error }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @endif
+                                    @endif
 
                                      
 
@@ -85,9 +73,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-12">
                                         <div class="row">
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="customer_account_id">انتخاب مشتری <span class="danger">*</span></label>
+                                                    <label for="customer_account_id"> {{__('sales.customer_selection')}} <span class="danger">*</span></label>
                                                     <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                                        <option value=""> انتخاب مشتری </option>
+                                                        <option value="">   {{__('sales.customer_selection')}} </option>
                                                         @foreach($customers as $customer)
                                                             <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
                                                         @endforeach
@@ -99,25 +87,25 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="todays_date">تاریخ <span class="danger">*</span></label>
+                                                <label for="todays_date"> {{__('common.date')}} <span class="danger">*</span></label>
                                                 <div class="input-group " data-provide="datepicker">
                                                     <div class="input-group-append">
                                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#todays_date" data-englishnumber="true">
                                                             <span class="fa fa-calendar"></span> 
                                                         </span>
                                                     </div>
-                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="تاریخ ثبت" data-placement="right" data-englishnumber="true">
+                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="{{__('common.date')}}" data-placement="right" data-englishnumber="true">
                                                 </div>
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno"> بل نمبر <span class="danger">*</span></label>
-                                                    <input type="number" tabindex="2" class="form-control" value="{{ $billno }}" name="billno" id="billno" placeholder=" بل نمبر" required readonly>
+                                                <label for="billno"> {{__('common.bill')}} <span class="danger">*</span></label>
+                                                    <input type="number" tabindex="2" class="form-control" value="{{ $billno }}" name="billno" id="billno" placeholder="{{__('common.bill')}}" required readonly>
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="factor">  فاکتور </label>
-                                                    <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="نمبر فاکتور"  >
+                                                <label for="factor">  {{__('common.factor')}} </label>
+                                                    <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="{{__('common.factor')}}"  >
                                             </div>
 
                                             
@@ -149,11 +137,11 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-8 col-sm-8 col-xs-12 m-t-20">
                                         <div class="row">
                                             <div class="col-3 col-xs-6">
-                                            <input type="submit" id="submit_button" name="submit" value="ثبت" class="form-control btn bg-blue pull-left" >
+                                            <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue pull-left" >
                                             </div>
                                             <div class="col-3 col-xs-6">
                                             <a href="{{ route('sales.index') }}">
-                                            <button type="button"  class="form-control btn bg-danger">لغو</button>
+                                            <button type="button"  class="form-control btn bg-danger">{{__('common.cancel')}}</button>
                                             </a>
                                             </div>
                                         </div>
@@ -175,25 +163,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-
-});
-
-
-</script>
 @endpush
-
-
-
-
 
 
 <script>
@@ -246,7 +216,7 @@ function updateCurPay(curPay) {
     // Hide submit button if curPay is greater than payable
     if (curPayVal > payable) {
         $('#submit_button').hide(); // Hides the submit button
-        alert('پرداخت فعلی بیشتر از مبلغ قابل پرداخت نادرست میباشد')
+        alert("{{__('buy.over_pay')}}");
     } else {
         $('#submit_button').show(); // Shows the submit button
     }
@@ -283,7 +253,7 @@ function submiteBuyingForm()
             {
                 $('#loader').hide();
                 $('#errorWrapper').fadeOut(10);
-                showNotification('موفقانه ثبت گردید', 'success', 'top', 'right', 'withicon');
+                showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
                 $('#insertedResult').html(response);
 
                 // ✅ Clear the form after successful submission
@@ -328,9 +298,9 @@ function submiteBuyingForm()
                 $('#validationErrors').html(errorHtml).show();
                 $('#errorWrapper').fadeIn(10);
 
-                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('buy.fill_all_fields')}}", 'danger', 'top', 'right', 'withicon');
             } else {
-                showNotification('ثبت نگردید، لطفاً تمام فیلدهای ضروری را خانه پری کنید', 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('buy.all_fields_required')}}", 'danger', 'top', 'right', 'withicon');
             }
         }
 
@@ -354,10 +324,10 @@ function validateWarehouseAmounts()
     console.log('warehouse_amount', sumWarehouseAmount);
 
     if (sumWarehouseAmount > totalAmount) {
-        showNotification('مجموع تعداد انتقال به گدام بیشتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        showNotification("{{__('common.over_pay')}}", 'danger', 'top', 'right', 'withicon');
         return false;
     } else if (sumWarehouseAmount < totalAmount) {
-        showNotification('مجموع تعداد انتقال به گدام کمتر از مقدار اصلی است!', 'danger', 'top', 'right', 'withicon');
+        showNotification("{{__('common.over_pay')}}", 'danger', 'top', 'right', 'withicon');
         return false;
     } else {
         $('#warehouseAmountError').text(''); // Clear error if valid

@@ -24,12 +24,12 @@
                 <h5 class="item-title">{{ $item->item_name }}</h5>
                 <div class="badge-group">
                     <span class="amount bordered-badge">{{ $item->available_amount }} {{ $item->unit_name }}</span>
-                    <span class="price">قیمت: {{ $item->sell_up }}</span>
+                    <span class="price">{{__('sales.price')}}: {{ $item->sell_up }}</span>
                     <input type="hidden" id="avg_up" value="{{ $item->avg_up }}">
                     <input type="hidden" id="pre_list_id" value="{{ $item->pre_list_id }}">
                     <input type="hidden" id="sell_up" value="{{ $item->sell_up }}">
                 </div>
-                <center><span class="badge badge-secondary w-100 m-t-10"> در {{ $item->warehouse_name }}</span></center>
+                <center><span class="badge badge-secondary w-100 m-t-10"> {{__('wh.at')}} {{ $item->warehouse_name }}</span></center>
             </div>
         </div>
 </div>

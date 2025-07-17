@@ -109,13 +109,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
 @endpush
-
-
-
-
-
 
 <script>
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
@@ -167,7 +161,7 @@ function updateCurPay(curPay) {
     // Hide submit button if curPay is greater than payable
     if (curPayVal > payable) {
         $('#submit_button').hide(); // Hides the submit button
-        alert("{{__('buy.over_pay')}}")
+        alert("{{__('buy.over_pay')}}");
     } else {
         $('#submit_button').show(); // Shows the submit button
     }

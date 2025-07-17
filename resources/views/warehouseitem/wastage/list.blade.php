@@ -101,11 +101,11 @@
                                             <th> {{__('wh.wastage_amount')}} </th>
                                             <th> {{__('common.unit')}} </th>
                                             <th> {{__('wh.wastage_up')}} </th>
-                                            <th>  {{__('common.total')}} </th>
-                                            <th>  {{__('common.currency')}} </th>                                            
+                                            <th> {{__('common.total')}} </th>
+                                            <th> {{__('common.currency')}} </th>                                            
                                             <th> {{__('common.expired_date')}} </th>
-                                            <th>{{__('common.save_date')}}</th>
-                                            <th>{{__('common.user')}} </th>
+                                            <th> {{__('common.save_date')}}</th>
+                                            <th> {{__('common.user')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>

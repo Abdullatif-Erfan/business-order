@@ -2,32 +2,13 @@
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
 
 
 <script>
 function showNotification(message, type = 'info', from = 'top', align = 'right', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{__('settings.message')}} </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';

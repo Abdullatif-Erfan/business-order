@@ -2,24 +2,11 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
-
 <script>
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
@@ -198,10 +185,10 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">فورم فروشات  
+                            <h4 class="card-title">{{__('sales.pos_list_title')}}  
                                 <span class="pull-left">
                                     <a href="{{ route('sales.index') }}">
-                                        <button class="btn mybtn bg-default"> برگشت به لیست </button>
+                                        <button class="btn mybtn bg-default"> {{__('common.back')}} </button>
                                     </a>
                                 </span>
                                 
@@ -235,7 +222,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             
                                             <div class="row">
                                                     <div class="col-md-8 col-sm-6 col-xs-12" >
-                                                        <input type="text" name="search" placeholder="جستجو به اساس نام / بارکد" 
+                                                        <input type="text" name="search" placeholder="{{__('sales.search_by_code')}}" 
                                                          class="form-control m-t-10" oninput="searchByName(this.value)">
                                                     </div>
 
@@ -255,14 +242,14 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                         
                                             <div id="loading-state" class="text-center py-4">
                                                 <i class="fa fa-spinner fa-spin" style="font-size:40px;"></i>
-                                                <p class="mt-2">در حال بارگذاری اقلام...</p>
+                                                <p class="mt-2">{{__('common.loading')}}</p>
                                             </div>
                                             <div id="item_card" class="row m-t-20" style="display: none;"></div>
                                             <div id="error-state" class="text-center py-4" style="display: none;">
                                                 <i class="fas fa-exclamation-triangle text-danger fa-2x"></i>
-                                                <p class="mt-2 text-danger">خطا در بارگذاری داده‌ها</p>
+                                                <p class="mt-2 text-danger">{{__('sales.error_loading_data')}}</p>
                                                 <button class="btn btn-sm btn-primary mt-2" onclick="loadItems()">
-                                                    <i class="fas fa-redo"></i> تلاش مجدد
+                                                    <i class="fas fa-redo"></i> {{__('sales.try_again')}}
                                                 </button>
                                             </div>
                                         </div>
@@ -275,7 +262,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="row">
                                      <div class="col-md-12 col-sm-12 col-xs-12" style="background-color:#f3f8fa; padding: 10px; border-bottom: 1px solid #dcdcdc;">
                                          <select class="form-control select2 col-12" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                            <option value=""> انتخاب مشتری </option>
+                                            <option value=""> {{__('sales.customer_selection')}} </option>
                                             @foreach($customers as $customer)
                                                 <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
                                             @endforeach
@@ -293,32 +280,32 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                        <div class="total col-sm-12 col-xs-12">
                                            <div class="total-prices-group">
-                                                <div class="total">قیمت مجموعی:</div>
+                                                <div class="total">{{__('buy.total_price')}}:</div>
                                                 <input type="number" id="total-price" name="total" style="width:80px;" 
                                                 required readonly>
                                            </div>
                                            <div class="total-prices-group">
-                                                <div class="total">مفاد:</div>
+                                                <div class="total">{{__('sales.profit')}}:</div>
                                                 <input type="number" id="total-profit" name="profit" style="width:80px;" 
                                                 required readonly >
                                            </div>
                                            <div class="total-prices-group">
-                                                <div class="total">تخفیف:</div>
+                                                <div class="total">{{__('buy.discount')}}:</div>
                                                 <input type="number" id="discount" style="width:80px;" name="discount" value="0" 
                                                 required oninput="recalculateAfterDiscount(this.value)">
                                            </div>
                                            <div class="total-prices-group">
-                                                <div class="total">قابل پرداخت:</div>
+                                                <div class="total">{{__('buy.payable')}}:</div>
                                                 <input type="number" id="payable" style="width:80px;" name="payable"  required>
                                            </div>
                                            <div class="total-prices-group">
-                                                <div class="total">دریافت فعلی:</div>
+                                                <div class="total">{{__('buy.cur_pay')}} :</div>
                                                 <input type="number" id="cur_pay" style="width:80px;" name="cur_pay"  required>
                                            </div>
                                            <div class="total-prices-group m-t-10">
                                                 <button type="button" id="test_print"  class=" btn btn-warning btn-sm form-control"><i class="fas fa-print"></i></button>
-                                                 <button type="button" id="submit_and_print"  class=" btn btn-success btn-sm form-control">ثبت و پرنت</button>
-                                                 <button type="button" id="submit"  class=" btn btn-info btn-sm form-control">ثبت</button>
+                                                 <button type="button" id="submit_and_print"  class=" btn btn-success btn-sm form-control">{{__('common.save_and_print')}}</button>
+                                                 <button type="button" id="submit"  class=" btn btn-info btn-sm form-control">{{__('common.save')}}</button>
                                            </div>
                                        </div>
 
@@ -505,14 +492,15 @@ function addItem(id) {
     if (existing) {
         // Check if we can add more of this item
         if (existing.qty >= item.available_amount) {
-            showNotification(`حداکثر مقدار موجود برای ${item.item_name} ${item.available_amount} ${item.unit_name} است`, 'warning');
+            // showNotification(`حداکثر مقدار موجود برای ${item.item_name} ${item.available_amount} ${item.unit_name} است`, 'warning');
+            showNotification(`{{__('sales.max_available_is')}} ${item.item_name} ${item.available_amount} ${item.unit_name} {{__('sales.is')}}`, 'warning');
             return;
         }
         existing.qty += 1;
     } else {
         // Check if item is available
         if (item.available_amount < 1) {
-            showNotification(`${item.item_name} در انبار موجود نمی باشد`, 'warning');
+            showNotification(`${item.item_name} {{__('sales.not_exist_in_stock')}}`, 'warning');
             return;
         }
         orderItems.push({
@@ -576,7 +564,7 @@ function renderOrderItems() {
                             <input type="number" value="${item.qty}" style="width:50px;" 
                                    onchange="updateQty(${item.id}, this.value)" min="1">
                             <small class="text-info" style="font-size:10px">${item.unit_name}</small>
-                            <span class="price">مجموع: ${itemTotal.toFixed(2)}</span>
+                            <span class="price">{{__('common.total')}}: ${itemTotal.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -606,14 +594,14 @@ function updateQty(id, newQty) {
         const availableAmount = parseInt(itemCard.data('available-amount'));
         
         if (newQty > availableAmount) {
-            showNotification(`حداکثر مقدار موجود ${availableAmount} ${item.unit_name} است`, 'danger');
+            showNotification(`{{__('sales.max_available_is')}} ${item.item_name} ${item.available_amount} ${item.unit_name} {{__('sales.is')}}`, 'danger');
             // Reset to previous value
             $(event.target).val(item.qty);
             return;
         }
         
         if (newQty < 1) {
-            showNotification('مقدار نباید کمتر از 1 باشد', 'danger');
+            showNotification("{{__('sales.amount_should_be_greaterThan_one')}}", 'danger');
             $(event.target).val(1);
             return;
         }
@@ -739,7 +727,7 @@ function printReceipt() {
         <html dir="rtl">
         <head>
             <meta charset="UTF-8">
-            <title>فاکتور فروش</title>
+            <title>{{__('sales.print_title')}}</title>
             <style>
                 // uncomment for pos small size print
                 @page { size: 80mm auto; margin: 5mm; }
@@ -834,26 +822,26 @@ function printReceipt() {
                     ${companyLogo ? `<img src="${companyLogo}" class="company-logo">` : ''}
                     <div class="company-name">${companyName}</div>
                     <div class="company-info">${companyAddress}</div>
-                    <div class="company-info">تلفن: ${companyPhone}</div>
+                    <div class="company-info">{{__('common.phone')}}: ${companyPhone}</div>
                 </div>
                 
-                <div class="receipt-title">فاکتور فروش</div>
+                <div class="receipt-title">{{__('sales.print_title')}}</div>
                 
                 <div class="receipt-no">
-                    <span>تاریخ: ${saleData.date}</span>
+                    <span>{{__('sales.date')}}: ${saleData.date}</span>
                 </div>
                 
                 <div class="receipt-no">
-                    <span>مشتری: ${saleData.customer}</span>
+                    <span>{{__('sales.customer')}}: ${saleData.customer}</span>
                 </div>
                 
                 <table>
                     <thead>
                         <tr>
-                            <th class="text-right" width="40%"> جنس</th>
-                            <th class="text-right" width="15%">تعداد</th>
-                            <th class="text-right" width="25%">قیمت</th>
-                            <th class="text-right" width="20%">مجموع</th>
+                            <th class="text-right" width="40%"> {{__('sales.item')}}</th>
+                            <th class="text-right" width="15%">{{__('common.amount')}}</th>
+                            <th class="text-right" width="25%">{{__('common.price')}}</th>
+                            <th class="text-right" width="20%">{{__('common.total')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -870,29 +858,29 @@ function printReceipt() {
                 
                 <table>
                     <tr class="total-row">
-                        <td class="text-right">جمع کل:</td>
+                        <td class="text-right">{{__('sales.total_all')}}:</td>
                         <td class="text-right">${saleData.total}</td>
                     </tr>
                     <tr>
-                        <td class="text-right">تخفیف:</td>
+                        <td class="text-right">{{__('buy.discount')}}:</td>
                         <td class="text-right">${saleData.discount}</td>
                     </tr>
                     <tr class="total-row">
-                        <td class="text-right">قابل پرداخت:</td>
+                        <td class="text-right">{{__('buy.payable')}}:</td>
                         <td class="text-right">${saleData.payable}</td>
                     </tr>
                     <tr>
-                        <td class="text-right">پرداخت فعلی:</td>
+                        <td class="text-right">{{__('buy.cur_pay')}}:</td>
                         <td class="text-right">${saleData.cur_pay}</td>
                     </tr>
                     <tr>
-                        <td class="text-right"> کرنسی:</td>
+                        <td class="text-right"> {{__('sales.currency')}}:</td>
                         <td class="text-right">${currencyName}</td>
                     </tr>
                 </table>
                 
                 <div class="footer">
-                    <div>با تشکر از خرید شما</div>
+                    <div>{{__('sales.thanks_message')}} </div>
                 </div>
             </div>
         </body>
@@ -917,13 +905,13 @@ $(document).ready(function() {
         
         // Check if customer is selected
         if (account_id <= 0) {
-            showNotification('مشتری را انتخاب نمایید', 'danger');
+            showNotification("{{__('sales.select_customer')}}", 'danger');
             return;
         }
         
         // Check if at least one item is selected
         if (orderItems.length === 0) {
-            showNotification('حداقل یک آیتم باید انتخاب شود', 'danger');
+            showNotification("{{__('sales.atleast_select_one_item')}}", 'danger');
             return;
         }
 
