@@ -192,8 +192,8 @@ class SalesController extends Controller
             if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
             {
                 DB::rollBack();
-                Session::flash('notification', [
-                    'message' => 'ثبت نگردید',
+                Session::put('notification', [
+                    'message' =>  __('common.add_failed'),
                     'type' => 'danger',
                 ]);
                 return redirect()->route('sales.create');
@@ -201,8 +201,8 @@ class SalesController extends Controller
 
             // Flash error message
             DB::commit();
-            Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+            Session::put('notification', [
+                'message' =>  __('common.added_successfully'),
                 'type' => 'success',
             ]);
              return redirect()->route('sales.create');
@@ -215,8 +215,8 @@ class SalesController extends Controller
              \Log::error('Error storing SalesController', ['error' => $e]);
 
             // Flash error message
-            Session::flash('notification', [
-                'message' => 'ثبت نگردید',
+            Session::put('notification', [
+                'message' =>  __('common.add_failed'),
                 'type' => 'danger',
             ]);
              return redirect()->route('sales.create');
@@ -530,8 +530,8 @@ class SalesController extends Controller
             \Log::error('Error storing journal entry in SalesController', ['error' => $e->getMessage()]);
     
             // Use MessageService to return error message
-            Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+            Session::put('notification', [
+                'message' =>  __('common.add_failed'),
                 'type' => 'danger',
             ]);
              return false;
@@ -735,7 +735,7 @@ class SalesController extends Controller
 
             return redirect()->route('sales.edit', ['billno' => $validated['billno']])
                             ->with('notification', [
-                                'message' => 'موفقانه ویرایش گردید',
+                                'message' =>  __('common.updated_successfully'),
                                 'type'    => 'success',
                             ]);
 
@@ -750,7 +750,7 @@ class SalesController extends Controller
 
             return redirect()->back()->withInput()
                             ->with('notification', [
-                                'message' => 'ویرایش نگردید: ' . $e->getMessage(),
+                                'message' => __('common.update_failed') . $e->getMessage(),
                                 'type'    => 'danger',
                             ]);
         }
@@ -814,7 +814,7 @@ class SalesController extends Controller
                     DB::rollBack();
                     return redirect()->route('sales.details', ['billno' => $request->billno])
                         ->with('notification', [
-                            'message' => 'ویرایش نگردید',
+                            'message' => __('common.update_failed'),
                             'type'    => 'danger',
                         ]);
                 }
@@ -824,7 +824,7 @@ class SalesController extends Controller
             DB::commit();
             return redirect()->route('sales.details', ['billno' => $request->billno])
                 ->with('notification', [
-                    'message' => 'موفقانه ویرایش گردید',
+                    'message' => __('common.updated_successfully'),
                     'type'    => 'success',
                 ]);
         } catch (\Exception $e) {
@@ -833,7 +833,7 @@ class SalesController extends Controller
     
             return redirect()->route('sales.details', ['billno' => $request->billno])
                 ->with('notification', [
-                    'message' => 'ویرایش نگردید',
+                    'message' => __('common.update_failed'),
                     'type'    => 'danger',
                 ]);
         }
@@ -881,8 +881,8 @@ class SalesController extends Controller
 
             DB::commit();
 
-            Session::flash('notification', [
-                'message' => 'موفقانه حذف گردید',
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
 
@@ -892,8 +892,8 @@ class SalesController extends Controller
 
             \Log::error('Error deleting records: ' . $e->getMessage());
 
-            Session::flash('notification', [
-                'message' => ' حذف نگردید',
+            Session::put('notification', [
+                'message' => __('common.delete_failed'),
                 'type' => 'danger',
             ]);
 
@@ -923,8 +923,8 @@ class SalesController extends Controller
 
             DB::commit();
 
-            Session::flash('notification', [
-                'message' => 'موفقانه حذف گردید',
+            Session::put('notification', [
+                'message' => __('common.deleted_successfully'),
                 'type' => 'success',
             ]);
 
@@ -934,8 +934,8 @@ class SalesController extends Controller
 
             \Log::error('Error deleting records: ' . $e->getMessage());
 
-            Session::flash('notification', [
-                'message' => 'حذف نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
 

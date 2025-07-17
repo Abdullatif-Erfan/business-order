@@ -27,8 +27,8 @@
                                   <i class="fa fa-arrow-left"></i>
                                 </button>
                             </a>
-                            <strong class="center">  تصفیه حساب 
-                            {{ $account_name ?? '' }} با حساب  {{ $currency_name ?? '' }}  </strong>
+                            <strong class="center"> {{__('clearance.create_title')}} 
+                            {{ $account_name ?? '' }} {{__('clearance.with_this_account')}}  {{ $currency_name ?? '' }}  </strong>
                         </div>
 
 
@@ -37,10 +37,11 @@
                           @csrf
                              <ol>
                                 <li>
-                                شما میتوانید همه بل نمبر هارا ویا چندین بل نمبر خاص را انتخاب نمایید برای تصفیه حساب.  
+                                 {{__('clearance.note1')}} 
                                 </li>
                                  <li>
-                                لطفا قبل از تصفیه حساب بک اپ بیگیرید و ریکارد تصفیه حساب قابل ویرایش نمیباشد. 
+                                 {{__('clearance.note2')}}
+                                
                                  </li>
                                  <!-- <li>
                                 از اینکه تصفیه حساب نوع از معاملات نسیه به نسیه میباشد بعداز تصفیه حساب تمام ریکاردهای قبلی دیگر محاسبه نشده و مجموع شان یک ریکارد در ژورنال ویا روزنامچه ثبت میگردد که نیز نوع نسیه به نسیه میباشد. 
@@ -51,10 +52,10 @@
                                 <table id="clearanceTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr>
-                                            <th> شماره </th>
-                                            <th>  بل نمبر  </th>
-                                             <th> مبلغ باقیمانده </th>
-                                            <th> انتخاب برای تصفیه حساب </th>
+                                            <th> {{__('common.number')}} </th>
+                                            <th>  {{__('common.bill')}}   </th>
+                                             <th> {{__('clearance.remained_amount')}} </th>
+                                            <th> {{__('clearance.select_for_clearance')}} </th>
                                         </tr>
                                     </thead>
                                      <tbody>
@@ -76,7 +77,7 @@
                                      </tbody>
                                      <tfoot>
                                           <tr style="background:#eefcff">
-                                              <td colspan="2">مبلغ مجموعی</td>
+                                              <td colspan="2"> {{__('clearance.total_price')}} </td>
                                               <td>
                                                  <strong id="totalAmount">{{ number_format($total,2) }}</strong>
                                                  <input type="hidden" name="total" id="total_price" value="{{ number_format($total,2) }}">
@@ -96,9 +97,17 @@
 
                             <div class="col-12 m-b-10 m-t-20">
                                  <input type="checkbox" name="confirm" class="confirmed-checkbox" value="1" onchange="enableSubmitButton(this)">
-                                اینجانیب {{ auth()->user()->full_name ?? '' }} تایید مینمایم که مبلغ انتخاب شده را با آقای {{ $account_name ?? '' }} با واحد پولی {{ $currency_name ?? '' }} همرای  {{ $ownBanks->name ?? '' }}  تصفیه نمایم و نقدا پرداخت نمایم.
+                                <!-- اینجانیب {{ auth()->user()->full_name ?? '' }} تایید مینمایم که مبلغ انتخاب شده را با آقای {{ $account_name ?? '' }} با واحد پولی {{ $currency_name ?? '' }} همرای  {{ $ownBanks->name ?? '' }}  تصفیه نمایم و نقدا پرداخت نمایم. -->
+                                {{ __('clearance.confirmation_text', [
+                                    'user' => auth()->user()->full_name ?? '',
+                                    'account' => $account_name ?? '',
+                                    'currency' => $currency_name ?? '',
+                                    'bank' => $ownBanks->name ?? '',
+                                ]) }}
+
                             </div>
-                             <button type="submit" disabled class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> تایید وثبت تصفیه حساب </button>
+                             <button type="submit" disabled class="btn btn-primary btn-sm form-control col-md-4" id="submit-btn"> 
+                            {{__('clearance.confirm_and_save')}} </button>
                             </form>
                         </div> <!-- /card-body -->
                     </div> <!-- /card -->

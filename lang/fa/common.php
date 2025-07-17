@@ -28,6 +28,7 @@ return [
     'total'     => 'مجموع',
     'recieved'  => 'دریافت',
     'document'  => 'سند',
+    'select'   => 'انتخاب',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',

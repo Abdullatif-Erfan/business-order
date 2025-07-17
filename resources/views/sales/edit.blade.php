@@ -9,6 +9,7 @@
     $curPay=0;
     $count = 0;
 @endphp
+@section('content')
 
 <style>
 .tableTdPadding td {
@@ -189,10 +190,11 @@
                                             </button>
                                         </a>
                                         @else
-                                        <button type="button" class="btn btn-danger btn-sm m-r-10" 
-                                        onclick='alert("{{__('sales.delete_one_by_one')}}")'>
-                                            <i class="fas fa-trash error "></i>  {{__('common.delete')}} 
+                                        <button type="button" class="btn btn-danger btn-sm m-r-10"
+                                            onclick='alert("لطفا لیست بالا را دانه دانه حذف نمایید بعدا حذف کلی نمایید")'>
+                                            <i class="fas fa-trash error "></i>  {{ __('common.delete') }}
                                         </button>
+
                                         @endif
                                     @endif
 
