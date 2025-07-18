@@ -92,13 +92,13 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="8">
-                                            <center> {{__('clearance.list_title_for_print')}}   </center>
+                                              <center> {{__('clearance.list_title_for_print')}}   </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} </th>
-                                            <th>  {{__('clearance.item')}}  </th>
-                                             <th> {{__('sales.customer')}} </th>
+                                            <th> {{__('clearance.item')}}  </th>
+                                             <th>{{__('sales.customer')}} </th>
                                             <th> {{__('clearance.cleared_amount')}} </th>
                                              <th> {{__('common.currency')}} </th>
                                             <th> {{__('common.bill')}}   </th>

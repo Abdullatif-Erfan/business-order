@@ -53,8 +53,8 @@
                                 <thead>
                                         <tr>
                                             <th> {{__('common.number')}} </th>
-                                            <th>  {{__('common.bill')}}   </th>
-                                             <th> {{__('clearance.remained_amount')}} </th>
+                                            <th> {{__('common.bill')}}   </th>
+                                            <th>{{__('clearance.remained_amount')}} </th>
                                             <th> {{__('clearance.select_for_clearance')}} </th>
                                         </tr>
                                     </thead>

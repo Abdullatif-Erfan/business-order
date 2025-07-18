@@ -2,18 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 
 <!-- main content -->
 <div class="main-panel">
@@ -25,10 +13,10 @@
                         <div class="card-header" style="padding: 10px;text-align:center">
                             
                             <a class="pull-right"  onclick="showSalesModal()">
-                              <button class="btn mybtn bg-default">تصفیه جدید فروشات   <i class="fa fa-plus"></i></button>
+                              <button class="btn mybtn bg-default"> {{__('clearance.list_btn_label_sales')}}  <i class="fa fa-plus"></i></button>
                             </a>
 
-                            <span class="center">   لست تصفیه حساب فروشات    </span>
+                            <span class="center">  {{__('clearance.list_title_sales')}}   </span>
 
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
@@ -38,7 +26,7 @@
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-3 col-sm-6 col-xs-6">
-                                        <input type="text" id="customer_name" placeholder="مشتری" class="form-control">
+                                        <input type="text" id="customer_name" placeholder="{{__('sales.customer')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
@@ -60,7 +48,7 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -75,7 +63,7 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
@@ -93,7 +81,7 @@
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <input type="hidden" id="warehouse_id" value="14" >
-                                <span class="pull-left visible-print">تاریخ چاپ : {{ $todaysDate }}</span>
+                                <span class="pull-left visible-print"> {{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="clearanceTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -103,23 +91,23 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="8">
-                                            <center> لست تصفیه حسابات فروشات   </center>
+                                            <center> {{__('clearance.list_title_for_print')}}  </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره </th>
-                                            <th>  تصفیه  </th>
-                                             <th> مشتری </th>
-                                            <th> مبلغ تصفیه شده </th>
-                                             <th> واحد پولی </th>
-                                            <th> بل نمبرها  </th>
-                                            <th> کاربر</th>
-                                            <th> تاریخ </th>
+                                            <th> {{__('common.number')}} </th>
+                                            <th> {{__('clearance.clearance')}}  </th>
+                                            <th>{{__('sales.customer')}} </th>
+                                            <th> {{__('clearance.cleared_amount')}} </th>
+                                            <th> {{__('common.currency')}} </th>
+                                            <th> {{__('common.bill')}}   </th>
+                                            <th> {{__('common.user')}}</th>
+                                            <th> {{__('common.date')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="3">مجموع</td>
+                                            <td colspan="3">{{__('clearance.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -143,7 +131,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> انتخاب مشتری </h5>
+                <h5 class="modal-title">  {{__('clearance.supplier_selection')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -153,7 +141,7 @@
 
                     <div class="form-group">
                         <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="sales_to_account_id" required>
-                            <option value="">  مشتری را انتخاب نمایید </option>
+                            <option value="">  {{__('clearance.supplier_selection')}} </option>
                             @foreach($accounts as $account)
                                 <option value="{{ $account->id }}">{{ $account->name }}</option>
                             @endforeach
@@ -162,7 +150,7 @@
 
                     <div class="form-group">
                         <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="sales_currency_id" required>
-                            <option value="">  واحد پولی را انتخاب نمایید </option>
+                            <option value=""> {{__('clearance.currency_selection')}} </option>
                             @foreach($currencies as $currency)
                                 <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                             @endforeach
@@ -170,8 +158,8 @@
                     </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">بستن</button>
-                <button type="button" class="btn btn-success btn-sm m-r-10" onclick="submitSalesClearanceForm()" >انتخاب </button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="button" class="btn btn-success btn-sm m-r-10" onclick="submitSalesClearanceForm()" >{{__('common.select')}} </button>
             </div>
         </div>
     </div>
