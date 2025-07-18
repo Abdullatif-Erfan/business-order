@@ -100,7 +100,7 @@
                                             <th> {{__('clearance.item')}}  </th>
                                              <th>{{__('sales.customer')}} </th>
                                             <th> {{__('clearance.cleared_amount')}} </th>
-                                             <th> {{__('common.currency')}} </th>
+                                             <th>{{__('common.currency')}} </th>
                                             <th> {{__('common.bill')}}   </th>
                                             <th> {{__('common.user')}}</th>
                                             <th> {{__('common.date')}} </th>
@@ -165,7 +165,6 @@
         </div>
     </div>
 </div>
-
 
 
 @include('clearance.buy.scripts')

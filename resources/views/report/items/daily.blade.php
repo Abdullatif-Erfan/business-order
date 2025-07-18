@@ -14,7 +14,7 @@
                                <button class="btn btn-sm pull-left"><i class="fas fa-arrow-left"></i></button>
                            </a>
                            <button class="printBtn m-l-40" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
-                           <h4 class="card-title"> گزارش روزانه </h4>
+                           <h4 class="card-title"> {{__('reports.daily_report')}} </h4>
                         </div>
 
 
@@ -31,8 +31,9 @@
                                             <select class="form-control select2" 
                                                 style="width: 100%; border:none !important; background-color:#ddd;" 
                                                 name="currency_id">
-                                                <option value="{{ $data['currency_id'] }}"> {{ $data['currency_name'] }}</option>
-                                                <option value=""> --- انتخاب واحد پولی --- </option>
+                                                <option value="{{ $data['currency_id'] }}"> 
+                                                {{ $data['currency_name'] }}</option>
+                                                <option value=""> --- {{__('common.currency')}} --- </option>
                                                 @foreach($data['currency'] as $key => $val)
                                                     <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>
                                                 @endforeach
@@ -44,7 +45,7 @@
                                            <select class="form-control mt-1 mb-1"
                                                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="month">
                                                 <option value="{{ $data['month'] }}">{{ $data['month'] }}</option>
-                                                <option value="">-- انتخاب ماه --</option>
+                                                <option value="">-- {{__('reports.monthly_selection')}} --</option>
                                                 @for($i = 1; $i <= 12; $i++)
                                                     <option value="{{ $i }}">{{ $i }}</option>
                                                 @endfor
@@ -56,7 +57,7 @@
                                             <select class="form-control mt-1 mb-1"
                                                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="year">
                                                 <option value="{{ $data['year'] }}">{{ $data['year'] }}</option>
-                                                <option value="">-- انتخاب سال --</option>
+                                                <option value="">-- {{__('reports.yearly_selection')}} --</option>
                                                 @for($i = 1400; $i <= 1440; $i++)
                                                     <option value="{{ $i }}">{{ $i }}</option>
                                                 @endfor
@@ -90,28 +91,37 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="10">
-                                                <center> گزارشات روزانه  </center>
+                                                <center> {{__('reports.daily_report')}}  </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th rowspan="3"><center>تاریخ / روزهای هفته</center></th>
+                                            <th rowspan="3"><center>{{__('common.date')}} /
+                                              {{__('reports.week_days')}} </center></th>
                                         </tr>
                                         <tr>
-                                            <th> <center>  گدام </center> </th>
-                                            <th colspan="4"> <center>  فروشات </center> </th>
-                                            <th colspan="4"> <center>  خرید </center> </th>
+                                            <th> <center> {{__('reports.gudam')}}  </center> </th>
+                                            <th colspan="4"> <center> {{__('reports.sales')}}   </center> </th>
+                                            <th colspan="4"> <center>  {{__('reports.buy')}}  </center> </th>
                                         </tr>
                                         <tr>
-                                        <th style="border-top: 1px solid #fff !important;"><center>ورودی گدام</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>فروشات </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>دریافت فروشات</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>طلب فروشات</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>مفاد فروشات</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>  خرید</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>  پرداخت خرید </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>  قرض خرید </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>   ترانسپورت </center></th>
-
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                         {{__('reports.gudam_in')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                        {{__('reports.sales')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                        {{__('reports.sales_income')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                        {{__('reports.sales_talab')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                         {{__('reports.sales_profit')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>  
+                                        {{__('reports.buy')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>  
+                                        {{__('reports.bought_paid')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center> 
+                                        {{__('reports.buy_low')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>   
+                                        {{__('reports.transport')}} </center></th>
                                         </tr>
                                     </thead>
 
@@ -181,7 +191,7 @@
 
                                         <tfoot>
                                             <tr style="background-color:#fff8d9">
-                                                <td><strong>مجموع</strong></td>
+                                                <td><strong>{{__('reports.total')}}</strong></td>
                                                 <td><strong>{{ number_format($totalWarehouseValue,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesPayable,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesCurPay,2) }}</strong></td>
