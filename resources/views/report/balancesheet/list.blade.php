@@ -1,10 +1,5 @@
 @extends('layouts.app')
-@section('title', 'بیلانس شیت')
-
 @section('content')
-
-
-
 
 <div class="main-panel">
     <div class="content">
@@ -14,7 +9,7 @@
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
                             
-                            <strong>  بیلانس شیت   </strong>
+                            <strong>  {{__('reports.belance_sheet_title')}}  </strong>
                             <button class="printBtn m-b-10" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
 
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
@@ -40,7 +35,7 @@
 
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_id" style="width:100%">
-                                            <option value=""> حساب </option>
+                                            <option value=""> {{__('reports.account')}} </option>
                                             @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
@@ -67,7 +62,7 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -83,12 +78,11 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
                                   
-
                                     <div class="col-md-1">
                                         <button class="btn mybtn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
@@ -101,7 +95,7 @@
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
-                                <span class="pull-left visible-print">تاریخ چاپ: {{ now()->format('Y-m-d') }}</span>
+                                <span class="pull-left visible-print"> {{__('common.print_date')}} : {{ now()->format('Y-m-d') }}</span>
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -113,25 +107,25 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="9">
                                                 <center>
-                                                      بیلانس شیت   
+                                                 {{__('reports.belance_sheet_title')}}  
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره </th>
-                                             <th> حساب </th>
-                                            <th> آمد نقد</th>
-                                            <th>رفت نقد</th>
-                                            <th> قرض</th>
-                                            <th> طلب</th>
-                                            <th> بیلانس </th>
-                                            <th>واحد</th>
-                                            <th>تشخیص</th>
+                                            <th> {{__('common.number')}} </th>
+                                             <th> {{__('reports.account')}} </th>
+                                            <th> {{__('reports.cache_in')}}</th>
+                                            <th>{{__('reports.cache_out')}} </th>
+                                            <th> {{__('reports.loan')}}</th>
+                                            <th> {{__('reports.talab')}}</th>
+                                            <th> {{__('reports.balance')}} </th>
+                                            <th>{{__('common.unit')}}</th>
+                                            <th>{{__('reports.specify')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="2">مجموع</td>
+                                            <td colspan="2">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -156,51 +150,6 @@
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
-
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
     $(document).ready(function() {

@@ -1,7 +1,7 @@
 <div class="panel-heading" style="background-color:#f0eded">
     <h4 class="panel-title">
         <a data-toggle="collapse" data-parent="#accordion" href="#collapse" class="">
-            حسابات نقده 
+            {{__('reports.cache_account')}} 
         </a>
         <div class="col-md-6 pull-left hidden-print">
             <select name="" id="" class="form-control" onchange="updateURLWithCurrencyId(this.value)">
@@ -30,15 +30,15 @@
     @endphp
     <table class="table table-bordered"  style="width:100%">
         <tr style="background-color:#edf7ff">
-            <th>{{__('common.number')}}</th>
-            <th>حساب</th>
-            <th>آمدنقد</th>
-            <th>رفت نقد</th>
-            <th>بیلانس نقد</th>
-            <th class="bg-dark">طلبات</th>
-            <th class="bg-dark">قرضه</th>
-            <th class="bg-dark">بیلانس طلبات و قرضه</th>
-            <th>بیلانس عمومی</th>
+            <th>{{__('common.number')}}  </th>
+            <th>{{__('reports.account')}}</th>
+            <th>{{__('reports.cache_in')}}</th>
+            <th>{{__('reports.cache_out')}} </th>
+            <th>{{__('reports.cache_balance')}} </th>
+            <th class="bg-dark">{{__('reports.talabat')}}</th>
+            <th class="bg-dark">{{__('reports.loan')}}</th>
+            <th class="bg-dark">{{__('reports.talabat_and_loan_balance')}}</th>
+            <th>{{__('reports.general_balance')}}</th>
         </tr>
         @foreach($company_accounts as $index => $row)
         @php
@@ -83,7 +83,7 @@
             @endforeach
         <tfoot>
             <tr style="background-color:#edf7ff">
-                <td class="priceStyle" colspan="2">مجموع</td>
+                <td class="priceStyle" colspan="2">{{__('common.total')}}</td>
                 <td class="priceStyle">{{ number_format($total_cache_recieved,2) }}</td>  <!-- آورد نقد -->
                 <td class="priceStyle">{{ number_format($total_cache_paid,2) }}</td>      <!-- برد نقد -->
                 <td class="priceStyle" >{{ number_format($total_cache_balance,2) }}</td>

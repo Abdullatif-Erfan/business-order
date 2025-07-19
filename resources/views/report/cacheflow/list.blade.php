@@ -1,6 +1,4 @@
 @extends('layouts.app')
-@section('title', 'جریان حساب نقده')
-
 @section('content')
 
 <style>
@@ -17,11 +15,8 @@
                 <div class="col-md-12 col-sm-12 col-xs-12 mt-2">
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
-                            
-                            <strong>جریان حساب نقده   </strong>
-
+                            <strong> {{__('reports.cash_flow_title')}}   </strong>
                             <button class="printBtn m-b-10" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
-
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
                                 <i class="fas fa-filter"></i>
                             </button>
@@ -33,7 +28,7 @@
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_id" style="width:100%">
-                                            <option value=""> حساب </option>
+                                            <option value=""> {{__('reports.account')}} </option>
                                             @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
@@ -59,7 +54,7 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ شروع"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
@@ -75,18 +70,18 @@
                                         </div>
                                             <input class="form-control" name="end_date" id="end_date"
                                             data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="تاریخ ختم / الی امروز"  data-placement="right" data-englishnumber="true" >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
                                         </div>
 							     	</div>
 
                                   
 
                                     <div class="col-md-1  col-sm-6 col-xs-6">
-                                        <input class="form-control" id="code_number" placeholder="کد">
+                                        <input class="form-control" id="code_number" placeholder="{{__('common.code')}}">
                                     </div>
 
                                     <div class="col-md-1  col-sm-6 col-xs-6">
-                                        <input class="form-control" id="bill_number" placeholder="بل">
+                                        <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
                                     <div class="col-md-1">
@@ -101,7 +96,7 @@
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
-                                <span class="pull-left visible-print">تاریخ چاپ: {{ now()->format('Y-m-d') }}</span>
+                                <span class="pull-left visible-print">{{__('common.print_date')}}: {{ now()->format('Y-m-d') }}</span>
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -113,15 +108,15 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="12">
                                                 <center>
-                                                    جریان حساب نقده   
+                                                   {{__('reports.cash_flow_print_title')}}  
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره </th>
-                                            <th> کد </th>
-                                            <th> حساب </th>
-                                            <th> جزییات </th>
+                                            <th> {{__('common.number')}} </th>
+                                            <th> {{__('common.code')}} </th>
+                                            <th> {{__('reports.account')}} </th>
+                                            <th> {{__('common.details')}} </th>
                                             
                                             <!-- <th> رفت / قرض  </th>
                                             <th>  آمد / طلب </th> -->
@@ -137,20 +132,20 @@
                                             <th>بردگی <br> قرض</th>
                                             <th>رسیدگی <br> قرض / طلب</th> -->
 
-                                            <th> آمد نقد</th>
-                                            <th>رفت نقد</th>
-                                            <th> قرض</th>
-                                            <th> طلب</th>
+                                            <th> {{__('reports.cache_in')}}</th>
+                                            <th> {{__('reports.cache_out')}}</th>
+                                            <th> {{__('reports.loan')}}</th>
+                                            <th> {{__('reports.talab')}}</th>
                                             
-                                            <th>واحد</th>
-                                            <th>  نوع معامله  </th>
-                                            <th>تاریخ</th>
-                                            <th>کاربر</th>
+                                            <th>{{__('common.unit')}}</th>
+                                            <th>  {{__('reports.transaction_type')}}  </th>
+                                            <th>{{__('common.date')}}</th>
+                                            <th>{{__('common.user')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">مجموع</td>
+                                            <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -175,52 +170,6 @@
 <!-- For Persian Date Picker -->
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('#input1').change(function() {  
-        var $this = $(this), value = $this.val();  
-        alert(value);
-    });
-
-    $('#textbox1').change(function () {  
-        var $this = $(this), value = $this.val(); 
-        alert(value); 
-    });
-
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-</script>
-
-
-<script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-</script>
 
 <script>
     $(document).ready(function() {
@@ -281,10 +230,7 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
 
                 // Calculate the sum for the 6th column (index 6)
                 let sum4 = sumColumn(4).toLocaleString();
-                let sum5 = sumColumn(5).toLocaleString();
-
-
-                
+                let sum5 = sumColumn(5).toLocaleString();                
                 
                 // Ensure values are defined, otherwise default to '0'
                 var sumCacheRecieved = settings.json.sumCacheRecieved || '0';
