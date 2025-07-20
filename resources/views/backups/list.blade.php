@@ -1,17 +1,4 @@
 @extends('layouts.app')
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
 @section('content')
 
 <div class="main-panel">
@@ -23,12 +10,12 @@
                        
                         <div class="card-body">
 
-                        <h3 style="margin-bottom: 15px">لیست بک اپ</h3>
+                        <h3 style="margin-bottom: 15px">{{__('user.backup_title')}}</h3>
                     
                     <!-- insertion -->
                       <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
                             <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
-                                <span class="fas fa-plus-square"></span>  &nbsp; ایجاد بک اپ جدید </button>
+                                <span class="fas fa-plus-square"></span>  &nbsp; {{__('user.add_new_backup')}} </button>
                             </a> 
                         </div>
                         <div id="add_form_collapse" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">
@@ -40,14 +27,14 @@
 
                                         <div class="col-md-10 col-sm-10 col-xs-8">
                                             <div class="form-group">
-                                                <input type="text" name="label" placeholder="عنوان" class="form-control">
+                                                <input type="text" name="label" placeholder="{{__('user.title')}}" class="form-control">
                                             </div> 
                                         </div>	
 
 
                                     <div class="col-md-2 col-sm-2 col-xs-4 center m-t-10">
                                         <button type="submit" name="submit" class="btn btn-primary btn-sm m-l-10">
-                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> ایجاد جدید
+                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> {{__('user.add_new')}}
                                         </button>
                                     </div>
 
@@ -64,12 +51,12 @@
                                     <thead>
                                         <tr>
                                         <th>#</th>
-                                            <th>عنوان</th>
-                                            <th>تاریخ</th>
-                                            <th>ایجاد توسط</th>
-                                            <th>زمان</th>
-                                            <th>ریستور</th>
-                                            <th>دانلود</th>
+                                            <th>{{__('user.title')}}</th>
+                                            <th>{{__('common.date')}}</th>
+                                            <th>{{__('user.created_by')}}</th>
+                                            <th>{{__('user.time')}}</th>
+                                            <th>{{__('user.restore')}}</th>
+                                            <th>{{__('user.download')}}</th>
                                             <th>{{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
@@ -129,7 +116,7 @@ function fetchList() {
 function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> پیام </span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> __('settings.message') </span>';
     
     if (style === "withicon") {
         content.icon = 'fa fa-bell';
@@ -171,7 +158,7 @@ function checkPassword(event, downloadUrl) {
         var backupId = $(this).data('id');
         
         // Show a confirmation dialog
-        if (confirm('آیا میخواهید ریستور نمایید ؟')) {
+        if (confirm("{{__('user.restore_confirm')}}")) {
             // Send AJAX request to restore the backup
             $.ajax({
                 url: '/backups/restore/' + backupId, // Modify this to match your route
@@ -181,10 +168,10 @@ function checkPassword(event, downloadUrl) {
                 },
                 success: function(response) {
                     if(response.status === 'success') {
-                        showNotification('موفقانه ریستور گردید', 'success', 'top', 'right', 'withicon');
+                        showNotification("{{__('user.successfully_restored')}}", 'success', 'top', 'right', 'withicon');
                         fetchList();
                     } else {
-                       showNotification('ریستور نگردید', 'danger', 'top', 'right', 'withicon');
+                       showNotification("{{__('user.restore_failed')}}", 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -198,21 +185,21 @@ function checkPassword(event, downloadUrl) {
 // Delete 
 $('table').on('click', '.deleteIcon', function () {
     const id = $(this).data('id');
-        if (id && confirm('آیا میخواهید حذف نمایید؟')) {
+        if (id && confirm("{{__('common.delete_confirm')}}")) {
             $.ajax({
                 url: `/backups/destroy/${id}`,
                 type: 'DELETE',
                 data: { _token: '{{ csrf_token() }}' },
                 success: (response) => {
                     if(response.status === 'success') {
-                        showNotification('موفقانه حذف گردید', 'success', 'top', 'right', 'withicon');
+                        showNotification("{{__('common.deleted_successfully')}}", 'success', 'top', 'right', 'withicon');
                         fetchList();
                     } else {
-                       showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                       showNotification("{{__('common.delete_failed')}}", 'danger', 'top', 'right', 'withicon');
                     }
                 },
                 error: () => {
-                    showNotification('حذف نگردید', 'danger', 'top', 'right', 'withicon');
+                    showNotification("{{__('common.delete_failed')}}", 'danger', 'top', 'right', 'withicon');
                 }
             });
         }
