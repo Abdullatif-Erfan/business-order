@@ -2,17 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-        $(document).ready(function(){
-            showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-        });
-    </script>
-@endif
-
 <style>
     /* Ensure the table layout is correct */
     table {
@@ -45,7 +34,7 @@
                             <a href="{{ route('roles.index') }}" class="btn btn-sm btn-default pull-left"> 
                                 <span class="fas fa-arrow-left"></span> 
                             </a>
-                            <span class="card-title pull-right"> تعیین صلاحیت </span>
+                            <span class="card-title pull-right"> {{__('user.priviledge_selection')}} </span>
                         </div>
                         <div class="card-body">
                         <form action="{{ route('roles.permissions.store_permission') }}" method="POST">
@@ -54,10 +43,10 @@
 						<table class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                             <thead>
                                 <tr>
-                                    <th>بخش</th>
-                                    <th>تمام صلاحیت</th>
-                                    <th> نمایش</th>
-                                    <th>ایجاد</th>
+                                    <th>{{__('user.item')}}</th>
+                                    <th>{{__('user.all_priviledges')}}</th>
+                                    <th> {{__('user.view')}}</th>
+                                    <th>{{__('user.add')}}</th>
                                     <th>{{__('common.edit')}}</th>
                                     <th>{{__('common.delete')}}</th>
                                 </tr>
@@ -106,10 +95,10 @@
                         </table>
 
                         <div class="box-footer clearfix">
-                            <input type="submit" class="btn btn-primary" value="ثبت صلاحیت" />
+                            <input type="submit" class="btn btn-primary" value="{{__('user.save_priviledge')}}" />
 
                             <a href="{{ route('roles.index') }}" style="margin-right:20px">
-                                <button type="button" class="btn btn-warning"> لغو </button>
+                                <button type="button" class="btn btn-warning"> {{__('user.cancel')}} </button>
                             </a>
                             <br />
                             <br />

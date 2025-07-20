@@ -1,17 +1,5 @@
 @extends('layouts.app')
-
 @section('content')
-
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-        $(document).ready(function(){
-            showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-        });
-    </script>
-@endif
 
 
 <div class="main-panel">
@@ -24,19 +12,18 @@
                             <a href="{{ route('roles.create') }}" class="btn btn-sm btn-default pull-right"> 
                                 <span class="fas fa-plus-square"></span> &nbsp; <th>{{__('common.add')}}</th> 
                             </a>
-                            <span class="card-title"> لیست رول ها </span>
+                            <span class="card-title"> {{__('user.role_list')}} </span>
                         </div>
                         <div class="card-body">
 						<table id='roleTable'  class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                     <tr>
                                         <th>{{__('common.number')}}</th>
-                                        <th>رول</th>
-                                        <th>وضعیت</th>
-                                        <th class="text-center"> تعیین صلاحیت</th>
-                                        <th class="text-center">ویرایش</th>
-                                        <th class="text-center">حذف</th>
-
+                                        <th>{{__('user.role')}}</th>
+                                        <th>{{__('user.role_status')}}</th>
+                                        <th class="text-center"> {{__('user.role_selection')}} </th>
+                                        <th class="text-center">{{__('common.edit')}}</th>
+                                        <th class="text-center">{{__('common.delete')}}</th>
                                     </tr>
                                 </thead>
                                 

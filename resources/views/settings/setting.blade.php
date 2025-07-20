@@ -21,6 +21,7 @@
                         <div class="card-body" style="padding: 15px 15px 33px 15px;">
                             <!-- card-body -->
 
+                        
                             <ul class="nav my_nave nav-tabs" id="myTab2">
                                 <li class="active"><a data-toggle="tab"  href="#branch">{{__('settings.branch')}}</a></li>
                                 <li><a data-toggle="tab"  href="#warehouse">{{__('settings.warehouse')}}</a></li>

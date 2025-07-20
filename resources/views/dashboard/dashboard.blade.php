@@ -1,5 +1,12 @@
 @extends('layouts.app')
-@section('title', 'داشبورد')
+
+@php
+    $user = auth()->user();
+    $isAdmin = $user->isAdmin == 1;
+    $permissions = [
+        'settings' => $user->hasAccess('dashboard', 'total_access'),
+    ];
+@endphp
 
 @section('content')
 <script>
@@ -43,31 +50,6 @@ $(document).ready(function () {
         updateURLWithCurrencyId(currencyId); // Make sure this function exists
     });
 });
-// $(document).ready(function () {
-//     // Debugging: Check what's stored in localStorage
-//     console.log("Stored active tab:", localStorage.getItem('activeTab'));
-
-//     var activeTab = localStorage.getItem('activeTab');
-//     if (activeTab) {
-//         console.log("Trying to activate tab:", activeTab);
-//         $('#myTab2 a[href="' + activeTab + '"]').tab('show'); // Activate the correct tab
-//     }
-
-//     // Handle tab click event
-//     $('#myTab2 a[data-toggle="tab"]').on('shown.bs.dropdown', function (e) {
-//     // $('#myTab2 a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-//         var targetTab = $(e.target).attr('href');
-//         console.log("Saving active tab:", targetTab);
-//         localStorage.setItem('activeTab', targetTab);
-//     });
-// });
-
-// if (typeof jQuery == 'undefined') {
-//     alert("jQuery is not loaded!");
-// } else {
-//     console.log("jQuery is working!"); 
-//     alert("jQuery is working");
-// }
 </script>
 
 <style>
@@ -97,6 +79,8 @@ $(document).ready(function () {
    
         <!-- tab -->
         <div class="col-12 tab-wrapper">
+        @if($permissions['settings'] || $isAdmin) 
+                        
             <ul class="nav my_nave nav-tabs" id="myTab2">
                 <li class="active"><a data-toggle="tab" href="#todaysTransaction"> {{ __('dashboard.todays_tab') }}</a></li>
                 @if($package_type >= 2)
@@ -108,7 +92,6 @@ $(document).ready(function () {
                 <li><a data-toggle="tab" href="#branch">{{ __('dashboard.branch') }}</a></li>
                 @endif
             </ul>
-
             <div class="tab-content">
                 <!-- todaysTransaction -->
                 <div id="todaysTransaction" class="tab-pane fade in active">
@@ -141,6 +124,9 @@ $(document).ready(function () {
                 @endif
 
             </div>
+            @else
+            <h3>No Permission</h3>
+            @endif
         </div>
        
         <!-- / tab -->

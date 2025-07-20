@@ -2,19 +2,6 @@
 
 @section('content')
 
-@if(Session::has('notification'))
-    @php
-        $notification = Session::get('notification');
-    @endphp
-    <script>
-    // Show the notification using the data from the session
-    $(document).ready(function(){
-        showNotification('{{ $notification['message'] }}', '{{ $notification['type'] }}');
-    });
-</script>
-@endif
-
-
 <!-- main content -->
 <div class="main-panel">
     <div class="content">
@@ -26,9 +13,9 @@
 
                             <div class="card-header text-center" style="padding:10px;">
                             <a href="{{ route('user.create') }}" class="btn btn-sm btn-default pull-right"> 
-                                <span class="fas fa-plus-square"></span> &nbsp; <th>{{__('common.add')}}</th> 
+                                <span class="fas fa-plus-square"></span> &nbsp; {{__('common.add')}} 
                             </a>
-                                <span class="card-title">   لست کاربران  </span>
+                                <span class="card-title">   {{__('user.users_list')}}  </span>
                             </div>
                         </div>
 
@@ -44,20 +31,20 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="13">
-                                            <center> لست فروشات   </center>
+                                            <center> {{__('user.users_list')}}  </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th> شماره &nbsp; </th>
-                                            <th>  نام </th>
-                                            <th> نام کاربری </th>
-                                            <th> شعبه </th>
-                                            <th>  ایمیل </th>
-                                            <th> عکس  </th>
-                                            <th>  صلاحیت </th>
-                                            <th>  وورد </th>
-                                            <th>  ویرایش </th>
-                                            <th> حذف </th>
+                                            <th> {{__('common.number')}} &nbsp; </th>
+                                            <th> {{__('common.name')}} </th>
+                                            <th> {{__('common.user')}} </th>
+                                            <th> {{__('common.branch')}} </th>
+                                            <th> {{__('common.email')}} </th>
+                                            <th> {{__('common.image')}}  </th>
+                                            <th> {{__('user.priviledge')}} </th>
+                                            <th> {{__('user.login')}} </th>
+                                            <th> {{__('common.edit')}} </th>
+                                            <th> {{__('common.delete')}} </th>
                                         </tr>
                                     </thead>  
                                 </table>

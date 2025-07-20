@@ -31,7 +31,7 @@
                 <div class="col-md-12 mt-3">
                     <div class="card">
                         <div class="card-header" style="padding:10px">
-                            <h4 class="card-title">  گزارش عمومی از بخش های مهم سیستم 
+                            <h4 class="card-title"> {{__('reports.profit_and_loss_title')}} 
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                             </h4>
                         </div>
@@ -52,7 +52,7 @@
                                         <div class="panel-heading m-t-10" style="background-color:#f0eded">
                                                 <h4 class="panel-title">
                                                     <a data-toggle="collapse" data-parent="#accordion" href="#collapseIncomes" class="">
-                                                    <strong>بخش عوایدی</strong>   
+                                                    <strong> {{__('reports.income_section')}} </strong>   
                                                     </a>
                                                 </h4>
                                             </div>
@@ -83,7 +83,8 @@
 
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $total_talabat_count + 1 }}" style="width:90px !important;">طلبات</th>
+                                                        <th rowspan="{{ $total_talabat_count + 1 }}" style="width:90px !important;">
+                                                        {{__('reports.talabat')}}</th>
                                                         <td style="width:130px !important;color:{{$talabatBaseCurrency['color']}}">{{ $talabatBaseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$talabatBaseCurrency['color']}}">
                                                         {{ number_format($talabatBaseCurrency['total_talabat'],2) ?? 'N/A' }}</td>
@@ -104,7 +105,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong> {{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedTalabat,2) }} {{ $talabatBaseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -113,7 +114,8 @@
 
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">عواید متفرقه</th>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">
+                                                        {{__('reports.diff_income')}}</th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_income']) ?? 'N/A' }}</td>
                                                     </tr>
@@ -133,7 +135,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong> {{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedIncome,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -150,7 +152,8 @@
 
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount3 + 1 }}" style="width:90px !important;">  مفاد خالص فروشات </th>
+                                                        <th rowspan="{{ $currencyCount3 + 1 }}" style="width:90px !important;">  
+                                                       {{__('reports.sales_net_income')}}</th>
                                                         <td style="width:130px !important; color:{{ $baseCurrency3['color'] ?? '' }}">
                                                             {{ $baseCurrency3['currency_name'] ?? 'N/A' }}:
                                                         </td>
@@ -175,14 +178,15 @@
                                                     
 
                                                     <tr>
-                                                        <td> <strong>قیمت مجموعی: </strong></td>
+                                                        <td> <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedTotalProfit,2) }} {{ $baseCurrency3['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
 
                                                     <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">عواید فروشات +  مفاد شان</th>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">
+                                                        {{__('reports.sales_income_and_profit')}} </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_sold'],2) ?? 'N/A' }}</td>
                                                     </tr>
@@ -202,7 +206,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedSoldIncome,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -221,7 +225,7 @@
                                         <div class="panel-heading m-t-10" style="background-color:#f0eded">
                                                 <h4 class="panel-title">
                                                     <a data-toggle="collapse" data-parent="#accordion" href="#collapseExpense" class="">
-                                                    <strong>بخش مصرفی</strong>   
+                                                    <strong>{{__('reports.expense_section')}}</strong>   
                                                     </a>
                                                 </h4>
                                             </div>
@@ -255,7 +259,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedLoan,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -263,7 +267,8 @@
                                                 <!-- مصارف متفرقه -->
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">مصارف متفرقه </th>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;">
+                                                        {{__('reports.diff_expense')}} </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_expense'],2) ?? 'N/A' }}</td>
                                                     </tr>
@@ -283,7 +288,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedExpense,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -292,7 +297,8 @@
                                                 <!-- معاشات کارمندان -->
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> معاشات کارمندان </th>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> 
+                                                        {{__('reports.emp_salaries')}} </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_salary'],2) ?? 'N/A' }}</td>
                                                     </tr>
@@ -312,7 +318,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedSalary,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -321,7 +327,8 @@
                                               <!-- خرید + ترانسپورت  -->
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> خرید + ترانسپورت </th>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:90px !important;"> 
+                                                        {{__('reports.buy_and_transport')}} </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color']}}">{{ $baseCurrency['currency_name'] ?? 'N/A' }}:</td>
                                                         <td style="color:{{$baseCurrency['color']}}">{{ number_format($baseCurrency['total_bought'],2) ?? 'N/A' }}</td>
                                                     </tr>
@@ -341,7 +348,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td>  <strong>قیمت مجموعی: </strong></td>
+                                                        <td>  <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConverted‌‌Bought,2) }} {{ $baseCurrency['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -363,7 +370,7 @@
                                         <div class="panel-heading m-t-10" style="background-color:#f0eded">
                                                 <h4 class="panel-title">
                                                     <a data-toggle="collapse" data-parent="#accordion" href="#collapseGeneral" class="">
-                                                    <strong>بخش عمومی</strong>   
+                                                    <strong> {{__('reports.general_section')}} </strong>   
                                                     </a>
                                                 </h4>
                                             </div>
@@ -381,7 +388,8 @@
                                                 <!-- موجودی گدام -->
                                                 <table class="table table-bordered" style="width:100%">
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount2 + 1 }}" style="width:200px !important;"> موجودی گدام </th>
+                                                        <th rowspan="{{ $currencyCount2 + 1 }}" style="width:200px !important;"> 
+                                                        {{__('reports.stock_availability')}} </th>
                                                         <td style="width:130px !important; color:{{ $baseCurrency2['color'] ?? '' }}">
                                                             {{ $baseCurrency2['currency_name'] ?? 'N/A' }}:
                                                         </td>
@@ -406,7 +414,7 @@
                                                     
 
                                                     <tr>
-                                                        <td> <strong>قیمت مجموعی: </strong></td>
+                                                        <td> <strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> {{ number_format($totalConvertedValue,2) }} {{ $baseCurrency2['symbols'] ?? 'N/A' }} </strong></td>
                                                     </tr>
                                                 </table>
@@ -415,7 +423,8 @@
                                                 <!-- پول نقد شرکت -->
                                                 <table class="table table-bordered" style="width:100%"> 
                                                     <tr>
-                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:200px !important;"> پول نقد شرکت </th>
+                                                        <th rowspan="{{ $currencyCount + 1 }}" style="width:200px !important;"> 
+                                                        {{__('reports.company_cache')}} </th>
                                                         <td style="width:130px !important;color:{{$baseCurrency['color'] ?? ''}}">
                                                             {{ $baseCurrency['currency_name'] ?? 'N/A' }}:
                                                         </td>
@@ -448,7 +457,7 @@
                                                     @endforeach
 
                                                     <tr>
-                                                        <td><strong>قیمت مجموعی: </strong></td>
+                                                        <td><strong>{{__('reports.total_price')}} : </strong></td>
                                                         <td><strong> 
                                                             {{ number_format($finalTotalCache,2) }} 
                                                             {{ $baseCurrency['symbols'] ?? 'N/A' }} 
@@ -460,8 +469,9 @@
 
                                                     <table class="table table-bordered"  style="width:100%">
                                                             <tr>
-                                                                <th rowspan="2" style="width:200px !important;font-weight:bolder" >سرمایه شرکت</th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
+                                                                <th rowspan="2" style="width:200px !important;font-weight:bolder">
+                                                                 {{__('reports.company_capital')}} </th>
+                                                                  <td style="width:70px !important;"> {{__('reports.afn')}} : </td>
                                                                   <td> <strong> {{ 
                                                                        number_format( $totalConvertedValue + 
                                                                       $finalTotalCache + 
@@ -470,15 +480,18 @@
                                                                       }}</strong></td>
                                                             </tr>
                                                             <tr>
-                                                                  <td>فورمول : </td>
+                                                                  <td> {{__('reports.formula')}} : </td>
                                                                   <td> 
-                                                                    <span class="custom_badge custom_badge_info">موجودی گدام</span>
+                                                                    <span class="custom_badge custom_badge_info">{{__('reports.stock_availability')}} </span>
                                                                      +
-                                                                     <span class="custom_badge custom_badge_info">مجموع پول نقد شرکت</span>
+                                                                     <span class="custom_badge custom_badge_info">
+                                                                      {{__('reports.total_company_cache')}}</span>
                                                                      +
-                                                                     <span class="custom_badge custom_badge_info">طلبات</span> 
+                                                                     <span class="custom_badge custom_badge_info">
+                                                                     {{__('reports.talabat')}}</span> 
                                                                      - 
-                                                                    <span class="custom_badge custom_badge_warning">قرضه </span>
+                                                                    <span class="custom_badge custom_badge_warning">
+                                                                    {{__('reports.loan')}} </span>
                                                                     
                                                                    </td>
                                                             </tr>
@@ -489,8 +502,9 @@
                                                     <table class="table table-bordered"  style="width:100%">
                                                             <tr>
                                                                 <th rowspan="2" style="width:200px !important;font-weight:bolder" >
-                                                                مفاد خالص شرکت </th>
-                                                                  <td style="width:70px !important;">افغانی : </td>
+                                                                {{__('reports.company_net_income')}} 
+                                                                </th>
+                                                                  <td style="width:70px !important;">{{__('reports.afn')}} : </td>
                                                                   <td>   <strong>
                                                                         @php 
                                                                             $total_income = $totalConvertedIncome + $totalConvertedTotalProfit;
@@ -503,15 +517,20 @@
                                                                             </strong> </td>
                                                             </tr>
                                                             <tr>
-                                                                  <td>فورمول : </td>
+                                                                  <td>{{__('reports.formula')}} : </td>
                                                                   <td> 
-                                                                    <span class="custom_badge custom_badge_info"> مصارف متفرقه</span>
+                                                                    <span class="custom_badge custom_badge_info"> 
+                                                                    {{__('reports.diff_expense')}} </span>
                                                                      +
-                                                                     <span class="custom_badge custom_badge_info">معاشات کارمندان</span>
+                                                                     <span class="custom_badge custom_badge_info"> 
+                                                                     {{__('reports.emp_salaries')}} </span>
                                                                      -
-                                                                     <span class="custom_badge custom_badge_info">عواید متفرقه</span> 
+                                                                     <span class="custom_badge custom_badge_info">
+                                                                     {{__('reports.diff_income')}}</span> 
                                                                      + 
-                                                                    <span class="custom_badge custom_badge_warning">مفاد خالص فروشات </span>
+                                                                    <span class="custom_badge custom_badge_warning">
+                                                                    {{__('reports.sales_net_income')}} 
+                                                                    </span>
                                                                     
                                                                    </td>
                                                             </tr>

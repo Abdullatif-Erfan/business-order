@@ -301,7 +301,7 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#user">
                             <i class="fas fa-users"></i>
-                            <p>  {{ __('menu.report')}} </p>
+                            <p>  {{ __('menu.user_management')}} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="user">

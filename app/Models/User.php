@@ -34,6 +34,10 @@ class User extends Authenticatable
         'createdBy',
     ];
 
+    protected $casts = [
+        'access_metrics' => 'array',
+    ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -80,10 +84,10 @@ class User extends Authenticatable
 
         // Check if module and option exist in accessInfo
         if (isset($accessInfo[$module])) {
-            if (!empty($accessInfo[$module][$option]) && $accessInfo[$module][$option] == 1) {
+            if (!empty($accessInfo[$module][$option]) &&  (int) $accessInfo[$module][$option] === 1) {
                 return true;
             }
-            if (!empty($accessInfo[$module]['total_access']) && $accessInfo[$module]['total_access'] == 1) {
+            if (!empty($accessInfo[$module]['total_access']) && (int) $accessInfo[$module]['total_access'] === 1) {
                 return true;
             }
         }
