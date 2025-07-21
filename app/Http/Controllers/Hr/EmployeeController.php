@@ -90,11 +90,11 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'name.required' => 'نام حساب ضروری میباشد',
-            'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.required' => __('validate.pre_list_branch_id_required'),
         ];
 
         $validated = $request->validate([
@@ -136,7 +136,7 @@ class EmployeeController extends Controller
         $account = Account::findOrFail($id);
 
         if (!$account) {
-            return response()->json(['status' => 'failed','message' => 'حساب یافت نگردید'], 404);
+            return response()->json(['status' => 'failed','message' => __('common.not_found')], 404);
         }
 
         return view('hr.employee.edit', compact('account','currencies','branchs'));
@@ -145,12 +145,13 @@ class EmployeeController extends Controller
     public function update(Request $request)
 {
     // return ['data' => $request->all()];
+ 
     $messages = [
-        'name.required' => 'نام حساب ضروری میباشد',
-        'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
-        'name.min' => 'حداقل باید ۳ حرف باشد',
-        'name.unique' => 'این نام قبلاً ثبت شده است',
-        'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+        'name.required' => __('validate.pre_list_name_required'),
+        'name.max' => __('validate.pre_list_name_max'),
+        'name.min' => __('validate.pre_list_name_min'),
+        'name.unique' => __('validate.pre_list_name_unique'),
+        'branch_id.required' => __('validate.pre_list_branch_id_required'),
     ];
 
     $validated = $request->validate([

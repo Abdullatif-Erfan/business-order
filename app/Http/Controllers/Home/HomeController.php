@@ -505,7 +505,7 @@ class HomeController extends Controller
 
             session()->flash('notification', [
                 'type' => 'success',
-                'message' => 'موفقانه حذف گردید',
+                'message' => __('common.deleted_successfully'),
             ]);
 
             return redirect()->route('home');
@@ -519,7 +519,7 @@ class HomeController extends Controller
 
             session()->flash('notification', [
                 'type' => 'danger',
-                'message' => 'حذف نگردید',
+                'message' => __('common.delete_failed'),
             ]);
             return redirect()->route('home');
         }
@@ -556,7 +556,7 @@ class HomeController extends Controller
         ->first();
 
         if (!$rate) {
-            return response()->json(['error' => 'لطفا نرخ روز را برای این دو کرنسی ثبت نمایید'], 400);
+            return response()->json(['error' => __('validate.currency_not_found_converter')], 400);
         }
 
         

@@ -456,32 +456,32 @@ class WarehouseListController extends Controller
             'warehouse_sell_up' => 'required|array',
             'warehouse_sell_up.*' => 'numeric',
         ], [
-            'pre_list_id.required' => ' نام جنس از  فهرست الزامی است.',
-        
-            'amount.required' => 'تعداد جنس الزامی است.',
-            'amount.numeric' => 'تعداد جنس باید عدد باشد.',
-        
-            'unit_id.required' => 'انتخاب واحد جنس الزامی است.',
-            'unit_id.integer' => 'شناسه واحد باید عدد صحیح باشد.',
-        
-            'bought_up.required' => 'قیمت خرید الزامی است.',
-            'bought_up.numeric' => 'قیمت خرید باید عدد باشد.',
-            'bought_up.min' => 'قیمت خرید باید حداقل 0.01 باشد.',
-        
-            'currency_id.required' => 'انتخاب واحد پول الزامی است.',
-            'currency_id.integer' => 'شناسه واحد پول باید عدد صحیح باشد.',
-        
-            'warehouse_id.required' => 'حداقل یک گدام را انتخاب کنید.',
-            'warehouse_id.array' => 'فرمت گدام‌ها نادرست است.',
-            'warehouse_id.*.exists' => 'انتخاب گدام الزامی است.',
-        
-            'warehouse_amount.required' => 'تعداد انتقال الزامی است.',
-            'warehouse_amount.array' => 'فرمت تعداد انتقال نادرست است.',
-            'warehouse_amount.*.numeric' => 'تعداد انتقال باید عدد باشد.',
-        
-            'warehouse_sell_up.required' => 'قیمت فروش الزامی است.',
-            'warehouse_sell_up.array' => 'فرمت قیمت‌های فروش نادرست است.',
-            'warehouse_sell_up.*.numeric' => 'قیمت فروش باید عدد باشد.',
+                'wh_pre_list_id.required' => __('validate.wh_pre_list_id.required'),
+            
+                'wh_amount.required' => __('validate.wh_amount.required'),
+                'wh_amount.numeric' => __('validate.wh_amount.numeric'),
+            
+                'wh_unit_id.required' => __('validate.wh_unit_id.required'),
+                'wh_unit_id.integer' => __('validate.wh_unit_id.integer'),
+            
+                'wh_bought_up.required' => __('validate.wh_bought_up.required'),
+                'wh_bought_up.numeric' => __('validate.wh_bought_up.numeric'),
+                'wh_bought_up.min' => __('validate.wh_bought_up.min'),
+            
+                'wh_currency_id.required' => __('validate.wh_currency_id.required'),
+                'wh_currency_id.integer' => __('validate.wh_currency_id.integer'),
+            
+                'wh_warehouse_id.required' => __('validate.wh_warehouse_id.required'),
+                'wh_warehouse_id.array' => __('validate.wh_warehouse_id.array'),
+                'wh_warehouse_id.*.exists' => __('validate.wh_warehouse_id.*.exists'),
+            
+                'wh_warehouse_amount.required' => __('validate.wh_warehouse_amount.required'),
+                'wh_warehouse_amount.array' => __('validate.wh_warehouse_amount.array'),
+                'wh_warehouse_amount.*.numeric' => __('validate.wh_warehouse_amount.*.numeric'),
+            
+                'wh_warehouse_sell_up.required' => __('validate.wh_warehouse_sell_up.required'),
+                'wh_warehouse_sell_up.array' => __('validate.wh_warehouse_sell_up.array'),
+                'wh_warehouse_sell_up.*.numeric' => __('validate.wh_warehouse_sell_up.*.numeric'),
         ]);
         
     }

@@ -36,16 +36,16 @@
         <div class="container-fluid">
             <div class="collapse" id="search-nav">
                  <a href="{{ route('boughtList.create') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-cart-arrow-down">&nbsp; خرید</i></button>
+                    <button class="btn btn-sm btn-info"><i class="fas fa-cart-arrow-down">&nbsp; {{__('validate.buy')}}</i></button>
                 </a>
                 <a href="{{ route('sales.create') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-luggage-cart">&nbsp; فروش</i></button>
+                    <button class="btn btn-sm btn-info"><i class="fas fa-luggage-cart">&nbsp; {{__('validate.sale')}}</i></button>
                 </a>
                 <a href="{{ route('journal.index') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-exchange-alt ">&nbsp; روزنامچه</i></button>
+                    <button class="btn btn-sm btn-info"><i class="fas fa-exchange-alt ">&nbsp; {{__('validate.journal')}}</i></button>
                 </a> 
                 <a href="{{ route('laws.index') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-file-invoice-dollar">&nbsp; قوانین</i></button>
+                    <button class="btn btn-sm btn-info"><i class="fas fa-file-invoice-dollar">&nbsp;  {{__('validate.lows')}}</i></button>
                 </a>
             </div>
             <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
@@ -62,7 +62,7 @@
                     </a>
                     <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown2">
                         <li>
-                            <div class="dropdown-title bg-info col-white font-normal">آگهی اجناس با تاریخ انقضا</div>
+                            <div class="dropdown-title bg-info col-white font-normal">{{__('wh.expired_items')}}</div>
                         </li>
                         <li>
                             <div class="notif-scroll scrollbar-outer">
@@ -70,7 +70,7 @@
                             </div>
                         </li>
                         <li class="bg-light">
-                            <a class="see-all" href="javascript:void(0);">بستن<i class="fa fa-angle-right"></i></a>
+                            <a class="see-all" href="javascript:void(0);">{{__('common.close')}}<i class="fa fa-angle-right"></i></a>
                         </li>
                     </ul>
                 </li>
@@ -83,7 +83,7 @@
                     </a>
                     <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
                         <li>
-                            <div class="dropdown-title bg-info col-white font-normal">آگهی گدام</div>
+                            <div class="dropdown-title bg-info col-white font-normal">{{__('wh.wh_notification')}}</div>
                         </li>
                         <li>
                             <div class="notif-scroll scrollbar-outer">
@@ -91,7 +91,7 @@
                             </div>
                         </li>
                         <li class="bg-light">
-                            <a class="see-all" href="javascript:void(0);">بستن<i class="fa fa-angle-right"></i></a>
+                            <a class="see-all" href="javascript:void(0);">{{__('common.close')}}<i class="fa fa-angle-right"></i></a>
                         </li>
                     </ul>
                 </li>
@@ -107,7 +107,7 @@
 
                 <li class="nav-item hidden-caret">
                     <a href="{{ route('login.logout') }}">
-                        <button class="btn btn-info" style="padding:5px 10px;background:#1e5bab !important; border-color:#1269db !important;">خروج</button>
+                        <button class="btn btn-info" style="padding:5px 10px;background:#1e5bab !important; border-color:#1269db !important;">{{__('wh.exit')}}</button>
                     </a>
                 </li>
             </ul>

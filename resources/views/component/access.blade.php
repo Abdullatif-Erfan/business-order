@@ -24,8 +24,8 @@
             <div class="card center p-t-20 p-b-20">
               <div class="content-wrapper">
                 <section class="content-header">
-                  <h1>عدم صلاحیت</h1>
-                  <h4>این بخش به شما صلاحیت داده نشده است</h4>
+                  <h1>{{__('wh.no_permission')}}</h1>
+                  <h4>{{__('wh.not_allowed_to_access')}}</h4>
                 </section>
                 <br/>
                 <img src="{{ asset('assets/img/access/access.png') }}" alt="Access Denied Image" style="width: 200px;" />

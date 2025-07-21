@@ -64,13 +64,13 @@ class UnitController extends Controller
      */
     public function store(Request $request)
     {
-        // Define custom validation messages
+        // Define custom validation messages  
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام به حروف باشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از دو حرف بنویسید',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
         ];
 
         // Validate the request
@@ -84,7 +84,7 @@ class UnitController extends Controller
         ]);
 
         // Return success response
-        return response()->json(['status' => 'success','message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success','message' => __('common.added_successfully')]);
     }
 
 
@@ -97,7 +97,7 @@ class UnitController extends Controller
         if($unit) {
              return view('settings.unit.editForm',compact('unit'));
          }
-        return response()->json(['message' => 'یافت نگردید'],404);
+        return response()->json(['message' => __('common.not_found')],404);
     }
 
 
@@ -110,16 +110,16 @@ class UnitController extends Controller
         $unit = Unit::find($request->id);
     
         if (!$unit) {
-            return response()->json(['message' => 'ریکارد مورد نظر یافت نشد'], 404);
+            return response()->json(['message' => __('common.not_found')], 404);
         }
     
         // Define custom validation messages
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام به حروف باشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از دو حرف بنویسید',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
         ];
     
         // Validate the request and ignore the current unit's ID in unique rule
@@ -131,7 +131,7 @@ class UnitController extends Controller
         $unit->name = $request->input('name');
         $unit->save();
     
-        return response()->json(['status' => 'success', 'message' => 'ریکارد با موفقیت بروزرسانی شد'], 200);
+        return response()->json(['status' => 'success', 'message' => __('common.updated_successfully')], 200);
     }
     
 
@@ -151,11 +151,11 @@ class UnitController extends Controller
         // If any record exists, prevent deletion
         if ($boughtItemDetailsExists  || $warehouseItemExists ) 
         {
-            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
+            return response()->json(['status' => 'failed', 'message' => __('validate.has_records_in_tables')]);
         }
     
         // If no related records exist, delete the currency
         $unit->delete();
-        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
     }
 }

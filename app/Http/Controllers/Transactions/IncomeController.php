@@ -152,7 +152,7 @@ class IncomeController extends Controller
 
             ->addColumn('delete', function ($income) {
                 return '<a href="income/destroy/'.$income->id.'" class="hidden-print" 
-                            onClick="return confirm(\'آیا میخواهید حذف نمایید ؟\')">
+                            onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
                             <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $income->id . '" style="font-size:20px;"></i>
                         </a>';
             })

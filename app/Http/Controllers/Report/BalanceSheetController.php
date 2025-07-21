@@ -263,7 +263,7 @@ class BalanceSheetController extends Controller
             })
             ->addColumn('result_label', function ($account) {
                 // Reuse the precomputed balance
-                return $account->computed_balance == 0 ? 'تصفیه' : ($account->computed_balance > 0 ? 'طلب' : 'باقی');
+                return $account->computed_balance == 0 ? __('validate.clear') : ($account->computed_balance > 0 ? __('validate.talab') : __('validate.baqi'));
             })
             ->rawColumns(['currency'])
             ->make(true);

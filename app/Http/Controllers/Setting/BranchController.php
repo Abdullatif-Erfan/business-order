@@ -86,13 +86,13 @@ class BranchController extends Controller
     {
         // Define custom validation messages
         $messages = [
-            'name.required' => 'نام شعبه ضروری میباشد',
-            'name.string' => 'نام شعبه حروف باشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از پنج حرف بنویسید',
-            'responsible.required' => 'شخص مسئول ضروری میباشد',
-            'phone.required' => 'شماره تماس ضروری میباشد',
-            'address.required' => 'آدرس دفتر ضروری میباشد',
+            'name.required'        => __('validate.branch_name_required'),
+            'name.string'          => __('validate.branch_name_string'),
+            'name.max'             => __('validate.branch_name_max'),
+            'name.min'             => __('validate.branch_name_min'),
+            'responsible.required' => __('validate.branch_responsible_required'),
+            'phone.required'       => __('validate.branch_phone_required'),
+            'address.required'     => __('validate.branch_address_required'),
         ];
 
         // Validate the request
@@ -108,7 +108,7 @@ class BranchController extends Controller
         Branch::create($validated);
 
         // Return success response
-        return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
     }
 
 
@@ -119,7 +119,7 @@ class BranchController extends Controller
     {
         $branch = Branch::where('id',$id)->first(); 
         if (!$branch) {
-            return response()->json(['status' => 'failed', 'message' => ' یافت نگردید'], 404);
+            return response()->json(['status' => 'failed', 'message' => __('common.not_found')], 404);
         }
         return view('settings.branch.editForm', compact('branch'));
          
@@ -131,18 +131,14 @@ class BranchController extends Controller
      */
     public function update(Request $request)
     {
-        // Define custom validation messages
         $messages = [
-            'name.required' => 'نام شعبه ضروری میباشد',
-            'name.string' => 'نام شعبه باید شامل حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از پنج حرف بنویسید',
-            'responsible.required' => 'شخص مسئول ضروری میباشد',
-            'phone.required' => 'شماره تماس ضروری میباشد',
-            'address.required' => 'آدرس دفتر ضروری میباشد',
-            'id.required' => 'شناسه شعبه ضروری میباشد',
-            'id.exists' => 'شعبه مورد نظر یافت نشد',
-            'email.email' => 'ایمیل معتبر وارد کنید'
+            'name.required'        => __('validate.branch_name_required'),
+            'name.string'          => __('validate.branch_name_string'),
+            'name.max'             => __('validate.branch_name_max'),
+            'name.min'             => __('validate.branch_name_min'),
+            'responsible.required' => __('validate.branch_responsible_required'),
+            'phone.required'       => __('validate.branch_phone_required'),
+            'address.required'     => __('validate.branch_address_required'),
         ];
 
         // Validate the request
@@ -160,7 +156,7 @@ class BranchController extends Controller
         // Update the branch's information
         $branch->update($request->except('id'));
 
-        return response()->json(['status' => 'success', 'message' => 'شعبه با موفقیت بروزرسانی شد'], 200);
+        return response()->json(['status' => 'success', 'message' => __('validate.updated_successfully')], 200);
     }
 
 
@@ -181,12 +177,12 @@ class BranchController extends Controller
         // If any record exists, prevent deletion
         if ($journalExists || $boughtItemExists  || $buyPreListExists || $warehouseExists || $warehouseSalesExists) 
         {
-            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
+            return response()->json(['status' => 'failed', 'message' => __('validate.has_records_in_tables')]);
         }
     
         // If no related records exist, delete the currency
         $branch->delete();
-        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
     }
     
 

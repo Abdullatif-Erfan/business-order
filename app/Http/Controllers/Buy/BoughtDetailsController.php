@@ -528,7 +528,6 @@ class BoughtDetailsController extends Controller
     
     private function deleteBoughtRecords($request)
     {
-
          // Optionally delete or revert other records here as per your requirements
          BoughtItem::where('times', $request->times)->where('billno', $request->billno)->delete();
          BoughtItemDetails::where('times', $request->times)->where('billno', $request->billno)->delete();
@@ -581,41 +580,41 @@ class BoughtDetailsController extends Controller
             'warehouse_sell_up' => 'required|array',
             'warehouse_sell_up.*' => 'numeric',
         ], [
-            'pre_list_id.required' => ' نام جنس از  فهرست الزامی است.',
+            'pre_list_id.required' => __('validate.pre_list_id_required'),
         
-            'amount.required' => 'تعداد جنس الزامی است.',
-            'amount.numeric' => 'تعداد جنس باید عدد باشد.',
-        
-            'unit_id.required' => 'انتخاب واحد جنس الزامی است.',
-            'unit_id.integer' => 'شناسه واحد باید عدد صحیح باشد.',
-        
-            'bought_up.required' => 'قیمت خرید الزامی است.',
-            'bought_up.numeric' => 'قیمت خرید باید عدد باشد.',
-            'bought_up.min' => 'قیمت خرید باید حداقل 0.01 باشد.',
-        
-            'billno.required' => 'بل نمبر  الزامی است ',
-            'billno.integer' => 'بل نمبر باید عدد صحیح باشد.',
-            'billno.min' => 'بل نمبر نمی‌تواند منفی باشد.',
-        
-            'customer_account_id.required' => 'انتخاب حساب مشتری الزامی است.',
-            'customer_account_id.integer' => 'شناسه حساب مشتری باید عدد صحیح باشد.',
-        
-            'from_account_id.required' => 'انتخاب حساب شرکت الزامی است.',
-        
-            'currency_id.required' => 'انتخاب واحد پول الزامی است.',
-            'currency_id.integer' => 'شناسه واحد پول باید عدد صحیح باشد.',
-        
-            'warehouse_id.required' => 'حداقل یک گدام را انتخاب کنید.',
-            'warehouse_id.array' => 'فرمت گدام‌ها نادرست است.',
-            'warehouse_id.*.exists' => 'انتخاب گدام الزامی است.',
-        
-            'warehouse_amount.required' => 'تعداد انتقال الزامی است.',
-            'warehouse_amount.array' => 'فرمت تعداد انتقال نادرست است.',
-            'warehouse_amount.*.numeric' => 'تعداد انتقال باید عدد باشد.',
-        
-            'warehouse_sell_up.required' => 'قیمت فروش الزامی است.',
-            'warehouse_sell_up.array' => 'فرمت قیمت‌های فروش نادرست است.',
-            'warehouse_sell_up.*.numeric' => 'قیمت فروش باید عدد باشد.',
+            'amount.required' => __('validate.amount_required'),
+            'amount.numeric' => __('validate.amount_numeric'),
+            
+            'unit_id.required' => __('validate.unit_id_required'),
+            'unit_id.integer' => __('validate.unit_id_integer'),
+            
+            'bought_up.required' => __('validate.bought_up_required'),
+            'bought_up.numeric' => __('validate.bought_up_numeric'),
+            'bought_up.min' => __('validate.bought_up_min'),
+            
+            'billno.required' => __('validate.billno_required'),
+            'billno.integer' => __('validate.billno_integer'),
+            'billno.min' => __('validate.billno_min'),
+            
+            'customer_account_id.required' => __('validate.customer_account_id_required'),
+            'customer_account_id.integer' => __('validate.customer_account_id_integer'),
+            
+            'from_account_id.required' => __('validate.from_account_id_required'),
+            
+            'currency_id.required' => __('validate.currency_id_required'),
+            'currency_id.integer' => __('validate.currency_id_integer'),
+            
+            'warehouse_id.required' => __('validate.warehouse_id_required'),
+            'warehouse_id.array' => __('validate.warehouse_id_array'),
+            'warehouse_id.*.exists' => __('validate.warehouse_id_exists'),
+            
+            'warehouse_amount.required' => __('validate.warehouse_amount_required'),
+            'warehouse_amount.array' => __('validate.warehouse_amount_array'),
+            'warehouse_amount.*.numeric' => __('validate.warehouse_amount_numeric'),
+            
+            'warehouse_sell_up.required'   => __('validate.warehouse_sell_up_required'),
+            'warehouse_sell_up.array'      => __('validate.warehouse_sell_up_array'),
+            'warehouse_sell_up.*.numeric'  => __('validate.warehouse_sell_up_numeric'),
         ]);
         
     }
@@ -645,13 +644,13 @@ class BoughtDetailsController extends Controller
             if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
-                $details =  ' قرضه خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'قرضه خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.qkbill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
-                $details =  ' طلب خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'طلب خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details = __('validate.tkbill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.tk'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
                  $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
@@ -660,19 +659,19 @@ class BoughtDetailsController extends Controller
             else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
-                $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-                $optionLabel = 'پرداخت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details = __('validate.pkbill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.cpayment'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
 
                 // ثبت قرضه خزانه = Loan Recieved 
-                $details =  ' قرضه خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'قرضه خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.qkbill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->remained,  
                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                
                 // ثبت طلب مشتری = Paid Loan
-                $details =  ' طلب خرید - بل '.' BUY_'.$request->billno;
-                $optionLabel = 'طلب خرید'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.tkbill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->customer_account_id, $request->remained,
                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
@@ -682,8 +681,8 @@ class BoughtDetailsController extends Controller
             else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
-                $details =  'پرداخت خرید - بل  '.' BUY_'.$request->billno;
-                $optionLabel = 'پرداخت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details =  __('validate.pkbill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.cpayment'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
@@ -691,8 +690,8 @@ class BoughtDetailsController extends Controller
             if(intval($request->trans_spend) > 0 && intval($request->from_account_id) > 0) 
             {
                 // رفت پول نقد از بابت ترانسپورت = Cache paid
-                $details =  'پرداخت مصارف ترانسپورت - بل  '.' BUY_'.$request->billno;
-                $optionLabel = 'مصارف ترانسپورت'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details =  __('validate.transExpBill').' BUY_'.$request->billno;
+                $optionLabel = __('validate.transExp'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->trans_spend, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
             
@@ -839,12 +838,12 @@ class BoughtDetailsController extends Controller
                 'payable' => 'required|min:1',
                 'currency_id' => 'required',
             ], [
-                'journal_code.required' => 'کد ژورنال یافت نشد',
-                'billno.required' => 'بل نمبر ضروری میباشد',
-                'from_account_id.required' => ' حساب شرکت ضروری میباشد',
-                'total_price.required' => ' قیمت مجموعی ضروری میباشد',
-                'payable.required' => ' قابل پرداخت ضروری میباشد',
-                'currency_id.required' => ' کرنسی ضروری میباشد',
+                'journal_code.required' => __('validate.journal_code_required'),
+                'billno.required' => __('validate.billno_required'),
+                'from_account_id.required' => __('validate.from_account_id_required'),
+                'total_price.required' => __('validate.total_price_required'),
+                'payable.required' => __('validate.payable_required'),
+                'currency_id.required' => __('validate.currency_id_required'),
 
             ]);
 

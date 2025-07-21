@@ -28,16 +28,17 @@ class RoleController extends Controller
            
             
             return DataTables::of($roles->get())
-            
             ->addIndexColumn()
-
             ->addColumn('status', function ($role) {
-                return $role->status ? 'فعال' : 'غیرفعال';
+                return $role->status ? __('user.active') : __('user.inActive');
             })
              
             ->addColumn('add', function ($role) {
-                return '<a href="roles/permissions/'.$role->roleId.'" class="hidden-print"><i class="btn btn-sm btn-success" 
-                data-id="' . $role->roleId . '" style=""> صلاحیت ( + / - )</i></a>'; 
+                return '<a href="roles/permissions/' . $role->roleId . '" class="hidden-print">
+                            <i class="btn btn-sm btn-success" data-id="' . $role->roleId . '">
+                                ' . __('user.priviledge') . ' ( + / - )
+                            </i>
+                        </a>';
             })
 
             ->addColumn('edit', function ($role) {
@@ -79,7 +80,7 @@ class RoleController extends Controller
             'isDeleted' => false,
         ]);
 
-        Session::flash('notification', ['message' => 'رول موفقانه اضافه شد', 'type' => 'success']);
+        Session::put('notification', ['message' => __('user.role_added'), 'type' => 'success']);
         return redirect()->route('roles.index');
     }
 
@@ -115,7 +116,7 @@ class RoleController extends Controller
         ]);
     
         // Flash success message
-        Session::flash('notification', ['message' => 'رول موفقانه ویرایش شد', 'type' => 'success']);
+        Session::put('notification', ['message' => __('user.role_updated'), 'type' => 'success']);
     
         // Redirect to roles index
         return redirect()->route('roles.index');
@@ -130,7 +131,7 @@ class RoleController extends Controller
         $role = Role::findOrFail($roleId);
         $role->delete();
 
-        Session::flash('notification', ['message' => 'رول موفقانه حذف شد', 'type' => 'success']);
+        Session::put('notification', ['message' => __('user.role_deleted'), 'type' => 'success']);
         return redirect()->route('roles.index');
     }
 
@@ -261,8 +262,8 @@ class RoleController extends Controller
 
         if ($updated) {
 
-            Session::flash('notification', [
-                'message' => 'موفقانه ویرایش گردید',
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
     
@@ -270,8 +271,8 @@ class RoleController extends Controller
 
         } else {
             
-            Session::flash('notification', [
-                'message' => ' ویرایش نگردید',
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
                 'type' => 'danger',
             ]);
             return redirect()->route('roles.index');

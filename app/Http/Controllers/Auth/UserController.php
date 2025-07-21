@@ -63,7 +63,6 @@ class UserController extends Controller
 
     public function getData(Request $request)
     {
-          
           if($this->isAdmin)
           {
               $users = User::with(['roleRelationName','branchRelation'])->where('isHidden',0)->orderBy('created_at','DESC');
@@ -88,7 +87,7 @@ class UserController extends Controller
 
 
             ->addColumn('priviledge', function ($user) {
-                return $user->isAdmin ? 'ادمین' : $user->roleRelationName->role;
+                return $user->isAdmin ? __('common.admin') : $user->roleRelationName->role;
             })
 
             ->addColumn('relogin', function ($user) {
@@ -159,8 +158,8 @@ class UserController extends Controller
         }
 
         $user->save();
-
-        Session::flash('notification', ['message' => 'موفقانه ثبت گردید', 'type' => 'success']);
+        
+        Session::put('notification', ['message' => __('common.admin'), 'type' => 'success']);
         return redirect()->route('user.index');
     }
 
@@ -240,7 +239,7 @@ class UserController extends Controller
         // Save the updated user data
         $user->save();
 
-        Session::flash('notification', ['message' => 'موفقانه ویرایش گردید', 'type' => 'success']);
+        Session::put('notification', ['message' => __('common.updated_successfully'), 'type' => 'success']);
         return redirect()->route('user.index');
     }
 
@@ -255,11 +254,11 @@ class UserController extends Controller
         if($user)
         {
             $user->delete();
-            Session::flash('notification', ['message' => 'موفقانه حذف گردید', 'type' => 'danger']);
+            Session::put('notification', ['message' => __('deleted_successfully'), 'type' => 'danger']);
             return redirect()->route('user.index');
         }
 
-        Session::flash('notification', ['message' => ' حذف نگردید', 'type' => 'danger']);
+        Session::put('notification', ['message' => __('delete_failed'), 'type' => 'danger']);
         return redirect()->route('user.index');
 
     }

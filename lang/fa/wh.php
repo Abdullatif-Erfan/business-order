@@ -51,5 +51,9 @@ return [
     'wastage_list_title' => 'لیست ضایعات اجناس',
     'wastage_amount' => 'مقدار ضایعات',
     'wastage_up' => 'قیمت فی واحد',
-    '' => '',
+    'expired_items' => 'آگهی اجناس با تاریخ انقضا',
+    'exit' => 'خروج',
+    'wh_notification' => 'آگهی گدام',
+    'no_permission' => 'عدم صلاحیت',
+    'not_allowed_to_access' => 'این بخش به شما صلاحیت داده نشده است'
 ];

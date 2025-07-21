@@ -10,7 +10,7 @@
         var content = {};
 
         content.message = '<span style="font-size:16px;">{{ $message['msg'] }}</span>';
-        content.title = '&nbsp;&nbsp;&nbsp;' + ' <span style="font-size:16px;"> پیام </span>';
+        content.title = '&nbsp;&nbsp;&nbsp;' + ' <span style="font-size:16px;"> __('settings.message') </span>';
 
         if (style == "withicon") {
             content.icon = 'fa fa-bell';

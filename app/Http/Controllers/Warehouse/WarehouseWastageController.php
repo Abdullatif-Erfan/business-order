@@ -211,22 +211,25 @@ class WarehouseWastageController extends Controller
     private function validationMessages()
     {
         return [
-            'warehouseItemId.required' => 'انتخاب حداقل یک کالا الزامی است.',
-            'warehouseItemId.array' => 'فرمت کالاها صحیح نیست.',
-            'warehouseItemId.*.integer' => 'شناسه کالا باید عدد باشد.',
-            'warehouseItemId.*.exists' => 'کالای انتخاب شده معتبر نیست.',
-            'amount.required' => 'وارد کردن مقدار الزامی است.',
-            'amount.array' => 'فرمت مقدار کالاها صحیح نیست.',
-            'amount.*.numeric' => 'مقدار کالا باید عدد باشد.',
-            'amount.*.min' => 'مقدار کالا نمی‌تواند کمتر از ۱ باشد.',
-            'unit_id.required' => 'انتخاب واحد کالا الزامی است.',
-            'unit_id.array' => 'فرمت واحدها صحیح نیست.',
-            'unit_id.*.integer' => 'شناسه واحد باید عدد باشد.',
-            'unit_id.*.exists' => 'واحد انتخاب شده معتبر نیست.',
-            'total.required' => 'وارد کردن مجموع مبلغ الزامی است.',
-            'total.array' => 'فرمت مجموع مبلغ صحیح نیست.',
-            'total.*.numeric' => 'مجموع مبلغ باید عدد باشد.',
-            'total.*.min' => 'مجموع مبلغ نمی‌تواند منفی باشد.',
+            'warehouseItemId.required' => __('validate.wh_warehouse_item_id_required'),
+            'warehouseItemId.array' => __('validate.wh_warehouse_item_id_array'),
+            'warehouseItemId.*.integer' => __('validate.wh_warehouse_item_id_integer'),
+            'warehouseItemId.*.exists' => __('validate.wh_warehouse_item_id_exists'),
+
+            'amount.required' => __('validate.wh_amount_required'),
+            'amount.array' => __('validate.wh_amount_array'),
+            'amount.*.numeric' => __('validate.wh_amount_numeric'),
+            'amount.*.min' => __('validate.wh_amount_min'),
+
+            'unit_id.required' => __('validate.wh_unit_id_required'),
+            'unit_id.array' => __('validate.wh_unit_id_array'),
+            'unit_id.*.integer' => __('validate.wh_unit_id_integer'),
+            'unit_id.*.exists' => __('validate.wh_unit_id_exists'),
+
+            'total.required' => __('validate.wh_total_required'),
+            'total.array' => __('validate.wh_total_array'),
+            'total.*.numeric' => __('validate.wh_total_numeric'),
+            'total.*.min' => __('validate.wh_total_min'),
         ];
     }
 

@@ -270,67 +270,87 @@ class SalesController extends Controller
     private function validationMessages()
     {
         return [
-            'customer_account_id.required' => 'انتخاب حساب مشتری الزامی است.',
-            'customer_account_id.integer' => 'حساب مشتری باید یک عدد باشد.',
-            'customer_account_id.exists' => 'حساب مشتری انتخاب شده معتبر نیست.',
-            'todays_date.required' => 'وارد کردن تاریخ امروز الزامی است.',
-            'todays_date.date_format' => 'فرمت تاریخ صحیح نیست.',
-            'billno.required' => 'شماره فاکتور الزامی است.',
-            'billno.integer' => 'شماره فاکتور باید عدد باشد.',
-            'factor.string' => 'فاکتور باید یک متن باشد.',
-            'warehouseItemId.required' => 'انتخاب حداقل یک کالا الزامی است.',
-            'warehouseItemId.array' => 'فرمت کالاها صحیح نیست.',
-            'warehouseItemId.*.integer' => 'شناسه کالا باید عدد باشد.',
-            'warehouseItemId.*.exists' => 'کالای انتخاب شده معتبر نیست.',
-            'amount.required' => 'وارد کردن مقدار الزامی است.',
-            'amount.array' => 'فرمت مقدار کالاها صحیح نیست.',
-            'amount.*.numeric' => 'مقدار کالا باید عدد باشد.',
-            'amount.*.min' => 'مقدار کالا نمی‌تواند کمتر از ۱ باشد.',
-            'unit_id.required' => 'انتخاب واحد کالا الزامی است.',
-            'unit_id.array' => 'فرمت واحدها صحیح نیست.',
-            'unit_id.*.integer' => 'شناسه واحد باید عدد باشد.',
-            'unit_id.*.exists' => 'واحد انتخاب شده معتبر نیست.',
-            'unit_name.required' => 'نام واحد کالا الزامی است.',
-            'unit_name.array' => 'فرمت نام واحدها صحیح نیست.',
-            'unit_name.*.string' => 'نام واحد باید متن باشد.',
-            'unit_name.*.max' => 'نام واحد نباید بیشتر از ۲۵۵ کاراکتر باشد.',
-            'avg_up.array' => 'فرمت قیمت میانگین صحیح نیست.',
-            'avg_up.*.numeric' => 'قیمت میانگین باید عدد باشد.',
-            'avg_up.*.min' => 'قیمت میانگین نمی‌تواند منفی باشد.',
-            'sell_up.array' => 'فرمت قیمت فروش صحیح نیست.',
-            'sell_up.*.numeric' => 'قیمت فروش باید عدد باشد.',
-            'sell_up.*.min' => 'قیمت فروش نمی‌تواند منفی باشد.',
-            'discount.array' => 'فرمت تخفیف‌ها صحیح نیست.',
-            'discount.*.numeric' => 'مقدار تخفیف باید عدد باشد.',
-            'discount.*.min' => 'مقدار تخفیف نمی‌تواند منفی باشد.',
-            'profit.array' => 'فرمت سود صحیح نیست.',
-            'profit.*.numeric' => 'سود باید عدد باشد.',
-            'total.required' => 'وارد کردن مجموع مبلغ الزامی است.',
-            'total.array' => 'فرمت مجموع مبلغ صحیح نیست.',
-            'total.*.numeric' => 'مجموع مبلغ باید عدد باشد.',
-            'total.*.min' => 'مجموع مبلغ نمی‌تواند منفی باشد.',
-            'total_price.required' => 'مبلغ کل الزامی است.',
-            'total_price.numeric' => 'مبلغ کل باید عدد باشد.',
-            'total_price.min' => 'مبلغ کل نمی‌تواند منفی باشد.',
-            'general_discount.numeric' => 'تخفیف کلی باید عدد باشد.',
-            'general_discount.min' => 'تخفیف کلی نمی‌تواند منفی باشد.',
-            'payable.required' => 'مبلغ قابل پرداخت الزامی است.',
-            'payable.numeric' => 'مبلغ قابل پرداخت باید عدد باشد.',
-            'payable.min' => 'مبلغ قابل پرداخت نمی‌تواند منفی باشد.',
-            'cur_pay.required' => 'مبلغ پرداختی فعلی الزامی است.',
-            'cur_pay.numeric' => 'مبلغ پرداختی باید عدد باشد.',
-            'cur_pay.min' => 'مبلغ پرداختی نمی‌تواند منفی باشد.',
-            'remained.required' => 'مبلغ باقی‌مانده الزامی است.',
-            'remained.numeric' => 'مبلغ باقی‌مانده باید عدد باشد.',
-            'remained.min' => 'مبلغ باقی‌مانده نمی‌تواند منفی باشد.',
-            'from_account_id.required' => 'انتخاب حساب مبدأ الزامی است.',
-            'from_account_id.integer' => 'شناسه حساب مبدأ باید عدد باشد.',
-            'from_account_id.exists' => 'حساب مبدأ انتخاب شده معتبر نیست.',
-            'currency_id.required' => 'انتخاب ارز الزامی است.',
-            'currency_id.integer' => 'شناسه ارز باید عدد باشد.',
-            'currency_id.exists' => 'ارز انتخاب شده معتبر نیست.',
-            'note.string' => 'توضیحات باید به صورت متن باشد.',
-            'note.max' => 'توضیحات نباید بیشتر از ۵۰۰ کاراکتر باشد.',
+            'customer_account_id.required' => __('validate.customer_account_id_required'),
+            'customer_account_id.integer' => __('validate.customer_account_id_integer'),
+            'customer_account_id.exists' => __('validate.customer_account_id_exists'),
+        
+            'todays_date.required' => __('validate.todays_date_required'),
+            'todays_date.date_format' => __('validate.todays_date_date_format'),
+        
+            'billno.required' => __('validate.billno_required'),
+            'billno.integer' => __('validate.billno_integer'),
+        
+            'factor.string' => __('validate.factor_string'),
+        
+            'warehouseItemId.required' => __('validate.warehouseItemId_required'),
+            'warehouseItemId.array' => __('validate.warehouseItemId_array'),
+            'warehouseItemId.*.integer' => __('validate.warehouseItemId_*_integer'),
+            'warehouseItemId.*.exists' => __('validate.warehouseItemId_*_exists'),
+        
+            'amount.required' => __('validate.amount_required'),
+            'amount.array' => __('validate.amount_array'),
+            'amount.*.numeric' => __('validate.amount_*_numeric'),
+            'amount.*.min' => __('validate.amount_*_min'),
+        
+            'unit_id.required' => __('validate.unit_id_required'),
+            'unit_id.array' => __('validate.unit_id_array'),
+            'unit_id.*.integer' => __('validate.unit_id_*_integer'),
+            'unit_id.*.exists' => __('validate.unit_id_*_exists'),
+        
+            'unit_name.required' => __('validate.unit_name_required'),
+            'unit_name.array' => __('validate.unit_name_array'),
+            'unit_name.*.string' => __('validate.unit_name_*_string'),
+            'unit_name.*.max' => __('validate.unit_name_*_max'),
+        
+            'avg_up.array' => __('validate.avg_up_array'),
+            'avg_up.*.numeric' => __('validate.avg_up_*_numeric'),
+            'avg_up.*.min' => __('validate.avg_up_*_min'),
+        
+            'sell_up.array' => __('validate.sell_up_array'),
+            'sell_up.*.numeric' => __('validate.sell_up_*_numeric'),
+            'sell_up.*.min' => __('validate.sell_up_*_min'),
+        
+            'discount.array' => __('validate.discount_array'),
+            'discount.*.numeric' => __('validate.discount_*_numeric'),
+            'discount.*.min' => __('validate.discount_*_min'),
+        
+            'profit.array' => __('validate.profit_array'),
+            'profit.*.numeric' => __('validate.profit_*_numeric'),
+        
+            'total.required' => __('validate.total_required'),
+            'total.array' => __('validate.total_array'),
+            'total.*.numeric' => __('validate.total_*_numeric'),
+            'total.*.min' => __('validate.total_*_min'),
+        
+            'total_price.required' => __('validate.total_price_required'),
+            'total_price.numeric' => __('validate.total_price_numeric'),
+            'total_price.min' => __('validate.total_price_min'),
+        
+            'general_discount.numeric' => __('validate.general_discount_numeric'),
+            'general_discount.min' => __('validate.general_discount_min'),
+        
+            'payable.required' => __('validate.payable_required'),
+            'payable.numeric' => __('validate.payable_numeric'),
+            'payable.min' => __('validate.payable_min'),
+        
+            'cur_pay.required' => __('validate.cur_pay_required'),
+            'cur_pay.numeric' => __('validate.cur_pay_numeric'),
+            'cur_pay.min' => __('validate.cur_pay_min'),
+        
+            'remained.required' => __('validate.remained_required'),
+            'remained.numeric' => __('validate.remained_numeric'),
+            'remained.min' => __('validate.remained_min'),
+        
+            'from_account_id.required' => __('validate.from_account_id_required'),
+            'from_account_id.integer' => __('validate.from_account_id_integer'),
+            'from_account_id.exists' => __('validate.from_account_id_exists'),
+        
+            'currency_id.required' => __('validate.currency_id_required'),
+            'currency_id.integer' => __('validate.currency_id_integer'),
+            'currency_id.exists' => __('validate.currency_id_exists'),
+        
+            'note.string' => __('validate.note_string'),
+            'note.max' => __('validate.note_max'),
         ];
     }
 
@@ -477,13 +497,13 @@ class SalesController extends Controller
             if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
-                $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =   __('validate.sales_talab_bill').' SALES_'.$request->billno;
+                $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
-                $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details = __('validate.sales_loan_bill').' SALES_'.$request->billno;
+                $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
                  $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
@@ -492,19 +512,19 @@ class SalesController extends Controller
             else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
-                $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
-                $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
+                $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
-                $details =  ' قرضه فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.sales_loan_bill').' SALES_'.$request->billno;
+                $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $request->remained,  
                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                
                 // ثبت طلب خزانه = Paid Loan = t2p2
-                $details =  ' طلب فروشات - بل '.' SALES_'.$request->billno;
-                $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.sales_talab_bill').' SALES_'.$request->billno;
+                $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $request->remained,
                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
@@ -514,8 +534,8 @@ class SalesController extends Controller
             else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
-                $details =  'دریافت فروشات - بل  '.' SALES_'.$request->billno;
-                $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
+                $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
                 $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }

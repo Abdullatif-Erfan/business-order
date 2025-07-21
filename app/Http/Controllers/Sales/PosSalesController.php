@@ -165,7 +165,8 @@ class PosSalesController extends Controller
                 'type' => 'success',
             ]);
             //  return redirect()->route('sales.pos_create');
-            return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
+            return response()->json(['status' => 'success', 'message' => 
+            __('common.added_successfully')]);
  
  
          } catch (\Exception $e) {
@@ -231,14 +232,14 @@ class PosSalesController extends Controller
     private function validationMessages()
     {
         return [
-            'customer_account_id.required' => 'انتخاب حساب مشتری الزامی است.',
-            'items.*.warehouse_id.required' => 'انتخاب گدام الزامی است.',
-            'items.*.id.required' => 'آیدی فروشات ضروری می‌باشد.',
-            'items.*.amount.required' => 'مقدار جنس الزامی است.',
-            'items.*.unit_id.required' => 'انتخاب واحد جنس الزامی است.',
-            'total.required' => 'مجموع فاکتور الزامی است.',
-            'payable.required' => 'مبلغ قابل پرداخت الزامی است.',
-            'cur_pay.required' => 'مبلغ پرداخت شده الزامی است.',
+            'customer_account_id.required' => __('validate.customer_account_id_required'),
+            'items.*.warehouse_id.required' => __('validate.items_warehouse_id_required'),
+            'items.*.id.required' => __('validate.items_id_required'),
+            'items.*.amount.required' => __('validate.items_amount_required'),
+            'items.*.unit_id.required' => __('validate.items_unit_id_required'),
+            'total.required' => __('validate.total_required'),
+            'payable.required' => __('validate.payable_required'),
+            'cur_pay.required' => __('validate.cur_pay_required'),
         ];
     }
 
@@ -389,13 +390,13 @@ class PosSalesController extends Controller
             if(intval($request->cur_pay) === 0 && intval($remained) === intval($request->payable))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
-                $details =  ' طلب فروشات - بل '.' SALES_'.$billno;
-                $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.sales_talab_bill').' SALES_'.$billno;
+                $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
-                $details =  ' قرضه فروشات - بل '.' SALES_'.$billno;
-                $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details = __('validate.sales_loan_bill') .' SALES_'.$billno;
+                $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
                  $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
             }
@@ -404,19 +405,19 @@ class PosSalesController extends Controller
             else if(intval($remained) > 0 && intval($request->cur_pay) > 0) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
-                $details =  'دریافت فروشات - بل  '.' SALES_'.$billno;
-                $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details =  __('validate.sales_recieve_bill').' SALES_'.$billno;
+                $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
-                $details =  ' قرضه فروشات - بل '.' SALES_'.$billno;
-                $optionLabel = 'قرضه فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.sales_loan_bill').' SALES_'.$billno;
+                $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $remained,  
                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
                
                 // ثبت طلب خزانه = Paid Loan = t2p2
-                $details =  ' طلب فروشات - بل '.' SALES_'.$billno;
-                $optionLabel = 'طلب فروشات'; $dynamic_type = 2; $dt_comment = 'clearable';
+                $details =  __('validate.sales_talab_bill').' SALES_'.$billno;
+                $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $remained,
                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
             }
@@ -426,8 +427,8 @@ class PosSalesController extends Controller
             else if(intval($remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
-                $details =  'دریافت فروشات - بل  '.' SALES_'.$billno;
-                $optionLabel = 'دریافت نقد'; $dynamic_type = 0; $dt_comment = 'not clearable';
+                $details =   __('validate.sales_recieve_bill').' SALES_'.$billno;
+                $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
                 $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment,$times,$journal_code, $billno);
             }

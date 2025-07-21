@@ -35,21 +35,66 @@ class SalaryReportController extends Controller
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
-        $months = array(
-            '1' => 'حمل',
-            '2' => 'ثور',
-            '3' => 'جوزا',
-            '4' => 'سرطان',
-            '5' => 'اسد',
-            '6' => 'سنبله',
-            '7' => 'میزان',
-            '8' => 'عقرب',
-            '9' => 'قوس',
-            '10' => 'جدی',
-            '11' => 'دلو',
-            '12' => 'حوت',
-        );
+        $months = $this->getTranslatedMonthName();
         return view('hr.report.list',compact('employees','currencies','orgbios','months'));
+    }
+
+    public function getTranslatedMonthName()
+    {
+        $locale = app()->getLocale();
+        $months = array();
+        if($locale == "fa")
+        {
+            $months = array(
+                '1' => 'حمل',
+                '2' => 'ثور',
+                '3' => 'جوزا',
+                '4' => 'سرطان',
+                '5' => 'اسد',
+                '6' => 'سنبله',
+                '7' => 'میزان',
+                '8' => 'عقرب',
+                '9' => 'قوس',
+                '10' => 'جدی',
+                '11' => 'دلو',
+                '12' => 'حوت',
+            );
+        }
+        else if ($locale == "pa") 
+        {
+            $months = array(
+                '1' => 'وری',
+                '2' => 'غویی',
+                '3' => 'غبرګولی',
+                '4' => 'چنګاښ',
+                '5' => 'زمری',
+                '6' => 'وږی',
+                '7' => 'تله',
+                '8' => 'لړم',
+                '9' => 'ليندۍ',
+                '10' => 'مرغومی',
+                '11' => 'سلواغه',
+                '12' => 'کب',
+            );
+        }
+        else
+        {
+            $months = array(
+                '1' => 'January',
+                '2' => 'February',
+                '3' => 'March',
+                '4' => 'April',
+                '5' => 'May',
+                '6' => 'June',
+                '7' => 'July',
+                '8' => 'August',
+                '9' => 'September',
+                '10' => 'October',
+                '11' => 'November',
+                '12' => 'December',
+            );
+        }
+        return $months;
     }
 
     /**

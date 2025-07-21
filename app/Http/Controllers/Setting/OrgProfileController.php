@@ -69,7 +69,7 @@ class OrgProfileController extends Controller
         
         $orgBio->save();
 
-        return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
     }
 
     public function show($id)
@@ -78,7 +78,7 @@ class OrgProfileController extends Controller
         if ($orgBio) {
             return response()->json($orgBio);
         }
-        return response()->json(['message' => 'یافت نگردید'], 404);
+        return response()->json(['message' => __('common.not_found')], 404);
     }
 
     public function edit($id)
@@ -90,16 +90,16 @@ class OrgProfileController extends Controller
     public function update(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید شامل حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ کاراکتر مجاز میباشد',
-            'phone.required' => 'شماره تلفن ضروری میباشد',
-            'address.required' => 'آدرس ضروری میباشد',
-            'header.image' => 'هیدر باید یک فایل تصویر باشد',
-            'logos.image' => 'لوگو باید یک فایل تصویر باشد',
-            'expired_after_days.required' => 'موعد تاریخ انقضا ضروری میباشد',
-            'expired_after_days.min' => 'موعد تاریخ انقضا حد اقل پنج روز میباشد',
-            'expired_after_days.max' => 'موعد تاریخ انقضا حد اکثر ۶۰ روز میباشد',
+            'name.required'              => __('validate.org_name_required'),
+            'name.string'                => __('validate.org_name_string'),
+            'name.max'                   => __('validate.org_name_max'),
+            'phone.required'             => __('validate.org_phone_required'),
+            'address.required'           => __('validate.org_address_required'),
+            'header.image'               => __('validate.org_header_image'),
+            'logos.image'                => __('validate.org_logos_image'),
+            'expired_after_days.required'=> __('validate.org_expired_required'),
+            'expired_after_days.min'     => __('validate.org_expired_min'),
+            'expired_after_days.max'     => __('validate.org_expired_max'),
         ];
     
         $validated = $request->validate([
@@ -147,7 +147,7 @@ class OrgProfileController extends Controller
     
         $orgBio->save();
     
-        return response()->json(['status' => 'success', 'message' => 'ویرایش موفقیت‌آمیز بود']);
+        return response()->json(['status' => 'success', 'message' => __('common.updated_successfully')]);
     }
     
 
@@ -162,8 +162,8 @@ class OrgProfileController extends Controller
                 Storage::disk('public')->delete($orgBio->logos);
             }
             $orgBio->delete();
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+            return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
         }
-        return response()->json(['status' => 'failed', 'message' => ' حذف نگردید']);
+        return response()->json(['status' => 'failed', 'message' => __('common.delete_failed')]);
     }
 }

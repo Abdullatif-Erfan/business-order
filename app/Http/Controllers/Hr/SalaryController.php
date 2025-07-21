@@ -35,23 +35,67 @@ class SalaryController extends Controller
         $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $months = array(
-            '1' => 'حمل',
-            '2' => 'ثور',
-            '3' => 'جوزا',
-            '4' => 'سرطان',
-            '5' => 'اسد',
-            '6' => 'سنبله',
-            '7' => 'میزان',
-            '8' => 'عقرب',
-            '9' => 'قوس',
-            '10' => 'جدی',
-            '11' => 'دلو',
-            '12' => 'حوت',
-        );
+        $months = $this->getTranslatedMonthName();
         return view('hr.salary.list',compact('accounts','currencies','orgbios','months'));
     }
 
+    public function getTranslatedMonthName()
+    {
+        $locale = app()->getLocale();
+        $months = array();
+        if($locale == "fa")
+        {
+            $months = array(
+                '1' => 'حمل',
+                '2' => 'ثور',
+                '3' => 'جوزا',
+                '4' => 'سرطان',
+                '5' => 'اسد',
+                '6' => 'سنبله',
+                '7' => 'میزان',
+                '8' => 'عقرب',
+                '9' => 'قوس',
+                '10' => 'جدی',
+                '11' => 'دلو',
+                '12' => 'حوت',
+            );
+        }
+        else if ($locale == "pa") 
+        {
+            $months = array(
+                '1' => 'وری',
+                '2' => 'غویی',
+                '3' => 'غبرګولی',
+                '4' => 'چنګاښ',
+                '5' => 'زمری',
+                '6' => 'وږی',
+                '7' => 'تله',
+                '8' => 'لړم',
+                '9' => 'ليندۍ',
+                '10' => 'مرغومی',
+                '11' => 'سلواغه',
+                '12' => 'کب',
+            );
+        }
+        else
+        {
+            $months = array(
+                '1' => 'January',
+                '2' => 'February',
+                '3' => 'March',
+                '4' => 'April',
+                '5' => 'May',
+                '6' => 'June',
+                '7' => 'July',
+                '8' => 'August',
+                '9' => 'September',
+                '10' => 'October',
+                '11' => 'November',
+                '12' => 'December',
+            );
+        }
+        return $months;
+    }
     /**
      * Show the expense data
      */
@@ -158,20 +202,7 @@ class SalaryController extends Controller
             die();
         }
 
-        $months = array(
-            '1' => 'حمل',
-            '2' => 'ثور',
-            '3' => 'جوزا',
-            '4' => 'سرطان',
-            '5' => 'اسد',
-            '6' => 'سنبله',
-            '7' => 'میزان',
-            '8' => 'عقرب',
-            '9' => 'قوس',
-            '10' => 'جدی',
-            '11' => 'دلو',
-            '12' => 'حوت',
-        );
+        $months = $this->getTranslatedMonthName();
 
         $currencies = Currency::all();
         $branchs = Branch::where('id',$this->branch_id)->get();
@@ -239,10 +270,10 @@ class SalaryController extends Controller
             $journal1->amount = $validated['amount'];
             $journal1->account_type_id = $company_account_type_id;
             $journal1->currency_id = $validated['currency_id'];
-            $journal1->details = $validated['details'] ?? 'پرداخت معاش به کارمند';
+            $journal1->details = $validated['details'] ?? __('validate.salary_payment');
             $journal1->transaction_type = 2; // 1: received, 2: paid
             $journal1->payment_type = 1; // 1: cache, 2: loan
-            $journal1->option_label = 'پرداخت معاش';
+            $journal1->option_label =  __('validate.salary_payment');
             $journal1->save();
     
 
@@ -266,10 +297,10 @@ class SalaryController extends Controller
             $journal2->amount = $validated['amount'];
             $journal2->account_type_id = $customer_account_type_id;
             $journal2->currency_id = $validated['currency_id'];
-            $journal2->details = $validated['details'] ?? 'دریافت معاش';
+            $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
             $journal2->transaction_type = 1; // 1: received, 2: paid
             $journal2->payment_type = 1; // 1: cache, 2: loan
-            $journal2->option_label = 'دریافت معاش';
+            $journal2->option_label = __('validate.salary_recieve');
             $journal2->save();
 
             // Commit the transaction
@@ -308,25 +339,11 @@ class SalaryController extends Controller
 
 
         if(!$ownBanks) {
-            return "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ";
+            return __('validate.select_default_account');
             die();
         }
 
-        $months = array(
-            '1' => 'حمل',
-            '2' => 'ثور',
-            '3' => 'جوزا',
-            '4' => 'سرطان',
-            '5' => 'اسد',
-            '6' => 'سنبله',
-            '7' => 'میزان',
-            '8' => 'عقرب',
-            '9' => 'قوس',
-            '10' => 'جدی',
-            '11' => 'دلو',
-            '12' => 'حوت',
-        );
-
+        $months = $this->getTranslatedMonthName();
       
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $cur_year = Jalalian::now()->format('Y');

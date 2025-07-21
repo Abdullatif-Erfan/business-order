@@ -81,13 +81,13 @@ class WarehouseController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'responsible.required' => 'شخص مسول ضروری میباشد',
-            'address.required' => 'آدرس ضروری میباشد',
-            'branch_id.required' => 'انتخاب شعبه  ضروری میباشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از پنج حرف بنویسید',
-
+            'name.required'        => __('validate.branch_name_required'),
+            'name.string'          => __('validate.branch_name_string'),
+            'name.max'             => __('validate.branch_name_max'),
+            'name.min'             => __('validate.branch_name_min'),
+            'responsible.required' => __('validate.branch_responsible_required'),
+            'phone.required'       => __('validate.branch_phone_required'),
+            'address.required'     => __('validate.branch_address_required'),
         ];
 
         $request->validate([
@@ -133,13 +133,13 @@ class WarehouseController extends Controller
     public function update(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'responsible.required' => 'شخص مسول ضروری میباشد',
-            'address.required' => 'آدرس ضروری میباشد',
-            'branch_id.required' => 'انتخاب شعبه  ضروری میباشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از پنج حرف بنویسید',
-
+            'name.required'        => __('validate.branch_name_required'),
+            'name.string'          => __('validate.branch_name_string'),
+            'name.max'             => __('validate.branch_name_max'),
+            'name.min'             => __('validate.branch_name_min'),
+            'responsible.required' => __('validate.branch_responsible_required'),
+            'phone.required'       => __('validate.branch_phone_required'),
+            'address.required'     => __('validate.branch_address_required'),
         ];
 
         $request->validate([
@@ -176,12 +176,12 @@ class WarehouseController extends Controller
         // If any record exists, prevent deletion
         if ($warehouseItemExists) 
         {
-            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
+            return response()->json(['status' => 'failed', 'message' => __('validated.has_records_in_tables')]);
         }
     
         // If no related records exist, delete the currency
         $warehouse->delete();
-        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
     }
     
 }

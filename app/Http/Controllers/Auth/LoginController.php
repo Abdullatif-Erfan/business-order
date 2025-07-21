@@ -77,8 +77,8 @@ class LoginController extends Controller
             'user_name' => 'required|string',
             'password' => 'required|string|min:6',
         ], [
-            'user_name.required' => 'نام کاربری ضروری میباشد',
-            'password.required' => 'رمز عبور ضروری میباشد',
+            'user_name.required' => __('user.user_name_required'),
+            'password.required'  => __('user.password_required'),
             // 'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
         ]);
 

@@ -102,13 +102,14 @@ class AccountController extends Controller
     public function store2(Request $request)
     {
         $messages = [
-            'account_type_id.required' => 'انتخاب نوع حساب ضروری میباشد',
-            'name.required' => 'نام حساب ضروری میباشد',
-            'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+            'account_type_id_required' => __('validate.account_type_id_required'),
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.required' => __('validate.pre_list_branch_id_required'),
         ];
+
 
         $validated = $request->validate([
             'account_type_id' => 'required|exists:account_types,id',
@@ -317,13 +318,14 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'account_type_id.required' => 'انتخاب نوع حساب ضروری میباشد',
-            'name.required' => 'نام حساب ضروری میباشد',
-            'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+            'account_type_id_required' => __('validate.account_type_id_required'),
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.required' => __('validate.pre_list_branch_id_required'),
         ];
+
 
         $validated = $request->validate([
             'account_type_id' => 'required|exists:account_types,id',
@@ -355,7 +357,7 @@ class AccountController extends Controller
             if (!$from_account_id) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'هیچ حساب بانکی برای تراکنش‌ها یافت نشد.',
+                    'message' => __('common.not_found'),
                 ], 400);
             }
 
@@ -371,7 +373,7 @@ class AccountController extends Controller
                 foreach (array_filter($request->amount) as $key => $value) {
                     $amount = $value;
                     $currency_id = $request->currency_id[$key] ?? 0;
-                    $details = 'رسید حساب سابقه';
+                    $details = __('validate.add_old_journal');
                     $to_account_id = $account->id;
                     $branch_id = $request->branch_id ?? 0;
 
@@ -381,7 +383,7 @@ class AccountController extends Controller
                           *  cacheRecieved = t1p1 = دریافت نقد
                           */
                         case 1:
-                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1","1", 
+                            $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
                             break;
 
@@ -390,20 +392,20 @@ class AccountController extends Controller
                               * ثبت در بخش طلبات
                               */
                               // ثبت طلب مشتری = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2","0", 
+                            $this->createJournalEntry(__('validate.talab_save'), $to_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                            // ثبت قرض  خزانه = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2","0", 
+                            $this->createJournalEntry(__('validate.loan_save'), $from_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                             break;
                         case 3:
                            // ثبت در بخش قرضه
                            // ثبت طلب خزانه = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2","0", 
+                            $this->createJournalEntry(__('validate.talab_save'), $from_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             
                             // ثبت قرض  مشتری = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2","0", 
+                            $this->createJournalEntry(__('validate.loan_save'), $to_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             break;
                     }
@@ -411,7 +413,7 @@ class AccountController extends Controller
             }
 
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'حساب موفقانه ثبت گردید']);
+            return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -472,7 +474,7 @@ class AccountController extends Controller
         $account = Account::find($id);
 
         if (!$account) {
-            return response()->json(['status' => 'failed', 'message' => 'حساب یافت نگردید'], 404);
+            return response()->json(['status' => 'failed', 'message' => __('common.not_found')], 404);
         }
 
         $ownBanks = Account::where('account_type_id', 1)
@@ -531,7 +533,7 @@ class AccountController extends Controller
         $journals = $journals->where('status', 1)->get();
 
         if (!$account) {
-            return response()->json(['status' => 'failed','message' => 'حساب یافت نگردید'], 404);
+            return response()->json(['status' => 'failed','message' => __('common.not_found')], 404);
         }
 
         return view('settings.account.editForm', compact('account', 'accountTypes','currencies','journals','branchs'));
@@ -543,12 +545,12 @@ class AccountController extends Controller
     public function update(Request $request)
     {
         $messages = [
-            'account_type_id.required' => 'انتخاب نوع حساب ضروری میباشد',
-            'name.required' => 'نام حساب ضروری میباشد',
-            'name.max' => 'حداکثر ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.required' => 'انتخاب شعبه ضروری میباشد',
+            'account_type_id_required' => __('validate.account_type_id_required'),
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.required' => __('validate.pre_list_branch_id_required'),
         ];
 
         $validated = $request->validate([
@@ -582,7 +584,7 @@ class AccountController extends Controller
             if (!$from_account_id) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'هیچ حساب بانکی برای تراکنش‌ها یافت نشد.',
+                    'message' => __('validate.not_found'),
                 ], 400);
             }
             
@@ -600,7 +602,7 @@ class AccountController extends Controller
                 foreach (array_filter($request->amount) as $key => $value) {
                     $amount = $value;
                     $currency_id = $request->currency_id[$key] ?? 0;
-                    $details = 'رسید حساب سابقه';
+                    $details = __('validate.add_old_journal');
                     $to_account_id = $account->id;
                     $branch_id = $request->branch_id ?? 0;
 
@@ -610,27 +612,27 @@ class AccountController extends Controller
                              *  cacheRecieved = t1p1 = دریافت نقد
                              */
                         case 1:
-                            $this->createJournalEntry('آورد نقد', $to_account_id, $amount, "1", "1","1", 
+                            $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
                             break;
 
                         case 2:
                             // ثبت در بخش طلبات
                             // ثبت طلب مشتری = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $to_account_id, $amount, "2", "2","0", 
+                            $this->createJournalEntry(__('validate.talab_save'), $to_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                             // ثبت قرض  خزانه = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $from_account_id, $amount, "1", "2","0", 
+                            $this->createJournalEntry(__('validate.loan_save'), $from_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 2, $currency_id);
                             break;
                         case 3:
                             // ثبت در بخش قرضه
                             // ثبت طلب خزانه = Paid Loan = t2p2
-                            $this->createJournalEntry('ثبت طلب', $from_account_id, $amount, "2", "2","0", 
+                            $this->createJournalEntry(__('validate.talab_save'), $from_account_id, $amount, "2", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             
                             // ثبت قرض  مشتری = Recieved Loan = t1p2
-                            $this->createJournalEntry('ثبت قرض', $to_account_id, $amount, "1", "2","0", 
+                            $this->createJournalEntry(__('validate.loan_save'), $to_account_id, $amount, "1", "2","0", 
                                 $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 3, $currency_id);
                             break;
                     }
@@ -645,7 +647,7 @@ class AccountController extends Controller
                 }
             }
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'حساب با موفقیت به روز رسانی شد']);
+            return response()->json(['status' => 'success', 'message' => __('validate.added_successfully')]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -671,7 +673,7 @@ class AccountController extends Controller
             if (!$account) {
                 return response()->json([
                     'status' => 'failed', 
-                    'message' => 'حساب یافت نگردید'
+                    'message' => __('validate.not_found')
                 ]);
             }
 
@@ -687,7 +689,7 @@ class AccountController extends Controller
             if ($boughtItemExists || $boughtItemDetailsExists || $warehouseSalesExists) {
                 return response()->json([
                     'status' => 'failed', 
-                    'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد'
+                    'message' => __('validate.has_records_in_tables')
                 ]);
             }
 
@@ -701,14 +703,14 @@ class AccountController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success', 
-                'message' => 'حساب موفقانه حذف گردید'
+                'message' => __('common.deleted_successfully'),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'خطایی رخ داده است. لطفاً دوباره تلاش کنید.',
+                'message' => __('common.delete_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }

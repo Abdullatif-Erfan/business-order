@@ -45,6 +45,7 @@ return [
     'no_data_found' => 'اطلاعات یافت نشد',
     'not_authorized' => 'اطلاعات یافت نشد / عدم صلاحیت ویرایش ریکاردهای دیگران',
     'not_allowed' => 'صلاحیت ندارید',
+    'not_found'     => 'یافت نگردید',
     'try_again' => 'خطای سرور، دوباره امتحان کنید',
     'are_you_sure' => 'آیا مطمین هستید ؟',
     'back' => 'برگشت به لیست',
@@ -78,10 +79,10 @@ return [
 
 
 
-    // Validation
-    'modal_title' => '',
-    'a' => '',
-    'a' => '',
+    // different page's variables
+    'admin' => 'ادمین',
+    'sales' => 'فروشات',
+    'buy' => 'خرید',
     'a' => '',
     'a' => '',
     'a' => '',

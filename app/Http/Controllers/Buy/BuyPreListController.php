@@ -156,12 +156,12 @@ class BuyPreListController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.exists' => 'انتخاب شده نامعتبر است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
 
         $times = time();
@@ -180,19 +180,20 @@ class BuyPreListController extends Controller
             'barcode_path' => ''
         ]);
 
-        return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
     }
 
     public function storeWithQRcodePNG(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.exists' => 'انتخاب شده نامعتبر است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
+
 
         $code = time();
 
@@ -258,13 +259,14 @@ class BuyPreListController extends Controller
         // Log::info('Starting QR code generation process');
         
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.exists' => 'انتخاب شده نامعتبر است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
+
         
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
@@ -341,7 +343,8 @@ class BuyPreListController extends Controller
                 'barcode_path' => $qrStoragePath
             ]);
 
-            return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+            return response()->json(['status' => 'success', 'message' => 
+            __('common.added_successfully')]);
 
         } catch (\Exception $e) {
             Log::error('QR code generation failed: '.$e->getMessage());
@@ -354,12 +357,12 @@ class BuyPreListController extends Controller
     public function storeWithBarcodeGeneration(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'branch_id.exists' => 'انتخاب شده نامعتبر است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
+            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
     
         $validated = $request->validate([
@@ -455,11 +458,13 @@ class BuyPreListController extends Controller
             DB::commit();
             Log::info('BuyPreList created', ['code' => $code]);
     
-            return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
+            return response()->json(['status' => 'success', 'message' => 
+            __('common.added_successfully')]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Barcode generation failed', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'خطا هنگام ثبت: ' . $e->getMessage()], 500);
+            return response()->json(['status' => 'error', 'message' => 
+            __('common.add_failed') . $e->getMessage()], 500);
         }
     }
 
@@ -538,13 +543,13 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
         // Define custom validation messages
         // Log::info('Request Data', $request->all());
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'name.required' => __('validate.pre_list_name_required'),
+            'name.string' => __('validate.pre_list_name_string'),
+            'name.max' => __('validate.pre_list_name_max'),
+            'name.min' => __('validate.pre_list_name_min'),
+            'name.unique' => __('validate.pre_list_name_unique'),
         ];
-    
+
         // Validate the request
         $validated = $request->validate([
             'name' => [
@@ -576,7 +581,8 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
         $prevData->save();
     
         // Return success response
-        return response()->json(['status' => 'success', 'message' => 'موفقانه ویرایش گردید']);
+        return response()->json(['status' => 'success', 'message' => 
+        __('common.updated_successfully')]);
     }
     
     /**
@@ -600,10 +606,11 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
             // Delete the database record
             $bpList->delete();
 
-            return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+            return response()->json(['status' => 'success', 'message' =>
+             __('common.deleted_successfully')]);
         }
 
-        return response()->json(['status' => 'failed', 'message' => 'حذف نگردید']);
+        return response()->json(['status' => 'failed', 'message' => __('common.delete_failed')]);
     }
 
 }

@@ -76,14 +76,14 @@ class CurrencyController extends Controller
         // Define custom validation messages
         // return ['data' => $request->all()];
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'symbols.required' => 'سمبول ضروری میباشد',
-            'symbols.string' => 'سمبول باید حروف باشد',
-            'color.max' => 'رنگ باید حداکثر ۲۰ حرف باشد',
+            'name.required'   => __('validate.currency_name_required'),
+            'name.string'     => __('validate.currency_name_string'),
+            'name.max'        => __('validate.currency_name_max'),
+            'name.min'        => __('validate.currency_name_min'),
+            'name.unique'     => __('validate.currency_name_unique'),
+            'symbols.required'=> __('validate.currency_symbols_required'),
+            'symbols.string'  => __('validate.currency_symbols_string'),
+            'color.max'       => __('validate.currency_color_max'),
         ];
 
         // Validate the request
@@ -101,7 +101,7 @@ class CurrencyController extends Controller
         ]);
 
         // Return success response
-        return response()->json(['status' => 'success','message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success','message' => __('common.added_successfully')]);
     }
 
 
@@ -114,7 +114,7 @@ class CurrencyController extends Controller
         if($currency) {
              return view('settings.currency.editForm',compact('currency'));
          }
-        return response()->json(['message' => 'یافت نگردید'],404);
+        return response()->json(['message' => __('common.not_found')],404);
     }
 
 
@@ -124,14 +124,14 @@ class CurrencyController extends Controller
     public function update(Request $request)
     {
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام باید حروف باشد',
-            'name.max' => 'حداکثر ۲۵۵ حرف مجاز میباشد',
-            'name.min' => 'حداقل باید ۳ حرف باشد',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
-            'symbols.required' => 'سمبول ضروری میباشد',
-            'symbols.string' => 'سمبول باید حروف باشد',
-            'color.max' => 'رنگ باید حداکثر ۲۰ حرف باشد',
+            'name.required'   => __('validate.currency_name_required'),
+            'name.string'     => __('validate.currency_name_string'),
+            'name.max'        => __('validate.currency_name_max'),
+            'name.min'        => __('validate.currency_name_min'),
+            'name.unique'     => __('validate.currency_name_unique'),
+            'symbols.required'=> __('validate.currency_symbols_required'),
+            'symbols.string'  => __('validate.currency_symbols_string'),
+            'color.max'       => __('validate.currency_color_max'),
         ];
 
         // Validate the request
@@ -144,7 +144,7 @@ class CurrencyController extends Controller
          $currency = Currency::find($request->id);
 
          if(!$currency) {
-            return response()->json(['message' => 'ریکارد مورد نظر یافت نشد'], 404);
+            return response()->json(['message' => __('common.not_found')], 404);
          }
      
         // Update the currency's name
@@ -154,7 +154,7 @@ class CurrencyController extends Controller
 
         $currency->save();
 
-        return response()->json(['status' => 'success','message' => 'ریکارد با موفقیت بروزرسانی شد'], 200);
+        return response()->json(['status' => 'success','message' => __('common.updated_successfully')], 200);
     }
 
     /**
@@ -174,12 +174,12 @@ class CurrencyController extends Controller
         // If any record exists, prevent deletion
         if ($journalExists || $boughtItemExists  || $warehouseItemExists || $warehouseSalesExists) 
         {
-            return response()->json(['status' => 'failed', 'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد']);
+            return response()->json(['status' => 'failed', 'message' => __('common.has_records_in_tables')]);
         }
     
         // If no related records exist, delete the currency
         $currency->delete();
-        return response()->json(['status' => 'success', 'message' => 'موفقانه حذف گردید']);
+        return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
     }
     
 

@@ -85,11 +85,9 @@ class ClearanceController extends Controller
             
             
             return DataTables::of($clearedData->get())
-            
             ->addIndexColumn()
-           
             ->addColumn('type', function ($clearedData) {
-                return $clearedData->type == 'buy' ? 'فروشات' : 'خرید';
+                return $clearedData->type == 'buy' ? __('common.sales') : __('common.buy');
             })
        
             ->addColumn('total', function ($clearedData) {
@@ -122,7 +120,7 @@ class ClearanceController extends Controller
         ->where('branch_id', $this->branch_id)->where('is_pre_select','1')->first();
         if(!$ownBanks)
         {
-            return "<div>حساب بانکی یافت نگردید</div>";
+            return "<div>{{__('validate.not_found_account')}}</div>";
             die();
         }
 
@@ -134,7 +132,7 @@ class ClearanceController extends Controller
     
         if(!$boughtItem->count() > 0)
         {
-            return "<div>لیست خالی است لطفا فروشنده و واحدپولی را درست انتخاب نمایید</div>";
+            return "<div>{{__('validate.supplier_and_currency_is_required')}}</div>";
             die();
         }
         // return [  'account_name' => $account->name, 'currency_name' => $currency->name,'boughtItem' => $boughtItem];
@@ -190,7 +188,7 @@ class ClearanceController extends Controller
                 $boughtItem->cur_pay = $boughtItem->payable;
                 $boughtItem->remained = 0;
                 $boughtItem->is_cleared = 1;
-                $boughtItem->note = 'تصفیه گردید';
+                $boughtItem->note = __('validate.cleared');
                 $boughtItem->save();
 
                 // update journal
@@ -216,7 +214,8 @@ class ClearanceController extends Controller
                 }
             }
 
-           $details = 'تصفیه حساب میان '.$request->company_account_name.' و '.$request->customer_account_name.'';
+           $details = __('validate.clearance_between').$request->company_account_name.
+            __('validate.wa') .$request->customer_account_name.'';
             // Store clearance record
             Clearance::create([
                 'customer_account_id' => $request->customer_account_id, 
@@ -237,7 +236,7 @@ class ClearanceController extends Controller
             {
                 DB::rollBack();
                 Session::flash('notification', [
-                    'message' => ' ثبت نگردید و مشکل در ژورنال یافت گردید',
+                    'message' => __('validate.journal_insertion_failed'),
                     'type' => 'danger',
                 ]);
                 return redirect()->route('clearance.index');
@@ -247,7 +246,7 @@ class ClearanceController extends Controller
            
          
             Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+                'message' =>  __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('clearance.index');
@@ -259,7 +258,7 @@ class ClearanceController extends Controller
             Log::error('Error in store_for_buy: ' . $e->getMessage());
 
             Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+                'message' =>  __('common.add_failed'),
                 'type' => 'danger',
             ]);
             return redirect()->route('clearance.index');
@@ -298,8 +297,8 @@ class ClearanceController extends Controller
                     'currency_id' => $request->currency_id,
                     'transaction_type' => 1,
                     'payment_type' => 2,
-                    'option_label' => 'تصفیه طلب',
-                    'dt_comment' => 'تصفیه حساب',
+                    'option_label' => __('validate.talab_clearance'),
+                    'dt_comment' => __('validate.clearance'),
                     'dynamic_type' => 1,
                     'is_cleared' => 1,
                     'user' => $this->full_name ?? '',
@@ -328,10 +327,10 @@ class ClearanceController extends Controller
                     'currency_id'  => $request->currency_id,
                     'transaction_type' => 2,
                     'payment_type' => 1,
-                    'option_label' => 'پرداخت نقد',
+                    'option_label' => __('validate.cache_payment'),
                     'dynamic_type' => 1,
                     'is_cleared'   => 0, // تنها این مبلغ قابل حساب باشد
-                    'dt_comment'   => 'تصفیه حساب',
+                    'dt_comment'   => __('validate.clearance'),
                     'user' => $this->full_name ?? '',
                     'year' => $date[0],
                     'month' => $date[1],
@@ -421,7 +420,7 @@ class ClearanceController extends Controller
             ->addIndexColumn()
            
             ->addColumn('type', function ($clearedData) {
-                return $clearedData->type == 'buy' ? 'فروشات' : 'خرید';
+                return $clearedData->type == 'buy' ? __('validate.sales') : __('validate.buy');
             })
        
             ->addColumn('total', function ($clearedData) {
@@ -453,7 +452,7 @@ class ClearanceController extends Controller
         ->where('branch_id', $this->branch_id)->where('is_pre_select','1')->first();
         if(!$ownBanks)
         {
-            return "<div>حساب بانکی یافت نگردید</div>";
+            return "<div>{{__('validate.account_not_found')}}</div>";
             die();
         }
         $currency = Currency::select('name')->where('id', $currency_id)->first();
@@ -464,7 +463,7 @@ class ClearanceController extends Controller
     
         if(!$salesRecords->count() > 0)
         {
-            return "<div>لیست خالی است لطفا مشتری و واحدپولی را درست انتخاب نمایید</div>";
+            return "<div>{{__('validate.supplier_and_currency_is_required')}}</div>";
             die();
         }
         // return [  'account_name' => $account->name, 'currency_name' => $currency->name,'salesRecords' => $salesRecords];
@@ -521,7 +520,7 @@ class ClearanceController extends Controller
                 $warehouseSales->cur_pay = $warehouseSales->payable;
                 $warehouseSales->remained = 0;
                 $warehouseSales->is_cleared = 1;
-                $warehouseSales->note = 'تصفیه گردید';
+                $warehouseSales->note = __('validate.cleared');
                 $warehouseSales->save();
 
                 // update journal
@@ -547,7 +546,8 @@ class ClearanceController extends Controller
                 }
             }
 
-            $details = 'تصفیه حساب میان '.$request->company_account_name.' و '.$request->customer_account_name.'';
+            $details = __('validate.clearance_between') .$request->company_account_name.
+            __('validate.wa').$request->customer_account_name.'';
            
             // Store clearance record
             Clearance::create([
@@ -569,7 +569,7 @@ class ClearanceController extends Controller
             {
                 DB::rollBack();
                 Session::flash('notification', [
-                    'message' => ' ثبت نگردید و مشکل در ژورنال یافت گردید',
+                    'message' => __('validate.journal_insertion_failed'),
                     'type' => 'danger',
                 ]);
                 return redirect()->route('clearance.sales.index');
@@ -579,7 +579,7 @@ class ClearanceController extends Controller
             DB::commit(); // Commit transaction
            
             Session::flash('notification', [
-                'message' => 'موفقانه ثبت گردید',
+                'message' =>  __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('clearance.sales.index');
@@ -591,7 +591,7 @@ class ClearanceController extends Controller
             Log::error('Error in store_for_sales: ' . $e->getMessage());
 
             Session::flash('notification', [
-                'message' => ' ثبت نگردید',
+                'message' =>  __('common.add_failed'),
                 'type' => 'danger',
             ]);
             return redirect()->route('clearance..sales.index');
@@ -629,8 +629,8 @@ class ClearanceController extends Controller
                     'currency_id' => $request->currency_id,
                     'transaction_type' => 1,
                     'payment_type' => 1,
-                    'option_label' => 'دریافت نقد',
-                    'dt_comment' => 'تصفیه حساب',
+                    'option_label' => __('validate.cache_recieved'),
+                    'dt_comment' =>  __('validate.cleared'),
                     'dynamic_type' => 1,
                     'is_cleared' => 0, // تنها این مبلغ قابل حساب باشد
                     'user' => $this->full_name ?? '',
@@ -659,10 +659,10 @@ class ClearanceController extends Controller
                     'currency_id'  => $request->currency_id,
                     'transaction_type' => 2,
                     'payment_type' => 1,
-                    'option_label' => 'پرداخت نقد',
+                    'option_label' => __('validate.cache_payment'),
                     'dynamic_type' => 1,
                     'is_cleared'   => 1, 
-                    'dt_comment'   => 'تصفیه حساب',
+                    'dt_comment'   => __('validate.clearance'),
                     'user' => $this->full_name ?? '',
                     'year' => $date[0],
                     'month' => $date[1],

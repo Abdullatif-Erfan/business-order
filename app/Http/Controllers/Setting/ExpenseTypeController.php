@@ -59,12 +59,13 @@ class ExpenseTypeController extends Controller
     {
         // Define custom validation messages
         $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام به حروف باشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از دو حرف بنویسید',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'name.required'   => __('validate.currency_name_required'),
+            'name.string'     => __('validate.currency_name_string'),
+            'name.max'        => __('validate.currency_name_max'),
+            'name.min'        => __('validate.currency_name_min'),
+            'name.unique'     => __('validate.currency_name_unique'),
         ];
+
 
         // Validate the request
          $validated = $request->validate([
@@ -78,7 +79,7 @@ class ExpenseTypeController extends Controller
         ]);
 
         // Return success response
-        return response()->json(['status' => 'success','message' => 'موفقانه ثبت گردید']);
+        return response()->json(['status' => 'success','message' =>  __('common.added_successfully')]);
     }
 
 
@@ -102,7 +103,7 @@ class ExpenseTypeController extends Controller
         if($expenseType) {
              return view('settings.expense_type.editForm',compact('expenseType'));
         }
-        return response()->json(['message' => 'صلاحیت ویرایش معلومات دیگران را ندارید'],404);
+        return response()->json(['message' => __('common.not_allowed')],404);
     }
 
 
@@ -113,11 +114,11 @@ class ExpenseTypeController extends Controller
     {
          // Define custom validation messages
          $messages = [
-            'name.required' => 'نام ضروری میباشد',
-            'name.string' => 'نام به حروف باشد',
-            'name.max' => 'حداکثر الی ۱۰۰ حرف مجاز میباشد',
-            'name.min' => 'بالاتر از دو حرف بنویسید',
-            'name.unique' => 'این نام قبلاً ثبت شده است',
+            'name.required'   => __('validate.currency_name_required'),
+            'name.string'     => __('validate.currency_name_string'),
+            'name.max'        => __('validate.currency_name_max'),
+            'name.min'        => __('validate.currency_name_min'),
+            'name.unique'     => __('validate.currency_name_unique'),
         ];
 
         // Validate the request
@@ -128,14 +129,14 @@ class ExpenseTypeController extends Controller
          $expenseType = ExpenseType::find($request->id);
 
          if(!$expenseType) {
-            return response()->json(['message' => 'ریکارد مورد نظر یافت نشد'], 404);
+            return response()->json(['message' => __('common.not_found')], 404);
          }
      
         // Update the exp$expenseType's name
         $expenseType->name = $request->input('name');
         $expenseType->save();
 
-        return response()->json(['status' => 'success','message' => 'ریکارد با موفقیت بروزرسانی شد'], 200);
+        return response()->json(['status' => 'success','message' => __('common.updated_successfully')], 200);
     }
 
     /**
@@ -152,7 +153,7 @@ class ExpenseTypeController extends Controller
             if (!$expenseType) {
                 return response()->json([
                     'status' => 'failed', 
-                    'message' => ' یافت نگردید'
+                    'message' => __('common.not_found')
                 ]);
             }
     
@@ -163,7 +164,7 @@ class ExpenseTypeController extends Controller
             if ($journalRecordsExists ) {
                 return response()->json([
                     'status' => 'failed', 
-                    'message' => 'حذف نگردید و در ژورنال یا سایر بخش‌ها ریکارد وجود دارد'
+                    'message' => __('common.has_records_in_tables')
                 ]);
             }
     
@@ -173,7 +174,7 @@ class ExpenseTypeController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success', 
-                'message' => 'حساب موفقانه حذف گردید'
+                'message' => __('common.deleted_successfully'),
             ]);
     
         } catch (\Exception $e) {

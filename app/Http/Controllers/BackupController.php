@@ -180,7 +180,7 @@ class BackupController extends Controller
             }
 
             Session::flash('notification', [
-                'message' => 'موفقانه بک اپ ایجاد گردید',
+                'message' =>  __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('backups.index');
@@ -295,7 +295,7 @@ class BackupController extends Controller
 
             // Notify user of success
             Session::flash('notification', [
-                'message' => 'موفقانه بک اپ ایجاد گردید',
+                'message' =>  __('common.added_successfully'),
                 'type' => 'success',
             ]);
             return redirect()->route('backups.index');
