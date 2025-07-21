@@ -74,8 +74,6 @@ return [
     'default_account' => 'لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید',
     'store_income_option_label' => 'دریافت عواید',
 
-
-
     // expense
     'expense_title' => 'مصارف',
     'expense_type' => 'نوع مصارف',
