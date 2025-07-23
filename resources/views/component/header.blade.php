@@ -98,7 +98,7 @@
                 <!-- / warehouse_item -->
 
                 <li class="nav-item">
-                    <select onchange="changeLanguage(this.value)" class="form-control">
+                    <select onchange="changeLanguage(this.value)" class="form-control" style="border-radius:5px !important;">
                         <option value="fa" {{ app()->getLocale() === 'fa' ? 'selected' : '' }}>دری</option>
                         <option value="pa" {{ app()->getLocale() === 'pa' ? 'selected' : '' }}>پشتو</option>
                         <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>English</option>

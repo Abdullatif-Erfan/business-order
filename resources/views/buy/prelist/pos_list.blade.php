@@ -215,7 +215,7 @@ function addNewRecord(id) {
     $('#loading').show();
     $('#nameError').text('');
     $('#imageError').text('');
-    $('#prev_barcode').text('');
+    $('#prev_barcode').val('');
 
     $.ajax({
         url: '/buyprelist/storeWithBarcodeGeneration',
@@ -232,6 +232,7 @@ function addNewRecord(id) {
                     $('#add_form_collapse').collapse('hide');
                 }
                 $('#name').val('');
+                $('#prev_barcode').val('');
                 $('input[name="image"]').val(''); // clear file input
                 showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
             } else {

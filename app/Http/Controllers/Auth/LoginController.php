@@ -22,7 +22,6 @@ use App\Models\Auth\Login;
 use App\Models\Package; 
 
 
-
 class LoginController extends Controller
 {
     public function __construct()
@@ -77,8 +76,8 @@ class LoginController extends Controller
             'user_name' => 'required|string',
             'password' => 'required|string|min:6',
         ], [
-            'user_name.required' => __('user.user_name_required'),
-            'password.required'  => __('user.password_required'),
+            'user_name.required' => __('validate.user_name_required'),
+            'password.required'  => __('validate.password_required'),
             // 'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
         ]);
 
