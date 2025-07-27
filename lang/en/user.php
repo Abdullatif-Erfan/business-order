@@ -1,3 +1,4 @@
+<?php
 return [
     "create_role" => "Create Role",
     "role_name" => "Role Name",

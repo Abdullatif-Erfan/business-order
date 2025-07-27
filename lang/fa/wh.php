@@ -2,7 +2,7 @@
 return [
     'create_title' => 'لیست خرید',
     'wh_selection' => 'انتخاب گدام',
-    'wh_item_selection' => 'انتخاب جنس',
+    'item_selection' => 'انتخاب جنس',
     'wh_amount' => 'تعداد انتقال در گدام',
     'old_item_title' => 'فورم ثبت موجودی گدام',
     'note_desc' => 'در هربار ثبت یک نوع کرنسی انتخاب گردد',

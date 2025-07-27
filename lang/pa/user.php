@@ -1,3 +1,4 @@
+<?php
 return [
     "create_role" => "رول جوړول",
     "role_name" => "د رول نوم",

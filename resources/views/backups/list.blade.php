@@ -15,7 +15,8 @@
                     <!-- insertion -->
                       <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
                             <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
-                                <span class="fas fa-plus-square"></span>  &nbsp; {{__('user.add_new_backup')}} </button>
+                                <span class="fas fa-plus-square"></span>  &nbsp; 
+                                {{__('user.add_new_backup')}} </button>
                             </a> 
                         </div>
                         <div id="add_form_collapse" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">
@@ -113,28 +114,6 @@ function fetchList() {
 
 
 <script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> __('settings.message') </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
 
 // check password for download
 
@@ -155,8 +134,7 @@ function checkPassword(event, downloadUrl) {
 // restoreIcon
    // Handle the restore button click
    $(document).on('click', '.restoreIcon', function() {
-        var backupId = $(this).data('id');
-        
+       var backupId = $(this).data('id');
         // Show a confirmation dialog
         if (confirm("{{__('user.restore_confirm')}}")) {
             // Send AJAX request to restore the backup

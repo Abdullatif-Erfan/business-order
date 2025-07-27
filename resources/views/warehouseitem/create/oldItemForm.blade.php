@@ -98,9 +98,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="unit_id"> {{__('common.currency')}} <span class="danger">*</span> </label>
+                                                <label for="unit_id"> {{__('common.unit')}} <span class="danger">*</span> </label>
                                                 <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
-                                                    <option value="">{{__('common.currency')}}</option>
+                                                    <option value="">{{__('common.unit')}}</option>
                                                     @foreach($units as $unitItem)
                                                         <option value="{{ $unitItem->id }}">{{ $unitItem->name }}</option>
                                                     @endforeach
