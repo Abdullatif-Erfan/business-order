@@ -15,22 +15,36 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) {
-        // $middleware->append(\App\Http\Middleware\AccessMiddleware::class);
-        $middleware->append([
-            StartSession::class,
-            SetLocale::class,
+    // ->withMiddleware(function (Middleware $middleware) {
+    //     // $middleware->append(\App\Http\Middleware\AccessMiddleware::class);
+    //     $middleware->append([
+    //         StartSession::class,
+    //         SetLocale::class,
+    //     ]);
+
+
+    //     $middleware->alias([
+    //         'access' => \App\Http\Middleware\AccessMiddleware::class,
+    //     ]);
+
+    //     // $middleware->validateCsrfTokens(except: [
+    //     //     'boughtList/*',
+    //     // ]);
+    // })
+     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->web([
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\SetLocale::class,  // Moved here
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
-
-
+        
         $middleware->alias([
             'access' => \App\Http\Middleware\AccessMiddleware::class,
         ]);
-
-        // $middleware->validateCsrfTokens(except: [
-        //     'boughtList/*',
-        // ]);
     })
+    
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

@@ -61,7 +61,7 @@ class HomeController extends Controller
         // $accessInfo = Session::get('accessInfo', []);
         // return ['accessInfo' => $accessInfo];
 
-        //  $auth = auth()->user();
+        // $auth = auth()->user();
         // return ['auth' => $auth];
         // $user = auth()->user();
         // $branch_id = $this->branch_id;

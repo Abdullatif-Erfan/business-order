@@ -72,6 +72,9 @@ class LoginController extends Controller
      */
     public function loginMe(Request $request)
     {
+        // Add debug logging
+    //    \Log::debug('Session ID at start: ' . session()->getId());
+
         $request->validate([
             'user_name' => 'required|string',
             'password' => 'required|string|min:6',
@@ -97,6 +100,14 @@ class LoginController extends Controller
 
 
         if ($user && Hash::check($password, $user->password)) {
+
+             // Add session verification before putting data
+             if (!session()->isStarted()) {
+                session()->start();
+            }
+
+            // \Log::debug('Session data before put:', session()->all());
+
             if ($user->isAdmin != 1 && ($user->roleRelationName->status == 2 || $user->roleRelationName->isDeleted == 1)) {
                 Session::flash('not_exist', 'not_exist');
                 return redirect()->route('login');
@@ -122,6 +133,10 @@ class LoginController extends Controller
             // Session::put('lang', 'dr');
             // Authenticate the user using Laravel's auth system
             // auth()->login($user);
+
+            // \Log::debug('Session data after put:', session()->all());
+            session()->save();
+            // \Log::debug('Session saved, ID: ' . session()->getId());
             Auth::guard('web')->login($user);
             return redirect()->route('home');
         } else {
