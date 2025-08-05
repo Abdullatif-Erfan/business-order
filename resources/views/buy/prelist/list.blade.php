@@ -109,67 +109,8 @@
     </div>
 </div>
 
-
 <script>
-function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
-    var content = {};
-    content.message = '<span style="font-size:16px;">' + message + '</span>';
-    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
-    
-    if (style === "withicon") {
-        content.icon = 'fa fa-bell';
-    } else {
-        content.icon = 'none';
-    }
-    content.url = '#';
-    content.target = '_blank';
-
-    $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
-        placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
-        },
-        time: 500
-    });
-}
-
-
-$(document).ready(function() {
-    fetchList();
-});
-
-function fetchList() {
-    const preListTable = $('#preListTable');
-
-    // Check if DataTable is already initialized
-    if (!$.fn.DataTable.isDataTable(preListTable)) {
-        // Initialize DataTable if not already initialized
-        preListTable.DataTable({
-            serverSide: true,
-            processing: true,
-            ajax: {
-                url: '{{ route("buyprelist.data") }}',
-            },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'branch', name: 'branch' },
-                { data: 'name', name: 'name' },
-                { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
-                { data: 'delete', name: 'delete', orderable: false, searchable: false }
-            ]
-        });
-    } else {
-        // If already initialized, reload the data
-        preListTable.DataTable().ajax.reload();
-    }
-}
-</script>
-
-
-
-<script>
-// ====================== add new record =====================
+ // ====================== add new record =====================
 
 function addNewRecord(id) {
     var form = $('#buyPreListForm')[0];
@@ -239,13 +180,12 @@ $('table').on('click', '.editIcon', function () {
     });
 });
 
-
 $('#updateSubmitBtn').on('click', function () {
-
-     // Create FormData object
-     var formData = new FormData($('#updatePreListForm')[0]);
-     // Include CSRF token manually
-     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+    // Create FormData object
+    var formData = new FormData($('#updatePreListForm')[0]);
+    
+    // Include CSRF token
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     // Show loading state
     $('#loading2').show();
@@ -257,11 +197,11 @@ $('#updateSubmitBtn').on('click', function () {
 
     // AJAX form submission
     $.ajax({
-        url: '/buyprelist/update', // The actual route for updating data
-        type: 'POST', // Laravel supports PATCH, but some servers require POST + _method
-        data: formData ,
-        contentType: false,  // Important for file upload
-        processData: false,  // Prevent jQuery from processing the data
+        url: '{{ route("buyprelist.update") }}', // Use the named route
+        type: 'POST', // Matches your route definition
+        data: formData,
+        contentType: false,
+        processData: false,
         success: (response) => {
             $('#loading2').hide();
             if (response.status === 'success') {
@@ -274,7 +214,7 @@ $('#updateSubmitBtn').on('click', function () {
         },
         error: (xhr) => {
             $('#loading2').hide();
-            if (xhr.status === 422) { // Laravel validation error status code
+            if (xhr.status === 422) {
                 var errors = xhr.responseJSON.errors;
                 if (errors?.branch_id) {
                     $('#branchIdError2').text(errors.branch_id[0]);
@@ -286,11 +226,73 @@ $('#updateSubmitBtn').on('click', function () {
                     $('#imageError2').text(errors.image[0]);
                 }
             } else {
-                showNotification({{__('common.update_failed')}}, 'danger', 'top', 'right', 'withicon');
+                showNotification("{{__('common.update_failed')}}", 'danger', 'top', 'right', 'withicon');
             }
         }
     });
 });
+
+</script>
+
+<script>
+function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
+    var content = {};
+    content.message = '<span style="font-size:16px;">' + message + '</span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }} </span>';
+    
+    if (style === "withicon") {
+        content.icon = 'fa fa-bell';
+    } else {
+        content.icon = 'none';
+    }
+    content.url = '#';
+    content.target = '_blank';
+
+    $.notify(content, {
+        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        placement: {
+            from: from, // top, bottom
+            align: align // right, center, left
+        },
+        time: 500
+    });
+}
+
+
+$(document).ready(function() {
+    fetchList();
+});
+
+function fetchList() {
+    const preListTable = $('#preListTable');
+
+    // Check if DataTable is already initialized
+    if (!$.fn.DataTable.isDataTable(preListTable)) {
+        // Initialize DataTable if not already initialized
+        preListTable.DataTable({
+            serverSide: true,
+            processing: true,
+            ajax: {
+                url: '{{ route("buyprelist.data") }}',
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data: 'branch', name: 'branch' },
+                { data: 'name', name: 'name' },
+                { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
+                { data: 'delete', name: 'delete', orderable: false, searchable: false }
+            ]
+        });
+    } else {
+        // If already initialized, reload the data
+        preListTable.DataTable().ajax.reload();
+    }
+}
+</script>
+
+
+
+<script>
 
 // Delete 
 $('table').on('click', '.deleteIcon', function () {
