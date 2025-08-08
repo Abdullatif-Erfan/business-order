@@ -35,7 +35,7 @@ function changePoints(value) {
                             <select class="form-control select2" name="from_currency_id" required style="width:100%">
                                 <option value="">{{ __('rate.select_larger_currency') }}</option>
                                 @foreach($currencies as $currency)
-                                    <option value="{{ $currency->id }}">{{ __('rate.one_unit', ['currency' => $currency->name]) }}</option>
+                                    <option value="{{ $currency->id }}">{{ __('rate.one_unit')}} {{ $currency->name }}</option>
                                 @endforeach
                             </select>
                             @error('from_currency_id')
@@ -49,7 +49,7 @@ function changePoints(value) {
                             <select class="form-control select2" name="to_currency_id" required style="width:100%">
                                 <option value="">{{ __('rate.select_smaller_currency') }}</option>
                                 @foreach($currencies as $currency)
-                                    <option value="{{ $currency->id }}">{{ __('rate.equivalent_to', ['currency' => $currency->name]) }}</option>
+                                    <option value="{{ $currency->id }}">{{ __('rate.equivalent_to') }} {{ $currency->name }}</option>
                                 @endforeach
                             </select>
                             @error('to_currency_id')
