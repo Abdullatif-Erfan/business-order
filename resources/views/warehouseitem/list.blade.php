@@ -62,15 +62,15 @@
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.name')}} </th>
-                                           <th> {{__('common.currency')}}  </th>                                            
+                                            <th> {{__('common.currency')}}  </th>                                            
                                             <th> {{__('common.unit')}} </th>
                                             <th> {{__('common.in')}} </th>
                                             <th> {{__('common.out')}} </th>
-                                            <th>  {{__('common.available')}}  </th>
-                                            <th>   {{__('wh.last_bought')}} </th>
+                                            <th> {{__('common.available')}}  </th>
+                                            <th> {{__('wh.last_bought')}} </th>
                                             <th> {{__('wh.average')}}</th>
                                             <th> {{__('buy.sold_price')}} </th>
-                                            <th>  {{__('wh.available_in_wh')}} </th> 
+                                            <th> {{__('wh.available_in_wh')}} </th> 
                                             <th> {{__('wh.wastage')}}  </th> 
                                             <th> {{__('common.details')}} </th>
                                         </tr>

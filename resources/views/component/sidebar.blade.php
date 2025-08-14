@@ -274,12 +274,12 @@
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{route('cacheflow.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.chartOfAccount') }} </span>
+                                        <span class="sub-item"> {{ __('menu.cacheflow') }} </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('chartOfAccount.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.cacheflow') }} </span>
+                                        <span class="sub-item"> {{ __('menu.chartOfAccount') }} </span>
                                     </a>
                                 </li>
                             </ul>

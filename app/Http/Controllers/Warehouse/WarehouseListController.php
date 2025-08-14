@@ -336,7 +336,8 @@ class WarehouseListController extends Controller
                 $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
                 $distWareHouseItem->name = $sourceWareHouseItem->name;
                 $distWareHouseItem->unit_id = $validated['new_unit_id'];
-                $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up * $validated['convertable_amount'];
+                // $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up * $validated['convertable_amount'];
+                $distWareHouseItem->bought_up = 0; // وقتیکه واحد تغیر کند نرخ آخر خرید نباید از واحد قبلی انتقال کند
                 $distWareHouseItem->available_amount = $validated['converted_amount'];
                 $distWareHouseItem->in_amount = $validated['converted_amount'];
                 $distWareHouseItem->out_amount = 0;

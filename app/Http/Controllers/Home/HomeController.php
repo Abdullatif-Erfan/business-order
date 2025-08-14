@@ -487,6 +487,7 @@ class HomeController extends Controller
             'sales_details',
             'warehouse_items',
             'warehouse_sales',
+            'warehouse_wastage',
         ];
 
         try {
