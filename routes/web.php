@@ -126,5 +126,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // hr
      require __DIR__ . '/v1/hr.php';
 
+     // production
+     require __DIR__ . '/v1/production.php';
+
+
    
 });

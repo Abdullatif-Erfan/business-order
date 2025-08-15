@@ -13,6 +13,7 @@
         'hr' => $user->hasAccess('hr', 'list'),
         'buy' => $user->hasAccess('buy', 'list'),
         'gudam' => $user->hasAccess('gudam', 'list'),
+        'production' => $user->hasAccess('production', 'list'),
         'sales' => $user->hasAccess('sales', 'list'),
         'clearance' => $user->hasAccess('clearance', 'list'),
         'reports' => $user->hasAccess('reports', 'list'),
@@ -174,7 +175,6 @@
                     </li>
                 @endif
 
-
                 @if($permissions['gudam'] || $isAdmin)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#items">
@@ -202,6 +202,31 @@
                                         </a>
                                     </li>
                                 @endforeach
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+
+                @if(($permissions['production'] || $isAdmin) && $packageId == 5)
+                    <li class="nav-item">
+                        <a data-toggle="collapse" href="#production">
+                            <i class="fas fa-plus-circle"></i>
+                            <p> تولیدی </p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse" id="production">
+                            <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="{{ route('model.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> مودل  </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('qalam.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> قلم </span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>
