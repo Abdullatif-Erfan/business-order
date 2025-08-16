@@ -23,4 +23,12 @@ Route::prefix('modelDetails')->group(function(){
 
 });
 
+Route::prefix('qalam')->group(function(){
+    Route::get('/',[QalamController::class,'index'])->name('qalam.index')->middleware('access:production,list');
+    Route::get('/data',[QalamController::class,'getData'])->name('qalam.data');
+    Route::get('/create',[QalamController::class,'create'])->name('qalam.create');
+    Route::post('/store',[QalamController::class,'store'])->name('qalam.store');
+    // Route::patch('/update',[ModelDetailsController::class,'update'])->name('modelDetails.update');
+
+});
 
