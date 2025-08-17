@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use App\Models\Production\Qalam;
 use App\Models\Production\Models;
 use App\Models\Setting\Unit;
-
+use App\Models\Setting\OrgBio;
 use App\Models\Setting\Currency;
 use Morilog\Jalali\Jalalian;
 use App\Models\Setting\Warehouse;
+use Illuminate\Support\Facades\Session;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -36,14 +38,21 @@ class QalamController extends Controller
      */
     public function index()
     {
-        $models = Models::orderBy('id','DESC')->get();
-        $units = Unit::orderBy('id','DESC')->get();
-        $currency = Currency::orderBy('id','DESC')->get();
-
+        // $models = Models::orderBy('id','DESC')->get();
+        // $units = Unit::orderBy('id','DESC')->get();
+        $currencies = Currency::orderBy('id','ASC')->get();
+        $orgbios = OrgBio::all();
         // return response()->json(['models' => $models, 'units' => $units, 'currency' => $currency]);
-
+        $todaysDate = Jalalian::now()->format('Y-m-d');
         $branch_id = $this->branch_id;
-        return view('production.qalam.list', compact('branch_id','models','units','currency'));
+
+        // $qalams = Qalam::with(['modelRelation','currencyRelation','unitRelation'])  
+        // ->where('branch_id', $this->branch_id)
+        // ->orderByDesc('id')
+        // ->get();
+
+        // return response()->json($qalams);
+        return view('production.qalam.list', compact('branch_id','currencies','todaysDate','orgbios'));
     }
     
     
@@ -53,7 +62,7 @@ class QalamController extends Controller
     public function getData(Request $request)
     {
         // 'branch_id','model_id','amount','unit_id','unit_price','total_price','currency_id','dates','user'
-        $qalams = Qalam::with(['modelDetailsRelation','currencyRelation','unitRelation'])  
+        $qalams = Qalam::with(['modelRelation','currencyRelation','unitRelation'])  
         ->where('branch_id', $this->branch_id)
         ->orderByDesc('id');
     
@@ -61,15 +70,15 @@ class QalamController extends Controller
             
             ->addIndexColumn()
 
-            ->addColumn('addItem', function ($qalams) {
-                return '<a href="modelDetails/create/' . $qalams->id . '" class="hidden-print">
-                            <i class="btn btn-sm btn-success" data-id="' . $qalams->id . '">'
-                                . (($qalams->model_details_relation_count > 0) 
-                                    ? 'Item count: ' . $qalams->model_details_relation_count . ' / Edit' 
-                                    : 'Add Item') .
-                            '</i>
-                        </a>';
-            })
+            // ->addColumn('addItem', function ($qalams) {
+            //     return '<a href="modelDetails/create/' . $qalams->id . '" class="hidden-print">
+            //                 <i class="btn btn-sm btn-success" data-id="' . $qalams->id . '">'
+            //                     . (($qalams->model_details_relation_count > 0) 
+            //                         ? 'Item count: ' . $qalams->model_details_relation_count . ' / Edit' 
+            //                         : 'Add Item') .
+            //                 '</i>
+            //             </a>';
+            // })
 
             ->addColumn('edit', function($models) {
                 return '<i class="fas fa-pen-square editIcon" data-id="'.$models->id.'" style="font-size:20px;"></i>';
@@ -100,12 +109,14 @@ class QalamController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('Start Storing Qalam');
         // return response()->json(['data'=>$request->all()]);
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|min:3|unique:models,name',
-            'branch_id' => 'required|exists:branches,id',
-        ]);
-        ['branch_id','model_id','amount','unit_id','unit_price','total_price','currency_id','dates','user'];
+        // die();
+        // $validated = $request->validate([
+        //     'name' => 'required|string|max:255|min:3|unique:models,name',
+        //     'branch_id' => 'required|exists:branches,id',
+        // ]);
+        // ['branch_id','model_id','amount','unit_id','unit_price','total_price','currency_id','dates','user'];
 
         // $this->validateRequest($request);
         DB::beginTransaction();
@@ -126,6 +137,7 @@ class QalamController extends Controller
          
           // fetch the modelDetails Items and multiply curr amount * modelDetails->amount => then decrease that amount from warehouse items
           DB::commit();
+          Log::info('qalam stored successfully');
           Session::put('notification', [
             'message' => __('common.added_successfully'),
             'type' => 'success',

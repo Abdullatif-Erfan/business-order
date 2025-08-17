@@ -1,119 +1,108 @@
 @extends('layouts.app')
+
 @section('content')
 
+
+<!-- main content -->
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
             <div class="row">
-                <div class="col-md-12 col-sm-12 col-xs-12 mt-2">
+                <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
-                       
-                        <div class="card-body">
-
-                        <h3 style="margin-bottom: 15px">
-                            لیست  قلم 
-                        </h3>
-
-                           @if(auth()->user()->hasAccess('production','create_records'))
+                        <div class="card-header" style="padding: 10px;">
+                              
+                          @if(auth()->user()->hasAccess('production','create_records'))
                                 <a href="{{ route('qalam.create') }}">
                                     <button type="button" class="btn btn-sm mybtn">
                                         <i class="fas fa-plus"></i> {{ __('common.add')}}
                                     </button>
                                 </a>
                             @endif
-                    
-                    <!-- insertion -->
-                      <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
-                            <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
-                                <span class="fas fa-plus-square"></span>  &nbsp; {{__('common.add')}} </button>
-                            </a> 
+
+                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
-                        <div id="add_form_collapse" class="add-form animated fadeInRight collapse" data-parent="#accordion" style="height: 0px;border-top:2px solid #89b4ea;" aria-expanded="false">
-                            <div class="box-body">
-                            <form id="productionForm">
-                            @csrf
-                            <div class="form-body">
+
+
+                        <div class="filterForm" id="searchWrapper1">
+                            <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
-                                    <input type="hidden" name="branch_id" value="{{$branch_id}}" />
-
-                                    <div class="col-md-4 col-sm-6 col-xs-6">
-                                       <label for="">انتخاب مودل</label>
-                                        <select class="form-control select2 item-select" name="model_id" style="width:100%;" required>
-                                            <option value=""> انتخاب مودل</option>
-                                            @foreach($models as $model)
-                                                <option value="{{ $model->id }}">
-                                                    {{ $model->name }} 
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>	
-
-                                    <div class="col-md-4 col-sm-6 col-xs-6">
-                                      <label for="">مقدار تولید</label>
-                                       <div class="form-group">
-                                            <input class="form-control" id="amount" name="amount" type="number" step="0.01" required
-                                             placeholder="مقدار تولید" >
-                                            <span id="amountError" class="text-danger"></span>
-                                        </div> 
+                                    <div class="col-md-5 col-sm-6 col-xs-6">
+                                        <input type="text" id="item_name" placeholder="{{__('common.item_name')}}" class="form-control">
                                     </div>
 
-                                    <div class="col-md-4 col-sm-6 col-xs-6">
-                                      <label for="">انتخاب واحد</label>
-                                        <select class="form-control select2 item-select" name="unit_id" style="width:100%;" required>
-                                            <option value=""> انتخاب واحد</option>
-                                            @foreach($units as $unit)
-                                                <option value="{{ $unit->id }}">
-                                                    {{ $unit->name }} 
-                                                </option>
+                                    <div class="col-md-5 col-sm-6 col-xs-6 m-b-4">
+                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
+                                            <!-- <option value="">  واحد پولی </option> -->
+                                            @foreach($currencies as $currency)
+                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
 
 
-                                    <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
-                                        <button type="button" name="submit" class="btn btn-primary btn-sm m-l-10" 
-                                        onclick="addNewModalRecord()"  >
-                                          <span class="btn-label"> <i class="fa fa-save"></i> </span> {{__('common.save')}}
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <button class="btn mybtn search_btn form-control" id="btn-filter">
+                                            <i class="fa fa-search"></i>
                                         </button>
                                     </div>
-
-                                    <div class="col-12">
-                                        <div id="loading" style="display:none; text-align: center;">
-                                            <i class="fa fa-spinner fa-spin"></i>{{__('common.loading')}}
-                                        </div>
-                                    </div>
-
                                 </div>
-                                </div>  <!-- /form-body -->
-                            </form>
-                        </div> <!-- box-body -->
-                    </div>  <!-- /id="add_form" -->	
-            <!-- /insertion -->
+                            </div>
+                        </div> <!-- /filter_form -->
 
 
-                            <div class="table_responsive m-t-20" id="print_area">
-                            <table id="modelTable"  class="table table-bordered table-striped table-hover datatable">
-                                    <thead>
+                        <div class="card-body">
+                            <div class="table-responsive" id="print_area" style="padding:5px;">
+                                <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
+                                <table id="qalamTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
+                                <thead>
+                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
+                                            <td colspan="11">
+                                            <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                            </td>
+                                        </tr>
+                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
+                                            <td colspan="11">
+                                            <center> {{__('wh.existing_list')}}  ???  </center>
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <th>{{__('common.number')}}     </th>
-                                            <th>{{__('common.item_name')}}  </th>
-                                            <th>قیمت تمام شد</th>
-                                            <th>{{__('common.item_name')}}  </th>
+                                            <th> قلم   </th>
+                                            <th> مقدار</th>
+                                            <th> واحد </th>
+                                            <th> واحد پولی </th>
+                                            <th> قیمت فی واحد </th>
+                                            <th> قیمت مجموعی </th>
+                                            <th> تاریخ </th>
+                                            <th> کاربر </th>
                                             <th>{{__('common.edit')}}       </th>
                                             <th>{{__('common.delete')}}     </th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                    </tbody>
+                                    <!-- <tfoot>
+                                        <tr style="background:#eefcff">
+                                            <td colspan="3">{{__('common.total')}}</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>   -->
                                 </table>
-                            </div> 
-                        </div> 
-                    </div>
-                </div>  
-            </div>
-        </div>
-    </div>
-</div>
+                            </div> <!-- /table responsive -->
+                        </div> <!-- /card-body -->
+                    </div> <!-- /card -->
+                </div> <!-- /col-md-12 -->
+            </div> <!-- /row -->
+        </div> <!-- /page-inner -->
+    </div> <!-- /content -->
+</div> <!-- /main content -->
+
 
 
 <!-- Update Modal -->
@@ -139,58 +128,6 @@
         </div>
     </div>
 </div>
-
-<script>
- // ====================== add new record =====================
-
- function addNewModalRecord() {
-    var form = document.getElementById('productionForm');
-    // console.log("Form element:", form);
-    // console.log("Tag name:", form ? form.tagName : "not found");
-
-    if (!form) {
-        alert("Form not found!");
-        return;
-    }
-
-    var formData = new FormData(form);
-    // console.log([...formData]); // see form values
-
-    $('#loading').show();
-    $('#nameError').text('');
-
-    $.ajax({
-        url: '/model/store',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: (response) => {
-            $('#loading').hide();
-            fetchList();
-            if (response.status === 'success') {
-                $('#name').val('');
-                $('#add_form_collapse').collapse('hide');
-                showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
-            } else {
-                showNotification("{{__('common.add_failed')}}", 'danger', 'top', 'right', 'withicon');
-            }
-        },
-        error: (xhr) => {
-            $('#loading').hide();
-            if (xhr.status === 422) {
-                var errors = xhr.responseJSON.errors;
-                if (errors?.name) {
-                    $('#nameError').text(errors.name[0]);
-                }
-            } else {
-                showNotification("{{__('common.add_failed')}}", 'danger', 'top', 'right', 'withicon');
-            }
-        }
-    });
-}
-
-</script>
 
 
 <script>
@@ -289,22 +226,27 @@ $(document).ready(function() {
 });
 
 function fetchList() {
-    const modelTable = $('#modelTable');
+    const qalamTable = $('#qalamTable');
 
     // Check if DataTable is already initialized
-    if (!$.fn.DataTable.isDataTable(modelTable)) {
+    if (!$.fn.DataTable.isDataTable(qalamTable)) {
         // Initialize DataTable if not already initialized
-        modelTable.DataTable({
+        qalamTable.DataTable({
             serverSide: true,
             processing: true,
             ajax: {
-                url: '{{ route("model.data") }}',
+                url: '{{ route("qalam.data") }}',
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'name', name: 'name' },
-                { data: 'model_details_relation_sum_total_price', name: 'model_details_relation_sum_total_price' },
-                { data: 'addItem', name: 'addItem', orderable: false, searchable: false }, 
+                { data: 'model_relation.name', name: 'model_relation.name' },
+                { data: 'amount', name: 'amount' },
+                { data: 'unit_relation.name', name: 'unit_relation.name' },
+                { data: 'currency_relation.name', name: 'currency_relation.name' },
+                { data: 'unit_price', name: 'unit_price' },
+                { data: 'total_price', name: 'total_price' },
+                { data: 'dates', name: 'dates' },
+                { data: 'user', name: 'user' },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
             ]
