@@ -64,6 +64,7 @@
                                             <th>{{__('common.number')}}     </th>
                                             <th>{{__('common.item_name')}}  </th>
                                             <th>قیمت تمام شد</th>
+                                            <th>واحد پولی</th>
                                             <th>{{__('common.item_name')}}  </th>
                                             <th>{{__('common.edit')}}       </th>
                                             <th>{{__('common.delete')}}     </th>
@@ -269,7 +270,8 @@ function fetchList() {
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'name', name: 'name' },
-                { data: 'model_details_relation_sum_total_price', name: 'model_details_relation_sum_total_price' },
+                { data: 'model_details_total_price', name: 'model_details_total_price' },
+                { data: 'currency_name', name: 'currency_name' },
                 { data: 'addItem', name: 'addItem', orderable: false, searchable: false }, 
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }

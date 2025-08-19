@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Production;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Production\Models;
+use App\Models\Buy\BuyPreList;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -32,11 +35,30 @@ class ModelController extends Controller
     public function index()
     {
         // $models = Models::query()
-        // ->select('id', 'name', 'branch_id')        
-        // ->withCount('modelDetailsRelation')     
-        // ->withSum('modelDetailsRelation', 'total_price')  
+        // ->select('id', 'name', 'branch_id')
+        // ->withCount('modelDetailsRelation')
+        // ->withSum('modelDetailsRelation', 'total_price')
+        // ->with([
+        //     'modelDetailsRelation.currencyRelation:id,name' // assuming `name` column in currencies table
+        // ])
         // ->where('branch_id', $this->branch_id)
         // ->orderByDesc('id')
+        // ->get();
+
+        // $models = DB::table('models')
+        // ->select(
+        //     'models.id',
+        //     'models.name',
+        //     'models.branch_id',
+        //     DB::raw('COUNT(model_details.id) as model_details_count'),
+        //     DB::raw('SUM(model_details.total_price) as model_details_total_price'),
+        //     'currencies.name as currency_name'
+        // )
+        // ->leftJoin('model_details', 'models.id', '=', 'model_details.model_id')
+        // ->leftJoin('currencies', 'model_details.currency_id', '=', 'currencies.id')
+        // ->where('models.branch_id', $this->branch_id)
+        // ->groupBy('models.id', 'models.name', 'models.branch_id', 'currencies.name')
+        // ->orderByDesc('models.id')
         // ->get();
 
         // return response()->json($models);
@@ -51,12 +73,20 @@ class ModelController extends Controller
      */
     public function getData(Request $request)
     {
-        $models = Models::query()
-        ->select('id', 'name', 'branch_id')        
-        ->withCount('modelDetailsRelation')
-        ->withSum('modelDetailsRelation', 'total_price')        
-        ->where('branch_id', $this->branch_id)
-        ->orderByDesc('id');
+        $models = DB::table('models')
+        ->select(
+            'models.id',
+            'models.name',
+            'models.branch_id',
+            DB::raw('COUNT(model_details.id) as model_details_count'),
+            DB::raw('SUM(model_details.total_price) as model_details_total_price'),
+            'currencies.name as currency_name'
+        )
+        ->leftJoin('model_details', 'models.id', '=', 'model_details.model_id')
+        ->leftJoin('currencies', 'model_details.currency_id', '=', 'currencies.id')
+        ->where('models.branch_id', $this->branch_id)
+        ->groupBy('models.id', 'models.name', 'models.branch_id', 'currencies.name')
+        ->orderByDesc('models.id');
     
         return DataTables::of($models)
             
@@ -72,8 +102,8 @@ class ModelController extends Controller
             ->addColumn('addItem', function ($models) {
                 return '<a href="modelDetails/create/' . $models->id . '" class="hidden-print">
                             <i class="btn btn-sm btn-success" data-id="' . $models->id . '">'
-                                . (($models->model_details_relation_count > 0) 
-                                    ? 'Item count: ' . $models->model_details_relation_count . ' / Edit' 
+                                . (($models->model_details_count > 0) 
+                                    ? 'Item count: ' . $models->model_details_count . ' / Edit' 
                                     : 'Add Item') .
                             '</i>
                         </a>';
@@ -127,18 +157,39 @@ class ModelController extends Controller
 
         $times = time();
 
-
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:models,name',
             'branch_id' => 'required|exists:branches,id',
         ], $messages);
 
-        Models::create([
-            'branch_id' => $validated['branch_id'],
-            'name' => $validated['name'],
-        ]);
+        DB::beginTransaction();
 
-        return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
+        try {
+        
+            Models::create([
+                'branch_id' => $validated['branch_id'],
+                'name' => $validated['name'],
+            ]);
+    
+            // store in bought_item_pre_list
+            BuyPreList::create([
+                'name' => $validated['name'],
+                'branch_id' => $validated['branch_id'],
+                'times' => $times,
+                'image_path' => '',
+                'barcode_path' => ''
+            ]);
+
+        DB::commit();
+
+        return response()->json(['status' => 'success', 'message' => 
+        __('common.added_successfully')]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => 
+            __('common.add_failed') . $e->getMessage()], 500);
+        }
     }
 
 

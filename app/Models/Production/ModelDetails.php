@@ -5,6 +5,8 @@ namespace App\Models\Production;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Buy\BuyPreList;
 use App\Models\Setting\Unit;
+use App\Models\Setting\Currency;
+
 
 
 class ModelDetails extends Model
@@ -22,5 +24,15 @@ class ModelDetails extends Model
     function modelRelation()
     {
         return $this->belongsTo(Models::class,'model_id','id');
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
+    }
+
+    public function currencyRelation()
+    {
+        return $this->belongsTo(Currency::class, 'currency_id');
     }
 }

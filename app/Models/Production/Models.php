@@ -3,6 +3,7 @@
 namespace App\Models\Production;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Setting\Currency;
 
 class Models extends Model
 {
