@@ -160,9 +160,9 @@ class QalamController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function getprice(string $model_id)
     {
-        //
+        return response()->json(['data' => $model_id]);   
     }
 
     /**

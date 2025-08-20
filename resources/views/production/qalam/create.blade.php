@@ -70,7 +70,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                      <div class="col-md-4 col-sm-6 col-xs-6">
                                        <label for="">انتخاب مودل</label>
-                                        <select class="form-control select2 item-select" name="model_id" style="width:100%;" required>
+                                        <select class="form-control select2 item-select" name="model_id" style="width:100%;" onchange="fetchPrice(this.value)" required>
                                             <option value=""> انتخاب مودل</option>
                                             @foreach($models as $model)
                                                 <option value="{{ $model->id }}">
@@ -148,8 +148,30 @@ select.select2{text-align:right !important;direction:rtl !important;}
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 @endpush
 
-
 <script>
+function fetchPrice(model_id)
+{
+    $.ajax({
+        // url: '{{ route("model.update") }}',
+        url: '/qalam/getprice/'+model_id,
+        type: 'GET',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success: (response) => {
+            $('#loading2').hide();
+            $('#price').val(response.data);
+        },
+        error: (xhr) => {
+            $('#loading2').hide();
+            if (xhr.status === 422) {
+                var errors = xhr.responseJSON.errors;
+                if (errors?.name) {
+                    $('#nameError2').text(errors.name[0]);
+                }
+            } 
+        }
+    });
+}
+</script>
 @endsection
 
 
