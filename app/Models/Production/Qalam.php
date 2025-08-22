@@ -15,8 +15,6 @@ class Qalam extends Model
     {
         return $this->belongsTo(Models::class,'model_id','id');
     }
-
-    
     function unitRelation()
     {
         return $this->belongsTo(Unit::class,'unit_id','id');

@@ -119,6 +119,7 @@ class QalamController extends Controller
         // ['branch_id','model_id','amount','unit_id','unit_price','total_price','currency_id','dates','user'];
 
         // $this->validateRequest($request);
+         // 1. Insert into qalam table
         DB::beginTransaction();
         try 
         {
@@ -135,7 +136,38 @@ class QalamController extends Controller
           $qalam->user = auth()->user()->full_name ?? '';
           $qalam->save();
          
-          // fetch the modelDetails Items and multiply curr amount * modelDetails->amount => then decrease that amount from warehouse items
+          /**
+           * fetch the modelDetails Items and multiply curr amount * modelDetails->amount => then decrease that amount from warehouse items
+           * 2. Fetch model details for this model
+           * 
+           */
+        $modelDetails = ModelDetails::where('model_id', $request->model_id)
+        ->where('branch_id', $this->branch_id)
+        ->get();
+
+        // 3. Loop through modelDetails and calculate required qty
+        foreach ($modelDetails as $detail) {
+            // required quantity = entered amount * recipe amount
+            $requiredQty = $request->amount * $detail->amount;
+
+            // 4. Deduct from warehouse items
+            $warehouseItem = WarehouseItem::where('branch_id', $this->branch_id)
+                ->where('item_id', $detail->pre_list_id) // or proper FK column
+                ->first();
+
+            if ($warehouseItem) {
+                if ($warehouseItem->stock < $requiredQty) {
+                    throw new \Exception("Not enough stock for item {$detail->pre_list_id}");
+                }
+
+                $warehouseItem->stock -= $requiredQty;
+                $warehouseItem->save();
+            } else {
+                throw new \Exception("Item {$detail->pre_list_id} not found in warehouse.");
+            }
+        }
+
+
           DB::commit();
           Log::info('qalam stored successfully');
           Session::put('notification', [
@@ -162,9 +194,17 @@ class QalamController extends Controller
      */
     public function getprice(string $model_id)
     {
-        return response()->json(['data' => $model_id]);   
-    }
+        $price = DB::table('model_details')
+            ->join('models', 'models.id', '=', 'model_details.model_id')
+            ->where('model_details.model_id', $model_id)
+            ->where('models.branch_id', $this->branch_id)
+            ->selectRaw('SUM(model_details.total_price) as model_details_total_price')
+            ->first();
 
+        return response()->json([
+            'data' => $price->model_details_total_price ?? 0
+        ]);   
+    }
     /**
      * Show the form for editing the specified resource.
      */
