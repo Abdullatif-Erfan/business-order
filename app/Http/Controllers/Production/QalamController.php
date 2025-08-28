@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Production\Qalam;
 use App\Models\Production\Models;
+use App\Models\Production\ModelDetails;
+use App\Models\Warehouse\WarehouseItem;
 use App\Models\Setting\Unit;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Currency;
@@ -125,11 +127,11 @@ class QalamController extends Controller
         {
           // insert into qalam table
           $qalam = new Qalam();
-          $qalam->branch_id = $request->branch_id ?? $this->branch_id;
-          $qalam->model_id  =  $request->model_id;
-          $qalam->amount    = $request->amount;
-          $qalam->unit_id   = $request->unit_id;
-          $qalam->unit_price = $request->price;
+          $qalam->branch_id   = $request->branch_id ?? $this->branch_id;
+          $qalam->model_id    =  $request->model_id;
+          $qalam->amount      = $request->amount;
+          $qalam->unit_id     = $request->unit_id;
+          $qalam->unit_price  = $request->price;
           $qalam->total_price = $request->amount * $request->price;
           $qalam->currency_id = $request->currency_id;
           $qalam->dates = Jalalian::now()->format('Y-m-d');
@@ -150,17 +152,21 @@ class QalamController extends Controller
             // required quantity = entered amount * recipe amount
             $requiredQty = $request->amount * $detail->amount;
 
-            // 4. Deduct from warehouse items
+            // 4. Deduct from warehouse items where not cleared
             $warehouseItem = WarehouseItem::where('branch_id', $this->branch_id)
-                ->where('item_id', $detail->pre_list_id) // or proper FK column
+                ->where('buy_pre_id', $detail->pre_list_id) 
+                ->where('currency_id', $detail->currency_id) 
+                ->where('unit_id', $detail->unit_id)
+                ->where('available_total' ,'>', 0)
                 ->first();
 
             if ($warehouseItem) {
-                if ($warehouseItem->stock < $requiredQty) {
-                    throw new \Exception("Not enough stock for item {$detail->pre_list_id}");
+                if ($warehouseItem->available_total < $requiredQty) {
+                    throw new \Exception("Not enough items in warehouse for this item with this unit {$detail->pre_list_id}");
                 }
-
-                $warehouseItem->stock -= $requiredQty;
+                $new_available_total = $warehouseItem->available_total - $requiredQty;
+                $warehouseItem->available_total = $new_available_total * $warehouseItem->avg_up;
+                $warehouseItem->available_amount = $new_available_total;
                 $warehouseItem->save();
             } else {
                 throw new \Exception("Item {$detail->pre_list_id} not found in warehouse.");
