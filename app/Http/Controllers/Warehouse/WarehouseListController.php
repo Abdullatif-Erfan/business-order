@@ -328,7 +328,16 @@ class WarehouseListController extends Controller
             {
                 // \Log::info('Create New Record in Warehouse during conversion');
                 // Create new record in destination warehouse
-                $avg_up  = $sourceWareHouseItem->avg_up * $validated['convertable_amount'];
+                // options:1 => to lower, 2: to greater;
+                $avg_up = 0;
+                if($validated['options'] == 1) // change to lower
+                {
+                    $avg_up  = $sourceWareHouseItem->avg_up / $validated['converted_amount'];
+                }
+                else if($validated['options'] == 2) // change from lower to greater
+                {
+                    $avg_up  = $sourceWareHouseItem->avg_up * $validated['converted_amount'];
+                }
                 $distWareHouseItem = new WarehouseItem();
                 $distWareHouseItem->branch_id = $this->branch_id ?? 0;
                 $distWareHouseItem->name = $validated['item_name'] ?? '';
@@ -344,7 +353,7 @@ class WarehouseListController extends Controller
                 $distWareHouseItem->wastage_amount = 0;
                 $distWareHouseItem->wastage_total = 0;
                 $distWareHouseItem->avg_up = $avg_up; 
-                $distWareHouseItem->sell_up = $sourceWareHouseItem->sell_up * $validated['convertable_amount'];
+                $distWareHouseItem->sell_up = 0;
                 $distWareHouseItem->total = ($sourceWareHouseItem->total + ($validated['converted_amount'] * $avg_up));
                 $distWareHouseItem->available_total = $validated['converted_amount'] * $avg_up;
                 $distWareHouseItem->currency_id = $sourceWareHouseItem->currency_id;
@@ -361,10 +370,19 @@ class WarehouseListController extends Controller
             else 
             {
                 // \Log::info('Increase stock in destination warehouse');
+                if($validated['options'] == 1) // change to lower
+                {
+                    $avg_up  = $sourceWareHouseItem->avg_up / $validated['converted_amount'];
+                }
+                else // change from lower to greater
+                {
+                    $avg_up  = $sourceWareHouseItem->avg_up * $validated['converted_amount'];
+                }
+
                 $total_available_amount = $distWareHouseItem->available_amount + $validated['converted_amount'];
                 $distWareHouseItem->available_amount = $total_available_amount;
                 $distWareHouseItem->in_amount += $validated['converted_amount'];
-                $distWareHouseItem->available_total = ($total_available_amount * $distWareHouseItem->avg_up);
+                $distWareHouseItem->available_total = ($total_available_amount * $avg_up);
                 $distWareHouseItem->save();
             }
 
