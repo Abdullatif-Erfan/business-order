@@ -11,7 +11,7 @@
                         <div class="card-body">
 
                         <h3 style="margin-bottom: 15px">
-                            لیست مودل ها 
+                            {{__('production.model_list')}}
                         </h3>
                     
                     <!-- insertion -->
@@ -63,9 +63,9 @@
                                         <tr>
                                             <th>{{__('common.number')}}     </th>
                                             <th>{{__('common.item_name')}}  </th>
-                                            <th>قیمت تمام شد</th>
-                                            <th>واحد پولی</th>
-                                            <th>{{__('common.item_name')}}  </th>
+                                            <th>{{__('production.unit_price')}}</th>
+                                            <th>{{__('production.unit')}}</th>
+                                            <th>{{__('production.add_sub_items')}}  </th>
                                             <th>{{__('common.edit')}}       </th>
                                             <th>{{__('common.delete')}}     </th>
                                         </tr>

@@ -32,4 +32,5 @@ return [
     'backup' => 'شاتړ',
     'cacheflow' => 'د مشتریانو حسابات',
     'chartOfAccount' => 'د حساباتو چارټ',
+    'production' => 'تولیداتي',
 ];

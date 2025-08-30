@@ -19,6 +19,7 @@
                                     </button>
                                 </a>
                             @endif
+                            
 
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
@@ -57,26 +58,26 @@
                                 <table id="qalamTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="11">
+                                            <td colspan="10">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="11">
-                                            <center> {{__('wh.existing_list')}}  ???  </center>
+                                            <td colspan="10">
+                                            <center> {{__('production.print_title')}}    </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>{{__('common.number')}}     </th>
-                                            <th> قلم   </th>
-                                            <th> مقدار</th>
-                                            <th> واحد </th>
-                                            <th> واحد پولی </th>
-                                            <th> قیمت فی واحد </th>
-                                            <th> قیمت مجموعی </th>
-                                            <th> تاریخ </th>
-                                            <th> کاربر </th>
-                                            <th>{{__('common.edit')}}       </th>
+                                            <th> {{__('production.qalam')}}   </th>
+                                            <th> {{__('production.amount')}}</th>
+                                            <th> {{__('common.unit')}} </th>
+                                            <th> {{__('common.currency')}} </th>
+                                            <th> {{__('production.qalam_unit_price')}} </th>
+                                            <th> {{__('production.total_price')}} </th>
+                                            <th> {{__('common.date')}} </th>
+                                            <th> {{__('common.user')}} </th>
+                                            <!-- <th>{{__('common.edit')}}       </th> -->
                                             <th>{{__('common.delete')}}     </th>
                                         </tr>
                                     </thead>
@@ -236,6 +237,10 @@ function fetchList() {
             processing: true,
             ajax: {
                 url: '{{ route("qalam.data") }}',
+                data: function (d) {
+                    d.item_name = $('#item_name').val();
+                    d.currency_id = $('#currency_id').val();
+                }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
@@ -247,13 +252,13 @@ function fetchList() {
                 { data: 'total_price', name: 'total_price' },
                 { data: 'dates', name: 'dates' },
                 { data: 'user', name: 'user' },
-                { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
+                // { data: 'edit', name: 'edit', orderable: false, searchable: false },     
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
             ]
         });
     } else {
         // If already initialized, reload the data
-        modelTable.DataTable().ajax.reload();
+        qalamTable.DataTable().ajax.reload();
     }
 }
 </script>
@@ -267,7 +272,7 @@ $('table').on('click', '.deleteIcon', function () {
     const id = $(this).data('id');
         if (id && confirm("{{ __('common.delete_confirm') }}")) {
             $.ajax({
-                url: `/model/destroy/${id}`,
+                url: `/qalam/destroy/${id}`,
                 type: 'DELETE',
                 data: { _token: '{{ csrf_token() }}' },
                 success: (response) => {

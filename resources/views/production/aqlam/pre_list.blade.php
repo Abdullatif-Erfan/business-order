@@ -6,7 +6,7 @@
     <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
 
     <div class="container" style="background: #d7f7ff;padding: 5px 35px;">
-      <h4>ثبت جنس جدید در این مودل </h4>
+      <h4> {{__('production.add_title_in_edit_page')}} </h4>
     </div>
         <div class="form-body" style="padding-bottom:1px;">
             <div class="row" style="padding: 10px 20px;">

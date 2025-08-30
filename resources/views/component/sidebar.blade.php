@@ -212,19 +212,19 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#production">
                             <i class="fas fa-plus-circle"></i>
-                            <p> تولیدی </p>
+                            <p> {{ __('menu.production') }} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="production">
                             <ul class="nav nav-collapse">
                                 <li>
                                     <a href="{{ route('model.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> مودل  </span>
+                                        <span class="sub-item"> {{__('production.model')}}  </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('qalam.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> قلم </span>
+                                        <span class="sub-item"> {{__('production.qalam')}}  </span>
                                     </a>
                                 </li>
                             </ul>

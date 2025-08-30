@@ -30,6 +30,6 @@ Route::prefix('qalam')->group(function(){
     Route::post('/store',[QalamController::class,'store'])->name('qalam.store');
     Route::get('/getprice/{model_id}',[QalamController::class,'getprice'])->name('qalam.getprice');
     // Route::patch('/update',[ModelDetailsController::class,'update'])->name('modelDetails.update');
-
+    Route::delete('/destroy/{id}',[QalamController::class,'destroy'])->name('qalam.destroy')->middleware('access:production,delete_records');
 });
 

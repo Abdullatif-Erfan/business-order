@@ -117,7 +117,7 @@
                                     <th> {{__('wh.avg_up')}} </th>
                                     <td><input type="number" id="avg_up"  step="0.01" name="avg_up" id="avg_up" class="form-control" value="{{ $warehouseItems->first()->avg_up ?? '' }}" readonly oninput="updateAvailAbleTotal(this.value)"></td>
                                     <th> {{__('wh.total_available_value')}}</th>
-                                    <td><input type="number"  step="0.01" id="available_total" name="available_total" class="form-control" value="{{ $warehouseItems->first()->available_amount * $warehouseItems->first()->avg_up ?? '' }}" readonly></td>
+                                    <td><input type="text"  step="0.01" id="available_total" name="available_total" class="form-control" value="{{ $warehouseItems->first()->available_amount * $warehouseItems->first()->avg_up ?? '' }}" readonly></td>
                                 </tr>
                                 
                                 <tr>

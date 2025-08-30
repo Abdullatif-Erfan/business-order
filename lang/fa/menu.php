@@ -32,4 +32,7 @@ return [
     'backup' => 'پشتیبان‌گیری',
     'cacheflow' => 'حسابات مشتریان',
     'chartOfAccount' => 'چارت حسابات',
+
+    'production' => 'تولیدی',
+
 ];

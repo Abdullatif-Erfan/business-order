@@ -67,6 +67,16 @@ class QalamController extends Controller
         $qalams = Qalam::with(['modelRelation','currencyRelation','unitRelation'])  
         ->where('branch_id', $this->branch_id)
         ->orderByDesc('id');
+
+        if ($request->input('item_name')) {
+            $qalams->whereHas('preListRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%{$request->input('item_name')}%");
+            });
+        }
+        
+        if ($request->input('currency_id')) {
+            $qalams->where('currency_id', $request->input('currency_id'));
+        }
     
         return DataTables::of($qalams)
             
@@ -82,19 +92,20 @@ class QalamController extends Controller
             //             </a>';
             // })
 
-            ->addColumn('edit', function($models) {
-                return '<i class="fas fa-pen-square editIcon" data-id="'.$models->id.'" style="font-size:20px;"></i>';
-            })
+            // ->addColumn('edit', function($models) {
+            //     return '<i class="fas fa-pen-square editIcon" data-id="'.$models->id.'" style="font-size:20px;"></i>';
+            // })
             ->addColumn('delete', function($models) {
                 return '<i class="fas fa-trash-alt deleteIcon" data-id="'.$models->id.'" style="font-size:20px; color:red;"></i>';
             })
-            ->rawColumns(['addItem','edit','delete'])
+            // ->rawColumns(['addItem','edit','delete'])
+            ->rawColumns(['addItem','delete'])
             ->make(true);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
+    * Show the form for creating a new resource.
+    */
     public function create()
     {
         $models = Models::orderBy('id','DESC')->get();
@@ -112,87 +123,81 @@ class QalamController extends Controller
     public function store(Request $request)
     {
         Log::info('Start Storing Qalam');
-        // return response()->json(['data'=>$request->all()]);
-        // die();
-        // $validated = $request->validate([
-        //     'name' => 'required|string|max:255|min:3|unique:models,name',
-        //     'branch_id' => 'required|exists:branches,id',
-        // ]);
-        // ['branch_id','model_id','amount','unit_id','unit_price','total_price','currency_id','dates','user'];
-
-        // $this->validateRequest($request);
-         // 1. Insert into qalam table
         DB::beginTransaction();
-        try 
-        {
-          // insert into qalam table
-          $qalam = new Qalam();
-          $qalam->branch_id   = $request->branch_id ?? $this->branch_id;
-          $qalam->model_id    =  $request->model_id;
-          $qalam->amount      = $request->amount;
-          $qalam->unit_id     = $request->unit_id;
-          $qalam->unit_price  = $request->price;
-          $qalam->total_price = $request->amount * $request->price;
-          $qalam->currency_id = $request->currency_id;
-          $qalam->dates = Jalalian::now()->format('Y-m-d');
-          $qalam->user = auth()->user()->full_name ?? '';
-          $qalam->save();
-         
-          /**
-           * fetch the modelDetails Items and multiply curr amount * modelDetails->amount => then decrease that amount from warehouse items
-           * 2. Fetch model details for this model
-           * 
-           */
-        $modelDetails = ModelDetails::where('model_id', $request->model_id)
-        ->where('branch_id', $this->branch_id)
-        ->get();
+        try {
+            // 1. Insert into qalam table
+            $qalam = new Qalam();
+            $qalam->branch_id   = $request->branch_id ?? $this->branch_id;
+            $qalam->model_id    = $request->model_id;
+            $qalam->amount      = $request->amount;
+            $qalam->unit_id     = $request->unit_id;
+            $qalam->unit_price  = $request->price;
+            $qalam->total_price = $request->amount * $request->price;
+            $qalam->currency_id = $request->currency_id;
+            $qalam->dates       = Jalalian::now()->format('Y-m-d');
+            $qalam->user        = auth()->user()->full_name ?? '';
+            $qalam->save();
 
-        // 3. Loop through modelDetails and calculate required qty
-        foreach ($modelDetails as $detail) {
-            // required quantity = entered amount * recipe amount
-            $requiredQty = $request->amount * $detail->amount;
-
-            // 4. Deduct from warehouse items where not cleared
-            $warehouseItem = WarehouseItem::where('branch_id', $this->branch_id)
-                ->where('buy_pre_id', $detail->pre_list_id) 
-                ->where('currency_id', $detail->currency_id) 
-                ->where('unit_id', $detail->unit_id)
-                ->where('available_total' ,'>', 0)
-                ->first();
-
-            if ($warehouseItem) {
-                if ($warehouseItem->available_total < $requiredQty) {
-                    throw new \Exception("Not enough items in warehouse for this item with this unit {$detail->pre_list_id}");
-                }
-                $new_available_total = $warehouseItem->available_total - $requiredQty;
-                $warehouseItem->available_total = $new_available_total * $warehouseItem->avg_up;
-                $warehouseItem->available_amount = $new_available_total;
-                $warehouseItem->save();
-            } else {
-                throw new \Exception("Item {$detail->pre_list_id} not found in warehouse.");
+            // 2. Fetch model details (the "recipe")
+            $modelDetails = ModelDetails::where('model_id', $request->model_id)
+                ->where('branch_id', $this->branch_id)
+                ->get();
+                /**
+                 * model name is cake
+                 * model_details items amounts are (ard = 0.5 sir, sugar = 1 sir)
+                 * if I make qalam with amount 2
+                 * - save record in qalam
+                 * - update the warehouse_items and decrease ard = 7 - (0.5 * 2) || sugar = 7 - (1 * 2)
+                 * - warehouse item amount should be {ard = 6} and {sugar = 5}
+                 */
+               // 3. Loop through modelDetails and deduct from warehouse
+               foreach ($modelDetails as $detail) 
+               {
+                    $dedactQty = $request->amount * $detail->amount; // 2 * 0.5   || 2 * 1
+                    $warehouseItem = WarehouseItem::where('branch_id', $this->branch_id)
+                    ->where('buy_pre_id', $detail->pre_list_id)
+                    ->where('currency_id', $detail->currency_id)
+                    ->where('unit_id', $detail->unit_id)
+                    ->where('available_amount', '>', 0)
+                    ->orderBy('created_at', 'asc')
+                    ->first();
+                    
+                    if (!$warehouseItem) {
+                        throw new \Exception("Item {$detail->pre_list_id} not found in warehouse.");
+                    }
+                    
+                    if ($warehouseItem->available_amount < $dedactQty) {
+                        throw new \Exception("Not enough stock for item {$detail->pre_list_id}. Needed {$deductQty}, available {$warehouseItem->available_amount}");
+                    }
+                    $remainingQty = $warehouseItem->available_amount - $dedactQty;
+                    // Deduct
+                    $warehouseItem->available_amount = $remainingQty;
+                    $warehouseItem->available_total   = $remainingQty * $warehouseItem->avg_up;
+                    // Optional: track how much taken out
+                    $warehouseItem->out_amount = ($warehouseItem->out_amount ?? 0) + $dedactQty;
+                    $warehouseItem->save();        
             }
-        }
 
+            DB::commit();
+            Log::info('Qalam stored successfully');
 
-          DB::commit();
-          Log::info('qalam stored successfully');
-          Session::put('notification', [
-            'message' => __('common.added_successfully'),
-            'type' => 'success',
-           ]);
-          return redirect()->route('warehousesList.create');
-
+            Session::put('notification', [
+                'message' => __('common.added_successfully'),
+                'type'    => 'success',
+            ]);
+            return redirect()->route('warehousesList.create');
+            // return redirect()->route('qalam.index');
 
         } catch (\Exception $e) {
-             DB::rollBack();
-            \Log::error('Error storing Qalam', ['error' => $e]);
-            
+            DB::rollBack();
+            \Log::error('Error storing Qalam', ['error' => $e->getMessage()]);
+
             Session::put('notification', [
                 'message' => __('common.add_failed'),
-                'type' => 'success',
+                'type'    => 'danger',
             ]);
-            return redirect()->route('qalam.index');
-        } 
+            return redirect()->route('qalam.index')->withErrors($e->getMessage());
+        }
     }
 
     /**
@@ -208,7 +213,7 @@ class QalamController extends Controller
             ->first();
 
         return response()->json([
-            'data' => $price->model_details_total_price ?? 0
+            'data' => number_format((float)$price->model_details_total_price,2) ?? 0
         ]);   
     }
     /**
@@ -232,6 +237,20 @@ class QalamController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $qalam = Qalam::findOrFail($id);
+        if($qalam) {
+            $qalam->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.deleted_successfully')
+            ]);
+        }
+        else
+        {
+            return response()->json([
+                'status' => 'failed',
+                'message' => __('common.delete_failed')
+            ]);
+        }
     }
 }

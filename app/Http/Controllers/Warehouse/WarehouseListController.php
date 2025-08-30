@@ -692,7 +692,6 @@ class WarehouseListController extends Controller
         try {
             // Delete all related records directly
             WarehouseItem::where('id',$id)->delete();
-    
             return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]); 
         } catch (\Exception $e) {
     

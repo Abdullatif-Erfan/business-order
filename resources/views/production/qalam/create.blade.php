@@ -36,10 +36,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title"> {{__('wh.old_item_title')}}  
-                                 <small class="badge badge-info badge-sm"> <strong class="m-r-10">  
-                                 {{__('buy.note')}}   : </strong> {{__('wh.note_desc')}}</small>
-                            </h4>
+                            <h4 class="card-title"> {{__('production.qalam_create_title')}} </h4>
                         </div>
 
                         <form id="buyingForm" action="{{ route('qalam.store') }}" method="POST">
@@ -69,9 +66,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                      <input type="hidden" name="branch_id" value="{{$branch_id}}" />
 
                                      <div class="col-md-4 col-sm-6 col-xs-6">
-                                       <label for="">انتخاب مودل</label>
+                                       <label for="">{{__('production.model_selection')}}</label>
                                         <select class="form-control select2 item-select" name="model_id" style="width:100%;" onchange="fetchPrice(this.value)" required>
-                                            <option value=""> انتخاب مودل</option>
+                                            <option value="">{{__('production.model_selection')}}</option>
                                             @foreach($models as $model)
                                                 <option value="{{ $model->id }}">
                                                     {{ $model->name }} 
@@ -81,18 +78,18 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     </div>	
 
                                     <div class="col-md-4 col-sm-6 col-xs-6">
-                                      <label for="">مقدار تولید</label>
+                                      <label for="">{{__('production.production_amount')}}</label>
                                        <div class="form-group">
                                             <input class="form-control" id="amount" name="amount" type="number" step="0.01" required
-                                             placeholder="مقدار تولید" >
+                                             placeholder="{{__('production.production_amount')}}" >
                                             <span id="amountError" class="text-danger"></span>
                                         </div> 
                                     </div>
 
                                     <div class="col-md-4 col-sm-6 col-xs-6">
-                                      <label for="">انتخاب واحد</label>
+                                      <label for="">{{__('production.unit_selection')}}</label>
                                         <select class="form-control select2 item-select" name="unit_id" style="width:100%;" required>
-                                            <option value=""> انتخاب واحد</option>
+                                            <option value=""> {{__('production.unit_selection')}} </option>
                                             @foreach($units as $unit)
                                                 <option value="{{ $unit->id }}">
                                                     {{ $unit->name }} 
@@ -103,18 +100,18 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 
                                     <div class="col-md-4 col-sm-6 col-xs-6">
-                                      <label for="">قیمت فی واحد تمام شده</label>
+                                      <label for="">{{__('production.final_unit_price')}}</label>
                                        <div class="form-group">
                                             <input class="form-control" id="price" name="price" type="number" step="0.01" required
-                                             placeholder="فیات تمام شده" >
+                                             placeholder="{{__('production.final_unit_price')}}" >
                                             <span id="priceError" class="text-danger"></span>
                                         </div> 
                                     </div>
 
                                     <div class="col-md-4 col-sm-6 col-xs-6">
-                                      <label for="">انتخاب واحد پولی</label>
+                                      <label for="">{{__('production.currency_selection')}}</label>
                                         <select class="form-control select2 item-select" name="currency_id" style="width:100%;" required>
-                                            <option value=""> انتخاب واحد پولی </option>
+                                            <option value=""> {{__('production.currency_selection')}} </option>
                                             @foreach($currency as $cur)
                                                 <option value="{{ $cur->id }}">
                                                     {{ $cur->name }} 

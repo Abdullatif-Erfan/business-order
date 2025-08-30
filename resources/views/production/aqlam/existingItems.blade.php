@@ -76,7 +76,7 @@
                 <div class="col-md-8 col-sm-8 col-xs-12 m-t-20">
                     <div class="row">
                         <div class="col-3 col-xs-6">
-                            <input type="submit" id="submit_button" name="submit" value="{{ __('common.save') }} existing data" class="form-control btn bg-blue pull-left">
+                            <input type="submit" id="submit_button" name="submit" value="{{ __('common.save') }}" class="form-control btn bg-blue pull-left">
                         </div>
                         <div class="col-3 col-xs-6">
                             <a href="{{ route('model.index') }}">

@@ -22,7 +22,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title"> {{__('sales.pos_list_title')}} 
+                            <h4 class="card-title"> {{__('production.create_title')}} 
                                 <span class="pull-left">
                                     <a href="{{ route('model.index') }}">
                                         <button class="btn mybtn bg-default">  {{__('common.back')}}  </button>

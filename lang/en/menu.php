@@ -32,4 +32,5 @@ return [
     'backup' => 'Backup',
     'cacheflow' => 'Customer Accounts',
     'chartOfAccount' => 'Chart of Accounts',
+    'production' => 'Production',
 ];

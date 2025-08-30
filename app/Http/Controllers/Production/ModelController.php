@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Production\Models;
 use App\Models\Buy\BuyPreList;
+use App\Models\Production\ModelDetails;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -99,13 +100,17 @@ class ModelController extends Controller
             //                 </i>
             //             </a>';
 
+            ->editColumn('model_details_total_price', function ($row) {
+                return number_format((float)$row->model_details_total_price, 2);
+            })
+
             ->addColumn('addItem', function ($models) {
+                $label = $models->model_details_count > 0
+                    ? ' ( '. $models->model_details_count . ' ) ' . __('common.edit')
+                    : __('production.add_sub_items');
+            
                 return '<a href="modelDetails/create/' . $models->id . '" class="hidden-print">
-                            <i class="btn btn-sm btn-success" data-id="' . $models->id . '">'
-                                . (($models->model_details_count > 0) 
-                                    ? 'Item count: ' . $models->model_details_count . ' / Edit' 
-                                    : 'Add Item') .
-                            '</i>
+                            <i class="btn btn-sm btn-success" data-id="' . $models->id . '">' . $label . '</i>
                         </a>';
             })
 
@@ -251,13 +256,33 @@ class ModelController extends Controller
     public function destroy(string $id)
     {
         $bpList = Models::findOrFail($id);
-        if ($bpList) 
-        {
-            // Delete the database record
+
+        if ($bpList) {
+            $modelDetails = ModelDetails::query()
+                ->where('model_id', $id)
+                ->where('branch_id', $this->branch_id)
+                ->get();
+
+            if ($modelDetails->isNotEmpty()) {
+                // Delete all model details
+                foreach ($modelDetails as $md) {
+                    $md->delete();
+                }
+            }
+
+            // Delete the parent model record
             $bpList->delete();
-            return response()->json(['status' => 'success', 'message' =>
-             __('common.deleted_successfully')]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.deleted_successfully')
+            ]);
         }
-        return response()->json(['status' => 'failed', 'message' => __('common.delete_failed')]);
+
+        return response()->json([
+            'status' => 'failed',
+            'message' => __('common.delete_failed')
+        ]);
     }
+
 }
