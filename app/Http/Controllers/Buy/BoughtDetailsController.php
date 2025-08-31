@@ -761,10 +761,12 @@ class BoughtDetailsController extends Controller
                 $query->select('id','name','symbols');
             }])->where('times', $times)->get();
 
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-        // return response()->json(['boughtItems' => $boughtItems]);
+            $jexists = Journal::where('times', $times)->exists();
 
-        return view('buy.bought.details',compact('boughtItemDetails','boughtItems','short_date','orgbios'));
+        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
+        // return response()->json(['jexists' => $jexists]);
+
+        return view('buy.bought.details',compact('boughtItemDetails','boughtItems','short_date','orgbios','jexists'));
 
     }
 
@@ -1342,7 +1344,7 @@ class BoughtDetailsController extends Controller
         try {
             // Delete all related records directly
             WarehouseItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
-            BoughtItemDetails::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            BoughtItemDetails::where('times', $times)->delete();
             BoughtItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
             Journal::where('times', $times)->where('branch_id', $this->branch_id)->delete();
 

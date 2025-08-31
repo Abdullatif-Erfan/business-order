@@ -8,7 +8,13 @@ use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 use App\Models\Setting\Branch;
+use Illuminate\Support\Facades\Session;
 use Morilog\Jalali\Jalalian;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use App\Models\Transaction\Journal;
+use App\Models\Buy\BoughtItemDetails; 
+use App\Models\Warehouse\WarehouseItem;
 use Yajra\DataTables\Facades\DataTables;
 
 class BoughtController extends Controller
@@ -155,4 +161,42 @@ class BoughtController extends Controller
             'message' => 'Bought item deleted successfully'
         ]);
     }
+
+    public function delete_uncompleted_buy(string $times)
+    {
+        /**
+         * 1: list all warehouses
+         * 2: delete if item exists in
+         */
+
+        DB::beginTransaction();
+        try {
+            // Delete all related records directly
+            WarehouseItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            BoughtItemDetails::where('times', $times)->delete();
+            BoughtItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            Journal::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+
+            DB::commit();
+    
+            Session::put('notification', [
+                'message' => __('common.deleted_successfully'),
+                'type' => 'success',
+            ]);
+    
+            return redirect()->route('boughtList.index'); 
+        } catch (\Exception $e) {
+            DB::rollBack();
+    
+            \Log::error('Error deleting records: ' . $e->getMessage());
+    
+            Session::put('notification', [
+                'message' => __('common.delete_failed'),
+                'type' => 'danger',
+            ]);
+    
+            return back();
+        }
+    }
+
 }

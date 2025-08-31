@@ -358,6 +358,15 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                     </a>
                                     @endif
 
+                                     <!-- حذف بل های ناقص -->
+                                     @if(!$jexists)
+                                    <a href="{{ route('buy.delete_uncompleted_buy', $boughtItems->first()->times) }}"  onClick="return doConfirm();"   class="hidden-print">
+                                        <button class="btn btn-warning btn-sm m-r-10">
+                                        <i class="fas fa-trash"></i> {{__('buy.delete_uncompleted_buy')}} 
+                                        </button>
+                                    </a>
+                                    @endif
+
                                       
 
                                     </div>

@@ -29,6 +29,7 @@ Route::prefix('bought')->group(function(){
     Route::post('/store',[BoughtController::class,'store'])->name('bought.store')->middleware('access:buy,create_records');
     Route::patch('/update',[BoughtController::class,'update'])->name('bought.update')->middleware('access:buy,edit_records');
     Route::delete('/destroy/{times}',[BoughtController::class,'destroy'])->name('bought.destroy')->middleware('access:buy,delete_records');
+    Route::get('/delete_uncompleted_buy/{times}',[BoughtController::class,'delete_uncompleted_buy'])->name('buy.delete_uncompleted_buy')->middleware('access:buy,delete_records');
 });
 
 // BoughtDetailsController

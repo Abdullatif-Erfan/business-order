@@ -19,7 +19,7 @@ return [
     'final_unit_price' => 'قیمت فی واحد تمام شده',
     'currency_selection' => 'انتخاب واحد پولی',
     'qalam_unit_price' => 'فیات قلم',
-    '' => '',
+    'delete_uncompleted_buy' => 'حذف مجموعی',
     '' => '',
     '' => '',
     '' => '',

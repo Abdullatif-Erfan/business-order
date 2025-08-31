@@ -1,0 +1,23 @@
+<?php
+return [
+    'model' => 'ماډل',
+    'qalam' => 'قلم / توکی',
+    'unit_price' => 'د واحد لګښت بیه',
+    'unit' => 'د اسعارو واحد',
+    'model_list' => 'د ماډلونو لېست',
+    'item_count' => 'شمېر',
+    'add_sub_items' => 'توکي ثبتول',
+    'create_title' => 'توکي زیاتول',
+    'add_title_in_edit_page' => 'په دې ماډل کې نوی توکی ثبت کړئ',
+    'print_title' => 'د توکو لېست',
+    'amount' => 'مقدار',
+    'total_price' => 'ټوله بیه',
+    'qalam_create_title' => 'د توکي د جوړولو فورم',
+    'model_selection' => 'ماډل غوره کړئ',
+    'production_amount' => 'د تولید اندازه',
+    'unit_selection' => 'واحد غوره کړئ',
+    'final_unit_price' => 'وروستۍ د واحد لګښت بیه',
+    'currency_selection' => 'د اسعارو واحد غوره کړئ',
+    'qalam_unit_price' => 'د توکي بیه',
+    'delete_uncompleted_buy' => 'ټول ړنګ کړئ',
+];

@@ -84,4 +84,11 @@ return [
     'msg2' => '',
     'msg3' => 'Enter this quantity in the Decrease column',
     'msg4' => '',
+
+    // need translation for other languages
+    'delete_uncompleted_buy' => 'delete uncompleted items',
+    'expired_date' => 'expire date',
+    '' => '',
+    '' => '',
+    '' => '',
 ];

@@ -1,0 +1,23 @@
+<?php
+return [
+    'model' => 'Model',
+    'qalam' => 'Item',
+    'unit_price' => 'Unit Price',
+    'unit' => 'Currency Unit',
+    'model_list' => 'Model List',
+    'item_count' => 'Quantity',
+    'add_sub_items' => 'Register Items',
+    'create_title' => 'Add Items',
+    'add_title_in_edit_page' => 'Register New Item in this Model',
+    'print_title' => 'Item List',
+    'amount' => 'Amount',
+    'total_price' => 'Total Price',
+    'qalam_create_title' => 'Create Item Form',
+    'model_selection' => 'Select Model',
+    'production_amount' => 'Production Quantity',
+    'unit_selection' => 'Select Unit',
+    'final_unit_price' => 'Final Unit Cost Price',
+    'currency_selection' => 'Select Currency Unit',
+    'qalam_unit_price' => 'Item Price',
+    'delete_uncompleted_buy' => 'Delete All',
+];

@@ -84,8 +84,10 @@ return [
     'msg2' => ' را ثبت نمایید',
     'msg3' => 'در کالم کاهش این تعداد',
     'msg4' => ' را ثبت نمایید ',
-    '' => '',
-    '' => '',
+
+    // need translation for other languages
+    'delete_uncompleted_buy' => 'حذف بل های ناقص',
+    'expired_date' => 'تاریخ انقضا',
     '' => '',
     '' => '',
     '' => '',
