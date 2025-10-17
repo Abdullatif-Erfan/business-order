@@ -106,15 +106,11 @@ function fetchList() {
                         }, 0)
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
-
                 $(api.column(7).footer()).html(sumColumn(7));
                 $(api.column(8).footer()).html(sumColumn(8));
                 $(api.column(9).footer()).html(sumColumn(9));
                 $(api.column(10).footer()).html(sumColumn(10));
                 $(api.column(11).footer()).html(sumColumn(11));
-
-
-
             }
         });
 

@@ -87,9 +87,9 @@ $(document).ready(function () {
         var discount = parseFloat(row.find('.discount').val()) || 0;
 
         // Ensure the amount is valid
-        if (enteredAmount < 1) {
-            row.find('.amount').val(1);
-            enteredAmount = 1;
+        if (enteredAmount <= -1) {
+            row.find('.amount').val(0);
+            enteredAmount = 0;
         }
 
         // Calculate total price before discount
