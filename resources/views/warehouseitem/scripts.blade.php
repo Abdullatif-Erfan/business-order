@@ -83,7 +83,7 @@ function fetchList() {
                 { data: 'currency', name: 'currency' },
                 { data: 'unit', name: 'unit' },
                 { data: 'in_amount', name: 'in_amount' },
-                { data: 'out_amount', name: 'out_amount' },
+                { data: 'out_amount', name: 'out_amount' }, 
                 { data: 'available_amount', name: 'available_amount'},
                 { data: 'bought_up', name: 'bought_up' },
                 { data: 'avg_up', name: 'avg_up' },
