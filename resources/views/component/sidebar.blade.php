@@ -64,7 +64,7 @@
                     </li>
                 @endif
 
-                @if(($permissions['rates'] || $isAdmin) && $packageId >= 3)
+                @if(($permissions['rates'] || $isAdmin) && $packageId >= 2)
                     <li class="nav-item">
                         <a href="{{ route('rate.index') }}">
                             <i class="fas fa-percent"></i>

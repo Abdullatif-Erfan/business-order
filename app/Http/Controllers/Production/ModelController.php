@@ -132,8 +132,9 @@ class ModelController extends Controller
      */
     public function show(string $id)
     {
-        $models = Models::where('id', $this->branch_id)->get();
-        $modelList = Models::where('id',$id)->get();
+        $modelList = Models::where('branch_id', $this->branch_id)->get();
+        $model = Models::findOrFail($id);
+
         return view('production.model.edit', compact('models','modelList'));
     }
 
