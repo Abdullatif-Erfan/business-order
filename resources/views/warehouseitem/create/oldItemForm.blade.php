@@ -87,7 +87,13 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                 <select class="form-control select2" tabindex="4" style="width: 100%; background-color:#ddd;" name="pre_list_id" id="pre_list_id">
                                                     <option value="0"> {{__('buy.item_selection')}} </option>
                                                     @foreach($preLists as $item)
-                                                    <option value="{{ $item->id }}" data-code="{{ $item->code }}" data-name="{{ $item->name }}"> ( کد  = {{ $item->code }}  ) /  {{ $item->name }} </option>
+                                                    <option value="{{ $item->id }}" data-code="{{ $item->code }}" data-name="{{ $item->name }}"> 
+                                                    @if(session('package_type') >= 4)
+                                                         ( کد = {{ $item->code }}  )  /
+                                                    @endif
+                                                    {{ $item->name }} 
+
+                                                     </option>
                                                     @endforeach
                                                 </select>
                                             </div>

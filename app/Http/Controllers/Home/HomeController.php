@@ -483,6 +483,8 @@ class HomeController extends Controller
             'bought_items',
             'bought_item_details',
             // 'bought_item_pre_lists',
+            'qalams',
+            'models',
             'clearances',
             'sales_details',
             'warehouse_items',
