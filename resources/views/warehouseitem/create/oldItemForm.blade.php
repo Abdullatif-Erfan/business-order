@@ -225,20 +225,6 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-<script type="text/javascript">
-    $('[data-name="disable-button"]').click(function() {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', true);
-    });
-
-    $('[data-name="enable-button"]').click(function () {
-        $('[data-mddatetimepicker="true"][data-targetselector="#input1"]').MdPersianDateTimePicker('disable', false);
-    });
-
-});
-
-
-</script>
 @endpush
 
 
@@ -322,6 +308,9 @@ function submiteWarehouseForm()
                 $('#transport').val('0');
                 $('#notification_amount').val('0');
                 $('.dynamic-row').find('input, select').val('');
+                $('.pre_list_id').find('input, select').val('');
+                $('.unit_id').find('input, select').val('');
+
             }
             else 
             {

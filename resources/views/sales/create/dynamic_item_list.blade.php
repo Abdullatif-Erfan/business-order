@@ -99,7 +99,15 @@ $(document).ready(function () {
         // Calculate profit based on average cost
         var profit = avgUp * enteredAmount;
         var net_profit = total_result - profit - discount;  // Subtract the discount from the net profit
-        row.find('.profit').val(net_profit.toFixed(2));
+        if(parseFloat(net_profit) > 0)
+        {
+             row.find('.profit').val(net_profit.toFixed(2));
+        }
+        else
+        {
+            row.find('.profit').val(0);
+        }
+        
 
         updateTotalPrice();
         updateGeneralDiscount();

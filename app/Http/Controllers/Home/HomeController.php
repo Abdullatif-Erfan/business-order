@@ -506,7 +506,7 @@ class HomeController extends Controller
             // Commit the transaction
             DB::commit();
 
-            session()->flash('notification', [
+            session()->put('notification', [
                 'type' => 'success',
                 'message' => __('common.deleted_successfully'),
             ]);
@@ -520,7 +520,7 @@ class HomeController extends Controller
             // Log the error
             \Log::error('Error truncating tables: ' . $e->getMessage());
 
-            session()->flash('notification', [
+            session()->put('notification', [
                 'type' => 'danger',
                 'message' => __('common.delete_failed'),
             ]);
