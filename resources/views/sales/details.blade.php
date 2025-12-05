@@ -111,7 +111,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> {{__('common.save_data')}}‌ : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
+                                            <td> {{__('common.save_date')}}‌ : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
                                             <td> {{__('common.bill')}}‌ : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
                                         </tr>
                                         <tr>

@@ -32,4 +32,5 @@ class BoughtItemDetails extends Model
     {
         return $this->belongsTo(Account::class,'customer_account_id','id');
     }
+    
 }

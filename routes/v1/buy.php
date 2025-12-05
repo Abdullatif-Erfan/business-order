@@ -3,6 +3,7 @@
 use App\Http\Controllers\Buy\BuyPreListController;
 use App\Http\Controllers\Buy\BoughtController;
 use App\Http\Controllers\Buy\BoughtDetailsController;
+use App\Http\Controllers\Buy\BoughtDetailsBasedItemController;
 
 // BuyPreList 
 Route::prefix('buyprelist')->group(function(){
@@ -51,3 +52,9 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
 });
 
+
+// boughtListBasedItem
+Route::prefix('boughtListBasedItem')->group(function(){
+    Route::get('/',[BoughtDetailsBasedItemController::class,'index'])->name('boughtListBasedItem.index')->middleware('access:buy,list');
+    Route::get('/data',[BoughtDetailsBasedItemController::class,'getData'])->name('boughtListBasedItem.data');
+});

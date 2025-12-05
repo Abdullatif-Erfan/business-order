@@ -373,7 +373,6 @@ class WarehouseListController extends Controller
                 // \Log::info('Increase stock in destination warehouse');
                 if($validated['options'] == 1) // change to lower
                 {
-
                     // 1: 
                     // 25 * 8 = ttl 200 , avg1 = 25
                     // 2:

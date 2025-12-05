@@ -91,12 +91,12 @@
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="9">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="9">
                                                 <center> {{__('buy.buy_title')}} </center>
                                             </td>
                                         </tr>
@@ -104,23 +104,17 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
                                             <th> {{__('common.seller')}} </th>                                            
-                                            <th> {{__('common.total_price')}} </th>
-                                            <th> {{__('buy.transport')}} </th>
-                                            <th> {{__('buy.discount')}} </th>
-                                            <th> {{__('buy.payable')}}  </th>
-                                            <th> {{__('buy.cache_paid')}} </th>
-                                            <th> {{__('buy.loan')}} </th>
-                                            <th>  {{__('common.currency')}} </th>
-                                            <th> {{__('common.date')}} </th>
-                                            <th> {{__('common.details')}} </th>
+                                            <th> نوع خرید </th>
+                                            <th> تعداد </th>
+                                            <th> واحد  </th>
+                                            <th> قیمت فی واحد </th>
+                                            <th> قیمت مجموعی</th>
+                                            <th> تاریخ </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="3">{{__('common.total')}}</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -164,7 +158,7 @@ function fetchList() {
             serverSide: true,
             processing: true,
             ajax: {  
-                url: '{{ route("boughtList.data") }}',
+                url: '{{ route("boughtListBasedItem.data") }}',
                 data: function (d) {
                     d.customer_name = $('#customer_name').val();
                     d.currency_id = $('#currency_id').val();
@@ -176,16 +170,13 @@ function fetchList() {
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
-                { data: 'customer_relation.name', name: 'customer_relation.name' },
-                { data: 'total_price', name: 'total_price' },
-                { data: 'trans_spend', name: 'trans_spend' },
-                { data: 'discount', name: 'discount' },
-                { data: 'payable', name: 'payable' },
-                { data: 'cur_pay', name: 'cur_pay' },
-                { data: 'remained', name: 'remained' },
-                { data: 'currencyRelation', name: 'currencyRelation' },
-                { data: 'idate', name: 'idate' },
-                { data: 'view', name: 'view', orderable: false, searchable: false }
+                { data: 'account_relation.name', name: 'account_relation.name' },
+                { data: 'pre_list_relation.name', name: 'pre_list_relation.name' },
+                { data: 'amount', name: 'amount' },
+                { data: 'unit_relation.name', name: 'unit_relation.name' },
+                { data: 'bought_up', name: 'bought_up' },
+                { data: 'total', name: 'total' },
+                { data: 'bought_item_relation.idate', name: 'bought_item_relation.idate' }
             ],
             drawCallback: function () {
                 var api = this.api();
@@ -215,12 +206,9 @@ function fetchList() {
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                $(api.column(3).footer()).html(sumColumn(3));
                 $(api.column(4).footer()).html(sumColumn(4));
-                $(api.column(5).footer()).html(sumColumn(5));
                 $(api.column(6).footer()).html(sumColumn(6));
                 $(api.column(7).footer()).html(sumColumn(7));
-                $(api.column(8).footer()).html(sumColumn(8));
             }
         });
 

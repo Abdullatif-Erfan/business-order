@@ -170,6 +170,11 @@
                                         <span class="sub-item">  {{ __('menu.bought_list')}} </span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('boughtListBasedItem.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  {{ __('menu.bought_list_item')}} </span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

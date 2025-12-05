@@ -15,6 +15,7 @@ return [
     'buy_pre_list' => 'د ثبت لپاره د پیرود لیست',
     'new_buy' => 'نوې پیرود',
     'bought_list' => 'د پیرود لیست',
+    'bought_list_item' => 'لیست خربد نظر به جنس',
     'warehouse' => 'ګدام',
     'warehouse_add' => 'د ګدام موجودي ثبت',
     'wastage' => 'ضایعات',
