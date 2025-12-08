@@ -264,6 +264,12 @@
                                         <span class="sub-item">  {{ __('menu.sold_list')}}</span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('soldItemList.index')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  {{ __('menu.sold_list_by_item')}}</span>
+                                    </a>
+                                </li>
+
                             </ul>
                         </div>
                     </li>

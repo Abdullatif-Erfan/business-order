@@ -11,12 +11,12 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px; text-align:center;">
-                            <a href="{{ route('boughtList.create') }}" class="pull-right">
+                            <a href="{{ route('sales.create') }}" class="pull-right">
                                 <button type="button" class="btn btn-sm mybtn">
                                     <i class="fas fa-plus"></i> {{__('common.add')}}
                                 </button>
                             </a>
-                            <span class="card-title">  {{__('buy.buy_title')}} </span>
+                            <span class="card-title">   {{__('sales.list_title')}} </span>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                         </div>
 
@@ -25,7 +25,7 @@
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="customer_name" placeholder="{{__('common.seller')}}" class="form-control">
+                                        <input type="text" id="customer_name" placeholder="{{__('sales.customer')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
@@ -97,14 +97,14 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="9">
-                                                <center> {{__('buy.buy_title')}} </center>
+                                                <center> {{__('sales.list_title')}} </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
-                                            <th> {{__('common.seller')}} </th>                                            
-                                            <th>{{ __('sales.buy_type') }}</th>
+                                            <th>{{ __('sales.customer') }}</th>
+                                            <th>{{ __('sales.sale_type') }}</th>
                                             <th>{{ __('sales.quantity') }}</th>
                                             <th>{{ __('sales.unit') }}</th>
                                             <th>{{ __('sales.unit_price') }}</th>

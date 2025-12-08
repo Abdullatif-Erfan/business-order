@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Sales\SalesController;
 use App\Http\Controllers\Sales\PosSalesController;
+use App\Http\Controllers\Sales\SalesByItemController;
 
    // Sales
    Route::prefix('sales')->group(function(){
@@ -21,5 +22,9 @@ use App\Http\Controllers\Sales\PosSalesController;
     Route::get('/pos_create',[PosSalesController::class,'pos_create'])->name('sales.pos_create')->middleware('access:sales,create_records');
     Route::post('/pos_store',[PosSalesController::class,'pos_store'])->name('sales.pos_store')->middleware('access:sales,create_records');
     Route::get('/pos_print/{billno}',[PosSalesController::class,'pos_print'])->name('sales.pos_print');
+});
 
+Route::prefix('soldItemList')->group(function(){
+    Route::get('/',[SalesByItemController::class,'index'])->name('soldItemList.index')->middleware('access:sales,list');
+    Route::get('/data',[SalesByItemController::class,'getData'])->name('soldItemList.data');
 });

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Buy;
+namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -22,8 +22,7 @@ use App\Models\Warehouse\WarehouseItem;
 use App\Models\Setting\Account;
 use Yajra\DataTables\Facades\DataTables;
 
-
-class BoughtDetailsBasedItemController extends Controller
+class SalesByItemController extends Controller
 {
     protected $branch_id, $isAdmin;
     public function __construct()
@@ -36,21 +35,21 @@ class BoughtDetailsBasedItemController extends Controller
             $this->isAdmin = false;
         }
     }
-
-    /**
+   
+        /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $boughtItemDetails = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
-        return response()->json(['boughtItemDetails' => $boughtItemDetails]);
+        // $boughtItemDetails = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
+        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
 
         $currencies = Currency::all();
         $branches = Branch::where('id',$this->branch_id)->get();
         $orgbios = OrgBio::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
-        return view('buy.bought.item_list',compact('currencies','branches','todaysDate','orgbios'));
+        return view('sales.item_list',compact('currencies','branches','todaysDate','orgbios'));
     }
 
     public function getData(Request $request)
@@ -116,7 +115,7 @@ class BoughtDetailsBasedItemController extends Controller
             ->make(true);
 
     }
-    
+
     /**
      * Show the form for creating a new resource.
      */

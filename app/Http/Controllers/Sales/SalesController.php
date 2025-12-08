@@ -238,7 +238,7 @@ class SalesController extends Controller
             'warehouseItemId' => 'required|array',
             'warehouseItemId.*' => 'required|integer|exists:warehouse_items,id',
             'amount' => 'required|array',
-            'amount.*' => 'required|numeric|min:1',
+            'amount.*' => 'required|numeric|min:0',
             'unit_id' => 'required|array',
             'unit_id.*' => 'required|integer|exists:units,id',
             'unit_name' => 'required|array',
