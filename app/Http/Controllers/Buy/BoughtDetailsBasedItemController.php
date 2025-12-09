@@ -42,8 +42,8 @@ class BoughtDetailsBasedItemController extends Controller
      */
     public function index()
     {
-        $boughtItemDetails = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
-        return response()->json(['boughtItemDetails' => $boughtItemDetails]);
+        // $boughtItemDetails = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
+        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
 
         $currencies = Currency::all();
         $branches = Branch::where('id',$this->branch_id)->get();
@@ -64,6 +64,12 @@ class BoughtDetailsBasedItemController extends Controller
                 });
             }
             
+            if ($request->item_name) {
+                $boughtItems->whereHas('preListRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%{$request->item_name}%");
+              });
+           }
+
             if ($request->currency_id) {
                 $boughtItems->whereHas('boughtItemRelation', function ($query) use ($request) {
                     $query->where('currency_id', $request->currency_id);

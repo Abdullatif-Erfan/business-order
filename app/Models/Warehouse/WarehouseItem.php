@@ -7,6 +7,7 @@ use App\Models\Setting\Warehouse;
 use App\Models\Setting\Currency;
 use App\Models\Setting\Unit;
 use App\Models\Setting\Branch;
+use App\Models\Setting\Account;
 use App\Models\Buy\BuyPreList;
 
 class WarehouseItem extends Model
@@ -38,4 +39,10 @@ class WarehouseItem extends Model
    {
        return $this->belongsTo(BuyPreList::class,'buy_pre_id','id');
    }
+
+   public function accountRelation()
+   {
+       return $this->belongsTo(Account::class,'customer_account_id','id');
+   }
+
 }

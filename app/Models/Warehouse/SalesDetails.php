@@ -40,4 +40,8 @@ class SalesDetails extends Model
     {
         return $this->belongsTo(WarehouseSales::class, 'warehouse_sales_id');
     }
+    public function accountRelation()
+    {
+        return $this->belongsTo(Account::class,'customer_account_id','id');
+    }
 }

@@ -28,6 +28,10 @@
                                         <input type="text" id="customer_name" placeholder="{{__('sales.customer')}}" class="form-control">
                                     </div>
 
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <input type="text" id="item_name" placeholder="{{__('sales.item')}}" class="form-control">
+                                    </div>
+
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
                                         <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
                                             <option value="">  {{__('common.currency')}} </option>
@@ -37,7 +41,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-1 col-sm-6 col-xs-6">
                                         <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
@@ -60,7 +64,7 @@
 							     	</div>
                                 
 
-                                     <div class="col-md-3">
+                                     <div class="col-md-2">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -88,15 +92,15 @@
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
                                 <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
-                                <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
+                                <table id="salesItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="10">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="10">
                                                 <center> {{__('sales.list_title')}} </center>
                                             </td>
                                         </tr>
@@ -108,6 +112,7 @@
                                             <th>{{ __('sales.quantity') }}</th>
                                             <th>{{ __('sales.unit') }}</th>
                                             <th>{{ __('sales.unit_price') }}</th>
+                                            <th>{{ __('sales.profit') }}</th>
                                             <th>{{ __('sales.total_price') }}</th>
                                             <th>{{ __('sales.date') }}</th>
                                         </tr>
@@ -115,6 +120,7 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="3">{{__('common.total')}}</td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -144,39 +150,41 @@ $(document).ready(function() {
 
     // Move the filter button click event outside
     $('#btn-filter').click(function() {
-        $('#boughtItemTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
+        $('#salesItemTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
     });
 });
 
 
 function fetchList() {
-    let boughtItemTable = $('#boughtItemTable');
+    let salesItemTable = $('#salesItemTable');
 
     // Check if DataTable is already initialized
-    if (!$.fn.DataTable.isDataTable(boughtItemTable)) {
-        boughtItemTable.DataTable({
+    if (!$.fn.DataTable.isDataTable(salesItemTable)) {
+        salesItemTable.DataTable({
             serverSide: true,
             processing: true,
             ajax: {  
-                url: '{{ route("boughtListBasedItem.data") }}',
+                url: '{{ route("soldItemList.data") }}',
                 data: function (d) {
                     d.customer_name = $('#customer_name').val();
                     d.currency_id = $('#currency_id').val();
                     d.bill_number = $('#bill_number').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
+                    d.item_name = $('#item_name').val();
                 }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
-                { data: 'account_relation.name', name: 'account_relation.name' },
-                { data: 'pre_list_relation.name', name: 'pre_list_relation.name' },
+                { data: 'customer_name', name: 'customer_name' },
+                { data: 'product_name', name: 'product_name' },
                 { data: 'amount', name: 'amount' },
-                { data: 'unit_relation.name', name: 'unit_relation.name' },
-                { data: 'bought_up', name: 'bought_up' },
+                { data: 'unit', name: 'unit' },
+                { data: 'sell_up', name: 'sell_up' },
+                { data: 'profit', name: 'profit' },
                 { data: 'total', name: 'total' },
-                { data: 'bought_item_relation.idate', name: 'bought_item_relation.idate' }
+                { data: 'date', name: 'date' }
             ],
             drawCallback: function () {
                 var api = this.api();
@@ -209,11 +217,12 @@ function fetchList() {
                 $(api.column(4).footer()).html(sumColumn(4));
                 $(api.column(6).footer()).html(sumColumn(6));
                 $(api.column(7).footer()).html(sumColumn(7));
+                $(api.column(8).footer()).html(sumColumn(8));
             }
         });
 
     } else {
-        boughtItemTable.DataTable().ajax.reload(null, false);
+        salesItemTable.DataTable().ajax.reload(null, false);
     }
 }
 </script>

@@ -14,10 +14,15 @@ use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
 use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
-use App\Models\Buy\BoughtItemDetails; 
+
 use App\Models\Transaction\Journal;
+use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Setting\Warehouse;
+
+use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
+use App\Models\Warehouse\SalesDetails;
+
 
 use App\Models\Setting\Account;
 use Yajra\DataTables\Facades\DataTables;
@@ -41,9 +46,52 @@ class SalesByItemController extends Controller
      */
     public function index()
     {
-        // $boughtItemDetails = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
+        // $boughtItemDetails = WarehouseSales::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
         // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
 
+        
+        // $salesDetails = SalesDetails::with([
+        //     'preListRelation',
+        //     'unitRelation',
+        //     'warehouseSale.customer'
+        // ])
+        // ->where('branch_id', $this->branch_id)
+        // ->get()
+        // ->map(function ($item) {
+        //     return [
+        //         'id' => $item->id,
+        //         'billno' => $item->billno,
+        //         'product_name' => $item->preListRelation->name ?? null,
+        //         'unit' => $item->unitRelation->name ?? null,
+        //         'amount' => $item->amount,
+        //         'sell_up' => $item->sell_up,
+        //         'total' => $item->total,
+        //         'customer_name' => $item->warehouseSale->customer->name ?? null, // 🔥 only customer name
+        //         'date' => $item->todays_date,
+        //     ];
+        // });
+
+        // $query = SalesDetails::select(
+        //     'sales_details.id',
+        //     'sales_details.billno',
+        //     'sales_details.amount',
+        //     'sales_details.sell_up',
+        //     'sales_details.total',
+        //     'sales_details.profit',
+        //     'sales_details.todays_date as date',
+        //     'bought_item_pre_lists.name as product_name',
+        //     'units.name as unit_name',
+        //     'accounts.name as customer_name'
+        // )
+        // ->leftJoin('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'sales_details.pre_list_id')
+        // ->leftJoin('units', 'units.id', '=', 'sales_details.unit_id')
+        // ->leftJoin('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
+        // ->leftJoin('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
+        // ->where('sales_details.branch_id', $this->branch_id)->get();
+        
+        // return response()->json(['salesDetails' => $query]);
+            
+        
         $currencies = Currency::all();
         $branches = Branch::where('id',$this->branch_id)->get();
         $orgbios = OrgBio::all();
@@ -52,69 +100,123 @@ class SalesByItemController extends Controller
         return view('sales.item_list',compact('currencies','branches','todaysDate','orgbios'));
     }
 
-    public function getData(Request $request)
+    public function getData2(Request $request)
     {
-            $boughtItems = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->orderBy('id', 'DESC');
-            
-              // Apply filters if provided
-              if ($request->customer_name) {
-                    $boughtItems->whereHas('accountRelation', function ($query) use ($request) {
-                    $query->where('name', 'LIKE', "%{$request->customer_name}%");
-                });
-            }
-            
-            if ($request->currency_id) {
-                $boughtItems->whereHas('boughtItemRelation', function ($query) use ($request) {
-                    $query->where('currency_id', $request->currency_id);
-                });
-            }
-            
-            if ($request->start_date && $request->end_date) 
-            {
-                $boughtItems->whereHas('boughtItemRelation', function ($query) use ($request) {
-                    $query->whereBetween('idate', [$request->start_date, $request->end_date]);
-                });
-            } elseif ($request->start_date) {
-                $boughtItems->whereHas('boughtItemRelation', function ($query) use ($request) {
-                    $query->whereDate('idate', '=', $request->start_date);
-                });
-            } elseif ($request->end_date) {
-                $boughtItems->whereHas('boughtItemRelation', function ($query) use ($request) {
-                    $query->whereDate('idate', '<=', $request->start_date);
-                });
-            }
-            
-            if ($request->bill_number) {
-                $boughtItems->where('billno', $request->bill_number);
-            }
-            
-            return DataTables::of($boughtItems->get())
-            
-
+        // Step 1: Start Query (no get(), no map yet)
+        $query = SalesDetails::with([
+            'preListRelation',
+            'unitRelation',
+            'warehouseSale.customer'
+        ])->where('branch_id', $this->branch_id);
+    
+        // 🔍 Filter: customer name
+        if ($request->customer_name) {
+            $query->whereHas('warehouseSale.customer', function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->customer_name}%");
+            });
+        }
+    
+        // 🔍 Filter: bill number
+        if ($request->bill_number) {
+            $query->where('billno', $request->bill_number);
+        }
+    
+        // 🔍 Filter: date range (from sales_details.todays_date)
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('todays_date', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $query->whereDate('todays_date', '=', $request->start_date);
+        } elseif ($request->end_date) {
+            $query->whereDate('todays_date', '<=', $request->end_date);
+        }
+    
+        // Step 2: Get Data
+        $salesDetails = $query->get();
+    
+        // Step 3: Transform
+        $mapped = $salesDetails->map(function ($item) {
+            return [
+                'id'            => $item->id,
+                'billno'        => $item->billno,
+                'product_name'  => $item->preListRelation->name ?? null,
+                'unit'          => $item->unitRelation->name ?? null,
+                'amount'        => $item->amount,
+                'sell_up'       => $item->sell_up,
+                'profit'        => $item->profit,
+                'total'         => $item->total,
+                'customer_name' => $item->warehouseSale->customer->name ?? null,
+                'date'          => $item->todays_date,
+            ];
+        });
+    
+        // Step 4: Datatable response
+        return DataTables::of($mapped)
             ->addIndexColumn()
-            // ->addColumn('branch', function($buyPreList) {
-            //     return $buyPreList->branchRelation->name;
-            // })
-
-            ->addColumn('billno', function($boughtItem) {
-                return $boughtItem->billno ? $boughtItem->billno : '';
-            })
-
-            // ->addColumn('total_price', function ($boughtItem) {
-            //     $total_price = $boughtItem->total_price;
-            //     // return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
-            //     return  number_format($total_price, 2);
-
-            // })
-
-            ->addColumn('total', function ($boughtItem) {
-                return $boughtItem ? number_format($boughtItem->amount * $boughtItem->bought_up, 0) : '';
-            })
-
-            ->rawColumns(['billno'])
+            ->editColumn('total', fn($row) => number_format($row['total'], 0))
             ->make(true);
-
     }
+
+
+public function getData(Request $request)
+{
+    // Base Query with joins (faster than whereHas)
+    $query = SalesDetails::select(
+        'sales_details.id',
+        'sales_details.billno',
+        'sales_details.amount',
+        'sales_details.sell_up',
+        'sales_details.total',
+        'sales_details.profit',
+        'sales_details.todays_date as date',
+        'bought_item_pre_lists.name as product_name',
+        'units.name as unit_name',
+        'accounts.name as customer_name'
+    )
+    ->leftJoin('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'sales_details.pre_list_id')
+    ->leftJoin('units', 'units.id', '=', 'sales_details.unit_id')
+    ->leftJoin('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
+    ->leftJoin('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
+    ->where('sales_details.branch_id', $this->branch_id);
+
+    // 🔍 Filter: customer name
+    if ($request->customer_name) {
+        $query->where('accounts.name', 'LIKE', "%{$request->customer_name}%");
+    }
+
+    // Filter: currency id
+    if ($request->currency_id) {
+        $query->where('warehouse_sales.currency_id', '=', $request->currency_id);
+    }
+
+     // Filter: Item Name 
+     if ($request->item_name) {
+        $query->where('bought_item_pre_lists.name', 'LIKE', "%{$request->item_name}%");
+    }
+
+    // 🔍 Filter: bill number
+    if ($request->bill_number) {
+        $query->where('sales_details.billno', $request->bill_number);
+    }
+
+    // 🔍 Filter: date range
+    if ($request->start_date && $request->end_date) {
+        $query->whereBetween('sales_details.todays_date', [$request->start_date, $request->end_date]);
+    } elseif ($request->start_date) {
+        $query->whereDate('sales_details.todays_date', '=', $request->start_date);
+    } elseif ($request->end_date) {
+        $query->whereDate('sales_details.todays_date', '<=', $request->end_date);
+    }
+
+    // Return DataTable (auto-pagination, no heavy mapping)
+    return DataTables::of($query)
+        ->addIndexColumn()
+        ->editColumn('unit', fn($row) => $row->unit_name)
+        ->editColumn('product_name', fn($row) => $row->product_name)
+        ->editColumn('total', fn($row) => number_format($row->total, 0))
+        ->make(true);
+}
+
+    
 
     /**
      * Show the form for creating a new resource.

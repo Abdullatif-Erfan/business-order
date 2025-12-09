@@ -28,6 +28,10 @@
                                         <input type="text" id="customer_name" placeholder="{{__('common.seller')}}" class="form-control">
                                     </div>
 
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <input type="text" id="item_name" placeholder="{{__('sales.item')}}" class="form-control">
+                                    </div>
+
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
                                         <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
                                             <option value="">  {{__('common.currency')}} </option>
@@ -37,7 +41,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-1 col-sm-6 col-xs-6">
                                         <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
@@ -60,7 +64,7 @@
 							     	</div>
                                 
 
-                                     <div class="col-md-3">
+                                     <div class="col-md-2">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -165,6 +169,7 @@ function fetchList() {
                     d.bill_number = $('#bill_number').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
+                    d.item_name = $('#item_name').val();
                 }
             },
             columns: [
