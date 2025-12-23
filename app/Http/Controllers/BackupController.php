@@ -126,8 +126,12 @@ class BackupController extends Controller
                 throw new Exception('Database configuration is incomplete');
             }
 
+            // ------------------- OFFLINE ---------------------------------------------------
             // MySQL-specific command format (for Windows, change path to mysqldump if needed)
             $mysqldumpPath = env('MYSQL_DUMP_PATH', 'D:/installed/xamp2/mysql/bin/mysqldump.exe');
+
+            // ------------------- ONLINE ---------------------------------------------------
+            // $mysqldumpPath = env('MYSQL_DUMP_PATH', '/usr/bin/mysqldump');
 
             // Check if mysqldump exists
             if (!file_exists(trim($mysqldumpPath, '"'))) {
@@ -243,7 +247,7 @@ class BackupController extends Controller
             }
 
             // MySQL-specific command format (for Linux)
-            $mysqldumpPath = '/bin/mysqldump'; // Default path for Linux
+            $mysqldumpPath = env('MYSQL_DUMP_PATH', '/usr/bin/mysqldump');
 
             // Check if mysqldump exists
             if (!file_exists(trim($mysqldumpPath, '"'))) {
