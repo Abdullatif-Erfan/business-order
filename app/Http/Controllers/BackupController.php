@@ -434,7 +434,7 @@ class BackupController extends Controller
             $dbPassword = config('database.connections.mysql.password');
     
             // Validate MySQL utility (mysql for restoration)
-            $mysqlPath = env('MYSQL_PATH', '/bin/mysql');
+            $mysqlPath = env('MYSQL_PATH', '/usr/bin/mysql');
     
             if (!file_exists(trim($mysqlPath, '"'))) {
                 throw new Exception('mysql utility not found at: ' . $mysqlPath);
