@@ -275,6 +275,7 @@
                     </li>
                 @endif
 
+                
                 @if(($permissions['clearance'] || $isAdmin) && $packageId >= 2)
                 <li class="nav-item">
                     <a data-toggle="collapse" href="#clearance">
