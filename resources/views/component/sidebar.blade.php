@@ -251,6 +251,11 @@
                                         <span class="sub-item"> {{ __('menu.new_sales')}} </span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('sales.createWithOtherCurrency') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> {{ __('menu.new_sales_with_other_currency')}} </span>
+                                    </a>
+                                </li>
                                 <!-- businessplus + POS -->
                                 @if($packageId == 4)
                                 <li>
@@ -275,7 +280,7 @@
                     </li>
                 @endif
 
-
+                
                 @if(($permissions['clearance'] || $isAdmin) && $packageId >= 2)
                 <li class="nav-item">
                     <a data-toggle="collapse" href="#clearance">
@@ -283,7 +288,6 @@
                         <p>  {{ __('menu.clearance')}} </p>
                         <span class="caret"></span>
                     </a>
-                    
                     <div class="collapse" id="clearance">
                         <ul class="nav nav-collapse">
                             <li>

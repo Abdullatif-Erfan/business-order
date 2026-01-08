@@ -36,5 +36,5 @@ return [
     'chartOfAccount' => 'چارت حسابات',
 
     'production' => 'تولیدی',
-
+    'new_sales_with_other_currency' => 'فروشات جدید باکرنسی دیگر'
 ];

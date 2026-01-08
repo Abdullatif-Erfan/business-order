@@ -35,4 +35,6 @@ return [
     'cacheflow' => 'Customer Accounts',
     'chartOfAccount' => 'Chart of Accounts',
     'production' => 'Production',
+
+    'new_sales_with_other_currency' => 'New Sales With Other Currency'
 ];

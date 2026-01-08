@@ -35,4 +35,6 @@ return [
     'cacheflow' => 'د مشتریانو حسابات',
     'chartOfAccount' => 'د حساباتو چارټ',
     'production' => 'تولیداتي',
+    
+    'new_sales_with_other_currency' => 'فروشات جدید باکرنسی دیگر'
 ];

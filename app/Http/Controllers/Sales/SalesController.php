@@ -963,4 +963,35 @@ class SalesController extends Controller
         }
     }
 
+    // Create with other currency
+    public function createWithOtherCurrency()
+    {
+        $todaysDate = Jalalian::now()->format('Y-m-d');
+        // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
+        $warehouseItems = DB::table('warehouse_items')
+                        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+                        ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
+                        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+                        // ->join('currencies', 'currencies.id', '=', 'warehouse_items.currency_id')
+                        ->where('warehouse_items.available_amount', '>', 0)
+                        ->select('warehouse_items.id','warehouse_items.currency_id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.branch_id','bought_item_pre_lists.id as pre_list_id')
+                        // 'currencies.name as currency_name'
+                        ->where('warehouse_items.branch_id', $this->branch_id)
+                        ->get();
+        // return $warehouseItems;
+        // die();
+        
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+
+        $currencies = Currency::all();
+        $billno =  WarehouseSales::where('branch_id', $this->branch_id)->max('billno') + 1;
+        $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
+        $times = time();
+        
+
+        // return response()->json(['data' => $warehouseItems]);
+        return view('sales.create.other_form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
+    }
+
 }
