@@ -42,17 +42,17 @@
                 <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
+                    <input name="main_currency_id[]" class="form-control main_currency_id" type="hidden2" readonly required>
                     <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>
                     <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
                     <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly required>
                     <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
-
                 </td>
 
 
                 <td>
                   <!-- <input name="discount[]" class="form-control discount" type="number" step="0.01"  value="0" > -->
-                  <select class="form-control select2 item-select" name="warehouseItemCurrencyId[]" style="width: 100%;" required >
+                  <select class="form-control select2 currency-select" name="warehouseItemCurrencyId[]" style="width: 100%;" required >
                         <option value="">{{__('common.currency')}}</option>
                         @foreach($currencies as $currency)
                             <option value="{{ $currency->id }}"  data-selected-currency="{{ $currency->id }}" >
@@ -169,7 +169,7 @@ $(document).ready(function () {
         var availableAmount = selectedOption.data('available-amount');
         var row = $(this).closest('tr');
 
-        // put currency_id at the top 
+        // put currency_id at the top of select 
 
         row.find('.unit-name').val(unitName);
         row.find('.unit-id').val(unitId);
@@ -179,6 +179,22 @@ $(document).ready(function () {
         row.find('.avg-up').val(avgUp);
         row.find('.sell-up').val(sellUp);
         row.find('.amount').data('max', availableAmount);
+
+         // ✅ FIX: select correct currency automatically
+        if (currency_id) {
+            row.find('.currency-select')
+            .val(currency_id)
+            .trigger('change');
+            $('#main_currency_id').val(currency_id);
+        }
+        else
+        {
+            row.find('.currency-select')
+            .val('')
+            .trigger('change'); 
+            $('.main_currency_id').val('');
+        }
+
     });
 
     // Handle input changes for recalculations
