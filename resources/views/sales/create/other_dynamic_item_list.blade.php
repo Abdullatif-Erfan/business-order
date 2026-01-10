@@ -1,3 +1,4 @@
+<input type="hidden" name="default_currency" value="{{ $default_currency->id }}" />
 <div class="table-responsive">
     <table class="table table-bordered new" id="itemsTable">
   
@@ -42,17 +43,26 @@
                 <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
-                    <input name="main_currency_id[]" class="form-control main_currency_id" type="hidden2" readonly required>
+                    <input name="main_currency_id[]" class="form-control main-currency-id" type="hidden" readonly required>
                     <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>
                     <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
                     <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly required>
                     <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
+
+                    <!-- first values -->
+                    <input name="def_avg_up[]" class="form-control def-avg-up" type="hidden" step="0.01" >
+                    <input name="def_sell_up[]" class="form-control def-sell-up" type="hidden" step="0.01" >
+                    <input name="def_profit[]" class="form-control def-profit" type="hidden" step="0.01"  >
+                    <input name="def_total[]" class="form-control def-total" value="0" type="hidden" step="0.01">
+                    <input name="def_total_price[]" class="form-control def-total-price" value="0" type="hidden" step="0.01">
+                    <input name="def_payable[]" class="form-control def-payable" value="0" type="hidden" step="0.01">
+
                 </td>
 
 
                 <td>
                   <!-- <input name="discount[]" class="form-control discount" type="number" step="0.01"  value="0" > -->
-                  <select class="form-control select2 currency-select" name="warehouseItemCurrencyId[]" style="width: 100%;" required >
+                  <select class="form-control select2 currency-select" id="currency-select" name="warehouseItemCurrencyId[]" style="width: 100%;" required >
                         <option value="">{{__('common.currency')}}</option>
                         @foreach($currencies as $currency)
                             <option value="{{ $currency->id }}"  data-selected-currency="{{ $currency->id }}" >
@@ -122,6 +132,15 @@ $(document).ready(function () {
         }
         
 
+        // -------- set defult currency value for re-select default currency on currencyConverter function ---------
+        row.find('.def-avg-up').val(avgUp);
+        row.find('.def-sell-up').val(sellUp);
+        row.find('.def-profit').val(profit);
+        row.find('.def-total').val(total_result);
+        row.find('.def-total-price').val(total_result);
+        row.find('.def-payable').val(total_result);
+
+
         updateTotalPrice();
         updateGeneralDiscount();
     }
@@ -165,8 +184,11 @@ $(document).ready(function () {
         var preListId = selectedOption.data('pre-list-id');
         var avgUp = selectedOption.data('avg-up');
         var sellUp = selectedOption.data('sell-up');
-        var currency_id = selectedOption.data('currency-id');
+
+        let currency_id = selectedOption.data('currency-id');
+
         var availableAmount = selectedOption.data('available-amount');
+        var mainCurrencyId = selectedOption.data('main-currency-id');
         var row = $(this).closest('tr');
 
         // put currency_id at the top of select 
@@ -185,14 +207,14 @@ $(document).ready(function () {
             row.find('.currency-select')
             .val(currency_id)
             .trigger('change');
-            $('#main_currency_id').val(currency_id);
+            row.find('.main-currency-id').val(currency_id);
         }
         else
         {
             row.find('.currency-select')
             .val('')
             .trigger('change'); 
-            $('.main_currency_id').val('');
+            row.find('.main-currency-id').val('');
         }
 
     });
@@ -202,6 +224,8 @@ $(document).ready(function () {
         var row = $(this).closest('tr');
         recalculate(row);
     });
+
+   
 
     // Add new row
     $(document).on('click', '.addRow', function () {
@@ -245,5 +269,117 @@ $(document).ready(function () {
     $('.item-select').select2();
 });
 
+
+</script>
+
+<script>
+ // Handle foreign currency 
+ $(document).on('change', '.currency-select', function () {
+
+let row = $(this).closest('tr');
+let selectedCurrencyId = $(this).val();
+let mainCurrencyId = row.find('.main-currency-id').val();
+let amount = parseFloat(row.find('.amount').val()) || 0;
+
+// console.log('Selected:', selectedCurrencyId);
+// console.log('Main:', mainCurrencyId);
+
+if (amount > 0 && selectedCurrencyId && mainCurrencyId) 
+{
+
+        if (selectedCurrencyId !== mainCurrencyId) {
+            // alert('convert should be done');
+            // 🔁 call conversion function here
+            var avgUp = parseFloat(row.find('.def-avg-up').val()) || 0;
+            var sellUp = parseFloat(row.find('.def-sell-up').val()) || 0;
+            let profit = parseFloat(row.find('.def-profit').val()) || 0;
+            let total = parseFloat(row.find('.def-total').val()) || 0;
+        
+
+            // console.log('avg_up', avgUp);
+            // console.log('sellUp', sellUp);
+            // console.log('profit', profit);
+            // console.log('total', total);
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.avg-up').val(), function (v) {
+            row.find('.avg-up').val(v);
+            });
+
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.sell-up').val(), function (v) {
+                row.find('.sell-up').val(v);
+            });
+
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.profit').val(), function (v) {
+                row.find('.profit').val(v);
+            });
+
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.total').val(), function (v) {
+                row.find('.total').val(v);
+                $('#total_price').val(v);
+                $('#payable').val(v);
+            });
+
+
+        } 
+        else 
+        {
+            row.find('.avg-up').val(row.find('.def-avg-up').val());
+            row.find('.sell-up').val(row.find('.def-sell-up').val());
+            row.find('.profit').val(row.find('.def-profit').val());
+            row.find('.total').val(row.find('.def-total').val());
+            $('#total_price').val(row.find('.def-total-price').val());
+            $('#payable').val(row.find('.def-payable').val());
+        }
+    }
+});
+
+function convertCurrency(to_currency, from_currency, amount, callback)
+    {
+        let newRate = parseFloat($('#newRate').val()) || 0;
+
+        if (!from_currency || !to_currency || !amount) return;
+
+        if (from_currency === to_currency) {
+            callback(amount); // no conversion needed
+            return;
+        }
+
+        $('#conversion_flag').val(1);
+        $('#newRate').fadeIn(1);
+
+        $.ajax({
+            url: '/home/currencyConverter',
+            type: 'POST',
+            data: {
+                from_currency: from_currency,
+                to_currency: to_currency,
+                fromAmount: amount,
+                newRate: newRate,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            success: function (result) {
+
+                if (result.convertedAmount !== undefined) {
+                    let converted = parseFloat(result.convertedAmount).toFixed(2);
+
+                    // ✅ RETURN RESULT TO CALLER
+                    if (typeof callback === 'function') {
+                        callback(converted);
+                    }
+
+                } else {
+                    alert('Invalid conversion response');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error:", error);
+                alert('Currency conversion failed');
+            }
+        });
+    }
+
+    function number_format(num, decimals = 2) {
+       return num.toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,'); 
+    }
 
 </script>

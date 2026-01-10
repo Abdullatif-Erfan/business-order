@@ -369,6 +369,8 @@ function checkBillNoDuplication(billNo)
     });
 }
 
+
+
 </script>
 
 @endsection

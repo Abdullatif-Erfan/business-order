@@ -985,13 +985,15 @@ class SalesController extends Controller
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::all();
+        $default_currency = Currency::select('id')->where('is_base','=','yes')->first();
         $billno =  WarehouseSales::where('branch_id', $this->branch_id)->max('billno') + 1;
         $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
         $times = time();
+
         
 
         // return response()->json(['data' => $warehouseItems]);
-        return view('sales.create.other_form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
+        return view('sales.create.other_form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times','default_currency'));
     }
 
 }
