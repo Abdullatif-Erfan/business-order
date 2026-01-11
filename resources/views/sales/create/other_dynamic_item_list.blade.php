@@ -50,19 +50,19 @@
                     <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
 
                     <!-- first values -->
-                    <input name="def_avg_up[]" class="form-control def-avg-up" type="hidden" step="0.01" >
-                    <input name="def_sell_up[]" class="form-control def-sell-up" type="hidden" step="0.01" >
-                    <input name="def_profit[]" class="form-control def-profit" type="hidden" step="0.01"  >
-                    <input name="def_total[]" class="form-control def-total" value="0" type="hidden" step="0.01">
-                    <input name="def_total_price[]" class="form-control def-total-price" value="0" type="hidden" step="0.01">
-                    <input name="def_payable[]" class="form-control def-payable" value="0" type="hidden" step="0.01">
+                    <input name="def_avg_up[]" class="form-control def-avg-up" type="hidden" >
+                    <input name="def_sell_up[]" class="form-control def-sell-up" type="hidden" >
+                    <input name="def_profit[]" class="form-control def-profit" type="hidden"  >
+                    <input name="def_total[]" class="form-control def-total" value="0" type="hidden">
+                    <input name="def_total_price[]" class="form-control def-total-price" value="0" type="hidden">
+                    <input name="def_payable[]" class="form-control def-payable" value="0" type="hidden">
 
                 </td>
 
 
                 <td>
                   <!-- <input name="discount[]" class="form-control discount" type="number" step="0.01"  value="0" > -->
-                  <select class="form-control select2 currency-select" id="currency-select" name="warehouseItemCurrencyId[]" style="width: 100%;" required >
+                  <select class="form-control select2 currency-select" name="warehouseItemCurrencyId[]" style="width: 100%;" required >
                         <option value="">{{__('common.currency')}}</option>
                         @foreach($currencies as $currency)
                             <option value="{{ $currency->id }}"  data-selected-currency="{{ $currency->id }}" >
@@ -73,8 +73,8 @@
                 </td>
                 <td><input name="avg_up[]" class="form-control avg-up" type="number" step="0.01" required></td>
                 <td><input name="sell_up[]" class="form-control sell-up" type="number" step="0.01" required></td>
-                <td><input name="profit[]" class="form-control profit" type="number" step="0.01" readonly required></td>
-                <td><input name="total[]" class="form-control total" value="0" type="number" step="0.01" readonly required></td>
+                <td><input name="profit[]" class="form-control profit" type="number" step="0.01"  required></td>
+                <td><input name="total[]" class="form-control total" value="0" type="number" step="0.01"  required></td>
                 <td>
                     <button type="button" class="btn btn-info btn-sm addRow" style="padding: 2px 8px !important;">
                         <i class="fa fa-plus"></i>
@@ -137,8 +137,8 @@ $(document).ready(function () {
         row.find('.def-sell-up').val(sellUp);
         row.find('.def-profit').val(profit);
         row.find('.def-total').val(total_result);
-        row.find('.def-total-price').val(total_result);
-        row.find('.def-payable').val(total_result);
+        // row.find('.def-total-price').val(total_result);
+        // row.find('.def-payable').val(total_result);
 
 
         updateTotalPrice();
@@ -238,7 +238,7 @@ $(document).ready(function () {
         newRow.find('.item-select').removeClass('select2-hidden-accessible').show();
         $('#itemsTable tbody').append(newRow);
 
-        newRow.find('.item-select').select2();
+        newRow.find('.item-select, .currency-select').select2();
 
         // Add required to new row's inputs
         toggleRequiredAttribute(newRow, true);
@@ -281,17 +281,20 @@ let selectedCurrencyId = $(this).val();
 let mainCurrencyId = row.find('.main-currency-id').val();
 let amount = parseFloat(row.find('.amount').val()) || 0;
 
-// console.log('Selected:', selectedCurrencyId);
-// console.log('Main:', mainCurrencyId);
+    // console.log('Selected:', selectedCurrencyId);
+    // console.log('Main:', mainCurrencyId);
 
-if (amount > 0 && selectedCurrencyId && mainCurrencyId) 
-{
+    if (amount > 0 && selectedCurrencyId && mainCurrencyId) 
+    {
+
+        // 🔒 prevent double conversion
+        if (row.data('converting')) return;
+        row.data('converting', true);
 
         if (selectedCurrencyId !== mainCurrencyId) {
             // alert('convert should be done');
-            // 🔁 call conversion function here
-            var avgUp = parseFloat(row.find('.def-avg-up').val()) || 0;
-            var sellUp = parseFloat(row.find('.def-sell-up').val()) || 0;
+            let avgUp = parseFloat(row.find('.def-avg-up').val()) || 0;
+            let sellUp = parseFloat(row.find('.def-sell-up').val()) || 0;
             let profit = parseFloat(row.find('.def-profit').val()) || 0;
             let total = parseFloat(row.find('.def-total').val()) || 0;
         
@@ -300,34 +303,41 @@ if (amount > 0 && selectedCurrencyId && mainCurrencyId)
             // console.log('sellUp', sellUp);
             // console.log('profit', profit);
             // console.log('total', total);
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.avg-up').val(), function (v) {
+
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-avg-up').val(), function (v) {
             row.find('.avg-up').val(v);
             });
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.sell-up').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-sell-up').val(), function (v) {
                 row.find('.sell-up').val(v);
             });
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.profit').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-profit').val(), function (v) {
                 row.find('.profit').val(v);
             });
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.total').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-total').val(), function (v) {
                 row.find('.total').val(v);
-                $('#total_price').val(v);
-                $('#payable').val(v);
+                let yet_total_price = $('#total_price').val();
+                let total_price_result = parseFloat(v) + parseFloat(yet_total_price);
+                $('#total_price').val(total_price_result);
+                // $('#payable').val(v);
+
+                // 🔓 release lock AFTER last conversion
+                row.data('converting', false);
             });
-
-
         } 
         else 
         {
+            // 🔄 restore base values
             row.find('.avg-up').val(row.find('.def-avg-up').val());
             row.find('.sell-up').val(row.find('.def-sell-up').val());
             row.find('.profit').val(row.find('.def-profit').val());
             row.find('.total').val(row.find('.def-total').val());
-            $('#total_price').val(row.find('.def-total-price').val());
-            $('#payable').val(row.find('.def-payable').val());
+            // $('#total_price').val(row.find('.def-total-price').val());
+            // $('#payable').val(row.find('.def-payable').val());
+
+            row.data('converting', false);
         }
     }
 });

@@ -124,14 +124,19 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <hr />
                                  
 
+                                    <div class="col-12">
+                                      <button type="button" onclick="calculateTotal()" class="btn btn-info btn-sm">Caculate Total</button>
+                                    </div>
+
                                     <!-- Second Row -->
-                                     <div class="col-md-12 m-t-20">
+                                     <div class="col-md-12 m-t-10">
                                         <div class="row">
                                            @include('sales.create.other_result_form')
                                         </div>
                                     </div>
                                     <!-- / Second Row -->
 
+                                  
 
                                     <!-- Submit and Cancel Buttons -->
                                     <div class="col-md-8 col-sm-8 col-xs-12 m-t-20">
@@ -369,7 +374,10 @@ function checkBillNoDuplication(billNo)
     });
 }
 
-
+function calculateTotal()
+{
+    updateTotalPrice();
+}
 
 </script>
 
