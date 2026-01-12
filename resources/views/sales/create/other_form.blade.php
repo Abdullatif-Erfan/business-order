@@ -34,7 +34,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                             </h4>
                         </div>
 
-                        <form id="buyingForm" action="{{ route('sales.store') }}" method="POST">
+                        <form id="buyingForm" action="{{ route('sales.storeWithOtherCurrency') }}" method="POST">
                         @csrf
 
                         <!-- {{ json_encode(auth()->user()->full_name) }} -->
@@ -99,13 +99,18 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="billno"> {{__('common.bill')}} <span class="danger">*</span></label>
+                                                    <label for="billno"> {{__('common.bill')}} <span class="danger">*</span></label>
                                                     <input type="number" tabindex="2" class="form-control" value="{{ $billno }}" name="billno" id="billno" placeholder="{{__('common.bill')}}" required readonly>
                                             </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="factor">  {{__('common.factor')}} </label>
+                                                    <label for="factor">  {{__('common.factor')}} </label>
                                                     <input type="text" tabindex="2" class="form-control"  name="factor" id="factor" placeholder="{{__('common.factor')}}"  >
+                                            </div>
+
+                                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                                <label for="rate">{{__('sales.new_rate')}} </label>
+                                                    <input type="text" tabindex="2" class="form-control"  name="rate" id="rate" placeholder="{{__('sales.new_rate')}}" >
                                             </div>
 
                                             
@@ -125,7 +130,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                  
 
                                     <div class="col-12">
-                                      <button type="button" onclick="calculateTotal()" class="btn btn-info btn-sm">Caculate Total</button>
+                                      <button type="button" onclick="calculateTotal()" class="btn btn-info btn-sm">
+                                       {{__('sales.calculate_total')}}
+                                      </button>
                                     </div>
 
                                     <!-- Second Row -->
@@ -376,7 +383,15 @@ function checkBillNoDuplication(billNo)
 
 function calculateTotal()
 {
-    updateTotalPrice();
+    let grandTotal = 0;
+
+    $('.item-row').each(function () {
+        let rowTotal = parseFloat($(this).find('.total').val()) || 0;
+        grandTotal += rowTotal;
+    });
+
+    $('#total_price').val(grandTotal.toFixed(2));
+    $('#payable').val(grandTotal.toFixed(2));
 }
 
 </script>

@@ -43,6 +43,15 @@ class SalesController extends Controller
     public function index()
     {
 
+        // $soldItems = DB::table('warehouse_sales')
+        //     ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
+        //     ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
+        //     ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
+        //     ->where('warehouse_sales.branch_id', $this->branch_id)
+        //     ->orderBy('warehouse_sales.id','DESC')->get();
+        // return $soldItems;
+            
+
         $currencies = Currency::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $orgbios = OrgBio::all();
@@ -81,48 +90,29 @@ class SalesController extends Controller
                 $soldItems->where('billno', $request->bill_number);
             }
             
-            return DataTables::of($soldItems->get())
-            
+            return DataTables::of($soldItems)
             ->addIndexColumn()
-           
             ->addColumn('billno', function($soldItem) {
-                $checkIcon = $soldItem->is_cleared == 1 ? '<i class="fas fa-check-circle success"></i>' : '';
-                return $soldItem->billno ? $checkIcon.' '.'SALES_'.$soldItem->billno: 0;
+                $checkIcon = $soldItem->is_cleared == 1 
+                    ? '<i class="fas fa-check-circle success"></i>' 
+                    : '';
+                return $soldItem->billno 
+                    ? $checkIcon . ' SALES_' . $soldItem->billno 
+                    : 0;
             })
-
-            ->addColumn('total_price', function ($soldItem) {
-                $total_price = $soldItem->total_price;
-                return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
-            })
-
-            ->addColumn('total_discount', function ($soldItem) {
-                $total_discount = $soldItem->total_discount;
-                return (fmod($total_discount, 1) == 0) ? number_format($total_discount, 0) : number_format($total_discount, 2);
-            })
-
-            ->addColumn('payable', function ($soldItem) {
-                $payable = $soldItem->payable;
-                return (fmod($payable, 1) == 0) ? number_format($payable, 0) : number_format($payable, 2);
-            })
-
-            ->addColumn('cur_pay', function ($soldItem) {
-                $cur_pay = $soldItem->cur_pay;
-                return (fmod($cur_pay, 1) == 0) ? number_format($cur_pay, 0) : number_format($cur_pay, 2);
-            })
-
-            ->addColumn('remained', function ($soldItem) {
-                $remained = $soldItem->remained;
-                return (fmod($remained, 1) == 0) ? number_format($remained, 0) : number_format($remained, 2);
-            })
-            
-        
+            ->addColumn('total_price', fn($s) => number_format($s->total_price, 2))
+            ->addColumn('total_discount', fn($s) => number_format($s->total_discount, 2))
+            ->addColumn('payable', fn($s) => number_format($s->payable, 2))
+            ->addColumn('cur_pay', fn($s) => number_format($s->cur_pay, 2))
+            ->addColumn('remained', fn($s) => number_format($s->remained, 2))
             ->addColumn('view', function ($soldItem) {
-                return '<a href="/sales/details/'.$soldItem->billno.'" class="hidden-print"><i class="fas fa-eye viewItems" 
-                data-id="' . $soldItem->id . '" style="font-size:20px;"></i></a>';
+                return '<a href="/sales/details/'.$soldItem->billno.'">
+                    <i class="fas fa-eye viewItems" style="font-size:20px;"></i>
+                </a>';
             })
-
             ->rawColumns(['billno','view'])
             ->make(true);
+        
 
     }
 
@@ -223,6 +213,71 @@ class SalesController extends Controller
          }   
     }
 
+    public function storeWithOtherCurrency(Request $request)
+    {
+        // return response()->json(['data' => $request->all()]);
+        
+        // Validate the request and return errors if validation fails
+        $validator = Validator::make($request->all(), $this->validationRules(), $this->validationMessages());
+
+        if ($validator->fails()) 
+        {
+            return redirect()->route('sales.createWithOtherCurrency')
+                ->withErrors($validator)
+                ->withInput(); // Preserve old input
+        }
+
+        // Start the transaction
+        DB::beginTransaction();
+
+        try 
+        {
+            
+            // create warehouse_sales
+            $warehouseSalesId = $this->createWarehouseSales($request);
+            
+            // create sales_details
+            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId);
+
+            // decrease from warehouse_items
+            $checkWarehouseItems = $this->decreaseWarehouseItemFromSoldAmount($request);
+
+            $checkJournal =  $this->handleJournalEntry($request);
+            if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
+            {
+                DB::rollBack();
+                Session::put('notification', [
+                    'message' =>  __('common.add_failed'),
+                    'type' => 'danger',
+                ]);
+                return redirect()->route('sales.createWithOtherCurrency');
+            }
+
+            // Flash error message
+            DB::commit();
+            Session::put('notification', [
+                'message' =>  __('common.added_successfully'),
+                'type' => 'success',
+            ]);
+             return redirect()->route('sales.createWithOtherCurrency');
+ 
+ 
+         } catch (\Exception $e) {
+             // Rollback the transaction if an error occurs
+             DB::rollBack();
+             // Optionally, log the error for debugging
+             \Log::error('Error storing SalesController', ['error' => $e]);
+
+            // Flash error message
+            Session::put('notification', [
+                'message' =>  __('common.add_failed'),
+                'type' => 'danger',
+            ]);
+             return redirect()->route('sales.createWithOtherCurrency');
+         }   
+    }
+
+    
     /**
      * Validation rules
      */

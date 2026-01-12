@@ -11,6 +11,7 @@ use App\Http\Controllers\Sales\SalesByItemController;
     Route::get('/create',[SalesController::class,'create'])->name('sales.create')->middleware('access:sales,create_records');
     Route::get('/createWithOtherCurrency',[SalesController::class,'createWithOtherCurrency'])->name('sales.createWithOtherCurrency')->middleware('access:sales,create_records');
     Route::post('/store',[SalesController::class,'store'])->name('sales.store');
+    Route::post('/storeWithOtherCurrency',[SalesController::class,'storeWithOtherCurrency'])->name('sales.storeWithOtherCurrency');
     Route::get('/details/{billno}',[SalesController::class,'details'])->name('sales.details');
     Route::get('/edit/{billno}',[SalesController::class,'edit'])->name('sales.edit')->middleware('access:sales,edit_records');
     Route::get('/getSingleRecordForEdit/{id}',[SalesController::class,'getSingleRecordForEdit'])->name('sales.getSingleRecordForEdit');

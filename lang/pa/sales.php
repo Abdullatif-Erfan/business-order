@@ -49,4 +49,7 @@ return [
     'total_price' => 'ټولیز قیمت',
     'date' => 'نېټه',
     'buy_type' => 'د خرید دول',
+
+    'new_rate' => 'نوی نرخ',
+    'calculate_total' => 'وروستۍ بیه محاسبه کړئ',
 ];

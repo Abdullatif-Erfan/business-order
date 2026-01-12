@@ -97,16 +97,16 @@
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}}  </th>
-                                            <th> {{__('buy.factor')}} </th>
                                             <th> {{__('sales.customer')}} </th>
+                                            <th> {{__('buy.factor')}} </th>
                                             <th> {{__('sales.total_price')}}</th>
                                             <th> {{__('common.discount')}}  </th>
                                             <th> {{__('buy.payable')}}  </th>
                                             <th> {{__('buy.cur_pay')}}  </th>
-                                            <th>  {{__('buy.remained')}}  </th>
-                                            <th> {{__('common.unit')}} </th>
-                                            <th>  {{__('common.date')}}  </th>
-                                            <th>  {{__('common.details')}}  </th>
+                                            <th> {{__('buy.remained')}}  </th>
+                                            <th> {{__('common.currency')}} </th>
+                                            <th> {{__('common.date')}}  </th>
+                                            <th> {{__('common.details')}}  </th>
                                         </tr>
                                     </thead>
                                     <tfoot>

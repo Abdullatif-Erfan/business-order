@@ -48,6 +48,11 @@ function fetchList() {
         salesTable.DataTable({
             serverSide: true,
             processing: true,
+            pageLength: 10,   // 👈 IMPORTANT
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {  
                 url: '{{ route("sales.data") }}',
                 // url: '{{ route("boughtList.data") }}',
@@ -63,8 +68,8 @@ function fetchList() {
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
-                { data: 'factor', name: 'factor' },
                 { data: 'customer_name', name: 'customer_name' },
+                { data: 'factor', name: 'factor' },
                 { data: 'total_price', name: 'total_price' },
                 { data: 'total_discount', name: 'total_discount' },
                 { data: 'payable', name: 'payable'},

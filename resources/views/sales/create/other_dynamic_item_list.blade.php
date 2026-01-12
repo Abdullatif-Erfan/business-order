@@ -43,6 +43,7 @@
                 <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
+                    <input name="discount[]" class="form-control discount" type="hidden" step="0.01"  value="0" >
                     <input name="main_currency_id[]" class="form-control main-currency-id" type="hidden" readonly required>
                     <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>
                     <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
@@ -297,30 +298,32 @@ let amount = parseFloat(row.find('.amount').val()) || 0;
             let sellUp = parseFloat(row.find('.def-sell-up').val()) || 0;
             let profit = parseFloat(row.find('.def-profit').val()) || 0;
             let total = parseFloat(row.find('.def-total').val()) || 0;
+            let rate = parseFloat($('#rate').val()) || 0;
         
 
             // console.log('avg_up', avgUp);
             // console.log('sellUp', sellUp);
             // console.log('profit', profit);
             // console.log('total', total);
+            // console.log('rate', rate);
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-avg-up').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, rate, row.find('.def-avg-up').val(), function (v) {
             row.find('.avg-up').val(v);
             });
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-sell-up').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, rate, row.find('.def-sell-up').val(), function (v) {
                 row.find('.sell-up').val(v);
             });
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-profit').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, rate, row.find('.def-profit').val(), function (v) {
                 row.find('.profit').val(v);
             });
 
-            convertCurrency(selectedCurrencyId, mainCurrencyId, row.find('.def-total').val(), function (v) {
+            convertCurrency(selectedCurrencyId, mainCurrencyId, rate, row.find('.def-total').val(), function (v) {
                 row.find('.total').val(v);
                 let yet_total_price = $('#total_price').val();
                 let total_price_result = parseFloat(v) + parseFloat(yet_total_price);
-                $('#total_price').val(total_price_result);
+                $('#total_price').val(total_price_result.toFixed(2));
                 // $('#payable').val(v);
 
                 // 🔓 release lock AFTER last conversion
@@ -342,7 +345,7 @@ let amount = parseFloat(row.find('.amount').val()) || 0;
     }
 });
 
-function convertCurrency(to_currency, from_currency, amount, callback)
+function convertCurrency(to_currency, from_currency, rate, amount, callback)
     {
         let newRate = parseFloat($('#newRate').val()) || 0;
 
@@ -354,7 +357,6 @@ function convertCurrency(to_currency, from_currency, amount, callback)
         }
 
         $('#conversion_flag').val(1);
-        $('#newRate').fadeIn(1);
 
         $.ajax({
             url: '/home/currencyConverter',
@@ -363,7 +365,7 @@ function convertCurrency(to_currency, from_currency, amount, callback)
                 from_currency: from_currency,
                 to_currency: to_currency,
                 fromAmount: amount,
-                newRate: newRate,
+                newRate: rate,
                 _token: $('meta[name="csrf-token"]').attr('content')
             },
             dataType: 'json',

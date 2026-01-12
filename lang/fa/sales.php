@@ -51,5 +51,6 @@ return [
     'total_price' => 'قیمت مجموعی',
     'date' => 'تاریخ',
     'buy_type' => 'نوع خرید',
-
+    'new_rate' => 'نرخ جدید',
+    'calculate_total' => 'محاسبه قیمت نهایی',
 ];

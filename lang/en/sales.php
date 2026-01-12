@@ -48,4 +48,7 @@ return [
     'total_price' => 'Total Price',
     'date' => 'Date',
     'buy_type' => 'Buy Type',
+
+    'new_rate' => 'New Rate',
+    'calculate_total' => 'Calculate Total',
 ];

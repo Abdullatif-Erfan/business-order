@@ -25,7 +25,7 @@
 <tr>
     <td> {{__('common.currency')}}</td>
     <td>
-        <select  class="form-control select2"  style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="currency_id" required> 
+        <select  class="form-control select2" id="final_pay_currency"  style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="currency_id" required> 
         @foreach($currencies as $currency)
             <option value="{{ $currency->id }}">{{ $currency->name }}</option>
         @endforeach
