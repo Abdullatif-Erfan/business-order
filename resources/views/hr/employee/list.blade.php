@@ -91,6 +91,11 @@ function fetchList() {
         employeeTable.DataTable({
             serverSide: true,
             processing: true,
+            pageLength: 10,   // 👈 IMPORTANT
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {  
                 url: '{{ route("employee.data") }}',
                 data: function (d) {

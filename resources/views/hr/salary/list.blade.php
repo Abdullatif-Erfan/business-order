@@ -138,6 +138,11 @@
         let table = $('#dataTable').DataTable({
             processing: true,
             serverSide: true,
+            pageLength: 10,   
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {
                 url: '{{ route("salary.data") }}',
                 data: function (d) 

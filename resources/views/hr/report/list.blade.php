@@ -135,6 +135,11 @@
         let table = $('#dataTable').DataTable({
             processing: true,
             serverSide: true,
+            pageLength: 10,   // 👈 IMPORTANT
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {
                 url: '{{ route("salary.report.data") }}',
                 data: function (d) 
