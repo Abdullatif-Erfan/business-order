@@ -337,7 +337,7 @@ class WarehouseListController extends Controller
                 }
                 else if($validated['options'] == 2) // change from lower to greater
                 {
-                    $avg_up  = $sourceWareHouseItem->avg_up * $validated['converted_amount'];
+                    $avg_up  =  (($validated['convertable_amount'] / $validated['converted_amount']) * $sourceWareHouseItem->avg_up);
                 }
                 $distWareHouseItem = new WarehouseItem();
                 $distWareHouseItem->branch_id = $this->branch_id ?? 0;
@@ -704,6 +704,7 @@ class WarehouseListController extends Controller
     {
         
         try {
+            // \Log::info('Start deleting record in WarehouseListController: ');
             // Delete all related records directly
             WarehouseItem::where('id',$id)->delete();
             return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]); 

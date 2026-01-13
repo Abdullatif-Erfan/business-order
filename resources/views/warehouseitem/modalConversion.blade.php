@@ -106,7 +106,7 @@ function createLabel()
     {
         // var label =  convert_amount +' ' + new_unit_text + ' چند ' + unit_name + ' میشود؟' +'  / ویا '+' در  ' + convert_amount + new_unit_text + ' چند ' 
         // + unit_name + ' گذاشته میشود ؟  ';
-        var label =   "{{__('wh.total_in')}}" + new_unit_text + ' ? ';
+        var label =   "{{__('wh.total_in')}}" + ' ' + new_unit_text + ' ? ';
         $('#label-description').html('<h5>' + label + '</h5>');
     }
 

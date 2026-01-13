@@ -71,14 +71,12 @@
                                             <th> {{__('wh.average')}}</th>
                                             <th> {{__('buy.sold_price')}} </th>
                                             <th> {{__('wh.available_in_wh')}} </th> 
-                                            <th> {{__('wh.wastage')}}  </th> 
                                             <th> {{__('common.details')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="3">{{__('common.total')}}</td>
-                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>

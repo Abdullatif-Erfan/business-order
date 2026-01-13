@@ -89,7 +89,6 @@ function fetchList() {
                 { data: 'avg_up', name: 'avg_up' },
                 { data: 'sell_up', name: 'sell_up' },
                 { data: 'available_total', name: 'available_total' },
-                { data: 'wastage_total', name: 'wastage_total' },
                 { data: 'view', name: 'view', orderable: false, searchable: false }
             ],
             drawCallback: function () {
@@ -110,7 +109,6 @@ function fetchList() {
                 $(api.column(8).footer()).html(sumColumn(8));
                 $(api.column(9).footer()).html(sumColumn(9));
                 $(api.column(10).footer()).html(sumColumn(10));
-                $(api.column(11).footer()).html(sumColumn(11));
             }
         });
 

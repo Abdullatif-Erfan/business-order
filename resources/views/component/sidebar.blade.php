@@ -251,11 +251,13 @@
                                         <span class="sub-item"> {{ __('menu.new_sales')}} </span>
                                     </a>
                                 </li>
+                                @if($packageId >= 3)
                                 <li>
                                     <a href="{{ route('sales.createWithOtherCurrency') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> {{ __('menu.new_sales_with_other_currency')}} </span>
                                     </a>
                                 </li>
+                                @endif
                                 <!-- businessplus + POS -->
                                 @if($packageId == 4)
                                 <li>
