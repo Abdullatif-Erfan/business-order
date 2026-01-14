@@ -31,6 +31,7 @@
                                @include('report.chart_of_account.company_accounts')
                                @include('report.chart_of_account.suppliers')
                                @include('report.chart_of_account.customers')
+                               @include('report.chart_of_account.participants')
                             </div>
                          </div>
                       </div>

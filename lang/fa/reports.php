@@ -76,7 +76,7 @@ return [
     "formula" => "فورمول",
     "total_company_cache" => "مجموع پول نقد شرکت",
     "company_net_income" => "مفاد خالص شرکت",
-    "" => "",
+    "participants" => "سهم داران",
     "" => "",
     "" => "",
     "" => "",

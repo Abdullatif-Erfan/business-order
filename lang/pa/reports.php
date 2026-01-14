@@ -75,4 +75,5 @@ return [
     "formula" => "فورمول",
     "total_company_cache" => "د شرکت ټول نغدي پیسې",
     "company_net_income" => "د شرکت خالص مفاد",
+    "participants" => "سهم داران",
 ];

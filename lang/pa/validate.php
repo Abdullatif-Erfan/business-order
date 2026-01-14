@@ -260,4 +260,6 @@ return [
     "clear" => "تصفیه",
     "talab" => "طلب",
     "baqi" => "باقي",
+
+    "added_by_participants" => " پول نقد اضافه گردید توسط  ",
 ];

@@ -75,4 +75,5 @@ return [
     "formula" => "Formula",
     "total_company_cache" => "Total Company Cash",
     "company_net_income" => "Company Net Profit",
+    "participants" => "Partners"
 ];

@@ -30,7 +30,7 @@ class ChartOfAccount extends Controller
         $employee_account_type_id = 2;
         $customer_account_type_id = 3;
         $supplier_account_type_id = 4;
-        $participants_account_type_id = 5;
+        $participant_account_type_id = 5;
         $banks_account_type_id = 6;
 
 
@@ -44,10 +44,14 @@ class ChartOfAccount extends Controller
         $supplier_accounts = $this->getSellersAndCustomersReport($id, $supplier_account_type_id, $branch_id, 0);
         // حسابات مشتریان
         $customer_accounts = $this->getSellersAndCustomersReport($id, $customer_account_type_id, $branch_id, 0);
+        // سهم داران
+        $participant_accounts = $this->getSellersAndCustomersReport($id, $participant_account_type_id, $branch_id, 0);
+
 
         // دریافت طلبات و قرضه شرکت از حسابات مشتریان و فروشندگاه
         $talabat_and_loans = $this->getTalabatAndLoansReport($id, $branch_id);
 
+        // return ['participant_accounts' => $participant_accounts];
         // return ['talabat_and_loans' => $talabat_and_loans];
         // return ['company_accounts' => $company_accounts,'currencies' => $currencies];
         // return ['company_accounts' => $company_accounts,'supplier_accounts' => $supplier_accounts];
@@ -58,6 +62,7 @@ class ChartOfAccount extends Controller
             'company_accounts' => $company_accounts,
             'supplier_accounts' => $supplier_accounts,
             'customer_accounts' => $customer_accounts,
+            'participant_accounts' => $participant_accounts,
             'talabat_and_loans' => $talabat_and_loans,
             'orgbios' => $orgbios,
         ]);

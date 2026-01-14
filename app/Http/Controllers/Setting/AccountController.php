@@ -50,7 +50,7 @@ class AccountController extends Controller
 
             // if(!$this->isAdmin)
             // {
-                $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address', 'description')
+                $accounts = Account::with(['accountType','branchRelation'])->select('id','branch_id', 'account_type_id', 'name', 'phone', 'address','percent', 'description')
                 ->where('accounts.branch_id', $this->branch_id)
                 ->orderBy('id', 'DESC');
             // } 
@@ -68,6 +68,9 @@ class AccountController extends Controller
                 })
                 ->addColumn('account_type', function ($account) {
                     return $account->accountType ? $account->accountType->name : '-';
+                })
+                ->addColumn('name', function ($account) {
+                    return $account->account_type_id == 5 ? $account->name . ' '. $account->percent . '%' : $account->name;
                 })
                 ->addColumn('view', function ($account) {
                     return '<i class="fas fa-eye viewAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
@@ -370,10 +373,18 @@ class AccountController extends Controller
                 $short_date = $jalaliDate->format('Y-m-d');
                 $times = time();
 
+                // get participant name
+                $pName = Account::select('name')->where('id', $account->id)
+                ->where('branch_id', $this->branch_id)
+                ->first();
+
+                $participant_name = $pName->name ?? 'No Name';
+
                 foreach (array_filter($request->amount) as $key => $value) {
                     $amount = $value;
                     $currency_id = $request->currency_id[$key] ?? 0;
                     $details = __('validate.add_old_journal');
+                    $details2 = __('validate.added_by_participants') . ' '. $participant_name;
                     $to_account_id = $account->id;
                     $branch_id = $request->branch_id ?? 0;
 
@@ -383,8 +394,15 @@ class AccountController extends Controller
                           *  cacheRecieved = t1p1 = دریافت نقد
                           */
                         case 1:
-                            $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            if($validated['account_type_id']==5) // اگر سهم داران پول نقد علاوه نماید برای خزانه باید علاوه شود و سهم دار صرف نام شان در کمنت گرفته شود. 
+                            {
+                                $this->createJournalEntry(__('validate.cache_in'), $from_account_id, $amount, "1", "1","1", 
+                                $full_date, $short_date, $details2, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            } else 
+                            {
+                                $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            }
                             break;
 
                         case 2:
@@ -591,6 +609,14 @@ class AccountController extends Controller
             // Handle Journal Entries
             if (!empty($request->amount) && is_array($request->amount) && collect($request->amount)->sum() > 0) 
             {
+
+                // get participant name
+                $pName = Account::select('name')->where('id', $account->id)
+                ->where('branch_id', $this->branch_id)
+                ->first();
+
+                $participant_name = $pName->name ?? 'No Name';
+
                 // delete old journal records
                 Journal::where('times', $request->times)->delete();
                 $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
@@ -603,6 +629,7 @@ class AccountController extends Controller
                     $amount = $value;
                     $currency_id = $request->currency_id[$key] ?? 0;
                     $details = __('validate.add_old_journal');
+                    $details2 = __('validate.added_by_participants') . ' '. $participant_name;
                     $to_account_id = $account->id;
                     $branch_id = $request->branch_id ?? 0;
 
@@ -612,8 +639,15 @@ class AccountController extends Controller
                              *  cacheRecieved = t1p1 = دریافت نقد
                              */
                         case 1:
-                            $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            if($validated['account_type_id']==5) // اگر سهم داران پول نقد علاوه نماید برای خزانه باید علاوه شود و سهم دار صرف نام شان در کمنت گرفته شود. 
+                            {
+                                $this->createJournalEntry(__('validate.cache_in'), $from_account_id, $amount, "1", "1","1", 
+                                $full_date, $short_date, $details2, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            } else 
+                            {
+                                $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
+                                    $full_date, $short_date, $details, $newJournalCode, $times, $branch_id, 1, $currency_id);
+                            }
                             break;
 
                         case 2:

@@ -260,4 +260,6 @@ return [
     "clear" => "Clearance",
     "talab" => "Claim",
     "baqi" => "Remaining",
+
+    "added_by_participants" => " Cache Addeb by participant "
 ];
