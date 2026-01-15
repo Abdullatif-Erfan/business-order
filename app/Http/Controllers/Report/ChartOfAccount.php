@@ -197,6 +197,7 @@ class ChartOfAccount extends Controller
         return $accounts;
     }
 
+    
     public function getTalabatAndLoansReport($currencyId = null, $branch_id)
     {
         $currency_id = $currencyId ?? 1;
