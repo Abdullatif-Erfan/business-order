@@ -113,8 +113,8 @@ class HomeController extends Controller
         // first tab
         $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
         $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
-        $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
-        // return ['data' => $data];
+        $data['cashIncomeOutcome']  = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        // return ['data' =>  $data['cashIncomeOutcome']];
 
         // Second Tab
         $secondTab = $this->getSecondTabReport($data['year'],$data['currency_id'],$branch_id);

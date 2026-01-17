@@ -47,8 +47,11 @@ class ProfitAndLossController extends Controller
         $warehouseValue = $this->getWarehouseValue($branch_id)->map(fn($item) => (array) $item)->toArray();
         $salesProfit = $this->getSalesProfit($branch_id)->map(fn($item) => (array) $item)->toArray();
         // return ['salesProfit' => $salesProfit];
+        $participant_account_type_id = 5;
+        $base_currency = 1;
+        $participant_accounts = $this->getSellersAndCustomersReport($base_currency, $participant_account_type_id, $branch_id, 0);
 
-        return view('report.profitAndLoss.list', compact('transactionSummary','currencies','warehouseValue','salesProfit','orgbios','talabat'));
+        return view('report.profitAndLoss.list', compact('transactionSummary','currencies','warehouseValue','salesProfit','orgbios','talabat','participant_accounts'));
     }
 
     private function getSalesProfit($branch_id)
@@ -653,6 +656,53 @@ class ProfitAndLossController extends Controller
 
         return compact('result', 'sold_profits', 'total_warehouse_value');
     }
+
+     // get customer accounts report
+     private function getSellersAndCustomersReport($currencyId = null, $account_type_id, $branch_id, $banks_account_type_id)
+     {
+         $currency_id = $currencyId ?? 1;
+         
+         $accounts = DB::table('accounts')
+             ->leftJoin('journals', function ($join) use ($currency_id,$branch_id) { 
+                 $join->on('accounts.id', '=', 'journals.account_id')
+                     ->where('journals.currency_id', $currency_id)
+                     ->where('journals.branch_id', $branch_id);
+             })
+             ->where('accounts.branch_id', $branch_id)
+             ->where('accounts.account_type_id', $account_type_id)
+             ->when($banks_account_type_id > 0, function ($query) {
+                 return $query->orWhere('accounts.account_type_id', 6);
+             })
+             ->select([
+                 'accounts.id as accountId',
+                 'accounts.name',
+                 'accounts.percent',
+                 DB::raw("SUM(CASE 
+                             WHEN journals.transaction_type = 1 
+                             AND journals.payment_type = 1 
+                             AND journals.is_cleared = 0 
+                             THEN journals.amount ELSE 0 END) as cache_recieved"),
+                 DB::raw("SUM(CASE 
+                             WHEN journals.transaction_type = 2 
+                             AND journals.payment_type = 1 
+                             AND journals.is_cleared = 0 
+                             THEN journals.amount ELSE 0 END) as cache_paid"),
+                 DB::raw("SUM(CASE 
+                             WHEN journals.transaction_type = 1 
+                             AND journals.payment_type = 2 
+                             AND journals.is_cleared = 0 
+                             THEN journals.amount ELSE 0 END) as loan_recieved"),
+                 DB::raw("SUM(CASE 
+                             WHEN journals.transaction_type = 2 
+                             AND journals.payment_type = 2 
+                             AND journals.is_cleared = 0 
+                             THEN journals.amount ELSE 0 END) as loan_paid"),
+             ])
+             ->groupBy('accounts.id', 'accounts.name','accounts.percent')
+             ->get();
+     
+         return $accounts;
+     }
 
 
 }

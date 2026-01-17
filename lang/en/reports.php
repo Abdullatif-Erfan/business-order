@@ -71,6 +71,7 @@ return [
     "stock_availability" => "Warehouse Stock",
     "company_cache" => "Company Cash",
     "company_capital" => "Company Capital",
+    "capital_based_percentage" => "Capital Based On Percentage",
     "afn" => "Afghani",
     "formula" => "Formula",
     "total_company_cache" => "Total Company Cash",

@@ -72,6 +72,7 @@ return [
     "stock_availability" => "موجودی گدام",
     "company_cache" => "پول نقد شرکت",
     "company_capital" => "سرمایه شرکت",
+    "capital_based_percentage" => "سرمایه نظربه فیصدی",
     "afn" => "افغانی",
     "formula" => "فورمول",
     "total_company_cache" => "مجموع پول نقد شرکت",

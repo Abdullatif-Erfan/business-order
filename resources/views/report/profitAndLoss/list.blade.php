@@ -472,11 +472,15 @@
                                                                 <th rowspan="2" style="width:200px !important;font-weight:bolder">
                                                                  {{__('reports.company_capital')}} </th>
                                                                   <td style="width:70px !important;"> {{__('reports.afn')}} : </td>
-                                                                  <td> <strong> {{ 
-                                                                       number_format( $totalConvertedValue + 
-                                                                      $finalTotalCache + 
-                                                                      $totalConvertedTalabat -
-                                                                      $totalConvertedLoan,2)
+                                                                  <td> <strong> 
+                                                                  
+                                                                  @php
+                                                                        $final_capital = $totalConvertedValue
+                                                                                    + $finalTotalCache
+                                                                                    + ($totalConvertedTalabat - $totalConvertedLoan);
+                                                                    @endphp
+                                                                     {{ 
+                                                                       number_format($final_capital,2);
                                                                       }}</strong></td>
                                                             </tr>
                                                             <tr>
@@ -536,6 +540,45 @@
                                                             </tr>
                                                     </table>
 
+
+                                                    <hr>
+                                                    <table class="table table-bordered"  style="width:100%">
+                                                      <thead>
+                                                        <tr>
+                                                          <td colspan="8"><h3> {{__('reports.participants')}}  </h3></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th> {{__('common.number')}}</th>
+                                                            <th>{{__('reports.account')}}</th>
+                                                            <th>{{ __('settings.percentage') }}</th>
+                                                            <th>{{__('reports.capital_based_percentage')}} </th>
+                                                            <th>{{__('reports.talabat')}}</th>
+                                                            <th>{{__('reports.loan')}}</th>
+                                                            <th>{{__('reports.balance')}} </th>
+                                                            <th>{{__('reports.specify')}}</th>
+                                                        </tr>
+                                                      </thead>
+                                                      <tbody>
+                                                      @foreach($participant_accounts as $index => $row)
+                                                      @php
+                                                            $capital = ($row->percent / 100) * $final_capital;
+                                                            $total_talabat = $row->loan_paid + $row->cache_paid;
+                                                            $total_loan = $row->loan_recieved + $row->cache_recieved;
+                                                            $balance = $capital + $total_talabat - $total_loan;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>{{ $row->name }}</td>
+                                                            <td>{{ $row->percent }} % </td>
+                                                            <td>{{ number_format($capital, 2) }}</td>
+                                                            <td>{{ number_format($total_talabat,2) }}</td>
+                                                            <td>{{ number_format($total_loan,2) }}</td>
+                                                            <td>{{ number_format($balance, 2) }}</td>
+                                                            <td> {{ $balance == 0 ? __('reports.clear') : ($balance < 0 ? __('reports.baqi') : __('reports.talab')) }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                      </tbody>
+                                                    </table>
 
 
                                                 </div>
