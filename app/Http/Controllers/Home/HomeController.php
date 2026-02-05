@@ -477,12 +477,10 @@ class HomeController extends Controller
 
     public function cleanAll()
     {
-        // List of tables to truncate
         $tables = [
             'journals',
             'bought_items',
             'bought_item_details',
-            // 'bought_item_pre_lists',
             'qalams',
             'models',
             'clearances',
@@ -493,41 +491,29 @@ class HomeController extends Controller
         ];
 
         try {
-            // Start the transaction
-            DB::beginTransaction();
-
             foreach ($tables as $table) {
-                // Check if the table exists before truncating
                 if (DB::getSchemaBuilder()->hasTable($table)) {
                     DB::table($table)->truncate();
                 }
             }
-
-            // Commit the transaction
-            DB::commit();
 
             session()->put('notification', [
                 'type' => 'success',
                 'message' => __('common.deleted_successfully'),
             ]);
 
-            return redirect()->route('home');
-
         } catch (\Exception $e) {
-            // Rollback the transaction in case of error
-            DB::rollBack();
-
-            // Log the error
             \Log::error('Error truncating tables: ' . $e->getMessage());
 
             session()->put('notification', [
                 'type' => 'danger',
                 'message' => __('common.delete_failed'),
             ]);
-            return redirect()->route('home');
         }
 
+        return redirect()->route('home');
     }
+
 
 
     public function currencyConverter(Request $request)

@@ -32,7 +32,7 @@ return [
     'role' => 'Roles',
     'users' => 'Users',
     'backup' => 'Backup',
-    'cacheflow' => 'Customer Accounts',
+    'cacheflow' => 'Accounts Report',
     'chartOfAccount' => 'Chart of Accounts',
     'production' => 'Production',
 

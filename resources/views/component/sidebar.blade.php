@@ -311,7 +311,7 @@
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#reports">
                             <i class="fas fa-list-ol"></i>
-                            <p>  {{ __('menu.report')}} </p>
+                            <p>  {{ __('menu.reports')}} </p>
                             <span class="caret"></span>
                         </a>
                         <div class="collapse" id="reports">
@@ -319,7 +319,7 @@
                                 <li>
                                     <a href="{{route('cacheflow.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item"> {{ __('menu.cacheflow') }} </span>
-                                    </a>
+                                       </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('chartOfAccount.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>

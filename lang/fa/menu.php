@@ -32,7 +32,7 @@ return [
     'role' => 'رول ها',
     'users' => 'کاربران',
     'backup' => 'پشتیبان‌گیری',
-    'cacheflow' => 'حسابات مشتریان',
+    'cacheflow' => 'صورت حساب ها ',
     'chartOfAccount' => 'چارت حسابات',
 
     'production' => 'تولیدی',

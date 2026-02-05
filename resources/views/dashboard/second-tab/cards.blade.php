@@ -10,8 +10,8 @@
     /**
      * total_assets = total_warehouse_value + total_cache_income(recieved-paid) + total_talabat - (total_warhouse_wastage + total_loan)
      */
-    $total_talabat = $secondTab['talabat'] + $secondTab['cache_recieved'];
-    $total_loan = $secondTab['loans'] + $secondTab['cache_paid'];
+    $total_loan = $secondTab['talabat'] + $secondTab['cache_recieved'];
+    $total_talabat = $secondTab['loans'] + $secondTab['cache_paid'];
     $loan_talabat_balance =  $total_talabat - $total_loan;
 
     // مصارف = معاشات + مصارفات دیگر
