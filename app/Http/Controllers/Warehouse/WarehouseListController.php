@@ -659,7 +659,7 @@ class WarehouseListController extends Controller
                 'avg_up' => 'nullable|numeric|min:0',
                 'available_total' => 'nullable|numeric|min:0',
                 'notification_amount' => 'nullable|numeric|min:0',
-                'expire_date' => 'nullable|date',
+                'expire_date' => 'nullable',
                 'wastage_amount' => 'nullable|numeric|min:0',
                 'wastage_total' => 'nullable|numeric|min:0',
                 'inserted_short_date' => 'nullable|date',
