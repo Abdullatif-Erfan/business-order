@@ -12,7 +12,7 @@
      */
     $total_loan = $secondTab['talabat'] + $secondTab['cache_recieved'];
     $total_talabat = $secondTab['loans'] + $secondTab['cache_paid'];
-    $loan_talabat_balance =  $total_talabat - $total_loan;
+    $loan_talabat_balance =  $total_loan - $total_talabat;
 
     // مصارف = معاشات + مصارفات دیگر
     $total_expense = $secondTab['total_salary'] + $secondTab['total_expense'];
