@@ -10,9 +10,9 @@
     /**
      * total_assets = total_warehouse_value + total_cache_income(recieved-paid) + total_talabat - (total_warhouse_wastage + total_loan)
      */
-    $total_loan = $secondTab['talabat'] + $secondTab['cache_recieved'];
-    $total_talabat = $secondTab['loans'] + $secondTab['cache_paid'];
-    $loan_talabat_balance =  $total_loan - $total_talabat;
+    $total_talabat = $secondTab['talabat'] + $secondTab['cache_recieved'];
+    $total_loan = $secondTab['loans'] + $secondTab['cache_paid'];
+    $loan_talabat_balance =  $total_talabat - $total_loan;
 
     // مصارف = معاشات + مصارفات دیگر
     $total_expense = $secondTab['total_salary'] + $secondTab['total_expense'];
@@ -169,7 +169,7 @@
                     </div>
                     <div class="col-7 col-stats">
                         <div class="numbers">
-                            <p class="card-category"> {{  __('dashboard.talabat') }} </p>
+                            <p class="card-category"> {{  __('dashboard.talabat') }}</p>
                             <h4 class="card-title"><?=number_format($total_talabat,2)?></h4>
                         </div>
                     </div>
@@ -178,8 +178,6 @@
         </div>
     </div>
     
-   
-
     <div class="col-sm-6 col-md-4">
         <div class="card card-stats card-round">
             <div class="card-body ">
@@ -199,6 +197,12 @@
             </div>
         </div>
     </div>
+
+   
+    
+   
+
+   
     
     
         <?php if(intval($loan_talabat_balance) < 0) { ?>
