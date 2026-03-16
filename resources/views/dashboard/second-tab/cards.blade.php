@@ -273,13 +273,7 @@
 
         </div>
        <?php } ?>
-
- <!-- / third row -->
-
-
-  
-
-
+    <!-- / third row -->
 
 </div>
 </div>

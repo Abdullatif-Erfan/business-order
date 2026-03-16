@@ -95,12 +95,12 @@
                                 <table id="salesItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
+                                            <td colspan="11">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
+                                            <td colspan="11">
                                                 <center> {{__('sales.list_title')}} </center>
                                             </td>
                                         </tr>
@@ -108,6 +108,7 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
                                             <th>{{ __('sales.customer') }}</th>
+                                            <th>{{ __('buy.category') }}</th>
                                             <th>{{ __('sales.sale_type') }}</th>
                                             <th>{{ __('sales.quantity') }}</th>
                                             <th>{{ __('sales.unit') }}</th>
@@ -120,6 +121,7 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="3">{{__('common.total')}}</td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -163,6 +165,11 @@ function fetchList() {
         salesItemTable.DataTable({
             serverSide: true,
             processing: true,
+            pageLength: 10,   // 👈 IMPORTANT
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {  
                 url: '{{ route("soldItemList.data") }}',
                 data: function (d) {
@@ -178,6 +185,7 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_name', name: 'customer_name' },
+                { data: 'category_name', name: 'category_name' },
                 { data: 'product_name', name: 'product_name' },
                 { data: 'amount', name: 'amount' },
                 { data: 'unit', name: 'unit' },
@@ -214,10 +222,10 @@ function fetchList() {
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                $(api.column(4).footer()).html(sumColumn(4));
-                $(api.column(6).footer()).html(sumColumn(6));
+                $(api.column(5).footer()).html(sumColumn(5));
                 $(api.column(7).footer()).html(sumColumn(7));
                 $(api.column(8).footer()).html(sumColumn(8));
+                $(api.column(9).footer()).html(sumColumn(9));
             }
         });
 
