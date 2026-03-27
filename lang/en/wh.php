@@ -55,5 +55,6 @@ return [
     'exit' => 'Exit',
     'wh_notification' => 'Warehouse Notice',
     'no_permission' => 'No Permission',
-    'not_allowed_to_access' => 'You do not have permission to access this section'
+    'not_allowed_to_access' => 'You do not have permission to access this section',
+    'warehouse' => 'Warehouse',
 ];

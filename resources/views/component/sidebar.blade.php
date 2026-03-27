@@ -207,6 +207,11 @@
                                         </a>
                                     </li>
                                 @endforeach
+                                <li>
+                                    <a href="{{ route('warehousesList.all') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  {{ __('menu.warehouse_all_list')}} </span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

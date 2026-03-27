@@ -715,4 +715,88 @@ class WarehouseListController extends Controller
             return response()->json(['status' => 'failed', 'message' => __('common.delete_failed')]); 
         }
     }
+
+    // ======================== ALL List ========================================
+    public function all()
+    {
+        $currencies = Currency::all();
+        // $branches = Branch::all();
+        $orgbios = OrgBio::all();
+        $todaysDate = Jalalian::now()->format('Y-m-d');
+        
+        // $WarehouseItem = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])->where('warehouse_id',$id)->get();
+        // return response()->json(['data' => $warehouse]);
+
+        return view('warehouseitem.all_list',compact('currencies','todaysDate','orgbios'));
+    }
+
+
+    /**
+     * Get paginated data
+     */
+    public function allData(Request $request)
+    {
+
+        // \Log::info('Received Request:', $request->all()); // Log incoming request
+        // Log::info('Received warehouse_id:', ['warehouse_id' => $request->input('warehouse_id')]); // Log warehouse_id properly
+        // return response()->json(['message' => 'Debugging getData', 'request' => $request->all()]);
+
+        $WarehouseItems = WarehouseItem::with(['warehouseRelation','currencyRelation','unitRelation','preListRelation'])
+        ->where('branch_id', $this->branch_id)
+        ->orderBy('id','DESC')
+        ->orderBy('buy_pre_id','DESC');
+            
+    
+        if ($request->input('item_name')) {
+            $WarehouseItems->whereHas('preListRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%{$request->input('item_name')}%");
+            });
+        }
+
+        if ($request->input('wh_name')) {
+            $WarehouseItems->whereHas('warehouseRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%{$request->input('wh_name')}%");
+            });
+        }
+        
+        
+        if ($request->input('currency_id')) {
+            $WarehouseItems->where('currency_id', $request->input('currency_id'));
+        }
+        
+            return DataTables::of($WarehouseItems)
+            
+            ->addIndexColumn()
+
+            ->addColumn('prelist', function ($WarehouseItem) {
+                return optional($WarehouseItem->preListRelation)->name ?? '';
+            })
+
+            ->addColumn('wh_name', function ($WarehouseItem) {
+                return optional($WarehouseItem->warehouseRelation)->name ?? '';
+            })
+
+            ->addColumn('currency', function ($WarehouseItem) {
+                return optional($WarehouseItem->currencyRelation)->name ??  '';
+            })
+
+            ->addColumn('unit', function ($WarehouseItem) {
+                return optional($WarehouseItem->unitRelation)->name ?? '';
+            })
+
+            ->addColumn('available_total', function ($WarehouseItem) {
+                return $WarehouseItem->avg_up ? number_format($WarehouseItem->avg_up * $WarehouseItem->available_amount,2) : '';
+            })
+           
+           
+           
+            ->addColumn('view', function ($WarehouseItem) {
+                return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print"><i class="fas fa-eye viewItems" 
+                data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i></a>';
+            })
+
+            ->rawColumns(['view'])
+            ->make(true);
+
+    }
 }

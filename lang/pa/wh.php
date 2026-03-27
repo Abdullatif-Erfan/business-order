@@ -55,5 +55,6 @@ return [
     'exit' => 'وتل',
     'wh_notification' => 'د ګدام خبرتیا',
     'no_permission' => 'اجازه نشته',
-    'not_allowed_to_access' => 'تاسو ته اجازه نه درکړل شوې چې دې برخې ته لاسرسی وکړئ'
+    'not_allowed_to_access' => 'تاسو ته اجازه نه درکړل شوې چې دې برخې ته لاسرسی وکړئ',
+    'warehouse' => 'گدام',
 ];

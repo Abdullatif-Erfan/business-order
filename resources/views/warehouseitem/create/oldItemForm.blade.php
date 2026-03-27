@@ -170,15 +170,8 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                                 <input class="form-control" name="notification_amount" id="notification_amount" type="number" value="0">
                                             </div>
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="wastage_amount">{{__('wh.wastage_amount')}}</label>
-                                                <input class="form-control" name="wastage_amount" id="wastage_amount" type="number" value="0" step="0.01">
-                                            </div>
-
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="wastage_total">  {{__('wh.wastage_price')}} </label>
-                                                <input class="form-control" name="wastage_total" id="wastage_total" type="number" value="0" step="0.01">
-                                            </div>
+                                                <input class="form-control" name="wastage_amount" id="wastage_amount" type="hidden" value="0" step="0.01">
+                                                <input class="form-control" name="wastage_total" id="wastage_total" type="hidden" value="0" step="0.01">
                                             
  
                                         </div>

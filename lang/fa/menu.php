@@ -18,6 +18,7 @@ return [
     'bought_list_item' => 'لیست خرید نظر به جنس',
     'warehouse' => 'گدام',
     'warehouse_add' => 'ثبت موجودی گدام',
+    'warehouse_all_list' => 'همه اجناس در گدام ها',
     'wastage' => 'ضایعات',
     'sales' => 'فروش',
     'new_sales' => 'فروشات جدید',

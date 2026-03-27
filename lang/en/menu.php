@@ -18,6 +18,7 @@ return [
     'bought_list_item' => 'Purchased List based Items',
     'warehouse' => 'Warehouse',
     'warehouse_add' => 'Add Warehouse Inventory',
+    'warehouse_all_list' => 'All Warehouse List',
     'wastage' => 'Wastage',
     'sales' => 'Sales',
     'new_sales' => 'New Sales',

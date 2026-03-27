@@ -18,6 +18,11 @@ use App\Http\Controllers\Warehouse\WarehouseWastageController;
         Route::post('/store', [WarehouseListController::class, 'store'])->name('warehousesList.store');
         Route::delete('/delete/{id}', [WarehouseListController::class, 'destroy'])->name('warehousesList.delete')->middleware('access:gudam,delete_records');
 
+        // all lists route
+        Route::get('/all', [WarehouseListController::class, 'all'])->name('warehousesList.all')->middleware('access:gudam,list');
+        Route::get('/allData', [WarehouseListController::class, 'allData'])->name('warehousesList.allData')->middleware('access:gudam,list');
+
+        
         // wastage
         Route::get('/wastage', [WarehouseWastageController::class, 'index'])->name('warehousesList.wastage')->middleware('access:gudam,list');
         Route::get('/wastage_data', [WarehouseWastageController::class, 'getData'])->name('warehousesList.wastage_data');

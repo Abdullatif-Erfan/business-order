@@ -18,6 +18,7 @@ return [
     'bought_list_item' => 'لیست خربد نظر به جنس',
     'warehouse' => 'ګدام',
     'warehouse_add' => 'د ګدام موجودي ثبت',
+    'warehouse_all_list' => 'همه اجناس در گدام ها',
     'wastage' => 'ضایعات',
     'sales' => 'خرڅلاو',
     'new_sales' => 'نوې خرڅلاو',

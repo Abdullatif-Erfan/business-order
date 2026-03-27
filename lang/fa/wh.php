@@ -55,5 +55,6 @@ return [
     'exit' => 'خروج',
     'wh_notification' => 'آگهی گدام',
     'no_permission' => 'عدم صلاحیت',
-    'not_allowed_to_access' => 'این بخش به شما صلاحیت داده نشده است'
+    'not_allowed_to_access' => 'این بخش به شما صلاحیت داده نشده است',
+    'warehouse' => 'گدام',
 ];
