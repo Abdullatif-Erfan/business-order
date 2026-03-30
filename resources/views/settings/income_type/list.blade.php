@@ -227,6 +227,10 @@ function fetchIncomeTypeList() {
         incomeTypeTable.DataTable({
             serverSide: true,
             processing: true,
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {
                 url: '{{ route("itype.list") }}',
             },

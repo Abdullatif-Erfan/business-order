@@ -61,28 +61,70 @@ class AccountController extends Controller
             // }
 
 
+            // return DataTables::eloquent($accounts)
+            //     ->addIndexColumn()
+            //     ->addColumn('branch_name', function ($account) {
+            //         return $account->branchRelation ? $account->branchRelation->name : '-';
+            //     })
+            //     ->addColumn('account_type', function ($account) {
+            //         return $account->accountType ? $account->accountType->name : '-';
+            //     })
+            //     ->addColumn('name', function ($account) {
+            //         return $account->account_type_id == 5 ? $account->name . ' '. $account->percent . '%' : $account->name;
+            //     })
+            //     ->addColumn('view', function ($account) {
+            //         return '<i class="fas fa-eye viewAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
+            //     })
+            //     ->addColumn('edit', function ($account) {
+            //         return '<i class="fas fa-pen-square editAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
+            //     })
+            //     ->addColumn('delete', function ($account) {
+            //         return $account->accountType->is_disabled == 0  ? '<i class="fas fa-trash-alt deleteAccount" data-id="' . $account->id . '" style="font-size:20px; color:red;"></i>' : '';
+            //     })
+            //     ->rawColumns(['view','edit', 'delete'])
+            //     ->make(true);
+
             return DataTables::eloquent($accounts)
-                ->addIndexColumn()
-                ->addColumn('branch_name', function ($account) {
-                    return $account->branchRelation ? $account->branchRelation->name : '-';
-                })
-                ->addColumn('account_type', function ($account) {
-                    return $account->accountType ? $account->accountType->name : '-';
-                })
-                ->addColumn('name', function ($account) {
-                    return $account->account_type_id == 5 ? $account->name . ' '. $account->percent . '%' : $account->name;
-                })
-                ->addColumn('view', function ($account) {
-                    return '<i class="fas fa-eye viewAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
-                })
-                ->addColumn('edit', function ($account) {
-                    return '<i class="fas fa-pen-square editAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
-                })
-                ->addColumn('delete', function ($account) {
-                    return $account->accountType->is_disabled == 0  ? '<i class="fas fa-trash-alt deleteAccount" data-id="' . $account->id . '" style="font-size:20px; color:red;"></i>' : '';
-                })
-                ->rawColumns(['view','edit', 'delete'])
-                ->make(true);
+            ->addIndexColumn()
+            ->addColumn('branch_name', function ($account) {
+                return $account->branchRelation ? $account->branchRelation->name : '-';
+            })
+            ->addColumn('account_type', function ($account) {
+                return $account->accountType ? $account->accountType->name : '-';
+            })
+            ->addColumn('name', function ($account) {
+                return $account->account_type_id == 5 ? $account->name . ' ' . $account->percent . '%' : $account->name;
+            })
+            ->addColumn('view', function ($account) {
+                return '<i class="fas fa-eye viewAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
+            })
+            ->addColumn('edit', function ($account) {
+                return '<i class="fas fa-pen-square editAccount" data-id="' . $account->id . '" style="font-size:20px;"></i>';
+            })
+            ->addColumn('delete', function ($account) {
+                return $account->accountType->is_disabled == 0  ? '<i class="fas fa-trash-alt deleteAccount" data-id="' . $account->id . '" style="font-size:20px; color:red;"></i>' : '';
+            })
+            ->filterColumn('branch_name', function($query, $keyword) {
+                $query->whereHas('branchRelation', function($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('account_type', function($query, $keyword) {
+                $query->whereHas('accountType', function($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('name', function($query, $keyword) {
+                $query->where(function($q) use ($keyword) {
+                    // Search in the original name field
+                    $q->where('name', 'like', "%{$keyword}%");
+                    
+                    // Also search in the combination of name and percent for account_type_id == 5
+                    $q->orWhereRaw("CONCAT(name, ' ', percent, '%') like ?", ["%{$keyword}%"]);
+                });
+            })
+            ->rawColumns(['view','edit', 'delete'])
+            ->make(true);
         }
 
         return view('settings.accounts.index');

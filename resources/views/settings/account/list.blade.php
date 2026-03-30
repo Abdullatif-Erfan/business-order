@@ -262,21 +262,40 @@ function fetchAccountList() {
         accountTable.DataTable({
             serverSide: true,
             processing: true,
+            lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'همه']
+                ],
             ajax: {
                 url: '{{ route("account.list") }}',
             },
             
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data:  'branch_name', name: 'branch_name' },
-                { data: 'account_type', name: 'account_type'},
-                { data: 'name', name: 'name'},
-                { data: 'phone', name: 'phone' },
-                { data: 'address', name: 'address' },
-                { data: 'view', name: 'view' },
+                { data: 'branch_name', name: 'branch_name', searchable: true },
+                { data: 'account_type', name: 'account_type', searchable: true },
+                { data: 'name', name: 'name', searchable: true },
+                { data: 'phone', name: 'phone', searchable: true },
+                { data: 'address', name: 'address', searchable: true },
+                { data: 'view', name: 'view', searchable: false, orderable: false },
                 { data: 'edit', name: 'edit', searchable: false, orderable: false },
                 { data: 'delete', name: 'delete', searchable: false, orderable: false },
-           ]
+           ],
+
+           // Add this for individual column search
+                // initComplete: function() {
+                //     this.api().columns().every(function() {
+                //         var column = this;
+                //         var input = $('<input type="text" placeholder="Search" class="form-control form-control-sm">')
+                //             .appendTo($(column.header()).empty())
+                //             .on('keyup change', function() {
+                //                 if (column.search() !== this.value) {
+                //                     column.search(this.value).draw();
+                //                 }
+                //             });
+                //     });
+                // }
+
         });
     } else {
         // If already initialized, reload the data
