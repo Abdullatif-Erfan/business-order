@@ -103,7 +103,7 @@
                                 <div class="visible-print" style="width:100%;margin: 35px 0px; overflow:hidden; height: 24px;color:#000"> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ </div>
 
                                 <div class="container col-md-12 col-sm-12 col-xs-12 visible-print" id="print_area">
-                                 <p class="d-none">{{__('common.print_data')}}‌ : {{ now()->format('Y-m-d') }}</p>
+                                 <p class="d-none">{{__('common.print_date')}}‌ : {{ now()->format('Y-m-d') }}</p>
                                     <table style="width:100%">
                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="2">
