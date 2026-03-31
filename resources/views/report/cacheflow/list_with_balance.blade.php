@@ -1,17 +1,12 @@
 @extends('layouts.app')
 @section('content')
-@section('title', __('journal.title'))
 
 <style>
 .clearance-row {
     background-color: #f6ffe4 !important;
     color: #000 !important;
 }
-.dataTables_filter {
-    display: none !important;
-}
 </style>
-
 
 <div class="main-panel">
     <div class="content">
@@ -20,23 +15,8 @@
                 <div class="col-md-12 col-sm-12 col-xs-12 mt-2">
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
-                            
-                            @if(auth()->user()->hasAccess('journal','create_records'))
-                                <a href="{{ route('journal.create') }}">
-                                    <button type="button" class="btn btn-sm mybtn">
-                                        <i class="fas fa-plus"></i> {{ __('journal.add_new')}}
-                                    </button>
-                                </a>
-                            @else
-                                <button type="button" onclick="alert('{{ __('commont.not_allowed') }}')" class="btn btn-sm mybtn">
-                                    <i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
-                                </button>
-                            @endif
-
-                            {{-- <p>Session: {{ session()->has('notification') ? 'Yes' : 'No' }}</p> --}}
-
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
-
+                            <strong> {{__('reports.cash_flow_title')}}   </strong>
+                            <button class="printBtn m-b-10" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
                             <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
                                 <i class="fas fa-filter"></i>
                             </button>
@@ -48,23 +28,23 @@
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_id" style="width:100%">
-                                            <option value=""> {{__('journal.account')}} </option>
+                                            <option value=""> {{__('reports.account')}} </option>
                                             @foreach($accounts as $account)
-                                              <option value="{{ $account->id }}">{{ $account->name }}</option>
+                                                <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
                                         </select> 
                                     </div>
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-2  col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="currency_id" style="width:100%">
-                                            <option value=""> {{__('common.currency')}} </option>
+                                            <!-- <option value=""> واحد پولی </option> -->
                                             @foreach($currencies as $currency)
-                                               <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                             @endforeach
                                         </select> 
                                     </div>
 
                                     
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-2  col-sm-6 col-xs-6">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -74,14 +54,13 @@
                                         </div>
                                             <input class="form-control" name="start_date" id="start_date"
                                             data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true" 
-                                            placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
+                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
                                         </div>
 							     	</div>
                                 
 
 
-                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                     <div class="col-md-3  col-sm-6 col-xs-6">
                                         <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
                                         <div class="input-group-append">
                                         <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
@@ -97,12 +76,12 @@
 
                                   
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
-                                        <input class="form-control" id="code_number" placeholder="{{__('journal.code')}}">
+                                    <div class="col-md-1  col-sm-6 col-xs-6">
+                                        <input class="form-control" id="code_number" placeholder="{{__('common.code')}}">
                                     </div>
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
-                                        <input class="form-control" id="bill_number" placeholder="{{__('journal.bill_no')}}">
+                                    <div class="col-md-1  col-sm-6 col-xs-6">
+                                        <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
                                     <div class="col-md-1">
@@ -117,7 +96,7 @@
                         {{-- Card Body --}}
                         <div class="card-body">
                             <div class="table-responsive" id="print_area">
-                                <span class="pull-left visible-print">{{__('journal.print_date')}}: {{ now()->format('Y-m-d') }}</span>
+                                <span class="pull-left visible-print">{{__('common.print_date')}}: {{ now()->format('Y-m-d') }}</span>
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -129,39 +108,27 @@
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="12">
                                                 <center>
-                                                  {{__('journal.print_date')}}   
+                                                   {{__('reports.cash_flow_print_title')}}  
                                                 </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} </th>
-                                            <th> {{__('journal.code')}} </th>
-                                            <th> {{__('journal.account')}} </th>
-                                            <th> {{__('journal.details')}} </th>
+                                            <th> {{__('common.code')}} </th>
+                                            <th> {{__('reports.account')}} </th>
+                                            <th> {{__('common.details')}} </th>
                                             
-                                            <!-- <th> رفت / قرض  </th>
-                                            <th>  آمد / طلب </th> -->
-
-                                       <!-- <th>  پرداخت / قرض  </th>
-                                            <th>  دریافت / طلب  </th> -->
-
-                                            <!-- <th>  رسیدگی / قرض  </th>
-                                            <th>  بردگی / طلب  </th> -->
-
-                                            <!-- <th>بردگی <br> نقد (+)</th>
-                                            <th>رسیدگی <br> نقد (-)</th>
-                                            <th>بردگی <br> قرض</th>
-                                            <th>رسیدگی <br> قرض / طلب</th> -->
-
+                                            <!-- <th> {{__('reports.cache_in')}}</th>
+                                            <th> {{__('reports.cache_out')}}</th> -->
                                             <th> {{__('journal.recieved')}} <br> {{__('journal.cache')}} (+)</th>
                                             <th>{{__('journal.paid')}} <br> {{__('journal.cache')}} (-)</th>
-                                            <th> {{__('journal.recieved_loan')}}</th>
-                                            <th> {{__('journal.paid_loan')}} <br>/ {{__('journal.talab')}}  </th>
+                                            <th> {{__('reports.loan')}}</th>
+                                            <th> {{__('reports.talab')}}</th>
                                             
-                                            <th>{{__('journal.unit')}}</th>
-                                            <!-- <th>  نوع معامله  </th> -->
-                                            <th>{{__('journal.date')}}</th>
-                                            <th>{{__('common.details')}}</th>
+                                            <th>  {{__('reports.balance')}}  </th>
+                                            <th>{{__('common.unit')}}</th>
+                                            <th>{{__('common.date')}}</th>
+                                            <th>{{__('common.user')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -174,7 +141,7 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <!-- <td></td> -->
+                                            <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -192,19 +159,18 @@
 <script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
 <script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
-
 <script>
     $(document).ready(function() {
         let table = $('#journalTable').DataTable({
             processing: true,
             serverSide: true,
-            pageLength: 10,   // 👈 IMPORTANT
+            pageLength: 10,   
             lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, 'همه']
                 ],
             ajax: {
-                url: '{{ route('journal.data') }}',
+                url: '{{ route("cacheflow.data") }}',
                 data: function (d) {
                     d.account_id = $('#account_id').val();
                     d.currency_id = $('#currency_id').val();
@@ -213,17 +179,17 @@
                     d.code_number = $('#code_number').val();
                     d.bill_number = $('#bill_number').val();
                 },
-                error: function(xhr, status, error) 
-                {
-                   console.log("Error fetching data: ", error);
-                   $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">مواردی یافت نشد</td></tr>');
-                }
+                error: function(xhr, status, error) {
+                console.log("Error fetching data: ", error);
+                   $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
+               }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'code', name: 'code' },
                 { data: 'accountRelation', name: 'accountRelation' },
                 { data: 'details', name: 'details' },
+
                 // { data: 'transaction_type_1', name: 'transaction_type_1' },
                 // { data: 'transaction_type_2', name: 'transaction_type_2' },
 
@@ -232,93 +198,88 @@
                 { data: 'loanRecieved', name: 'loanRecieved' },
                 { data: 'loanPaid', name: 'loanPaid' },
 
+                { data: 'belance', name: 'belance' },
                 { data: 'currency', name: 'currency' },
-                // { data: 'option_label', name: 'option_label' },
                 { data: 'inserted_short_date', name: 'inserted_short_date' },
-                { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                { data: 'full_name', name: 'full_name'}
             ],
            
-            drawCallback: function (settings) {
+            drawCallback: function(settings) 
+            {
                 var api = this.api();
-                let isCompanyAccount = settings.json.isCompanyAccount;
 
-                // Handle case where no records exist
-                if (api.rows().data().length === 0) {
-                    $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
-                    return; // Exit early to avoid unnecessary calculations
-                }
-
-                // Check if account_id is filtered (i.e., has a value)
-                var accountId = $('#account_id').val();
-
-                // Function to sum columns and return raw numbers
-                function sumColumn(index) {
+                 // Function to sum columns and return raw numbers
+                 function sumColumn(index) {
                     return api
                         .column(index, { page: 'current' })
                         .data()
                         .reduce(function (a, b) {
+                            // Make sure to parse floats and handle commas correctly
                             var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
                             var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
-                            return numA + numB;
+                            var sum = numA + numB;
+                            return sum;
                         }, 0);
                 }
 
-                // Only calculate finalResult if account_id is filtered
-                if (parseInt(accountId) > 0) {
-                    // Store column sums (as numbers, not formatted strings)
-                    let sum4 = sumColumn(4);
-                    let sum5 = sumColumn(5);
-                    let sum6 = sumColumn(6);
-                    let sum7 = sumColumn(7);
+                // Calculate the sum for the 6th column (index 6)
+                let sum4 = sumColumn(4).toLocaleString();
+                let sum5 = sumColumn(5).toLocaleString();                
+                
+                // Ensure values are defined, otherwise default to '0'
+                var sumCacheRecieved = settings.json.sumCacheRecieved || '0';
+                var sumCachePaid = settings.json.sumCachePaid || '0';
+                var sumLoanRecieved = settings.json.sumLoanRecieved || '0';
+                var sumLoanPaid = settings.json.sumLoanPaid || '0';
 
-                    /**
-                    * (بیلانس = (آورد نقد + طلبات) - (برد نقد + قرضه
-                    * balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
-                    */
+                /**
+                 * اگر خزانه انتخاب شده باشد باید
+                 * ۱: طلبات مشتری در قرضه خزانه نشان داده شود
+                 * ۲: قرضه مشتریان در طلبات خزانه نشان داده شود
+                 * ۳: بیلانس طلب و قرض و دریافت نقد و پرداخت نقد محاسبه گردد
+                 */
 
-                    // Ensure valid numbers for all sums
-                    sum4 = isNaN(sum4) ? 0 : sum4;
-                    sum5 = isNaN(sum5) ? 0 : sum5;
-                    sum6 = isNaN(sum6) ? 0 : sum6;
-                    sum7 = isNaN(sum7) ? 0 : sum7;
+                // var isKhazana = Boolean(settings.json.isKhazana) || false;
+                var isCompanyAccount = Boolean(settings.json.isCompanyAccount) || false;
 
-                    // Calculate the final result based on account type
-                    let finalResult = isCompanyAccount 
-                        ? (sum4 + sum7) - (sum5 + sum6)
-                        : (sum5 + sum7) - (sum4 + sum6);
+                
+                // let cacheRecieved =   Number(sumCacheRecieved.replace(/,/g, ''));
+                // let cachePaid = Number(sumCachePaid.replace(/,/g, ''));
+                // let loanRecieved =  isCompanyAccount && !isKhazana ? 0 : Number(sumLoanRecieved.replace(/,/g, ''));
+                // let loanPaid =  isCompanyAccount && !isKhazana ? 0 : Number(sumLoanPaid.replace(/,/g, ''));
 
-                    // Ensure finalResult is not NaN
-                    finalResult = isNaN(finalResult) ? 0 : finalResult;
+                let cacheRecieved =   sumColumn(4);
+                let cachePaid = sumColumn(5);
+                let loanRecieved =  sumColumn(6);
+                let loanPaid =  sumColumn(7);
 
-                    // Format final result with proper decimal places
+
+                    // let finalResult = (cacheRecieved +  loanRecieved) - (cachePaid + loanPaid);
+                    let finalResult = isCompanyAccount ? (cacheRecieved +  loanPaid) - (cachePaid + loanRecieved) : 
+                    (cachePaid + loanPaid) - (cacheRecieved + loanRecieved);
+
+                    // Format the final result properly
                     let finalResultFormatted = Number.isInteger(finalResult)
                         ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
                         : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
 
-                    // Determine badge type
-                    let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
+                // Determine badge type
+                let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
 
-                    // Update footer totals with formatted results
-                    $(api.column(4).footer()).html(sum4.toLocaleString());
-                    $(api.column(5).footer()).html(sum5.toLocaleString());
-                    $(api.column(6).footer()).html(sum6.toLocaleString());
-                    $(api.column(7).footer()).html(sum7.toLocaleString());
-                    $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
-                } else {
-                    // Hide results when no account is filtered
-                    $(api.column(4).footer()).html('');
-                    $(api.column(5).footer()).html('');
-                    $(api.column(6).footer()).html('');
-                    $(api.column(7).footer()).html('');
-                    // $(api.column(8).footer()).html('');
-                }
+                
+
+                $(api.column(4).footer()).html(sumColumn(4).toLocaleString());
+                $(api.column(5).footer()).html(sumColumn(5).toLocaleString());
+                $(api.column(6).footer()).html(sumColumn(6).toLocaleString());
+                $(api.column(7).footer()).html(sumColumn(7).toLocaleString());
+                $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
             }
-
         });
 
         // When the filter button is clicked, refresh the table
-         $('#btn-filter').on('click', function() {
-            table.ajax.reload();
+        $('#btn-filter').click(function() {
+            table.draw(); // Refresh DataTable with new filters
         });
     });
 </script>
