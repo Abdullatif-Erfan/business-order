@@ -108,7 +108,6 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
                                             <th>{{ __('sales.customer') }}</th>
-                                            <th>{{ __('buy.category') }}</th>
                                             <th>{{ __('sales.sale_type') }}</th>
                                             <th>{{ __('sales.quantity') }}</th>
                                             <th>{{ __('sales.unit') }}</th>
@@ -121,7 +120,6 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="3">{{__('common.total')}}</td>
-                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -185,7 +183,6 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_name', name: 'customer_name' },
-                { data: 'category_name', name: 'category_name' },
                 { data: 'product_name', name: 'product_name' },
                 { data: 'amount', name: 'amount' },
                 { data: 'unit', name: 'unit' },
@@ -222,10 +219,10 @@ function fetchList() {
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                $(api.column(5).footer()).html(sumColumn(5));
+                $(api.column(4).footer()).html(sumColumn(4));
+                $(api.column(6).footer()).html(sumColumn(6));
                 $(api.column(7).footer()).html(sumColumn(7));
                 $(api.column(8).footer()).html(sumColumn(8));
-                $(api.column(9).footer()).html(sumColumn(9));
             }
         });
 

@@ -658,9 +658,10 @@ class SalesController extends Controller
 
         $customer_account_id = $warehouseSales->first()->customer_account_id ?? 0;
         $currency_id = $warehouseSales->first()->currency_id ?? 1;
+        $times = $warehouseSales->first()->times ?? 1;
 
         // get previous balances
-        $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id);
+        $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id,  $times);
         
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
         // return ['customer_balance' => $customer_balance];
@@ -671,7 +672,7 @@ class SalesController extends Controller
     /**
      * Get Customer balance by customer_account_id
      */
-    private function getCustomerBalance($customer_account_id, $currency_id)
+    private function getCustomerBalance($customer_account_id, $currency_id, $times)
     {
         $journal = DB::table('journals')
             ->select([
@@ -699,6 +700,7 @@ class SalesController extends Controller
             ->where('currency_id', $currency_id)
             ->where('account_id', $customer_account_id)
             ->where('branch_id', $this->branch_id)
+            ->where('journals.times', '<=', $times)
             ->first();
 
             // balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
