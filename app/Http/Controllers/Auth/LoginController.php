@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Date; 
 use Laravel\Sanctum\HasApiTokens; 
-
+use App\Models\Setting\OrgBio;
 use App\Models\User; 
+use Illuminate\Support\Facades\Schema;
 use App\Models\Auth\Role; 
 use App\Models\Auth\AccessMetrics; 
 use App\Models\Auth\Login; 
@@ -29,30 +30,55 @@ class LoginController extends Controller
         // Middleware can be added for authentication checks
     }
 
-    public function getAddress()
-    {
-        // $clientIp = md5(request()->ip()); // Get the client IP address
-        // $clientIp = md5(request()->getClientIp());
-        // $onlineIp = md5($_SERVER['SERVER_ADDR']);
-		// //  $ip =  $_SERVER['SERVER_ADDR'];
-        //  // 190.92.174.50
-        // // dd($onlineIp);
-        // $mine = "7f74f56ac5604e24b73153e4db48380a";
-        // if($onlineIp == $mine) 
-        // {
-        //     return true;
-        // } else {
-        //     return false;
-        // }
-        return true;
-    }
     public function login()
     {
-        $getAddress = $this->getAddress();
-        if($getAddress)
-        {
-           return view('login.login');
+        $columns = [];
+
+        if (Schema::hasColumn('org_bios', 'is_expired')) {
+            $columns[] = 'is_expired';
         }
+
+        if (Schema::hasColumn('org_bios', 'expired_date')) {
+            $columns[] = 'expired_date';
+        }
+
+        // If no columns exist → skip safely
+        if (empty($columns)) {
+            return view('login.login');
+        }
+
+        $orgData = OrgBio::select('is_expired', 'expired_date')->first();
+    
+        if (!$orgData) {
+            return view('login.login');
+        }
+    
+        $today = Carbon::now();
+        $daysLeft = null;
+    
+        //  Only parse date if exists
+        if (!empty($orgData->expired_date)) {
+            $expiredDate = Carbon::parse($orgData->expired_date);
+            $daysLeft = (int) ceil($today->diffInDays($expiredDate, false)); // can be negative
+        }
+    
+        //  EXPIRED (by flag OR by date)
+        if ($orgData->is_expired == 1 || ($daysLeft !== null && $daysLeft < 0)) {
+    
+            $daysPassed = $daysLeft !== null ? abs($daysLeft) : null;
+    
+            Session::flash('expired_days', $daysPassed);
+            Session::flash('expired_text', $daysPassed === null ? 'مدت زیادی گذشته است' : null);
+    
+            return view('login.expiredLoginMessage');
+        }
+    
+        // ✅ NEAR EXPIRY
+        if ($daysLeft !== null && $daysLeft <= 20) {
+            Session::flash('nearExpired', $daysLeft);
+        }
+    
+        return view('login.login');
     }
 
      /**

@@ -79,6 +79,25 @@
                                 این کاربر بدون رول میباشد ویا غیر فعال میباشد
                             </h4>
                         @endif
+
+                        @if(Session::has('expired'))
+                            <div class="alert alert-danger">
+                                <p>
+                                مشتری محترم <br/>
+                                هاست و دامین شما نیاز به تمدید دارد. هرچه عاجلتر اقدام نمایید
+                                <br/>
+                                از هاست شما {{ Session::get('expired') }} روز گذشته است.
+                                </p>
+                            </div>
+                        @endif
+
+                        @if(Session::has('nearExpired'))
+                            <div class="alert alert-warning">
+                                سیستم شما تا {{ Session::get('nearExpired') }} روز دیگر منقضی می‌شود
+                                <br />
+                                لطفا هرچه عاجلتر اقدام نمایید. 
+                            </div>
+                        @endif
                     </div>
 
                     <div class="row">

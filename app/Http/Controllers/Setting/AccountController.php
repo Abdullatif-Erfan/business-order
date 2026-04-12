@@ -360,8 +360,10 @@ class AccountController extends Controller
         }
     }
 
+
     public function store(Request $request)
     {
+   
         $messages = [
             'account_type_id_required' => __('validate.account_type_id_required'),
             'name.required' => __('validate.pre_list_name_required'),
@@ -392,7 +394,7 @@ class AccountController extends Controller
 
             // Get default company_account_id
             $ownBanks = Account::where('account_type_id', 1)
-                ->where('branch_id', $this->branch_id)
+                // ->where('branch_id', $this->branch_id)
                 ->orderBy('is_pre_select', 'DESC')
                 ->first();
 
@@ -539,7 +541,7 @@ class AccountController extends Controller
 
         $ownBanks = Account::where('account_type_id', 1)
             ->orderBy('is_pre_select', 'DESC')
-            ->where('branch_id',$this->branch_id)
+            // ->where('branch_id',$this->branch_id)
             ->first();
 
         $default_account_id = $ownBanks->id ?? null;
@@ -574,7 +576,7 @@ class AccountController extends Controller
 
         $ownBanks = Account::where('account_type_id', 1)
             ->orderBy('is_pre_select', 'DESC')
-            ->where('branch_id', $this->branch_id)
+            // ->where('branch_id', $this->branch_id)
             ->first();
 
         $default_account_id = $ownBanks->id ?? null;
@@ -634,7 +636,7 @@ class AccountController extends Controller
             
             // Get default company_account_id
             $ownBanks = Account::where('account_type_id', 1)
-                ->where('branch_id', $this->branch_id)
+                // ->where('branch_id', $this->branch_id)
                 ->orderBy('is_pre_select', 'DESC')
                 ->first();
 
