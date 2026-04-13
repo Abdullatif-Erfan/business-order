@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Date; 
 use Laravel\Sanctum\HasApiTokens; 
-
+use App\Models\Setting\OrgBio;
 use App\Models\User; 
+use Illuminate\Support\Facades\Schema;
 use App\Models\Auth\Role; 
 use App\Models\Auth\AccessMetrics; 
 use App\Models\Auth\Login; 
@@ -46,12 +47,60 @@ class LoginController extends Controller
         }
         // return true;
     }
+    
     public function login()
     {
         $getAddress = $this->getAddress();
         if($getAddress)
         {
-          return view('login.login');
+          
+            $columns = [];
+    
+            if (Schema::hasColumn('org_bios', 'is_expired')) {
+                $columns[] = 'is_expired';
+            }
+    
+            if (Schema::hasColumn('org_bios', 'expired_date')) {
+                $columns[] = 'expired_date';
+            }
+    
+            // If no columns exist → skip safely
+            if (empty($columns)) {
+                return view('login.login');
+            }
+    
+            $orgData = OrgBio::select('is_expired', 'expired_date')->first();
+        
+            if (!$orgData) {
+                return view('login.login');
+            }
+        
+            $today = Carbon::now();
+            $daysLeft = null;
+        
+            //  Only parse date if exists
+            if (!empty($orgData->expired_date)) {
+                $expiredDate = Carbon::parse($orgData->expired_date);
+                $daysLeft = (int) ceil($today->diffInDays($expiredDate, false)); // can be negative
+            }
+        
+            //  EXPIRED (by flag OR by date)
+            if ($orgData->is_expired == 1 || ($daysLeft !== null && $daysLeft < 0)) {
+        
+                $daysPassed = $daysLeft !== null ? abs($daysLeft) : null;
+        
+                Session::flash('expired_days', $daysPassed);
+                Session::flash('expired_text', $daysPassed === null ? 'مدت زیادی گذشته است' : null);
+        
+                return view('login.expiredLoginMessage');
+            }
+        
+            // ✅ NEAR EXPIRY
+            if ($daysLeft !== null && $daysLeft <= 20) {
+                Session::flash('nearExpired', $daysLeft);
+            }
+        
+            return view('login.login');
         }
         else
         {
