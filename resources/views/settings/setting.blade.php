@@ -3,7 +3,6 @@
 
 @php
     $user = auth()->user();
-    $packageId = session('package_type');
     $isAdmin = $user->isAdmin == 1;
     $permissions = [
         'settings' => $user->hasAccess('settings', 'create_records'),
@@ -23,41 +22,26 @@
 
                         
                             <ul class="nav my_nave nav-tabs" id="myTab2">
-                                <li class="active"><a data-toggle="tab"  href="#branch">{{__('settings.branch')}}</a></li>
-                                <li><a data-toggle="tab"  href="#warehouse">{{__('settings.warehouse')}}</a></li>
+                                <li class="active"><a data-toggle="tab"  href="#category">{{__('settings.category')}}</a></li>
                                 <li><a data-toggle="tab"  href="#unit">{{__('settings.unit')}}</a></li>
                                 <li><a data-toggle="tab"  href="#currency"> {{__('settings.currency')}}</a></li>
                                 <li><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>
-                                <li><a data-toggle="tab"  href="#income_type">  {{__('settings.income_type')}}  </a></li>
                                 <li><a data-toggle="tab"  href="#expense_type">  {{__('settings.expense_type')}}  </a></li>
                                 <li><a data-toggle="tab"  href="#company_profile">  {{__('settings.company_profile')}}   </a></li>
                             </ul>
 
                             <div class="tab-content">
-                                <!-- branch -->
-                                 <div id="branch" class="tab-pane fade in active">
-                                      <br> 
-                                      @if($isAdmin && $packageId >= 2) 
-									       @include('settings.branch.add')
-                                       @endif
-								       <br>
-                                       @include('settings.branch.list')
-                                 </div> 
-                                <!-- / branch -->
 
-                                <!-- warehouse -->
-                                <div id="warehouse" class="tab-pane fade">
-                                    <br>
-                                    @if($permissions['settings'] || $isAdmin)
-                                        @if($packageId >= 2)
-                                            @include('settings.warehouse.add')
+                                <!-- category -->
+                                 <div id="category" class="tab-pane fade in active"> 
+                                       <br> 
+                                       @if($permissions['settings'] || $isAdmin)
+									       @include('settings.category.add')
                                         @endif
-                                    @endif
-                                    <br>
-                                    @include('settings.warehouse.list')
-                                </div>
-                                <!-- / warehouse -->
-
+								       <br>  
+                                       @include('settings.category.list')      
+								</div>
+						        <!-- / category -->
 
                                 <!-- unit -->
                                 <div id="unit" class="tab-pane fade"> 
@@ -74,9 +58,7 @@
                               <div id="currency" class="tab-pane fade">
                                     <br> 
                                     @if($permissions['settings'] || $isAdmin)
-                                       @if($packageId >= 2)
-									     @include('settings.currency.add')
-                                       @endif
+									    @include('settings.currency.add')
                                     @endif
                                     <br>  
                                     @include('settings.currency.list') 
@@ -93,18 +75,6 @@
                                     @include('settings.account.list') 
 								</div>
 					        	<!-- /account -->
-
-                                <!-- income_type -->
-                                <div id="income_type" class="tab-pane fade"> 
-                                       <br> 
-                                       @if($permissions['settings'] || $isAdmin)
-									       @include('settings.income_type.add')
-                                        @endif
-								       <br>  
-                                       @include('settings.income_type.list')      
-								</div>
-						        <!-- / income_type -->
-
 
                                 <!-- expense_type -->
                                 <div id="expense_type" class="tab-pane fade"> 
@@ -177,7 +147,7 @@ $(document).ready(function () {
     if (activeTab) {
         $('#myTab2 a[href="' + activeTab + '"]').tab('show');
     } else {
-        activeTab = '#branch'; // Default to the first tab if none is stored
+        activeTab = '#category'; // Default to the first tab if none is stored
     }
 
     // Call the respective function on page load
@@ -193,19 +163,15 @@ $(document).ready(function () {
 
     function callFetchFunction(tab) {
         console.log('Calling fetch function for:', tab);
-        if (tab === '#branch') {
-            fetchBranchList();
-        } else if (tab === '#warehouse') {
-            fetchWarehouseList();
-        } else if (tab === '#unit') {
+        if (tab === '#category') {
+            fetchCategoryList();
+        }  else if (tab === '#unit') {
             fetchUnitList();
         } else if (tab === '#currency') {
             fetchCurrencyList();
         } else if (tab === '#account') {
             fetchAccountList();
-        } else if (tab === '#income_type') {
-            fetchIncomeTypeList();
-        } else if (tab === '#expense_type') {
+        }  else if (tab === '#expense_type') {
             fetchExpenseTypeList();
         } else if (tab === '#company_profile') {
             fetchProfileList();

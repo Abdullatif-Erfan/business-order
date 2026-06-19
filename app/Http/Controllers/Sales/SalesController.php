@@ -286,7 +286,7 @@ class SalesController extends Controller
         return [
             'customer_account_id' => 'required|integer|exists:accounts,id',
             'times'        => 'required',
-            'todays_date' => 'required|date_format:Y-m-d',
+            'todays_date' => 'required',
             'billno' => 'required|integer',
             'factor' => 'nullable|string',
             'warehouse_id'  => 'required',
@@ -700,7 +700,7 @@ class SalesController extends Controller
             ->where('currency_id', $currency_id)
             ->where('account_id', $customer_account_id)
             ->where('branch_id', $this->branch_id)
-            ->where('journals.times', '<=', $times)
+            // ->where('journals.times', '<=', $times)
             ->first();
 
             // balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 

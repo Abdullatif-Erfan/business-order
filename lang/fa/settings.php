@@ -70,10 +70,9 @@ return [
 
     //
 
-
-
     // general
     "title" => 'تنظیمات',
     'message' => 'پیام ',
+    'category' => 'کتگوری',
    
 ];
