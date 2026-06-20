@@ -146,10 +146,10 @@ class UnitController extends Controller
         
         // Check if any related record exists
         $boughtItemDetailsExists = BoughtItemDetails::where('unit_id', $id)->exists();
-        $warehouseItemExists = WarehouseItem::where('branch_id', $id)->exists();
+        $warehouseItemExists = WarehouseItem::exists();
     
         // If any record exists, prevent deletion
-        if ($boughtItemDetailsExists  || $warehouseItemExists ) 
+        if ($boughtItemDetailsExists || $warehouseItemExists ) 
         {
             return response()->json(['status' => 'failed', 'message' => __('validate.has_records_in_tables')]);
         }

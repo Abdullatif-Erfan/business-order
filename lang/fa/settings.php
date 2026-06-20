@@ -73,6 +73,23 @@ return [
     // general
     "title" => 'تنظیمات',
     'message' => 'پیام ',
-    'category' => 'کتگوری',
+    'category' => 'کتگوری اجناس',
+     
+    // belongs to order
+    'loan_limit' => 'سقف قرض الی',
+    'loan_limit_label' => 'سقف قرض',
+    'loan_limit_option' => 'فعال سازی',
+    'other_selection' => 'انتخاب گزینه دیگر',
+    'active' => 'فعال',
+    'noactive' => 'غیر فعال',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
    
 ];

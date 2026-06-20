@@ -20,7 +20,6 @@
                         <div class="card-body" style="padding: 15px 15px 33px 15px;">
                             <!-- card-body -->
 
-                        
                             <ul class="nav my_nave nav-tabs" id="myTab2">
                                 <li class="active"><a data-toggle="tab"  href="#category">{{__('settings.category')}}</a></li>
                                 <li><a data-toggle="tab"  href="#unit">{{__('settings.unit')}}</a></li>
@@ -58,7 +57,7 @@
                               <div id="currency" class="tab-pane fade">
                                     <br> 
                                     @if($permissions['settings'] || $isAdmin)
-									    @include('settings.currency.add')
+									    <!-- @include('settings.currency.add') -->
                                     @endif
                                     <br>  
                                     @include('settings.currency.list') 
@@ -178,34 +177,6 @@ $(document).ready(function () {
         }
     }
 });
-
-// $(document).ready(function () {
-//     // Initialize default tab's DataTable
-//     fetchBranchList();
-
-//     // Ensure correct tab is initialized on click
-//     $('#myTab2 li a').on('click', function () {
-//         const target = $(this).attr('href');
-//         if (target === '#branch') {
-//             fetchBranchList();
-//         } else if (target === '#warehouse') {
-//             fetchWarehouseList();
-//         } else if (target === '#unit') {
-//             fetchUnitList();
-//         } else if (target === '#currency') {
-//             fetchCurrencyList();
-//         } else if (target === '#account') {
-//             fetchAccountList();
-//         } else if (target === '#income_type') {
-//             fetchIncomeTypeList();
-//         }
-//         else if (target === '#expense_type') {
-//             fetchExpenseTypeList();
-//         } else if (target === '#company_profile') {
-//             fetchProfileList();
-//         } 
-//     });
-// });
 </script>
 @endsection
 

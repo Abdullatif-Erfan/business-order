@@ -3,9 +3,9 @@
         <thead>
             <tr>
                 <th>{{__('common.number')}}</th>
-                <th>{{__('settings.branch')}}</th>
                 <th>  {{ __('settings.account_type_selection') }} </th>										
-                <th>   {{ __('settings.account_name') }} </th>										
+                <th>   {{ __('settings.account_name') }} </th>	
+                <th>{{__('settings.loan_limit_label')}}</th>									
                 <th>  {{ __('settings.phone') }}  </th>		
                 <th> {{ __('settings.address') }}   </th>		
                 <th> {{ __('common.view') }}   </th>		
@@ -272,9 +272,9 @@ function fetchAccountList() {
             
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'branch_name', name: 'branch_name', searchable: true },
                 { data: 'account_type', name: 'account_type', searchable: true },
                 { data: 'name', name: 'name', searchable: true },
+                { data: 'loan_limit', name: 'loan_limit', searchable: true,  },
                 { data: 'phone', name: 'phone', searchable: true },
                 { data: 'address', name: 'address', searchable: true },
                 { data: 'view', name: 'view', searchable: false, orderable: false },

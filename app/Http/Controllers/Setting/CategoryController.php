@@ -139,20 +139,20 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        // $category = Category::findOrFail($id);
+        $category = Category::findOrFail($id);
         
-        // // Check if any related record exists
-        // $boughtItemDetailsExists = BoughtItemDetails::where('category_id', $id)->exists();
-        // $warehouseItemExists = WarehouseItem::where('category_id', $id)->exists();
+        // Check if any related record exists
+        $boughtItemDetailsExists = BoughtItemDetails::where('category_id', $id)->exists();
+        $warehouseItemExists = WarehouseItem::where('category_id', $id)->exists();
     
-        // // If any record exists, prevent deletion
-        // if ($boughtItemDetailsExists  || $warehouseItemExists ) 
-        // {
-        //     return response()->json(['status' => 'failed', 'message' => __('validate.has_records_in_tables')]);
-        // }
+        // If any record exists, prevent deletion
+        if ($boughtItemDetailsExists  || $warehouseItemExists ) 
+        {
+            return response()->json(['status' => 'failed', 'message' => __('validate.has_records_in_tables')]);
+        }
     
-        // // If no related records exist, delete the currency
-        // $category->delete();
-        // return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
+        // If no related records exist, delete the currency
+        $category->delete();
+        return response()->json(['status' => 'success', 'message' => __('common.deleted_successfully')]);
     }
 }

@@ -12,7 +12,7 @@ class Account extends Model
 {
     //
 
-    protected $fillable = ['account_type_id','branch_id','name','phone','address','description','is_pre_select','percent','salary_currency','net_salary'];
+    protected $fillable = ['account_type_id','name','phone','address','description','is_pre_select','percent','salary_currency','net_salary','loan_limit_option','loan_limit'];
 
     // an account type has many accounts
     // account is belongs to accountType
