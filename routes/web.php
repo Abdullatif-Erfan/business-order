@@ -103,6 +103,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // setting
     require __DIR__ . '/v1/setting.php';
    
+    // order
+    require __DIR__ . '/v1/order.php';
+
     // buy
     require __DIR__ . '/v1/buy.php';
  

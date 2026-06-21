@@ -2425,22 +2425,383 @@ h3.error {
     color: #fff;
 }
 
-
-/* ---------------------- dashboard design ------------------- */
-
 .tab-wrapper {
     padding: 0px 20px;
 }
 
+/* ---------------------- dashboard design ------------------- */
+.timeline-modern {
+    position: relative;
+    padding: 30px 0 20px 0;
+}
 
-/* .tab-wrapper ul li {
-    border: 1px solid #ddd;
-    padding: 4px 20px;
-    border-radius: 20px;
-    -webkit-border-radius: 20px;
-    -moz-border-radius: 20px;
-    -ms-border-radius: 20px;
-    -o-border-radius: 20px;
+/* Steps Container */
+.timeline-steps-modern {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    align-items: flex-start;
+    padding: 0 40px;
+}
+
+/* Connecting Line */
+.timeline-steps-modern::before {
+    content: '';
+    position: absolute;
+    top: 42px;
+    left: 85px;
+    right: 85px;
+    height: 3px;
+    background: #e9ecef;
+    border-radius: 4px;
+    z-index: 0;
+}
+
+/* Progress Line */
+.timeline-steps-modern::after {
+    content: '';
+    position: absolute;
+    top: 42px;
+    left: 85px;
+    width: calc(100% - 170px);
+    height: 3px;
+    background: #4a6cf7;
+    border-radius: 4px;
+    z-index: 1;
+    transition: width 1s ease;
+}
+
+/* Individual Step */
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+}
+
+/* Icon */
+.step-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    position: relative;
+    border: 3px solid #e9ecef;
     cursor: pointer;
-    margin-left: 10px;
-} */
+}
+
+.icon-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.step-icon i {
+    font-size: 22px;
+    color: #4a6cf7;
+    margin-bottom: 2px;
+}
+
+.step-icon .step-number {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2d3436;
+    background: rgba(74, 108, 247, 0.1);
+    padding: 1px 10px;
+    border-radius: 10px;
+}
+
+/* Active Step */
+.step-item.active .step-icon {
+    border-color: #4a6cf7;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(74, 108, 247, 0.15);
+    transform: scale(1.05);
+}
+
+.step-item.active .step-icon i {
+    color: #4a6cf7;
+}
+
+.step-item.active .step-content .step-title {
+    color: #4a6cf7;
+}
+
+/* Step Content */
+.step-content {
+    text-align: center;
+    width: 100%;
+    padding: 0 5px;
+    margin-top: 16px;
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 6px;
+}
+
+.step-stats {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.step-stats .stat-done {
+    color: #00b894;
+}
+
+.step-stats .stat-remained {
+    color: #fdcb6e;
+}
+
+.step-stats i {
+    margin-right: 4px;
+    font-size: 11px;
+}
+
+/* Financial Details - Clean & Simple */
+.financial-details {
+    width: 100%;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-top: 10px;
+}
+
+.financial-details .total-amount {
+    font-size: 13px;
+    color: #636e72;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.financial-details .total-amount strong {
+    color: #2d3436;
+    font-size: 14px;
+}
+
+.financial-details .payment-breakdown {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.financial-details .payment-breakdown .paid,
+.financial-details .payment-breakdown .remaining {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: white;
+    flex: 1;
+    justify-content: center;
+    border: 1px solid #e9ecef;
+}
+
+.financial-details .payment-breakdown .paid {
+    color: #00b894;
+}
+
+.financial-details .payment-breakdown .remaining {
+    color: #fdcb6e;
+}
+
+.financial-details .payment-breakdown i {
+    font-size: 12px;
+}
+
+.financial-details .payment-breakdown strong {
+    color: #2d3436;
+    font-weight: 600;
+}
+
+/* Final Balance - Simple */
+.financial-details .final-balance {
+    text-align: center;
+    padding: 6px 10px;
+    background: #2d3436;
+    border-radius: 4px;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.financial-details .final-balance strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Hover Effects */
+.step-icon:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 20px rgba(74, 108, 247, 0.12);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .timeline-steps-modern {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 20px 0;
+        gap: 10px;
+    }
+    
+    .timeline-steps-modern::before,
+    .timeline-steps-modern::after {
+        display: none;
+    }
+    
+    .step-item {
+        min-width: 160px;
+    }
+}
+
+@media (max-width: 768px) {
+    .step-icon {
+        width: 65px;
+        height: 65px;
+    }
+    
+    .step-icon i {
+        font-size: 18px;
+    }
+    
+    .step-icon .step-number {
+        font-size: 11px;
+    }
+    
+    .step-title {
+        font-size: 12px;
+    }
+    
+    .step-stats {
+        font-size: 10px;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .step-icon {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .step-icon i {
+        font-size: 16px;
+    }
+    
+    .step-icon .step-number {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+    
+    .step-stats {
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .financial-details .payment-breakdown {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .step-item {
+        min-width: 130px;
+    }
+}
+
+
+/* Medium Compact Datepicker - Bigger than mini */
+.datepicker {
+    z-index: 9999 !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.1) !important;
+    background: #ffffff !important;
+    border: 1px solid #e9ecef !important;
+    font-size: 13px !important;
+    min-width: 240px !important;
+}
+
+.datepicker table tr td,
+.datepicker table tr th {
+    padding: 4px 6px !important;
+    font-size: 13px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    width: 34px !important;
+}
+
+.datepicker .datepicker-switch {
+    font-size: 14px !important;
+    padding: 4px 8px !important;
+    height: 30px !important;
+}
+
+.datepicker .prev, 
+.datepicker .next {
+    font-size: 14px !important;
+    padding: 4px 8px !important;
+    height: 30px !important;
+    width: 30px !important;
+}
+
+.datepicker .dow {
+    font-size: 11px !important;
+    padding: 3px 4px !important;
+    height: 22px !important;
+}
+
+.datepicker table tr td.day {
+    font-size: 13px !important;
+    padding: 4px 6px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    width: 34px !important;
+}
+
+.datepicker table tr td.day:hover {
+    background: #e8edff !important;
+    transform: scale(1.05) !important;
+}
+
+.datepicker table tr td.active {
+    background: #4a6cf7 !important;
+    color: white !important;
+    box-shadow: 0 1px 5px rgba(74, 108, 247, 0.2) !important;
+}
+
+.datepicker table tr td.today {
+    background: #e8edff !important;
+    color: #4a6cf7 !important;
+}
+
+.datepicker .clear-btn,
+.datepicker .today-btn {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    height: 26px !important;
+}

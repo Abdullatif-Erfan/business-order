@@ -61,7 +61,7 @@ class HomeController extends Controller
         // $accessInfo = Session::get('accessInfo', []);
         // return ['accessInfo' => $accessInfo];
 
-        //  $auth = auth()->user();
+        // $auth = auth()->user();
         // return ['auth' => $auth];
         // $user = auth()->user();
         // $branch_id = $this->branch_id;
@@ -113,12 +113,12 @@ class HomeController extends Controller
         // first tab
         $data['todays_sold_income'] = $this->getTodaysSoldIncome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
         $data['getTodaysBoughtItems'] = $this->getTodaysBoughtData($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
-        $data['cashIncomeOutcome'] = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
-        // return ['data' => $data];
+        $data['cashIncomeOutcome']  = $this->getCashIncomeOutcome($data['year'],$data['month'],$data['day'],$data['currency_id'],$branch_id);
+        // return ['data' =>  $data['cashIncomeOutcome']];
 
         // Second Tab
         $secondTab = $this->getSecondTabReport($data['year'],$data['currency_id'],$branch_id);
-        return ['secondTab', $secondTab];
+        // return ['secondTab', $secondTab];
 
         // Third Tab
         $thirdTab = $this->getCashInHandAmount($data['year'],$data['month'],$data['day'],$branch_id);
@@ -134,7 +134,6 @@ class HomeController extends Controller
         // $days = $this->getPast7Days($baseDate);
 
        
-
         return view('dashboard.dashboard', compact('data','orgBio','secondTab','thirdTab','branches','isAdmin','branch_id','package_type'));
     }
 
@@ -321,11 +320,11 @@ class HomeController extends Controller
             ->selectRaw("
                 SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
                 SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END) as total_salary,
                 SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
                 SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes
             ")
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->where('accounts.account_type_id', '=', $company_account_type_id)
+            ->where('journals.account_type_id', '=', $company_account_type_id)
             ->where('journals.year', '=', $year)
             ->when($month != 100, function ($query) use ($month) {
                 return $query->where('journals.month', '=', $month);
@@ -341,6 +340,7 @@ class HomeController extends Controller
         return [
             'total_expense' => $result->total_expense ?? 0,
             'total_outcomes' => $result->total_outcomes ?? 0,
+            'total_salary' => $result->total_salary ?? 0,
             'total_incomes' => $result->total_incomes ?? 0,
             'total_income' => $result->total_income ?? 0,
         ];
@@ -370,20 +370,34 @@ class HomeController extends Controller
          * طلبات شرکت = Paid Loan = p2t2
          * قرضه شرکت = Recieved Loan = p2t1
          */
-        $result = DB::table('journals')
-            ->selectRaw("
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat,
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
-            ")
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id]) // ✅ Fixes issue
-            ->where('journals.year', '=', $year)
-            ->where('journals.currency_id', '=', $currency_id)
-            ->where('journals.branch_id', '=', $branch_id)
-            ->where('journals.is_cleared', '=', 0)
-            ->first();
+        $Cache = DB::table('journals')
+        ->selectRaw("
+            SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
+            SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
+            SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END) as total_salary,
+            SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_incomes,
+            SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_outcomes
+        ")
+        ->whereIn('journals.account_type_id', [$company_account_type_id, $banks_account_type_id]) 
+        ->where('journals.year', '=', $year)
+        ->where('journals.currency_id', '=', $currency_id)
+        ->where('journals.branch_id', '=', $branch_id)
+        ->where('journals.is_cleared', '=', 0)
+        ->first();
+
+        $Loans = DB::table('journals')
+        ->selectRaw("
+            SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as cache_recieved,
+            SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as cache_paid,
+            SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as talabat,
+            SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as loans
+        ")
+        ->whereIn('journals.account_type_id', [3, 4]) 
+        ->where('journals.year', '=', $year)
+        ->where('journals.currency_id', '=', $currency_id)
+        ->where('journals.branch_id', '=', $branch_id)
+        ->where('journals.is_cleared', '=', 0)
+        ->first();
 
         // مفاد فروشات سالانه
         $sold_profits = SalesDetails::where('branch_id', $branch_id)->whereHas('warehouseSale', function ($query) use ($currency_id, $year) {
@@ -393,10 +407,16 @@ class HomeController extends Controller
         return [
             'total_warehouse_value' => $total_warehouse_value->total_value ?? 0,
             'total_warehouse_wastage' => $total_warehouse_value->total_wastage ?? 0,
-            'total_income' => $result->total_incomes ?? 0, 
-            'total_outcome' => $result->total_outcomes ?? 0, 
-            'total_talabat' => $result->total_talabat ?? 0,
-            'total_loan' => $result->total_loan ?? 0,
+            'total_income' => $Cache->total_income ?? 0, 
+            'total_expense' => $Cache->total_expense ?? 0, 
+            'total_salary' => $Cache->total_salary ?? 0, 
+            'total_incomes' => $Cache->total_incomes ?? 0, 
+            'total_outcome' => $Cache->total_outcomes ?? 0, 
+            'cache_recieved' => $Loans->cache_recieved ?? 0,
+            'cache_paid' => $Loans->cache_paid ?? 0,
+            'talabat' => $Loans->talabat ?? 0,
+            'loans' => $Loans->loans ?? 0,
+            'total_loan' => $Loans->total_loan ?? 0,
             'sold_profits' => $sold_profits ?? 0,
         ];
     }
@@ -418,14 +438,13 @@ class HomeController extends Controller
 
         // Get total paid and total received in a single query
         $total_amounts = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
             ->select(
                 'journals.currency_id',
                 DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_paid'),
                 DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_recieved')
             )
-            ->where('accounts.account_type_id', $khazana_account_type_id)
-            ->where('accounts.branch_id', $branch_id)
+            ->where('journals.account_type_id', $khazana_account_type_id)
+            ->where('journals.branch_id', $branch_id)
             ->where('is_cleared', '=', 0)
             ->when($year != 100, function ($query) use ($year) {
                 return $query->where('journals.year', $year);
@@ -458,55 +477,180 @@ class HomeController extends Controller
 
     public function cleanAll()
     {
-        // List of tables to truncate
         $tables = [
             'journals',
             'bought_items',
             'bought_item_details',
-            // 'bought_item_pre_lists',
+            'qalams',
+            'models',
             'clearances',
             'sales_details',
             'warehouse_items',
             'warehouse_sales',
+            'warehouse_wastage',
         ];
 
         try {
-            // Start the transaction
-            DB::beginTransaction();
-
             foreach ($tables as $table) {
-                // Check if the table exists before truncating
                 if (DB::getSchemaBuilder()->hasTable($table)) {
                     DB::table($table)->truncate();
                 }
             }
 
-            // Commit the transaction
-            DB::commit();
-
-            session()->flash('notification', [
+            session()->put('notification', [
                 'type' => 'success',
-                'message' => 'موفقانه حذف گردید',
+                'message' => __('common.deleted_successfully'),
             ]);
-
-            return redirect()->route('home');
 
         } catch (\Exception $e) {
-            // Rollback the transaction in case of error
-            DB::rollBack();
-
-            // Log the error
             \Log::error('Error truncating tables: ' . $e->getMessage());
 
-            session()->flash('notification', [
+            session()->put('notification', [
                 'type' => 'danger',
-                'message' => 'حذف نگردید',
+                'message' => __('common.delete_failed'),
             ]);
-            return redirect()->route('home');
         }
 
+        return redirect()->route('home');
     }
 
-   
+
+
+    public function currencyConverter(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'from_currency' => 'required|integer',
+            'to_currency'   => 'required|integer',
+            'fromAmount'    => 'required|numeric|min:0.01'
+        ]);
+
+        $fromCurrency = $request->input('from_currency');
+        $toCurrency   = $request->input('to_currency');
+        $fromAmount   = $request->input('fromAmount');
+        $newRate   = $request->input('newRate');
+
+
+        if($fromCurrency == $toCurrency)
+        {
+            return response()->json([
+                'convertedAmount' => number_format($fromAmount, 2),
+                'exchangeRate'    => 0,
+            ]);  
+        }
+
+        $rate = DB::table('rates')
+        ->whereIn('from_currency_id', [$fromCurrency,$toCurrency])
+        ->whereIn('to_currency_id', [$fromCurrency,$toCurrency])
+        ->first();
+
+        if (!$rate) {
+            return response()->json(['error' => __('validate.currency_not_found_converter')], 400);
+        }
+
+        
+        /**
+         * from is payer and no need for conversion
+         * to is reciever which may recieve other currency
+         * 
+         * 1: check if to_currency is equal to greater_account_id, it is greater currency and should use division
+         * 2: else it is smaller currency and should use multiplication
+         *
+         */
+        if($rate->greater_account_id == $toCurrency)
+        {
+            if(!empty($newRate) && intval($newRate) > 0)
+            {
+               $convertedAmount = $fromAmount / $newRate;
+            }
+            else
+            {
+                $convertedAmount = $fromAmount / $rate->to_currency_amount;
+            }
+        }
+        else 
+        {
+            if(!empty($newRate) && intval($newRate) > 0)
+            {
+               $convertedAmount = $fromAmount * $newRate;
+            }
+            else
+            {
+                $convertedAmount = $fromAmount * $rate->to_currency_amount;
+            }
+        }
+
+        return response()->json([
+            'convertedAmount' => bcdiv($convertedAmount, '1', 2),
+            'exchangeRate'    => floatval($newRate) > 0 ? floatval($newRate) : $rate->to_currency_amount,
+        ]);       
+    }
+
+    public function getBalance(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'currency_id' => 'required|integer',
+            'account_id'   => 'required|integer',
+        ]);
+
+        $currencyId = $request->input('currency_id');
+        $accountId   = $request->input('account_id');
+        $branch_id = $this->branch_id;
+
+        if(empty($currencyId) || empty($accountId))
+        {
+            return response()->json([
+                'cur_balance'    => 0,
+            ]);  
+        }
+       
+        $totalBalance = 0;
+        $finalBalance = 0;
+        $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->where('branch_id', $this->branch_id)->exists();
+
+        if($isCompanyAccount)
+        {
+            // صرف موضوع نقدی حسابات شرکت محاسبه گردد و بیلانس شان کشیده شود
+            $totalBalance = DB::table('journals')
+            ->select(
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_paid'),
+                DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as total_recieved')
+            )
+            ->where('journals.account_id', $accountId)
+            ->where('journals.branch_id', $branch_id)
+            ->where('journals.currency_id', $currencyId)
+            ->where('is_cleared', '=', 0)
+            ->first();
+
+            $finalBalance = $totalBalance->total_recieved - $totalBalance->total_paid;
+        }
+        else 
+        {
+            $totalBalance = DB::table('journals')
+            ->select(
+                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumCachePaid'),
+                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumCacheRecieved'),
+                DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 2 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumLoanRecieved'),
+                DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 AND journals.branch_id='.$branch_id.' THEN amount ELSE 0 END) as sumLoanPaid')
+            )
+            ->where('journals.account_id', $accountId)
+            ->where('journals.branch_id', $branch_id)
+            ->where('journals.currency_id', $currencyId)
+            ->where('is_cleared', '=', 0)
+            ->first();
+            
+            $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid) - 
+            ($totalBalance->sumCachePaid + $totalBalance->sumLoanRecieved));
+        }
+
+        
+        return response()->json([
+            // 'cur_balance' => floatval($totalBalance),
+            'cur_balance' => $finalBalance,
+            // 'cur_balance' => $totalBalance->sumLoanRecieved,
+        ]);  
+    }
+    
 
 }

@@ -53,7 +53,7 @@ class OrgProfileController extends Controller
             'header'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'logos'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'note_for_print' => 'nullable|string',
-            'expired_after_days' => 'required|min:5|max:60',
+            'tax_activation' => 'required|min:0|max:1',
             'is_active' => 'boolean'
         ]);
 
@@ -97,9 +97,6 @@ class OrgProfileController extends Controller
             'address.required'           => __('validate.org_address_required'),
             'header.image'               => __('validate.org_header_image'),
             'logos.image'                => __('validate.org_logos_image'),
-            'expired_after_days.required'=> __('validate.org_expired_required'),
-            'expired_after_days.min'     => __('validate.org_expired_min'),
-            'expired_after_days.max'     => __('validate.org_expired_max'),
         ];
     
         $validated = $request->validate([
@@ -109,7 +106,7 @@ class OrgProfileController extends Controller
             'header' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'logos' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'note_for_print' => 'nullable|string',
-            'expired_after_days' => 'required|integer|min:5|max:60',
+            'tax_activation' => 'nullable|integer|min:0|max:1',
         ], $messages);
     
         $orgBio = OrgBio::findOrFail($request->id);
@@ -118,7 +115,7 @@ class OrgProfileController extends Controller
         $orgBio->phone = $request->phone;
         $orgBio->address = $request->address;
         $orgBio->note_for_print = $request->note_for_print;
-        $orgBio->expired_after_days = $request->expired_after_days;
+        $orgBio->tax_activation = $request->tax_activation;
 
     
         // Handle file uploads

@@ -64,54 +64,25 @@
                     </li>
                 @endif
 
-                @if(($permissions['rates'] || $isAdmin) && $packageId >= 2)
+                     @if($permissions['journal'] || $isAdmin)
                     <li class="nav-item">
-                        <a href="{{ route('rate.index') }}">
-                            <i class="fas fa-percent"></i>
-                            <p> {{ __('menu.rate') }}</p>
+                        <a href="{{ route('journal.index') }}">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <p> {{ __('menu.rooznamcha') }}  </p>
                         </a>
                     </li>
-                 @endif
+                      @endif
 
+                    @if($permissions['expense'] || $isAdmin)
                     <li class="nav-item">
-                        <a data-toggle="collapse" href="#journal">
-                          <i class="fas fa-file-invoice-dollar"></i>
-                            <p> {{ __('menu.transaction') }} </p>
-                            <span class="caret"></span>
+                        <a href="{{  route('expense.index') }}">
+                            <i class="fas fa-file-invoice-dollar"></i> 
+                            <p> {{ __('menu.expense') }}  </p>
                         </a>
-                        <div class="collapse" id="journal">
-                            <ul class="nav nav-collapse">
-                                @if($permissions['journal'] || $isAdmin)
-                                <li>
-                                    <a href="{{ route('journal.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.rooznamcha') }}  </span>
-                                    </a>
-                                </li>
-                                @endif
-                                @if(($permissions['income'] || $isAdmin))
-                                <li>
-                                    <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.income') }} </span>
-                                    </a>
-                                </li>
-                                @endif
-                                @if(($permissions['expense'] || $isAdmin))
-                                <li>
-                                    <a href="{{ route('expense.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.expense') }}</span>
-                                    </a>
-                                </li>
-                                @endif
-                                <!-- <li>
-                                    <a href="{{ route('boughtList.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> سهم سهامداران</span>
-                                    </a>
-                                </li> -->
-                            </ul>
-                        </div>
                     </li>
+                      @endif
 
-
+                   
                     @if(($permissions['hr'] || $isAdmin) && $packageId >= 3)
                     <li class="nav-item">
                         <a data-toggle="collapse" href="#hr">

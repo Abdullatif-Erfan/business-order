@@ -70,6 +70,7 @@ return [
     'in' => 'آمد',
     'out' => 'رفت',
     'available' => 'موجود',
+    'at_least_one_row' => 'حد اقل یک ریکارد موجود باشد',
 
     // Accounts
     "account_payer" => 'حساب پرداخت کننده',

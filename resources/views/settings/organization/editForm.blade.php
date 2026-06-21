@@ -64,19 +64,19 @@
                 </div>
 
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="expired_after_days"> {{__('settings.expired_after_days')}}  </label>
-                    <input type="number" class="form-control" name="expired_after_days" value="{{ $orgBio->expired_after_days }}" min="5" >
-                    <span id="expired_after_daysError" class="text-danger"></span>
+
+                    <div class="form-group">
+                       <label for="tax_activation">{{ __('settings.tax_activation') }}</label>
+                        <select class="form-control" name="tax_activation">
+                            <option value="0" {{ $orgBio->tax_activation == 0 ? 'selected' : '' }}>{{ __('settings.noactive') }}</option>
+                            <option value="1" {{ $orgBio->tax_activation == 1 ? 'selected' : '' }}>{{ __('settings.active') }}</option>
+                        </select>
                     <div>
+                        
+
                 </div>
         </div>
     </div>
-
-   
-
-
-    
     
 </form>
 

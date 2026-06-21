@@ -27,69 +27,21 @@
     <link rel="stylesheet" href="{{ asset('assets/plugin/select2/select2.min.css') }}">
     <script src="{{ asset('assets/plugin/select2/jquery-2.1.4.min.js') }}"></script> 
 
+     <!-- Bootstrap Datepicker CSS - Make sure this is loaded -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
     <!-- Additional CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.css') }}">
+    <!-- <link rel="stylesheet" href="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.css') }}"> -->
     <script src="{{ asset('assets/datepicker/bootstrap.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('assets/css/myHelper.css') }}">
 
     <link rel="stylesheet" href="{{ asset('assets/plugin/responsive_datatable/css/dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/plugin/responsive_datatable/css/responsive.bootstrap.css') }}">
-    
+       
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    <script>
-        window.onload = function() {
-            $.ajax({
-                type: 'POST',
-                url: '{{ route("home.warehouse_item_notify_amount") }}',
-                data: { _token: '{{ csrf_token() }}' },
-                success: function(result) {
-                    $('#warehouse_item_notifyable_amount').html(result);
-                }
-            });
-
-            $.ajax({
-                type: 'POST',
-                url: '{{ route("home.expired_date_notify_amount") }}',
-                data: { _token: '{{ csrf_token() }}' },
-                success: function(result) {
-                    $('#expire_date_notifyable_amount').html(result);
-                }
-            });
-        }
-
-        function getWarehouseItemList() {
-            $('#warehouse_item_list').html('<center><img src="{{ asset("assets/img/small_loader.gif") }}" style="width:12%;margin-top:30px;margin-bottom:20px" alt="Loading"/></center>');
-            $.ajax({
-                type: 'POST',
-                url: '{{ route("home.warehouse_item_list") }}',
-                data: { _token: '{{ csrf_token() }}' },
-                success: function(result) {
-                    $("#warehouse_item_list").html(result);
-                },
-                error: function(xhr, status) {
-                    $('#warehouse_item_list').html('Error, مشکل رخ داد');
-                }
-            });
-        }
-
-        function getExpiredMedicineList() {
-            $('#expire_date_list').html('<center><img src="{{ asset("assets/img/small_loader.gif") }}" style="width:12%;margin-top:30px;margin-bottom:20px" alt="Loading"/></center>');
-            $.ajax({
-                type: 'POST',
-                url: '{{ route("home.get_expire_date_list") }}',
-                data: { _token: '{{ csrf_token() }}' },
-                success: function(result) {
-                    $("#expire_date_list").html(result);
-                },
-                error: function(xhr, status) {
-                    $('#expire_date_list').html('Error, مشکل رخ داد');
-                }
-            });
-        }
-    </script>
-
 
     <!-- Additional Head Content -->
     @stack('head')
@@ -145,14 +97,49 @@
     <script src="{{ asset('assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
 
 
-    <script src="{{ asset('assets/plugin/responsive_datatable/js/dataTables.min.js') }}"></script>
-    <script src="{{ asset('assets/plugin/responsive_datatable/js/dataTables.responsive.js') }}"></script>
+  
     
     <script type="text/javascript">
         $(function () {
             $(".select2").select2();
         });
     </script>
+
+    <script>
+    $(document).ready(function() {
+        $('#datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    });
+    </script>
+
+    <script>
+$(document).ready(function () {
+
+    if ($.fn.datepicker) {
+
+        $('#start_date, #end_date').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true,
+            orientation: 'bottom auto',
+            clearBtn: true,
+            todayBtn: 'linked'
+        });
+
+        $('.datepicker-icon').on('click', function () {
+            $(this).closest('.input-group').find('input').datepicker('show');
+        });
+
+    } else {
+        console.error('Bootstrap Datepicker is not loaded');
+    }
+
+});
+</script>
 
 <script>
     function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
