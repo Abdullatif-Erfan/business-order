@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Milon\Barcode\DNS1D;
 
 use App\Models\Setting\Branch;
+use App\Models\Setting\Category;
+
 use App\Models\Buy\BuyPreList;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
@@ -42,18 +44,19 @@ class BuyPreListController extends Controller
     public function index()
     {
         // $branchs = Branch::all();
-        // $buyPreLists = BuyPreList::with('branchRelation')->get();
-
+        // $buyPreLists = BuyPreList::with(['branchRelation','categoryRelation'])->get();
         // return response()->json(['data' => $buyPreLists]);
 
         $branchs = Branch::where('id',$this->branch_id)->get();
+        $categories = Category::select('id','name')->get();
+
         if($this->packageId == 4) 
         {
-           return view('buy.prelist.pos_list', compact('branchs'));
+           return view('buy.prelist.pos_list', compact('branchs','categories'));
         }
         else 
         {
-            return view('buy.prelist.list', compact('branchs'));
+            return view('buy.prelist.list', compact('branchs','categories'));
         }
     }
 
@@ -62,8 +65,8 @@ class BuyPreListController extends Controller
      */
     public function getData(Request $request)
     {
-        $buyPreLists = BuyPreList::with('branchRelation')
-        ->select('id','code', 'name','image_path','barcode_path','times', 'branch_id')
+        $buyPreLists = BuyPreList::with(['branchRelation','categoryRelation'])
+        ->select('id','code', 'name','image_path','barcode_path','times', 'branch_id','category_id')
         ->where('branch_id',$this->branch_id)
         ->orderBy('id', 'DESC');
     
@@ -73,6 +76,10 @@ class BuyPreListController extends Controller
 
             ->addColumn('branch', function($buyPreList) {
                 return $buyPreList->branchRelation->name;
+            })
+
+            ->addColumn('category', function($buyPreList) {
+                return $buyPreList->categoryRelation->name ?? '';
             })
             ->addColumn('edit', function($buyPreList) {
                 return '<i class="fas fa-pen-square editIcon" data-id="'.$buyPreList->id.'" style="font-size:20px;"></i>';
@@ -168,13 +175,14 @@ class BuyPreListController extends Controller
 
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
+            'name' => 'required|string|max:255|min:2|unique:bought_item_pre_lists,name',
             'branch_id' => 'required|exists:branches,id',
         ], $messages);
 
         BuyPreList::create([
             'name' => $validated['name'],
             'branch_id' => $validated['branch_id'],
+            'category_id' => $request->category_id,
             'times' => $times,
             'image_path' => '',
             'barcode_path' => ''
@@ -523,8 +531,9 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
     public function show(string $id)
     {
         $branchs = Branch::where('id', $this->branch_id)->get();
-        $buyPreLists = BuyPreList::with('branchRelation')->where('id',$id)->get();
-        return view('buy.prelist.edit', compact('branchs','buyPreLists'));
+        $categories = Category::select('id','name')->get();
+        $buyPreLists = BuyPreList::with(['branchRelation'])->where('id',$id)->get();
+        return view('buy.prelist.edit', compact('branchs','buyPreLists','categories'));
     }
 
     /**
@@ -578,6 +587,7 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
         }
         // Update the data
         $prevData->name = $request->name;
+        $prevData->category_id = $request->category_id ?? null;
         $prevData->save();
     
         // Return success response
@@ -591,26 +601,25 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
     public function destroy(string $id)
     {
         $bpList = BuyPreList::findOrFail($id);
-
-        if ($bpList) {
-            // Delete image if exists
-            if ($bpList->image_path && Storage::disk('public')->exists($bpList->image_path)) {
-                Storage::disk('public')->delete($bpList->image_path);
-            }
-
-            // Delete barcode if exists
-            if ($bpList->barcode_path && Storage::disk('public')->exists($bpList->barcode_path)) {
-                Storage::disk('public')->delete($bpList->barcode_path);
-            }
-
-            // Delete the database record
-            $bpList->delete();
-
-            return response()->json(['status' => 'success', 'message' =>
-             __('common.deleted_successfully')]);
+    
+        // Delete image if exists
+        if ($bpList->image_path && Storage::disk('public')->exists($bpList->image_path)) {
+            Storage::disk('public')->delete($bpList->image_path);
         }
-
-        return response()->json(['status' => 'failed', 'message' => __('common.delete_failed')]);
+    
+        // Delete barcode if exists
+        if ($bpList->barcode_path && Storage::disk('public')->exists($bpList->barcode_path)) {
+            Storage::disk('public')->delete($bpList->barcode_path);
+        }
+    
+        // Delete the database record
+        $bpList->delete();
+    
+        return response()->json([
+            'status'  => 'success',
+            'message' => __('common.deleted_successfully'),
+        ]);
     }
+    
 
 }

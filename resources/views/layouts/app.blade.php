@@ -105,23 +105,11 @@
         });
     </script>
 
-    <script>
-    $(document).ready(function() {
-        $('#datepicker').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true,
-            orientation: 'bottom'
-        });
-    });
-    </script>
-
-    <script>
-$(document).ready(function () {
-
-    if ($.fn.datepicker) {
-
-        $('#start_date, #end_date').datepicker({
+ <script>
+$(document).ready(function() {
+    // Initialize all datepickers
+    function initDatepicker(selector) {
+        $(selector).datepicker({
             format: 'yyyy-mm-dd',
             autoclose: true,
             todayHighlight: true,
@@ -129,17 +117,73 @@ $(document).ready(function () {
             clearBtn: true,
             todayBtn: 'linked'
         });
-
-        $('.datepicker-icon').on('click', function () {
-            $(this).closest('.input-group').find('input').datepicker('show');
-        });
-
-    } else {
-        console.error('Bootstrap Datepicker is not loaded');
     }
-
+    
+    // Initialize specific datepickers
+    $('#datepicker').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true,
+        todayHighlight: true,
+        orientation: 'bottom'
+    });
+    
+    $('#start_date, #end_date').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true,
+        todayHighlight: true,
+        orientation: 'bottom auto',
+        clearBtn: true,
+        todayBtn: 'linked'
+    });
+    
+    // Single click handler for all datepicker icons - use a flag to prevent double trigger
+    // $(document).on('click', '.datepicker-icon', function(e) {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    //     var $input = $(this).closest('.input-group').find('input');
+    //     if ($input.length) {
+    //         $input.datepicker('show');
+    //     }
+    // });
 });
 </script>
+
+<script>
+$(document).ready(function () {
+    // Toggle filter form
+    $('#filterToggleBtn').on('click', function (e) {
+        e.preventDefault();
+        
+        var $form = $('#searchWrapper');
+        var $icon = $(this).find('i');
+        
+        // Toggle the 'show' class
+        $form.toggleClass('show');
+        
+        // Update icon
+        if ($form.hasClass('show')) {
+            $icon.removeClass('fa-filter').addClass('fa-times');
+        } else {
+            $icon.removeClass('fa-times').addClass('fa-filter');
+        }
+    });
+});
+
+$(window).on('load resize', function () {
+    var mobile = $(window).width() <= 767;
+    var $form = $('#searchWrapper');
+    var $button = $('.responsive_button');
+
+    if (mobile) {
+        $form.removeClass('show');
+        $button.show();
+    } else {
+        $form.addClass('show');
+        $button.hide();
+    }
+});
+</script>
+
 
 <script>
     function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {

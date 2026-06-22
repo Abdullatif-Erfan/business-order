@@ -120,13 +120,13 @@ class OrderController extends Controller
             ->addColumn('amount', function ($order) {
                 return $order->amount;
             })
-            ->addColumn('state', function ($order) {
+          ->addColumn('state', function ($order) {
                 if ($order->state == 1) {
-                    return '<span class="badge badge-new">' . __('order.new') . '</span>';
+                    return '<span class="badge badge-new newState" data-ord-num="' . $order->ord_num . '" data-state="1" style="cursor:pointer;">' . __('order.new') . '</span>';
                 } elseif ($order->state == 2) {
-                    return '<span class="badge badge-done">' . __('order.done') . '</span>';
+                    return '<span class="badge badge-done newState" data-ord-num="' . $order->ord_num . '" data-state="2" style="cursor:pointer;">' . __('order.done') . '</span>';
                 } elseif ($order->state == 3) {
-                    return '<span class="badge badge-cancelled">' . __('order.cancelled') . '</span>';
+                    return '<span class="badge badge-cancelled newState" data-ord-num="' . $order->ord_num . '" data-state="3" style="cursor:pointer;">' . __('order.cancelled') . '</span>';
                 }
                 return '<span class="badge badge-secondary">' . __('order.unknown') . '</span>';
             })
@@ -139,12 +139,16 @@ class OrderController extends Controller
             ->addColumn('action', function ($order) {
                 return '
                     <div class="action-icons">
-                        <i class="fas fa-eye viewOrder" data-id="' . $order->id . '" title="' . __('common.view') . '"></i>
-                        <i class="fas fa-pen-square editOrder" data-id="' . $order->id . '" title="' . __('common.edit') . '"></i>
-                        <i class="fas fa-trash-alt deleteOrder" data-id="' . $order->id . '" title="' . __('common.delete') . '"></i>
+                        <i class="fas fa-eye viewOrder" data-id="' . $order->ord_num . '" title="' . __('common.view') . '"></i>
+                        <a href="/orders/edit/'.$order->ord_num.'">
+                            <i class="fas fa-pen-square editOrder" style="font-size:20px;"></i>
+                        </a>
+                        <i class="fas fa-trash-alt deleteOrder" data-id="' . $order->ord_num . '" title="' . __('common.delete') . '"></i>
                     </div>
                 ';
             })
+          
+
             ->filterColumn('supplier_name', function ($query, $keyword) {
                 $query->whereHas('supplierRelation', function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%");
@@ -183,44 +187,16 @@ class OrderController extends Controller
         'orderNumber','times'));
     }
 
+    
+
     /**
-     * Add order item (AJAX)
+     * Check order number duplication
      */
-    public function addItem(Request $request)
+    public function checkDuplication(Request $request)
     {
-        try {
-            // Validate the request
-            $validated = $request->validate([
-                'pre_list_id' => 'required|exists:buy_pre_lists,id',
-                'amount' => 'required|numeric|min:0',
-                'unit_id' => 'nullable|exists:units,id',
-                'unit_price' => 'nullable|numeric|min:0',
-            ]);
-
-            // Store item in session or return HTML
-            $html = view('order.item_row', ['item' => $validated])->render();
-            
-            return response()->json([
-                'status' => 'success',
-                'html' => $html,
-                'message' => 'Item added successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'Failed to add item: ' . $e->getMessage()
-            ], 500);
-        }
+        $exists = Order::where('ord_num', $request->ord_num)->exists();
+        return response()->json(['exists' => $exists]);
     }
-
-        /**
-         * Check order number duplication
-         */
-        public function checkDuplication(Request $request)
-        {
-            $exists = Order::where('ord_num', $request->ord_num)->exists();
-            return response()->json(['exists' => $exists]);
-        }
 
     /**
      * Store a newly created resource in storage.
@@ -291,85 +267,128 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+   public function show($ord_num)
     {
-        $order = Order::with(['preListRelation', 'unitRelation', 'categoryRelation'])
-            ->find($id);
-
-        if (!$order) {
+        // Get all orders with this ord_num (multiple items)
+        $orders = Order::with([
+            'preListRelation', 
+            'unitRelation', 
+            'categoryRelation',
+            'employeeRelation',
+            'supplierRelation'
+        ])->where('ord_num', $ord_num)->get();
+        
+        if ($orders->isEmpty()) {
             return response()->json([
                 'status' => 'failed',
                 'message' => __('common.not_found')
             ], 404);
         }
 
-        return view('order.show', compact('order'));
+        // Get the first order for header information
+        $order = $orders->first();
+        
+        // Get all items for this order
+        $orderItems = $orders;
+
+        return view('order.show', compact('order', 'orderItems'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($ord_num)
     {
-        $order = Order::find($id);
+        // Get all orders with this ord_num (multiple items)
+        $orders = Order::where('ord_num', $ord_num)->get();
         
-        if (!$order) {
+        if ($orders->isEmpty()) {
             return response()->json([
                 'status' => 'failed',
                 'message' => __('common.not_found')
             ], 404);
         }
 
-        $preLists = BuyPreList::select('id', 'name')->orderBy('name')->get();
+        // Get the first order for header information
+        $order = $orders->first();
+        
+        // Get all items for this order
+        $orderItems = $orders;
+        
+        $preLists = BuyPreList::select('id', 'name', 'category_id')->orderBy('name')->get();
         $units = Unit::select('id', 'name')->orderBy('name')->get();
-        $categories = Category::select('id', 'name')->orderBy('name')->get();
+        $employees = Account::select('id','name')->where('account_type_id',2)->get();
+        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
 
-        return view('order.edit', compact('order', 'preLists', 'units', 'categories'));
+        return view('order.edit.form', compact('order', 'orderItems', 'preLists', 'units', 'employees', 'suppliers'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $ord_num)
     {
-        $messages = [
-            'ord_num.required' => 'Order number is required',
-            'pre_list_id.required' => 'Item is required',
-            'amount.required' => 'Amount is required',
-            'amount.numeric' => 'Amount must be a number',
-            'idate.required' => 'Date is required',
-        ];
-
+        // Validate the request - same as store
         $validated = $request->validate([
-            'ord_num' => 'required|string|max:50|unique:orders,ord_num,' . $id,
-            'pre_list_id' => 'required|exists:buy_pre_lists,id',
-            'category_id' => 'nullable|exists:categories,id',
-            'amount' => 'required|numeric|min:0',
-            'unit_id' => 'nullable|exists:units,id',
-            'iby' => 'nullable|string|max:100',
-            'idate' => 'required|date',
-            'state' => 'nullable|integer|in:0,1,2,3',
-            'done_by' => 'nullable|string|max:100',
+            'buy_pre_list' => 'required|array|min:1',
+            'buy_pre_list.*' => 'required|exists:bought_item_pre_lists,id',
+            'amount' => 'required|array|min:1',
+            'amount.*' => 'required|numeric|min:0.01',
+            'unit_id' => 'required|array|min:1',
+            'unit_id.*' => 'required|exists:units,id',
+            'category_id' => 'nullable|array',
+            'supplier_id' => 'required|exists:accounts,id',
+            'employee_id' => 'required|exists:accounts,id',
+            'ord_num' => 'required|string|max:50',
+            'date' => 'required|date',
+            'state' => 'nullable|integer|in:1,2,3',
         ]);
 
         DB::beginTransaction();
         try {
-            $order = Order::findOrFail($id);
-            $order->update($validated);
+            // Delete existing items for this order
+            Order::where('ord_num', $ord_num)->delete();
+            
+            // Combine the arrays into a single collection of items
+            $items = collect($validated['buy_pre_list'])->map(function ($preListId, $index) use ($validated) {
+                return [
+                    'pre_list_id' => $preListId,
+                    'amount' => $validated['amount'][$index] ?? 0,
+                    'unit_id' => $validated['unit_id'][$index] ?? null,
+                    'category_id' => $validated['category_id'][$index] ?? null,
+                ];
+            })->filter(function ($item) {
+                return $item['pre_list_id'] && $item['amount'] > 0;
+            });
+
+            // Create new items
+            foreach ($items as $item) {
+                Order::create([
+                    'ord_num' => $validated['ord_num'],
+                    'pre_list_id' => $item['pre_list_id'],
+                    'category_id' => $item['category_id'],
+                    'supplier_id' => $validated['supplier_id'],
+                    'employee_id' => $validated['employee_id'],
+                    'amount' => $item['amount'],
+                    'unit_id' => $item['unit_id'],
+                    'iby' => auth()->user()->full_name ?? '',
+                    'idate' => $validated['date'],
+                    'state' => $validated['state'] ?? 1, // Use state from form or default to 1
+                    'times' => time(), // Generate new times
+                ]);
+            }
 
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => __('common.updated_successfully'),
-                'data' => $order
+                'message' => __('common.updated_successfully')
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Order Update Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to update order. Please try again.',
-                'error' => $e->getMessage()
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
             ], 500);
         }
     }
@@ -377,25 +396,28 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($ord_num)
     {
         DB::beginTransaction();
         try {
-            $order = Order::find($id);
+            // Get all orders with this ord_num
+            $orders = Order::where('ord_num', $ord_num)->get();
             
-            if (!$order) {
+            // Check if any orders exist
+            if ($orders->isEmpty()) {
                 return response()->json([
                     'status' => 'failed',
                     'message' => __('common.not_found')
                 ], 404);
             }
 
-            $order->delete();
+            // Delete all matching orders
+            $deletedCount = Order::where('ord_num', $ord_num)->delete();
 
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => __('common.deleted_successfully')
+                'message' => __('common.deleted_successfully') . ' (' . $deletedCount . ' ' . __('common.records') . ')'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -407,76 +429,65 @@ class OrderController extends Controller
             ], 500);
         }
     }
-
     /**
      * Update order status
      */
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, $ord_num)
     {
         $validated = $request->validate([
-            'state' => 'required|integer|in:0,1,2,3',
-            'done_by' => 'nullable|string|max:100'
+            'state' => 'required|integer|in:1,2,3',
         ]);
 
         DB::beginTransaction();
         try {
-            $order = Order::findOrFail($id);
+            // Update all orders with this ord_num
+            $orders = Order::where('ord_num', $ord_num)->get();
             
-            $order->state = $validated['state'];
-            if ($validated['state'] == 2) { // Completed
-                $carbonDate = Carbon::now();
-                $order->done_year = $carbonDate->year;
-                $order->done_month = $carbonDate->month;
-                $order->done_day = $carbonDate->day;
-                $order->done_by = $validated['done_by'] ?? auth()->user()->full_name ?? 'System';
+            if ($orders->isEmpty()) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => __('common.not_found')
+                ], 404);
             }
-            
-            $order->save();
+
+            // Update status for all items
+            foreach ($orders as $order) {
+                $order->state = $validated['state'];
+                
+                if ($validated['state'] == 2) { // Done/Completed
+                    $carbonDate = Carbon::now();
+                    $order->done_year = $carbonDate->year;
+                    $order->done_month = $carbonDate->month;
+                    $order->done_day = $carbonDate->day;
+                    $order->done_by =  auth()->user()->full_name ?? 'System';
+                } 
+                else 
+                {
+                    // Reset done fields if not completed
+                    $order->done_year = null;
+                    $order->done_month = null;
+                    $order->done_day = null;
+                    $order->done_by = null;
+                }
+                
+                $order->save();
+            }
 
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Order status updated successfully',
-                'data' => $order
+                'message' => __('order.status_updated_successfully')
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Order Status Update Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to update order status.',
-                'error' => $e->getMessage()
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
             ], 500);
         }
     }
-
-    /**
-     * Get order statistics
-     */
-    public function getStatistics()
-    {
-        try {
-            $stats = [
-                'total' => Order::count(),
-                'pending' => Order::where('state', 0)->count(),
-                'in_progress' => Order::where('state', 1)->count(),
-                'completed' => Order::where('state', 2)->count(),
-                'cancelled' => Order::where('state', 3)->count(),
-                'total_amount' => Order::sum('amount'),
-            ];
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $stats
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Order Statistics Error: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to get statistics.'
-            ], 500);
-        }
-    }
+   
 
     /**
      * Get orders for dashboard
@@ -513,17 +524,5 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Get state label
-     */
-    private function getStateLabel($state)
-    {
-        $labels = [
-            0 => 'Pending',
-            1 => 'In Progress',
-            2 => 'Completed',
-            3 => 'Cancelled'
-        ];
-        return $labels[$state] ?? 'Unknown';
-    }
+  
 }

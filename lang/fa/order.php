@@ -26,7 +26,21 @@ return [
     'category' => 'کتگوری',
     'driver' => 'راننده',
     'status' => 'وضعیت',
-    
+    'order_list' => 'لیست سفارشات',
+    'actions' => 'عملیات',
+    'completed_date' => 'تاریخ انجام',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+    'edit_order' => 'ویرایش',
+
 
 
     'enter_order_number' => 'شماره سفارش را وارد کنید',
@@ -35,7 +49,7 @@ return [
     'item_selection' => 'انتخاب آیتم',
     'enter_item' => 'آیتم را وارد کنید',
     
-    'category_selection' => 'انتخاب دسته بندی',
+    'category_selection' => 'انتخاب کتگوری',
     
     'amount' => 'مقدار',
     'enter_amount' => 'مقدار را وارد کنید',
@@ -55,10 +69,11 @@ return [
     
     'status_selection' => 'انتخاب وضعیت',
     
-    'created_by' => 'ایجاد کننده',
+    'created_by' => 'ثبت کننده',
+    'created_at' => 'تاریخ ثبت',
     'enter_creator_name' => 'نام ایجاد کننده را وارد کنید',
     
-    'done_by' => 'انجام شده توسط',
+    'done_by' => 'انجام توسط',
     'enter_done_by' => 'نام انجام دهنده را وارد کنید',
     
     'notes' => 'یادداشت‌ها',
@@ -67,8 +82,10 @@ return [
     'date' => 'تاریخ',
     'enter_date' => 'تاریخ را انتخاب کنید',
     
-    'order_items' => 'آیتم‌های سفارش',
+    'order_items' => 'جنس های سفارش داده شده',
     'add_item' => 'افزودن آیتم',
+    'update_status' => 'ویرایش وضعیت',
+    'status_updated_successfully' => 'موفقانه ویرایش گردید',
 
     // =========================================
     // STATUS LABELS

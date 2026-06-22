@@ -26,8 +26,21 @@
                             <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}">
                             <div class="form-body">
                                 <div class="row">
-                                
-                                    <div class="col-md-8 col-sm-8 col-xs-6">
+                                                    
+                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                        <div class="form-group">
+                                           <select name="category_id" class="form-control select2" style="width:100%">
+                                                <option value="">{{__('buy.select_category')}}</option>
+                                                @foreach($categories as $category)
+                                                    <option value="{{ $category->id }}">
+                                                        {{ $category->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div> 
+                                    </div>
+                                                    
+                                    <div class="col-md-4 col-sm-4 col-xs-6">
                                         <div class="form-group">
                                             <input class="form-control" id="name" name="name" type="text" required placeholder="{{__('common.item_name')}}" >
                                             <span id="nameError" class="text-danger"></span>
@@ -67,6 +80,7 @@
                                         <tr>
                                             <th>{{__('common.number')}}     </th>
                                             <th>{{__('common.branch')}}     </th>
+                                            <th>{{__('buy.category')}}     </th>
                                             <th>{{__('common.item_name')}}  </th>
                                             <th>{{__('common.edit')}}       </th>
                                             <th>{{__('common.delete')}}     </th>
@@ -283,6 +297,7 @@ function fetchList() {
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'branch', name: 'branch' },
+                { data: 'category', name: 'category'},
                 { data: 'name', name: 'name' },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
@@ -308,9 +323,9 @@ $('table').on('click', '.deleteIcon', function () {
                 type: 'DELETE',
                 data: { _token: '{{ csrf_token() }}' },
                 success: (response) => {
-                    if(response.status === 'success') {
-                        fetchList();
+                    if(response.status == 'success') {
                         showNotification("{{__('common.deleted_successfully')}}", 'success', 'top', 'right', 'withicon');
+                        fetchList();
                     } else {
                        showNotification("{{__('common.delete_failed')}}", 'danger', 'top', 'right', 'withicon');
                     }

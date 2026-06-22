@@ -57,50 +57,7 @@ class Order extends Model
     {
         return $this->belongsTo(Account::class, 'supplier_id','id');
     }
-    // Scopes
-    public function scopePending($query)
-    {
-        return $query->where('state', 0);
-    }
-
-    public function scopeInProgress($query)
-    {
-        return $query->where('state', 1);
-    }
-
-    public function scopeCompleted($query)
-    {
-        return $query->where('state', 2);
-    }
-
-    public function scopeCancelled($query)
-    {
-        return $query->where('state', 3);
-    }
-
-    // Accessors
-    public function getStateLabelAttribute()
-    {
-        $labels = [
-            0 => 'Pending',
-            1 => 'In Progress',
-            2 => 'Completed',
-            3 => 'Cancelled'
-        ];
-        return $labels[$this->state] ?? 'Unknown';
-    }
-
-    public function getStateBadgeAttribute()
-    {
-        $badges = [
-            0 => '<span class="badge badge-warning">Pending</span>',
-            1 => '<span class="badge badge-info">In Progress</span>',
-            2 => '<span class="badge badge-success">Completed</span>',
-            3 => '<span class="badge badge-danger">Cancelled</span>'
-        ];
-        return $badges[$this->state] ?? '<span class="badge badge-secondary">Unknown</span>';
-    }
-
+  
     public function getFormattedAmountAttribute()
     {
         return number_format($this->amount, 2);

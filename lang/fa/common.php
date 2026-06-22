@@ -6,6 +6,7 @@ return [
     'delete' => 'حذف',
     'close'  => 'بستن',
     'save'   => 'ثبت',
+    'saving' => 'درحال ثبت',
     'confirm' => 'تایید',
     'save_and_print' => 'ثبت و پرنت',
     'number' => 'نمبر',

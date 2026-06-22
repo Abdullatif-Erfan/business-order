@@ -2052,6 +2052,14 @@ body {
     background: #f6faff;
 }
 
+.responsiveFilterForm {
+    border-right: 3px solid #89b4ea;
+    border-left: 3px solid #89b4ea;
+    box-shadow: none !important;
+    padding: 10px 0px 7px 0px;
+    background: #f6faff;
+}
+
 .printBtn {
     border: 1px solid #e4dfdf;
     padding: 3px 10px;
@@ -2804,4 +2812,107 @@ h3.error {
     font-size: 12px !important;
     padding: 4px 8px !important;
     height: 26px !important;
+}
+
+/* ========================================= */
+/* RESPONSIVE FILTER STYLES - NO ANIMATION */
+/* ========================================= */
+
+/* Hide filter toggle button on larger screens */
+.responsive_button {
+    display: none !important;
+}
+
+/* Default: Show filter form, hide toggle button */
+.responsiveFilterForm {
+    display: block !important;
+}
+
+/* ========================================= */
+/* XS - Extra Small Devices (Mobile) */
+/* ========================================= */
+@media (max-width: 767px) {
+.responsive_button {
+        display: inline-block !important;
+    }
+
+    .responsiveFilterForm {
+        display: none !important;
+        height: auto;
+        overflow: hidden;
+    }
+
+    .responsiveFilterForm.show {
+        display: block !important;
+    }
+}
+
+/* ========================================= */
+/* SM - Small Devices (Tablets) */
+/* ========================================= */
+@media (min-width: 768px) and (max-width: 991px) {
+    .responsiveFilterForm .col-sm-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 5px 8px;
+    }
+    
+    .responsiveFilterForm .col-sm-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 5px 8px;
+    }
+    
+    .responsiveFilterForm .form-control {
+        font-size: 13px;
+        height: 35px;
+    }
+}
+
+/* ========================================= */
+/* MD - Medium Devices (Desktops) */
+/* ========================================= */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .responsiveFilterForm .col-md-2 {
+        flex: 0 0 20%;
+        max-width: 20%;
+        padding: 5px 8px;
+    }
+    
+    .responsiveFilterForm .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 5px 8px;
+    }
+    
+    .responsiveFilterForm .col-md-1 {
+        flex: 0 0 10%;
+        max-width: 10%;
+        padding: 5px 8px;
+    }
+}
+
+
+
+/* ========================================= */
+/* LG - Large Devices */
+/* ========================================= */
+@media (min-width: 1200px) {
+    .responsiveFilterForm .col-md-2 {
+        flex: 0 0 16.666%;
+        max-width: 16.666%;
+        padding: 5px 8px;
+    }
+    
+    .responsiveFilterForm .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 5px 8px;
+    }
+    
+    .responsiveFilterForm .col-md-1 {
+        flex: 0 0 8.333%;
+        max-width: 8.333%;
+        padding: 5px 8px;
+    }
 }
