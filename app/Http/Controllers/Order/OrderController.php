@@ -44,6 +44,35 @@ class OrderController extends Controller
         // $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
         $todaysDate = Carbon::now()->format('Y-m-d');
 
+        // $orders = Order::select(
+        //     'id',
+        //     'ord_num',
+        //     'supplier_id',
+        //     'employee_id',
+        //     'pre_list_id',
+        //     'unit_id',
+        //     'category_id',
+        //     'amount',
+        //     'idate',
+        //     'state',
+        //     'done_by',
+        //     'created_at'
+        // )
+        // ->with([
+        //     'employeeRelation:id,name',
+        //     'supplierRelation:id,name',
+        //     'preListRelation:id,name',
+        //     'unitRelation:id,name',
+        //     'categoryRelation:id,name'
+        // ])
+        // ->whereIn('id', function ($query) {
+        //     $query->selectRaw('MAX(id)')
+        //         ->from('orders')
+        //         ->groupBy('ord_num');
+        // })
+        // ->orderBy('id', 'DESC')->get();
+        // return $orders;
+
         // return view('order.list', compact('categories', 'employees', 'todaysDate', 'orgbios','suppliers'));
         return view('order.list', compact('todaysDate', 'orgbios'));
     }
@@ -53,13 +82,33 @@ class OrderController extends Controller
      */
     public function getData(Request $request)
     {
-        $orders = Order::with([
-            'employeeRelation',
-            'supplierRelation',
-            'preListRelation',
-            'unitRelation',
-            'categoryRelation'
+        // Get one record per ord_num with necessary columns
+        $orders = Order::select(
+            'id',
+            'ord_num',
+            'supplier_id',
+            'employee_id',
+            'pre_list_id',
+            'unit_id',
+            'category_id',
+            'amount',
+            'idate',
+            'state',
+            'done_by',
+            'created_at'
+        )
+        ->with([
+            'employeeRelation:id,name',
+            'supplierRelation:id,name',
+            'preListRelation:id,name',
+            'unitRelation:id,name',
+            'categoryRelation:id,name'
         ])
+        // ->whereIn('id', function ($query) {
+        //     $query->selectRaw('MAX(id)')
+        //         ->from('orders')
+        //         ->groupBy('ord_num');
+        // })
         ->orderBy('id', 'DESC');
 
         // Apply filters
@@ -120,13 +169,15 @@ class OrderController extends Controller
             ->addColumn('amount', function ($order) {
                 return $order->amount;
             })
-          ->addColumn('state', function ($order) {
-                if ($order->state == 1) {
+            ->addColumn('state', function ($order) {
+                if ($order->state == 0) {
+                    return '<span class="badge badge-draft newState" data-ord-num="' . $order->ord_num . '" data-state="0" style="cursor:pointer;">' . __('order.draft') . '</span>';
+                } elseif ($order->state == 1) {
                     return '<span class="badge badge-new newState" data-ord-num="' . $order->ord_num . '" data-state="1" style="cursor:pointer;">' . __('order.new') . '</span>';
                 } elseif ($order->state == 2) {
-                    return '<span class="badge badge-done newState" data-ord-num="' . $order->ord_num . '" data-state="2" style="cursor:pointer;">' . __('order.done') . '</span>';
+                    return '<span class="badge badge-cancelled newState" data-ord-num="' . $order->ord_num . '" data-state="2" style="cursor:pointer;">' . __('order.cancelled') . '</span>';
                 } elseif ($order->state == 3) {
-                    return '<span class="badge badge-cancelled newState" data-ord-num="' . $order->ord_num . '" data-state="3" style="cursor:pointer;">' . __('order.cancelled') . '</span>';
+                    return '<span class="badge badge-completed newState" data-ord-num="' . $order->ord_num . '" data-state="3" style="cursor:pointer;">' . __('order.completed') . '</span>';
                 }
                 return '<span class="badge badge-secondary">' . __('order.unknown') . '</span>';
             })
@@ -147,8 +198,6 @@ class OrderController extends Controller
                     </div>
                 ';
             })
-          
-
             ->filterColumn('supplier_name', function ($query, $keyword) {
                 $query->whereHas('supplierRelation', function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%");
@@ -168,6 +217,52 @@ class OrderController extends Controller
             ->make(true);
     }
 
+  
+   public function getCounts(Request $request)
+    {
+        $query = Order::query();
+        
+        // Apply filters
+        if ($request->ord_num) {
+            $query->where('ord_num', 'LIKE', "%{$request->ord_num}%");
+        }
+        if ($request->supplier_name) {
+            $query->whereHas('supplierRelation', function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->supplier_name}%");
+            });
+        }
+        if ($request->employee_name) {
+            $query->whereHas('employeeRelation', function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->employee_name}%");
+            });
+        }
+        if ($request->category_name) {
+            $query->whereHas('categoryRelation', function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->category_name}%");
+            });
+        }
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('idate', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $query->whereDate('idate', '>=', $request->start_date);
+        } elseif ($request->end_date) {
+            $query->whereDate('idate', '<=', $request->end_date);
+        }
+        
+        // Get distinct ord_num counts by state
+        $draftCount = (clone $query)->where('state', 0)->distinct('ord_num')->count('ord_num');
+        $newCount = (clone $query)->where('state', 1)->distinct('ord_num')->count('ord_num');
+        $cancelledCount = (clone $query)->where('state', 2)->distinct('ord_num')->count('ord_num');
+        $completedCount = (clone $query)->where('state', 3)->distinct('ord_num')->count('ord_num');
+        
+        return response()->json([
+            'draft_count' => $draftCount,
+            'new_count' => $newCount,
+            'cancelled_count' => $cancelledCount,
+            'completed_count' => $completedCount
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -175,7 +270,6 @@ class OrderController extends Controller
     {
         $preLists = BuyPreList::select('id', 'name','category_id')->orderBy('name')->get();
         $units = Unit::select('id', 'name')->orderBy('name')->get();
-        $categories = Category::select('id', 'name')->orderBy('name')->get();
         $employees = Account::select('id','name')->where('account_type_id',2)->get();
         $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
         $orderNumber = Order::max('ord_num') + 1;
@@ -183,7 +277,7 @@ class OrderController extends Controller
         $todaysDate = $miladiDate->format('Y-m-d');
         $times = time();
         
-        return view('order.create.form', compact('preLists', 'units', 'categories','todaysDate','employees','suppliers',
+        return view('order.create.form', compact('preLists', 'units','todaysDate','employees','suppliers',
         'orderNumber','times'));
     }
 
@@ -198,10 +292,10 @@ class OrderController extends Controller
         return response()->json(['exists' => $exists]);
     }
 
-    /**
+     /**
      * Store a newly created resource in storage.
      */
-   public function store(Request $request)
+    public function store(Request $request)
     {
         // Validate the request
         $validated = $request->validate([
@@ -216,6 +310,7 @@ class OrderController extends Controller
             'supplier_id' => 'required|exists:accounts,id',
             'employee_id' => 'required|exists:accounts,id',
             'ord_num' => 'required|string|max:50',
+            'state' => 'required|numeric',
             'date' => 'required|date',
             'times' => 'required|integer',
         ]);
@@ -245,7 +340,7 @@ class OrderController extends Controller
                     'unit_id' => $item['unit_id'],
                     'iby' => auth()->user()->full_name ?? '',
                     'idate' => $validated['date'],
-                    'state' => 1, // 1: new, 2:done
+                    'state' => $validated['state'], 
                     'times' => $validated['times'],
                 ]);
             }
@@ -435,7 +530,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $ord_num)
     {
         $validated = $request->validate([
-            'state' => 'required|integer|in:1,2,3',
+            'state' => 'required|integer|in:0,1,2,3',
         ]);
 
         DB::beginTransaction();
@@ -454,7 +549,9 @@ class OrderController extends Controller
             foreach ($orders as $order) {
                 $order->state = $validated['state'];
                 
-                if ($validated['state'] == 2) { // Done/Completed
+                	// 0:Draft, 1:new, 2:cancelled, 3: completed
+
+                if ($validated['state'] == 3) { // Done/Completed
                     $carbonDate = Carbon::now();
                     $order->done_year = $carbonDate->year;
                     $order->done_month = $carbonDate->month;

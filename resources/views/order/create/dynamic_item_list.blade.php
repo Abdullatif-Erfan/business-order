@@ -1,5 +1,5 @@
 <div class="table-responsive">
-    <table class="table table-bordered new" id="itemsTable">
+    <table class="display responsive nowrap table table-bordered"  id="itemsTable">
         <thead>
             <tr style="background:#e9fffe">
                 <th style="width:40%">{{__('wh.item_selection')}}</th>

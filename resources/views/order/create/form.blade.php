@@ -107,7 +107,7 @@
                                                 </div>
 
                                                 <!-- Date Picker - Using Reusable Component -->
-                                                <div class="col-md-3 col-sm-4 col-xs-6">
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
                                                     <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
                                                     <div class="input-group date" id="datepicker">
                                                         <input type="text" class="form-control" name="date" 
@@ -120,8 +120,20 @@
                                                     </div>
                                                 </div>
 
+                                                <!-- Status -->
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
+                                                    <label for="state">{{ __('order.status') }}</label>
+                                                    <select class="form-control" name="state" id="state">
+                                                        <option value="0">{{ __('order.draft') }}</option>
+                                                        <option value="1">{{ __('order.new') }}</option>
+                                                        <option value="2">{{ __('order.cancelled') }}</option>
+                                                        <option value="3">{{ __('order.completed') }}</option>
+                                                    </select>
+                                                </div>
+
+                                                
                                                 <!-- Order Number -->
-                                                <div class="col-md-3 col-sm-4 col-xs-6">
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
                                                     <label for="ord_num">{{ __('order.order_number') }} <span class="text-danger">*</span></label>
                                                     <input type="number" class="form-control" name="ord_num" id="ord_num" 
                                                            value="{{ $orderNumber ?? old('ord_num') }}" 
@@ -130,6 +142,9 @@
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
                                                 </div>
+
+                                                
+
                                             </div>
                                         </div>
 

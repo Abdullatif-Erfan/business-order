@@ -147,42 +147,25 @@ $(document).ready(function() {
     // });
 });
 </script>
-
 <script>
-$(document).ready(function () {
-    // Toggle filter form
-    $('#filterToggleBtn').on('click', function (e) {
-        e.preventDefault();
-        
-        var $form = $('#searchWrapper');
-        var $icon = $(this).find('i');
-        
-        // Toggle the 'show' class
-        $form.toggleClass('show');
-        
-        // Update icon
-        if ($form.hasClass('show')) {
-            $icon.removeClass('fa-filter').addClass('fa-times');
-        } else {
-            $icon.removeClass('fa-times').addClass('fa-filter');
-        }
-    });
-});
-
-$(window).on('load resize', function () {
-    var mobile = $(window).width() <= 767;
-    var $form = $('#searchWrapper');
-    var $button = $('.responsive_button');
-
-    if (mobile) {
-        $form.removeClass('show');
-        $button.show();
+    function toggleFilterForm() {
+    var elem = document.getElementById('searchWrapper');
+    var icon = document.querySelector('.responsive_button i');
+    
+    if (!elem) return;
+    
+    // Toggle the 'filter-visible' class
+    elem.classList.toggle('filter-visible');
+    
+    // Update icon
+    if (elem.classList.contains('filter-visible')) {
+        if (icon) icon.className = 'fas fa-times';
     } else {
-        $form.addClass('show');
-        $button.hide();
+        if (icon) icon.className = 'fas fa-filter';
     }
-});
+}
 </script>
+
 
 
 <script>

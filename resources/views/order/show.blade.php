@@ -16,12 +16,14 @@
                                 <td style="width:30%">{{ $order->ord_num }}</td>
                                 <th style="width:20%">{{ __('order.status') }}</th>
                                 <td style="width:30%">
-                                    @if($order->state == 1)
+                                    @if($order->state == 0)
+                                        <span class="badge badge-warning">{{ __('order.draft') }}</span>
+                                    @elseif($order->state == 1)
                                         <span class="badge badge-warning">{{ __('order.new') }}</span>
                                     @elseif($order->state == 2)
-                                        <span class="badge badge-success">{{ __('order.done') }}</span>
+                                    <span class="badge badge-danger">{{ __('order.cancelled') }}</span>
                                     @elseif($order->state == 3)
-                                        <span class="badge badge-danger">{{ __('order.cancelled') }}</span>
+                                    <span class="badge badge-success">{{ __('order.completed') }}</span>
                                     @else
                                         <span class="badge badge-secondary">{{ __('order.unknown') }}</span>
                                     @endif

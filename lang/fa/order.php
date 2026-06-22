@@ -86,6 +86,9 @@ return [
     'add_item' => 'افزودن آیتم',
     'update_status' => 'ویرایش وضعیت',
     'status_updated_successfully' => 'موفقانه ویرایش گردید',
+    'list_title' => 'لیست سفارشات',
+
+    
 
     // =========================================
     // STATUS LABELS
@@ -95,6 +98,11 @@ return [
     'completed' => 'تکمیل شده',
     'cancelled' => 'لغو شده',
     'all_status' => 'همه وضعیت‌ها',
+    'draft' => 'پیش‌ نویس',
+    'new' => 'جدید',
+    'completed' => 'تکمیل شده',
+    'cancelled' => 'لغو شده',
+    'draft_count' => 'تعداد پیش‌ نویس‌ها',
 
     // =========================================
     // BUTTONS

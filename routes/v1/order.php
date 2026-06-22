@@ -77,7 +77,8 @@ Route::prefix('orders')->name('orders.')->group(function(){
     // Status Management
     Route::patch('/{ord_num}/status', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
     Route::post('/update-status/{ord_num}', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
-    
+    Route::get('/counts', [OrderController::class, 'getCounts'])->name('counts')->middleware('access:order,list');
+
     // AJAX Routes
     Route::post('/add-item', [OrderController::class, 'addItem'])->name('addItem')->middleware('access:order,create_records');
     Route::get('/check-duplication', [OrderController::class, 'checkDuplication'])->name('checkDuplication')->middleware('access:order,list');

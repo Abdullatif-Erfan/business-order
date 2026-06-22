@@ -2814,105 +2814,135 @@ h3.error {
     height: 26px !important;
 }
 
-/* ========================================= */
-/* RESPONSIVE FILTER STYLES - NO ANIMATION */
-/* ========================================= */
-
-/* Hide filter toggle button on larger screens */
-.responsive_button {
-    display: none !important;
-}
-
-/* Default: Show filter form, hide toggle button */
-.responsiveFilterForm {
-    display: block !important;
-}
-
-/* ========================================= */
-/* XS - Extra Small Devices (Mobile) */
-/* ========================================= */
-@media (max-width: 767px) {
-.responsive_button {
-        display: inline-block !important;
-    }
-
-    .responsiveFilterForm {
+  /* ========================================= */
+    /* RESPONSIVE FILTER STYLES */
+    /* ========================================= */
+    
+    /* Hide filter toggle button on larger screens */
+    .responsive_button {
         display: none !important;
-        height: auto;
-        overflow: hidden;
     }
-
-    .responsiveFilterForm.show {
+    
+    /* Default: Show filter form, hide toggle button */
+    .responsiveFilterForm {
         display: block !important;
     }
-}
+    
+    /* ========================================= */
+    /* XS - Extra Small Devices (Mobile) */
+    /* ========================================= */
+    @media (max-width: 767px) {
+        /* Show filter toggle button */
+        .responsive_button {
+            display: inline-block !important;
+        }
+        
+        /* Hide filter form by default on mobile */
+        .responsiveFilterForm {
+            display: none !important;
+        }
+        
+        /* When filter is shown, display as block */
+        .responsiveFilterForm.show {
+            display: block !important;
+        }
+        
+        /* Make filter fields full width on mobile */
+        .responsiveFilterForm .col-xs-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 3px 5px;
+        }
+        
+        /* Smaller inputs on mobile */
+        .responsiveFilterForm .form-control {
+            font-size: 13px;
+            height: 34px;
+            padding: 4px 8px;
+        }
+        
+        /* Stack buttons on mobile */
+        .responsiveFilterForm .col-xs-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 3px 5px;
+        }
+        
+        /* Make sure buttons are full width on mobile */
+        .responsiveFilterForm .btn {
+            width: 100%;
+            font-size: 13px;
+            padding: 4px 8px;
+        }
+    }
+    
+    /* ========================================= */
+    /* SM - Small Devices (Tablets) */
+    /* ========================================= */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .responsiveFilterForm .col-sm-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 5px 8px;
+        }
+        
+        .responsiveFilterForm .col-sm-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 5px 8px;
+        }
+        
+        .responsiveFilterForm .form-control {
+            font-size: 13px;
+            height: 35px;
+        }
+    }
+    
+    /* ========================================= */
+    /* MD - Medium Devices (Desktops) */
+    /* ========================================= */
+    @media (min-width: 992px) and (max-width: 1199px) {
+        .responsiveFilterForm .col-md-2 {
+            flex: 0 0 20%;
+            max-width: 20%;
+            padding: 5px 8px;
+        }
+        
+        .responsiveFilterForm .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 5px 8px;
+        }
+        
+        .responsiveFilterForm .col-md-1 {
+            flex: 0 0 10%;
+            max-width: 10%;
+            padding: 5px 8px;
+        }
+    }
+    
+    /* ========================================= */
+    /* LG - Large Devices */
+    /* ========================================= */
+    @media (min-width: 1200px) {
+        .responsiveFilterForm .col-md-2 {
+            flex: 0 0 16.666%;
+            max-width: 16.666%;
+            padding: 5px 8px;
+        }
+        
+        .responsiveFilterForm .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 5px 8px;
+        }
+        
+        .responsiveFilterForm .col-md-1 {
+            flex: 0 0 8.333%;
+            max-width: 8.333%;
+            padding: 5px 8px;
+        }
+    }
 
-/* ========================================= */
-/* SM - Small Devices (Tablets) */
-/* ========================================= */
-@media (min-width: 768px) and (max-width: 991px) {
-    .responsiveFilterForm .col-sm-6 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding: 5px 8px;
-    }
-    
-    .responsiveFilterForm .col-sm-12 {
-        flex: 0 0 100%;
-        max-width: 100%;
-        padding: 5px 8px;
-    }
-    
-    .responsiveFilterForm .form-control {
-        font-size: 13px;
-        height: 35px;
-    }
-}
 
-/* ========================================= */
-/* MD - Medium Devices (Desktops) */
-/* ========================================= */
-@media (min-width: 992px) and (max-width: 1199px) {
-    .responsiveFilterForm .col-md-2 {
-        flex: 0 0 20%;
-        max-width: 20%;
-        padding: 5px 8px;
-    }
     
-    .responsiveFilterForm .col-md-3 {
-        flex: 0 0 25%;
-        max-width: 25%;
-        padding: 5px 8px;
-    }
-    
-    .responsiveFilterForm .col-md-1 {
-        flex: 0 0 10%;
-        max-width: 10%;
-        padding: 5px 8px;
-    }
-}
-
-
-
-/* ========================================= */
-/* LG - Large Devices */
-/* ========================================= */
-@media (min-width: 1200px) {
-    .responsiveFilterForm .col-md-2 {
-        flex: 0 0 16.666%;
-        max-width: 16.666%;
-        padding: 5px 8px;
-    }
-    
-    .responsiveFilterForm .col-md-3 {
-        flex: 0 0 25%;
-        max-width: 25%;
-        padding: 5px 8px;
-    }
-    
-    .responsiveFilterForm .col-md-1 {
-        flex: 0 0 8.333%;
-        max-width: 8.333%;
-        padding: 5px 8px;
-    }
-}

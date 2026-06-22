@@ -5545,6 +5545,11 @@ label {
 
 .input-group-text {
     border-color: #ebedf2 !important;
+    border-top-right-radius: 0px !important;
+    border-bottom-right-radius: 0px !important;
+    border-top-left-radius: 5px !important;
+    border-bottom-left-radius: 5px !important;
+
 }
 
 .form-button-action {
@@ -6282,7 +6287,7 @@ label.error {
 }
 
 .table td {
-    padding: 0px 8px;
+    padding: 4px 8px;
 }
 
 
@@ -7436,8 +7441,8 @@ label.error {
 }
 
 .btn-sm {
-    font-size: 13px;
-    padding: 5px 13px;
+    font-size: 12px;
+    padding: 3px 10px;
 }
 
 .btn-xs {

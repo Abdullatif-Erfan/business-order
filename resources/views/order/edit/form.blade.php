@@ -130,6 +130,7 @@
                                                 <div class="col-md-3 col-sm-4 col-xs-6">
                                                     <label for="state">{{ __('order.status') }}</label>
                                                     <select class="form-control" name="state" id="state">
+                                                        <option value="0" {{ $order->state == 0 ? 'selected' : '' }}>{{ __('order.draft') }}</option>
                                                         <option value="1" {{ $order->state == 1 ? 'selected' : '' }}>{{ __('order.new') }}</option>
                                                         <option value="2" {{ $order->state == 2 ? 'selected' : '' }}>{{ __('order.done') }}</option>
                                                         <option value="3" {{ $order->state == 3 ? 'selected' : '' }}>{{ __('order.cancelled') }}</option>
