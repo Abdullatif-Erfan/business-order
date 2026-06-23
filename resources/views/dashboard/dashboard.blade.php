@@ -9,57 +9,73 @@
 @endphp
 
 @section('content')
-<script>
-    function submit12MonthForm() {
-        $('#firstTabSearch').submit();
-    }
-    function submit12MonthForm() {
-        $('#secondTabSearch').submit();
-    }
-    function submit12MonthForm() {
-        $('#thirdTabSearch').submit();
-    }
-    function submitCircleGraphForm() {
-        $('#myForm2').submit();
-    }
-</script>
-
-<script>
-$(document).ready(function () {
-    // Restore active tab from local storage
-    var activeTab = localStorage.getItem('activeTab');
-    if (activeTab) {
-        $('#myTab2 a[href="' + activeTab + '"]').tab('show');
-    }
-
-    // Handle tab click event
-    $('#myTab2 a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        var targetTab = $(e.target).attr('href');
-        localStorage.setItem('activeTab', targetTab);
-
-        // Reinitialize select dropdowns for the active tab
-        setTimeout(function () {
-            $(targetTab).find('select[name="currency_id"]').trigger('change');
-        }, 100);
-    });
-
-    // Handle currency change properly
-    $(document).on('change', 'select[name="currency_id"]', function() {
-        var currencyId = $(this).val();
-        console.log("Currency changed: " + currencyId);
-        updateURLWithCurrencyId(currencyId); // Make sure this function exists
-    });
-});
-</script>
-
 <style>
     a {
         color: #555 !important;
     }
-
     a:hover {
         text-decoration: none;
     }
+    .form-control {
+        border-radius: 25px;
+    }
+
+    .filter-group .input-group .form-control {
+        height: 38px;
+        font-size: 13px;
+        border-radius: 4px 0 0 4px;
+        border: 1px solid #ddd;
+        padding: 6px 12px;
+        background: #fff;
+        border-radius: 25px;
+    }
+    .filter-group .input-group .input-group-text {
+        border-radius: 0 4px 4px 0;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-left: none;
+        cursor: pointer;
+        padding: 0 12px;
+        height: 34px;
+        color: #636e72;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        border-radius: 25px !important;
+    }
+    .filter-group .input-group .input-group-text:hover {
+        color: #4a6cf7;
+    }
+    .btn-search {
+        background: #dddddd;
+        color: #1673ca;
+        border: none;
+        padding: 9px 12px;
+        border-radius: 25px;
+        cursor: pointer;
+        height: 38px;
+        font-size: 14px;
+    }
+    .btn-search:hover {
+        background: #127a48;
+        color: #fff;
+    }
+    .btn-reset {
+        background: #dddddd;
+        color: #be16c4;
+        border: none;
+        padding: 9px 12px;
+        border-radius: 25px;
+        cursor: pointer;
+        height: 38px;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+    .btn-reset:hover {
+        background: #2a7bc8;
+        color: #fff;
+    }
+
 </style>
 
 <div class="main-panel">
@@ -70,94 +86,184 @@ $(document).ready(function () {
                 <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row">
                     <div>
                         <h1 class="text-white pb-2 fw-bold main_title">
-                            {{ $orgBio->name }}
+                            {{ $orgBio->name ?? 'Dashboard' }}
                         </h1>
                     </div>
                 </div>
+
+                <!-- ================================= Search Area ============================================= -->
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <form id="filterForm">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                <select class="form-control mt-1 mb-1" id="supplier_id"
+                                    style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="supplier_id">
+                                    <option value=""> -- {{ __('order.supplier_name') }} -- </option>
+                                    @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 col-sm-4 col-xs-6">
+                                <select class="form-control mt-1 mb-1" id="driver_id"
+                                    style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="driver_id">
+                                    <option value=""> -- {{ __('order.employee_name') }} -- </option>
+                                    @foreach($drivers as $driver)
+                                        <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                <div class="filter-group" style="min-width: 120px;">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control datepicker-input" id="start_date" placeholder="YYYY-MM-DD">
+                                        <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                <div class="filter-group" style="min-width: 120px;">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control datepicker-input" id="end_date" placeholder="YYYY-MM-DD">
+                                        <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 col-sm-4 col-xs-6">
+                                <button type="button" class="btn btn-search" id="btn-filter"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn btn-reset" id="btn-reset" title="{{ __('common.reset') }}"><i class="fas fa-undo"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!-- ================================= / Search Area ============================================= -->
+
             </div>
         </div>
    
         <!-- tab -->
         <div class="col-12 tab-wrapper">
-        @if($permissions['settings'] || $isAdmin) 
-                        
-            <ul class="nav my_nave nav-tabs" id="myTab2">
-                <li class="active"><a data-toggle="tab" href="#todaysTransaction"> {{ __('dashboard.todays_tab') }}</a></li>
-                @if($package_type >= 2)
-                <li><a data-toggle="tab" href="#importantTrans"> {{ __('dashboard.important_trans_tab') }} </a></li>
-                <li><a data-toggle="tab" href="#cache">{{ __('dashboard.khazana') }}</a></li>
-                @endif
-
-                @if(($isAdmin) && $package_type >= 3)
-                <li><a data-toggle="tab" href="#branch">{{ __('dashboard.branch') }}</a></li>
-                @endif
-            </ul>
-            <div class="tab-content">
-                <!-- todaysTransaction -->
-                <div id="todaysTransaction" class="tab-pane fade in active">
-                     @include('dashboard.first-tab.todays_search')
-                     @include('dashboard.first-tab.todays_card')
-                      {{--   @include('dashboard.first-tab.graph') --}}
-                </div>
-                <!-- / todaysTransaction -->
-
-                <!-- importantTrans -->
-                <div id="importantTrans" class="tab-pane fade">
-                    @include('dashboard.second-tab.overall_business_search', ['data', $data])
-                    @include('dashboard.second-tab.cards', ['data' => $data])
-                </div>
-                <!-- / importantTrans -->                
-
-                <!-- cache -->
-                <div id="cache" class="tab-pane fade">
-                    @include('dashboard.third-tab.cash_search', ['data' => $data])
-                    @include('dashboard.third-tab.cash_cards', ['thirdTab' => $thirdTab])
-                </div>
-                <!-- / cache -->
-
-                @if($isAdmin)
-                <!-- branch -->
-                <div id="branch" class="tab-pane fade">
-                    @include('dashboard.fourth-tab.branch_cards', ['branches' => $branches,'branch_id' => $branch_id])
-                </div>
-                <!-- / branch -->
-                @endif
-
-            </div>
+            @if($permissions['settings'] || $isAdmin)             
+                @include('dashboard.orders')
             @else
-            <h3>No Permission</h3>
+                <h3>No Permission</h3>
             @endif
         </div>
-       
         <!-- / tab -->
 
     </div>
     @include('component.footer-text')
 </div>
 
+@push('scripts')
 <script>
-    function changeBranch(branch_id) {
-    if (confirm("{{ __('dashboard.login_to_branch') }}")) {
-        fetch("{{ route('login.changeBranch') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ branch_id: branch_id })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
-                location.reload(); // Refresh page to reflect new session data
+$(document).ready(function() {
+    // =========================================
+    // DATE PICKER
+    // =========================================
+    $(document).on('click', '.datepicker-icon', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $input = $(this).closest('.input-group').find('input');
+        if ($input.length) {
+            $input.datepicker('show');
+        }
+    });
+
+    // =========================================
+    // FILTER BUTTON
+    // =========================================
+    $('#btn-filter').click(function() {
+        fetchDashboardData();
+    });
+
+    // =========================================
+    // RESET BUTTON
+    // =========================================
+    $('#btn-reset').click(function() {
+        $('#supplier_id').val('');
+        $('#driver_id').val('');
+        $('#start_date').val('');
+        $('#end_date').val('');
+        fetchDashboardData();
+    });
+
+    // =========================================
+    // ENTER KEY SEARCH
+    // =========================================
+    $('#filterForm input, #filterForm select').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#btn-filter').click();
+        }
+    });
+
+    // =========================================
+    // INITIAL LOAD
+    // =========================================
+    fetchDashboardData();
+});
+
+// =========================================
+// FETCH DASHBOARD DATA
+// =========================================
+function fetchDashboardData() {
+    var supplierId = $('#supplier_id').val();
+    var driverId = $('#driver_id').val();
+    var startDate = $('#start_date').val();
+    var endDate = $('#end_date').val();
+
+    $.ajax({
+        url: '{{ route("home.orders") }}',
+        type: 'GET',
+        data: {
+            supplier_id: supplierId,
+            driver_id: driverId,
+            start_date: startDate,
+            end_date: endDate
+        },
+        success: function(response) {
+            if (response.status === 'success') {
+                // Replace the entire orders card with new HTML
+                $('#orders').html(response.data);
             } else {
-                alert("{{ __('dashboard.branch_login_error') }}");
+                showNotification(response.message || 'خطا در بارگذاری داده‌ها', 'danger');
             }
-        })
-        .catch(error => console.error("Error:", error));
-    }
+        },
+        error: function(xhr) {
+            console.log('Error:', xhr);
+            showNotification('خطا در بارگذاری داده‌ها', 'danger');
+        }
+    });
 }
 
-</script>
+// =========================================
+// NOTIFICATION FUNCTION
+// =========================================
+function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
+    var content = {
+        message: '<span style="font-size:16px;">' + message + '</span>',
+        title: '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;">{{ __("settings.message") }}</span>',
+        icon: style === 'withicon' ? 'fa fa-bell' : 'none',
+        url: '#',
+        target: '_blank'
+    };
 
-@endsection
+    $.notify(content, {
+        type: type,
+        placement: {
+            from: from,
+            align: align
+        },
+        time: 500
+    });
+}
+</script>
+@endpush
+
+@endsection 

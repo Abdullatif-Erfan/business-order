@@ -586,40 +586,7 @@ class OrderController extends Controller
     }
    
 
-    /**
-     * Get orders for dashboard
-     */
-    public function getDashboardOrders()
-    {
-        try {
-            $recentOrders = Order::with(['preListRelation', 'categoryRelation'])
-                ->orderBy('id', 'DESC')
-                ->limit(10)
-                ->get()
-                ->map(function ($order) {
-                    return [
-                        'id' => $order->id,
-                        'ord_num' => $order->ord_num,
-                        'item_name' => $order->preListRelation ? $order->preListRelation->name : '-',
-                        'amount' => number_format($order->amount, 2),
-                        'state' => $order->state,
-                        'state_label' => $this->getStateLabel($order->state),
-                        'date' => Carbon::parse($order->idate)->format('Y/m/d')
-                    ];
-                });
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $recentOrders
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Dashboard Orders Error: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to get dashboard orders.'
-            ], 500);
-        }
-    }
+    
 
   
 }

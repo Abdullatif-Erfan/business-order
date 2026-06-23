@@ -5,6 +5,7 @@ return [
     // PAGE TITLES
     // =========================================
     'orders_title' => 'لیست سفارشات',
+    'orders' => 'سفارشات',
     'create_order' => 'ایجاد سفارش جدید',
     'edit_order' => 'ویرایش سفارش',
     'order_details' => 'جزئیات سفارش',
@@ -22,6 +23,7 @@ return [
     'unit_selection' => 'انتخاب واحد',
     'new' => 'جدید',
     'done' => 'انجام شده',
+    'remained' => 'باقیمانده',
     'item' => 'جنس',
     'category' => 'کتگوری',
     'driver' => 'راننده',

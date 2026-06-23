@@ -32,6 +32,7 @@
 
     <!-- Additional CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard-step.css') }}">
     <!-- <link rel="stylesheet" href="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.css') }}"> -->
     <script src="{{ asset('assets/datepicker/bootstrap.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('assets/css/myHelper.css') }}">
