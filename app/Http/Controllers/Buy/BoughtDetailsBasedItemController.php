@@ -7,8 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use App\Models\Setting\Branch;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
@@ -25,14 +24,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BoughtDetailsBasedItemController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected  $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -46,11 +43,10 @@ class BoughtDetailsBasedItemController extends Controller
         // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
 
         $currencies = Currency::all();
-        $branches = Branch::where('id',$this->branch_id)->get();
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
 
-        return view('buy.bought.item_list',compact('currencies','branches','todaysDate','orgbios'));
+        return view('buy.bought.item_list',compact('currencies','todaysDate','orgbios'));
     }
 
     public function getData(Request $request)
@@ -107,6 +103,9 @@ class BoughtDetailsBasedItemController extends Controller
                 return $boughtItem->billno ? $boughtItem->billno : '';
             })
 
+            ->addColumn('buy_tax_percentage', function($boughtItem){
+                return "%". " ".$boughtItem->buy_tax_percentage;
+            })
             // ->addColumn('total_price', function ($boughtItem) {
             //     $total_price = $boughtItem->total_price;
             //     // return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
@@ -115,7 +114,7 @@ class BoughtDetailsBasedItemController extends Controller
             // })
 
             ->addColumn('total', function ($boughtItem) {
-                return $boughtItem ? number_format($boughtItem->amount * $boughtItem->bought_up, 0) : '';
+                return $boughtItem ? number_format($boughtItem->total) : '';
             })
 
             ->rawColumns(['billno'])

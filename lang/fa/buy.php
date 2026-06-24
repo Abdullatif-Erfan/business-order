@@ -1,12 +1,14 @@
 <?php
 return [
     'buy_title' => 'لیست خرید',
-    'list_title' => 'لیست اجناس برای نمایش در ثبت',
+    'list_title' => 'ثبت و راجستریشن اجناس',
     'save_and_resume' => 'ثبت و ماندن',
     'print_barcode' => 'چاپ بارکد',
     'prev_barcode_scan' => 'سکن بارکد خود جنس',
     'barcode' => 'بارکد',
     'image' => 'عکس',
+    'category' => 'کتگوری',
+    'select_category' => 'انتخاب کتگوری',
     'barcode_list_for_print' => 'لیست بارکدها برای چاپ',
     '4columns' => ' چاپ بارکد - چهارکالم',
     '1column' => 'چاپ بارکد - یک کالم',
@@ -31,7 +33,7 @@ return [
     'transport' => 'ترانسپورت',
     'notify_amount' => 'مقدار هشدار',
     'comment' => 'کمنت',
-    'transfer_section' => 'بخش انتقالات',
+    'sales_section' => 'بخش فروشات',
     'add_to_buy_list' => 'افزودن به لیست خرید',
     'final_submit' => 'ثبت نهایی',
     'over_pay' => 'پرداخت فعلی بیشتر از مبلغ قابل پرداخت نادرست میباشد',
@@ -46,6 +48,7 @@ return [
     'cur_pay' => 'پرداخت فعلی',
     'cache_paid' => 'رسید نقد',
     'remained' => 'باقی',
+    'sell_up' => 'قیمت فی واحد فروش',
     'old_remained' => 'بقایای سابقه',
     'old_talabat'  => 'طلبات سابقه',
     'total_payable' => 'مبلغ مجموعی قابل پرداخت',
@@ -88,7 +91,16 @@ return [
     // need translation for other languages
     'delete_uncompleted_buy' => 'حذف بل های ناقص',
     'expired_date' => 'تاریخ انقضا',
-    '' => '',
-    '' => '',
-    '' => '',
+
+    'buy_tax_percentage' => 'فیصدی مالیات برخرید',
+    'buy_tax_price' => 'مبلغ مالیات خرید',
+    'total_buy_with_tax' => 'مبلغ مجموعی با مالیات',
+
+    'buy_tax_percentage_s' => 'فیصدی مالیات ',
+    'buy_tax_price_s' => 'مبلغ مالیات ',
+    'total_buy_with_tax_s' => 'مبلغ مجموعی ',
+
+    'sales_tax_percentage' => 'فیصدی مالیات برفروشات',
+    'sales_tax_price' => 'مبلغ مالیات فروشات',
+    'total_sales_with_tax' => 'مبلغ مجموعی با مالیات',
 ];

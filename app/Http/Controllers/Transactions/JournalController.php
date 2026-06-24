@@ -62,7 +62,7 @@ class JournalController extends Controller
 
         // dd(session('notification'));
 
-        $accounts = Account::where('branch_id', $this->branch_id)->get();
+        $accounts = Account::get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
 
@@ -95,11 +95,7 @@ class JournalController extends Controller
 
         $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'inserted_short_date', 'status', 'times', 'is_single_record')
-        ->whereHas('accountRelation', function($query) {
-            $query->where('branch_id', $this->branch_id);
-        })
         ->orderBy('id', 'DESC');
-
 
         // Apply filters if provided
         if ($request->account_id) {

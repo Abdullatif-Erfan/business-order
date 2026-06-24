@@ -7,9 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
-use App\Models\Setting\Branch;
 use Illuminate\Support\Facades\Session;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Transaction\Journal;
@@ -19,14 +18,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BoughtController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -38,7 +35,7 @@ class BoughtController extends Controller
         // $boughtlists = BoughtItem::with(['account', 'currency'])->get(); // Eager loading the relations
         // return response()->json($boughtItems); // Or return view with data
         $currencies = Currency::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
 
         return view('buy.bought.list',compact('currencies','todaysDate'));
     }
@@ -48,7 +45,7 @@ class BoughtController extends Controller
      */
     public function getData(Request $request)
     {
-        $boughtlists = BoughtItem::with(['account', 'currency'])->where('branch_id', $this->branch_id)->orderBy('id', 'DESC')->get();
+        $boughtlists = BoughtItem::with(['account', 'currency'])->orderBy('id', 'DESC')->get();
 
         return DataTables::of($boughtlists)
             
@@ -70,7 +67,7 @@ class BoughtController extends Controller
     */
     public function create()
     {
-        $accounts = Account::where('branch_id', $this->branch_id)->get(); // Fetch all accounts
+        $accounts = Account::get(); // Fetch all accounts
         $currencies = Currency::all(); // Fetch all currencies
 
         return response()->json(compact('accounts', 'currencies'));
@@ -172,10 +169,10 @@ class BoughtController extends Controller
         DB::beginTransaction();
         try {
             // Delete all related records directly
-            WarehouseItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            WarehouseItem::where('times', $times)->delete();
             BoughtItemDetails::where('times', $times)->delete();
-            BoughtItem::where('times', $times)->where('branch_id', $this->branch_id)->delete();
-            Journal::where('times', $times)->where('branch_id', $this->branch_id)->delete();
+            BoughtItem::where('times', $times)->delete();
+            Journal::where('times', $times)->delete();
 
             DB::commit();
     

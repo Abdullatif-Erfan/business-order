@@ -25,7 +25,7 @@
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="customer_name" placeholder="{{__('common.seller')}}" class="form-control">
+                                        <input type="text" id="customer_name" placeholder="{{__('order.supplier_name')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6">
@@ -45,40 +45,22 @@
                                         <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
-                                    <!-- <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="factor" placeholder="فاکتور" class="form-control">
-                                    </div> -->
-
-                                    <div class="col-md-2">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#start_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="start_date" id="start_date"
-                                            data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
-                                        </div>
-							     	</div>
-                                
-
                                      <div class="col-md-2">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#end_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="end_date" id="end_date"
-                                            data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-
-
+                                     <div class="col-md-2">
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
+                                        </div>
+							     	</div>
                                     <div class="col-md-1 col-sm-6 col-xs-6">
                                         <button class="btn mybtn search_btn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
@@ -91,27 +73,40 @@
 
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
+                                <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation}}" />
                                 <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                             @if($orgbios[0]->tax_activation === 1)
+                                             <td colspan="11">
+                                             @else
+                                             <td colspan="9">
+                                             @endif 
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                             @if($orgbios[0]->tax_activation === 1)
+                                             <td colspan="11">
+                                             @else
+                                             <td colspan="9">
+                                             @endif 
                                                 <center> {{__('buy.buy_title')}} </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
-                                            <th> {{__('common.seller')}} </th>                                            
+                                            <th> {{__('order.supplier_name')}} </th>                                            
                                             <th>{{ __('sales.buy_type') }}</th>
                                             <th>{{ __('sales.quantity') }}</th>
                                             <th>{{ __('sales.unit') }}</th>
                                             <th>{{ __('sales.unit_price') }}</th>
+                                           @if($orgbios[0]->tax_activation === 1)
+                                            <th>{{__('buy.buy_tax_percentage_s')}}</th>
+                                            <th>{{__('buy.buy_tax_price_s')}}</th>
+                                            @endif 
                                             <th>{{ __('sales.total_price') }}</th>
                                             <th>{{ __('sales.date') }}</th>
                                         </tr>
@@ -123,6 +118,10 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
+                                            @if($orgbios[0]->tax_activation === 1)
+                                            <th></th>
+                                            <th></th>
+                                            @endif 
                                             <td></td>
                                             <td></td>
                                         </tr>
@@ -137,38 +136,67 @@
     </div> <!-- /content -->
 </div> <!-- /main content -->
 
-
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
 <script>
+$(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+
 $(document).ready(function() {
     fetchList();
 
     // Move the filter button click event outside
     $('#btn-filter').click(function() {
-        $('#boughtItemTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
+        $('#boughtItemTable').DataTable().ajax.reload(null, false);
     });
 });
 
-
 function fetchList() {
-    let boughtItemTable = $('#boughtItemTable');
+    var flag = parseInt($('#tax_activation').val()) || 0;
+    var boughtItemTable = $('#boughtItemTable');
+
+    // Define columns based on flag
+    var columns = [
+        { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+        { data: 'billno', name: 'billno' },
+        { data: 'account_relation.name', name: 'account_relation.name' },
+        { data: 'pre_list_relation.name', name: 'pre_list_relation.name' },
+        { data: 'amount', name: 'amount' },
+        { data: 'unit_relation.name', name: 'unit_relation.name' },
+        { data: 'bought_up', name: 'bought_up' }
+    ];
+
+    // Add tax columns if flag is 1
+    if (flag === 1) {
+        columns.push(
+            { data: 'buy_tax_percentage', name: 'buy_tax_percentage' },
+            { data: 'buy_tax_price', name: 'buy_tax_price' }
+        );
+    }
+
+    // Add remaining columns
+    columns.push(
+        { data: 'total', name: 'total' },
+        { data: 'bought_item_relation.idate', name: 'bought_item_relation.idate' }
+    );
 
     // Check if DataTable is already initialized
     if (!$.fn.DataTable.isDataTable(boughtItemTable)) {
         boughtItemTable.DataTable({
             serverSide: true,
             processing: true,
-            pageLength: 10,   
+            pageLength: 10,
             lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'همه']
-                ],
-            ajax: {  
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'همه']
+            ],
+            ajax: {
                 url: '{{ route("boughtListBasedItem.data") }}',
-                data: function (d) {
+                data: function(d) {
                     d.customer_name = $('#customer_name').val();
                     d.currency_id = $('#currency_id').val();
                     d.bill_number = $('#bill_number').val();
@@ -177,21 +205,10 @@ function fetchList() {
                     d.item_name = $('#item_name').val();
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'billno', name: 'billno' },
-                { data: 'account_relation.name', name: 'account_relation.name' },
-                { data: 'pre_list_relation.name', name: 'pre_list_relation.name' },
-                { data: 'amount', name: 'amount' },
-                { data: 'unit_relation.name', name: 'unit_relation.name' },
-                { data: 'bought_up', name: 'bought_up' },
-                { data: 'total', name: 'total' },
-                { data: 'bought_item_relation.idate', name: 'bought_item_relation.idate' }
-            ],
-            drawCallback: function () {
+            columns: columns,
+            drawCallback: function() {
                 var api = this.api();
 
-                // Helper function for the modulo operation to check if it's an integer
                 function fmod(a, b) {
                     return a - (b * Math.floor(a / b));
                 }
@@ -200,28 +217,35 @@ function fetchList() {
                     return api
                         .column(index, { page: 'current' })
                         .data()
-                        .reduce(function (a, b) {
+                        .reduce(function(a, b) {
                             var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
                             var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
                             var sum = numA + numB;
 
-                            // Format the sum based on whether it has decimals
                             if (fmod(sum, 1) === 0) {
                                 return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                             } else {
                                 return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             }
-
                         }, 0)
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                $(api.column(4).footer()).html(sumColumn(4));
-                $(api.column(6).footer()).html(sumColumn(6));
-                $(api.column(7).footer()).html(sumColumn(7));
+                // Total column index (depends on flag)
+                // Without tax: total is at index 6
+                // With tax: total is at index 8 (because 2 tax columns added)
+                var totalIndex = flag === 1 ? 8 : 6;
+                $(api.column(totalIndex).footer()).html(sumColumn(totalIndex));
+
+                // Tax columns (only if flag is 1)
+                if (flag === 1) {
+                    // buy_tax_percentage is at index 7
+                    $(api.column(7).footer()).html(sumColumn(7));
+                    // buy_tax_price is at index 8
+                    $(api.column(8).footer()).html(sumColumn(8));
+                }
             }
         });
-
     } else {
         boughtItemTable.DataTable().ajax.reload(null, false);
     }

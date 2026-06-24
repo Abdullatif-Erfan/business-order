@@ -32,19 +32,7 @@ return [
     'actions' => 'عملیات',
     'completed_date' => 'تاریخ انجام',
     'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-    'edit_order' => 'ویرایش',
-
-
-
+    // -------------------------------
     'enter_order_number' => 'شماره سفارش را وارد کنید',
     'ord_num_exists' => 'این شماره سفارش قبلاً ثبت شده است',
     

@@ -1,90 +1,27 @@
 <div class="row dynamic-row">
-    <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="billno"> {{__('buy.warehouse_selection')}} <span class="danger">*</span></label>
-        <select class="form-control select2 warehouse-select" style="width: 100%; background-color:#ddd;" name="warehouse_id[]" >
-            <option value=""> {{__('buy.warehouse_selection')}} </option>
-            @foreach($warehouses as $wh)
-                <option value="{{ $wh->id }}">{{ $wh->name }}</option>
-            @endforeach
-        </select>
-    </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="warehouse_amount"> {{__('buy.amount')}}  <span class="danger">*</span></label>
-        <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="{{__('buy.warehouse_transfer_amount')}}" >
+        <label for="sell_up"> {{__('buy.sell_up')}} </span></label>
+        <input type="number" name="sell_up" id="sell_up" step="0.01" class="form-control" placeholder="{{__('buy.sell_up')}}" >
     </div>
 
-    <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="warehouse_sell_up"> {{__('buy.sold_up')}} <span class="danger">*</span></label>
-        <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="{{__('buy.sold_up')}}" >
+    @if(intval($tax->tax_activation) === 1) 
+     <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="sales_tax_percentage">  {{__('buy.sales_tax_percentage')}} </label>
+        <input class="form-control" name="sales_tax_percentage" id="sales_tax_percentage" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100 oninput="calculateSalesTax(this.value);"  >
     </div>
 
-    <div class="col-md-3 col-sm-4 col-xs-6">
-        <br/>
-        <button type="button" class="btn btn-sm btn-info addMoreBtn">
-            <i class="fa fa-plus"></i>
-        </button>
-    </div> 
+    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="sales_tax_price"> {{__('buy.sales_tax_price')}} </label>
+        <input class="form-control" name="sales_tax_price" id="sales_tax_price"  type="number" step="0.01" >
+    </div>
+
+    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="total_sales_with_tax"> {{__('buy.total_sales_with_tax')}} </label>
+        <input class="form-control" name="total_sales_with_tax" id="total_sales_with_tax"  type="number" step="0.01" >
+    </div>
+
+    @endif
+    
 </div>
 
-<script>
-$(document).ready(function () {
-    // Initialize Select2 on page load
-    $('.select2').select2();
-
-    // Store warehouse options in a JavaScript variable
-    let warehouseOptions = `{!! json_encode($warehouses) !!}`;
-    warehouseOptions = JSON.parse(warehouseOptions);
-
-    let warehouseDropdown = '<option value="">"{{__('buy.warehouse_selection')}}"</option>';
-    warehouseOptions.forEach(wh => {
-        warehouseDropdown += `<option value="${wh.id}">${wh.name}</option>`;
-    });
-
-    $(document).on('click', '.addMoreBtn', function () {
-        let newRow = `
-            <div class="row dynamic-row">
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                    <label>{{__('buy.warehouse_selection')}}<span class="danger">*</span></label>
-                    <select class="form-control select2 warehouse-select" style="width: 100%; background-color:#ddd;" name="warehouse_id[]" required>
-                        ${warehouseDropdown}
-                    </select>
-                </div>
-
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                    <label>{{__('buy.amount')}}  <span class="danger">*</span></label>
-                    <input type="number" name="warehouse_amount[]" step="0.01" class="form-control" placeholder="{{__('buy.warehouse_transfer_amount')}}" required>
-                </div>
-
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                    <label>  {{__('buy.sold_up')}} <span class="danger">*</span></label>
-                    <input type="number" name="warehouse_sell_up[]" step="0.01" class="form-control" placeholder="{{__('buy.sold_up')}}" required>
-                </div>
-
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                    <br/>
-                    <button type="button" class="btn btn-sm btn-info addMoreBtn">
-                        <i class="fa fa-plus"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger removeBtn">
-                        <i class="fa fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        $('.dynamic-row:last').after(newRow);
-        
-        // Reinitialize Select2 for new elements
-        $('.select2').select2();
-    });
-
-    $(document).on('click', '.removeBtn', function () {
-        if ($('.dynamic-row').length > 1) {
-            $(this).closest('.dynamic-row').remove();
-        }
-    });
-
-});
-
-</script>

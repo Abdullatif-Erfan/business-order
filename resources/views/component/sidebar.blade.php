@@ -64,6 +64,8 @@
                     </li>
                 @endif
 
+              
+
                      @if($permissions['journal'] || $isAdmin)
                     <li class="nav-item">
                         <a href="{{ route('journal.index') }}">
@@ -116,6 +118,13 @@
                         </div>
                     </li>
                     @endif
+
+                    <li class="nav-item">
+                        <a href="{{ route('orders.index') }}">
+                            <i class="fas fa-cog"></i>
+                            <p> {{ __('menu.orders') }} </p>
+                        </a>
+                    </li>
 
                     @if($permissions['buy'] || $isAdmin)
                     <li class="nav-item">
@@ -170,14 +179,12 @@
                                         <span class="sub-item">  {{ __('menu.wastage')}}   </span>
                                     </a>
                                 </li>
-                                @foreach(\App\Models\Setting\Warehouse::where('branch_id', $branch_id)->get() as $warehouse)
                                     <li>
-                                        <a href="{{ route('warehousesList.index') }}?id={{ $warehouse->id }}">
+                                        <a href="{{ route('warehousesList.index') }}?id=1">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                            <span class="sub-item">{{ $warehouse->name }}</span>
+                                            <span class="sub-item"> گدام عمومی</span>
                                         </a>
                                     </li>
-                                @endforeach
                                 <li>
                                     <a href="{{ route('warehousesList.all') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">  {{ __('menu.warehouse_all_list')}} </span>
@@ -188,30 +195,6 @@
                     </li>
                 @endif
 
-
-                @if(($permissions['production'] || $isAdmin) && $packageId == 5)
-                    <li class="nav-item">
-                        <a data-toggle="collapse" href="#production">
-                            <i class="fas fa-plus-circle"></i>
-                            <p> {{ __('menu.production') }} </p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse" id="production">
-                            <ul class="nav nav-collapse">
-                                <li>
-                                    <a href="{{ route('model.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{__('production.model')}}  </span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('qalam.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{__('production.qalam')}}  </span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                @endif
 
                 @if($permissions['sales'] || $isAdmin)
                     <li class="nav-item">

@@ -55,16 +55,17 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             <thead>
                                                 <tr>
                                                     <th>{{__('common.number')}}</th>
-                                                    <th>{{__('common.seller')}}</th>
+                                                    <th>{{__('order.supplier_name')}}</th>
                                                     <th>{{__('buy.item')}} </th>
                                                     <th>{{__('buy.bought_amount')}}</th>
                                                     <th>{{__('common.unit')}}</th>
                                                     <th>{{__('common.unit_price')}}</th>
+                                                    @if($orgbios[0]->tax_activation === 1)
+                                                    <th>{{__('buy.buy_tax_percentage')}}</th>
+                                                    <th>{{__('buy.buy_tax_price')}}</th>
+                                                    @endif
                                                     <th>{{__('common.total_price')}}</th>
                                                     <th>{{__('common.unit')}}</th>
-                                                    <th>{{__('buy.discount')}}</th>
-                                                    <th>{{__('buy.transport')}}</th>
-                                                    <th>{{__('common.expired_date')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -91,6 +92,11 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                         : number_format($detail->bought_up, 2);
                                                     @endphp
                                                 </td>
+                                                
+                                                @if($orgbios[0]->tax_activation === 1)
+                                                <td> {{$detail->buy_tax_percentage}} % </td>
+                                                <td> {{$detail->buy_tax_price}} </td>
+                                                @endif
 
                                                 <td>
                                                     @php
@@ -102,24 +108,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
 
                                                 <td>{{ $currency_name ?? '' }}</td>
                                                 
-                                                <td>
-                                                    @php
-                                                        echo fmod($detail->discount, 1) == 0
-                                                        ? number_format($detail->discount, 0)
-                                                        : number_format($detail->discount, 2);
-                                                    @endphp
-                                                </td>
-
-                                                <td>
-                                                    @php
-                                                        echo fmod($detail->transport, 1) == 0
-                                                        ? number_format($detail->transport, 0)
-                                                        : number_format($detail->transport, 2);
-                                                    @endphp
-                                                </td>
-                                                <td>
-                                                    {{  $detail->expire_date }}
-                                                </td>
+                                             
                                             </tr>
                                         @endforeach
 
@@ -134,35 +123,14 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     echo  number_format($boughtItems->first()->total_price,2);
                                                 @endphp
                                             </td>
-                                            <td> {{__('buy.discount')}}  </td>
+                                             <td>  {{__('buy.cur_pay')}} </td>
                                             <td> 
                                                 @php
-                                                    echo   
-                                                    number_format($boughtItems->first()->discount,2);
-                                                @endphp
-                                            </td>
-                                            <td> {{__('buy.transport_expense')}}  </td>
-                                            <td> @php
-                                                    echo 
-                                                    number_format($boughtItems->first()->trans_spend);
-                                                @endphp
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>{{__('buy.payable')}} </td>
-                                            <td> @php
-                                                    echo 
-                                                    number_format($boughtItems->first()->payable,2);
-                                                 @endphp
-                                            </td>
-                                            <td>  {{__('buy.cur_pay')}} </td>
-                                            <td> @php
                                                     echo  number_format($boughtItems->first()->cur_pay,2);
                                                     @endphp
                                             </td>
                                             <td> {{__('buy.remained')}} </td>
-                                            <td>
-                                                @php
+                                            <td> @php
                                                     echo 
                                                     number_format($boughtItems->first()->remained,2);
                                                 @endphp

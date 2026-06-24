@@ -106,10 +106,13 @@
                                                         <th width="100">{{__('common.currency')}}</th> 
                                                         <th width="100">{{__('buy.bought_amount')}}</th>
                                                         <th width="100"> {{__('common.unit_price')}} </th>
-                                                        <th width="100"> {{__('common.total')}}</th>
-                                                        <th width="100">{{__('buy.discount')}}</th>
-                                                        <th width="100">{{__('buy.transport')}}</th>
-                                                        <th width="150"> {{__('common.expired_date')}}</th>
+
+                                                         @if($orgbios[0]->tax_activation === 1)
+                                                        <th>{{__('buy.buy_tax_percentage')}}</th>
+                                                        <th>{{__('buy.buy_tax_price')}}</th>
+                                                        @endif
+                                                        <th>{{__('common.total_price')}}</th>
+
                                                         <th class="hidden-print"> {{__('common.edit')}}</th>
                                                         <th class="hidden-print">{{__('common.delete')}}</th>
                                                     </tr>
@@ -118,9 +121,6 @@
                                                     @foreach($boughtItemDetails as $key => $detail)
                                                     @php
                                                         $grandTotal += $detail->amount * $detail->bought_up;
-                                                        $grandDiscount += $detail->discount;
-                                                        $grandTransport += $detail->transport;
-                                                        $payable = $grandTotal - $grandDiscount;
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
@@ -129,10 +129,9 @@
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
                                                         <td>{{ number_format($detail->bought_up,2) }}</td>
+                                                         <td> {{$detail->buy_tax_percentage}} % </td>
+                                                         <td> {{$detail->buy_tax_price}} </td>
                                                         <td>{{ number_format($detail->total,2)}}</td>
-                                                        <td>{{ number_format($detail->discount,2) }} </td>
-                                                        <td>{{ number_format($detail->transport,2) }}</td>
-                                                        <td>{{ $detail->expire_date }} </td>
                                                     
                                                         <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>
                                                         <td class="hidden-print"><i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i></td>
@@ -146,21 +145,11 @@
                                                 <td> {{__('buy.total_price')}} &nbsp; </td>
                                                 <td><input type="number" step="0.01"  class="form-control" name="total_price" id="total_price" required readonly
                                                 value="{{ $grandTotal }}" ></td>
-                                                <td> {{__('buy.discount')}} </td>
-                                                <td><input type="number" step="0.01"  class="form-control" name="total_discount" required
-                                                value="{{ $grandDiscount }}" readonly oninput="updatePayAble(this.value)" ></td>
-                                                <td> {{__('buy.transport_expense')}} </td>
-                                                <td><input type="number" step="0.01" readonly class="form-control" name="trans_spend" required
-                                                value="{{ $grandTransport }}" ></td>
-                                            </tr>
-                                            <tr>
-                                                <td> {{__('buy.payable')}} </td>
-                                                <td><input type="number" readonly step="0.01"  class="form-control" name="payable" id="payable" required
-                                                value="{{ $payable }}" ></td>
                                                 <td> {{__('buy.cur_pay')}} </td>
                                                 <td><input type="number" step="0.01"  class="form-control" name="cur_pay" required
-                                                value="{{ $boughtItems->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" ></td>
-                                                <td> {{__('buy.remained')}}  </td>
+                                                value="{{ $boughtItems->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" >
+                                                </td>
+                                                <td> {{__('buy.remained')}} </td>
                                                 <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
                                                 value="{{ $payable - $boughtItems->first()->cur_pay }}" ></td>
                                             </tr>

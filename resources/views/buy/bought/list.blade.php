@@ -25,7 +25,7 @@
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="customer_name" placeholder="{{__('common.seller')}}" class="form-control">
+                                        <input type="text" id="customer_name" placeholder="{{__('order.supplier_name')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
@@ -41,39 +41,22 @@
                                         <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
-                                    <!-- <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <input type="text" id="factor" placeholder="فاکتور" class="form-control">
-                                    </div> -->
-
                                     <div class="col-md-2">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#start_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="start_date" id="start_date"
-                                            data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-                                
-
                                      <div class="col-md-3">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#end_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="end_date" id="end_date"
-                                            data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-
 
                                     <div class="col-md-1 col-sm-6 col-xs-6">
                                         <button class="btn mybtn search_btn form-control" id="btn-filter">
@@ -91,23 +74,20 @@
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="9">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="9">
                                                 <center> {{__('buy.buy_title')}} </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
-                                            <th> {{__('common.seller')}} </th>                                            
+                                            <th> {{__('order.supplier_name')}} </th>                                            
                                             <th> {{__('common.total_price')}} </th>
-                                            <th> {{__('buy.transport')}} </th>
-                                            <th> {{__('buy.discount')}} </th>
-                                            <th> {{__('buy.payable')}}  </th>
                                             <th> {{__('buy.cache_paid')}} </th>
                                             <th> {{__('buy.loan')}} </th>
                                             <th>  {{__('common.currency')}} </th>
@@ -118,9 +98,6 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="3">{{__('common.total')}}</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -140,11 +117,17 @@
 </div> <!-- /main content -->
 
 
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
 
 <script>
+
+$(document).on('click', '.datepicker-icon', function(e) {
+e.preventDefault();
+e.stopPropagation();
+var $input = $(this).closest('.input-group').find('input');
+if ($input.length) {
+    $input.datepicker('show');
+}
+});
 $(document).ready(function() {
     fetchList();
 
@@ -183,9 +166,6 @@ function fetchList() {
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_relation.name', name: 'customer_relation.name' },
                 { data: 'total_price', name: 'total_price' },
-                { data: 'trans_spend', name: 'trans_spend' },
-                { data: 'discount', name: 'discount' },
-                { data: 'payable', name: 'payable' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
                 { data: 'currencyRelation', name: 'currencyRelation' },
@@ -223,9 +203,6 @@ function fetchList() {
                 $(api.column(3).footer()).html(sumColumn(3));
                 $(api.column(4).footer()).html(sumColumn(4));
                 $(api.column(5).footer()).html(sumColumn(5));
-                $(api.column(6).footer()).html(sumColumn(6));
-                $(api.column(7).footer()).html(sumColumn(7));
-                $(api.column(8).footer()).html(sumColumn(8));
             }
         });
 
