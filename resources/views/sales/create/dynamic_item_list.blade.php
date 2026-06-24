@@ -24,7 +24,6 @@
                                 data-unit-id="{{ $item->unit_id }}"
                                 data-avg-up="{{ $item->avg_up }}"
                                 data-sell-up="{{ $item->sell_up }}"
-                                data-branch-id="{{ $item->branch_id }}"
                                 data-warehouse-id="{{ $item->warehouse_id }}"
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 >
@@ -41,7 +40,6 @@
                 <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
-                    <input name="branch_id[]" class="form-control branch-id" type="hidden" readonly required>
                     <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
                     <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly required>
                     <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
@@ -147,7 +145,6 @@ $(document).ready(function () {
         var selectedOption = $(this).find(':selected');
         var unitName = selectedOption.data('unit-name');
         var unitId = selectedOption.data('unit-id');
-        var branchId = selectedOption.data('branch-id');
         var warehouseId = selectedOption.data('warehouse-id');
         var preListId = selectedOption.data('pre-list-id');
         var avgUp = selectedOption.data('avg-up');
@@ -157,7 +154,6 @@ $(document).ready(function () {
 
         row.find('.unit-name').val(unitName);
         row.find('.unit-id').val(unitId);
-        row.find('.branch-id').val(branchId);
         row.find('.warehouse-id').val(warehouseId);
         row.find('.pre-list-id').val(preListId);
         row.find('.avg-up').val(avgUp);

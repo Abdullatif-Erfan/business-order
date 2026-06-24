@@ -10,7 +10,7 @@ use App\Models\Setting\Currency;
 class BoughtItem extends Model
 {
     protected $table = 'bought_items';
-    protected $fillable = ['billno','factor','journal_code', 'total_price', 'payable', 'cur_pay', 'remained', 'account_id','customer_account_id','currency_id','tax_activation', 'note', 'idate', 'year', 'month', 'day', 'iby', 'times'];
+    protected $fillable = ['billno','factor','journal_code', 'total_price', 'payable', 'cur_pay', 'remained', 'account_id','customer_account_id','currency_id','tax_activation', 'note', 'idate', 'year', 'month', 'day', 'iby', 'times', 'has_invoice', 'invoice_id'];
 
     // Define relationships
     public function account()
@@ -26,5 +26,10 @@ class BoughtItem extends Model
     public function currencyRelation()
     {
         return $this->belongsTo(Currency::class, 'currency_id');
+    }
+    // Add invoice relation
+    public function invoice()
+    {
+        return $this->belongsTo(BuyInvoice::class, 'invoice_id');
     }
 }

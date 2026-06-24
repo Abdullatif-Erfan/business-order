@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
+use App\Models\Buy\BuyInvoice;
+use App\Models\Buy\BuyInvoiceItem;
+use App\Models\Buy\BuyInvoicePayment;
 use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
 use App\Models\Buy\BoughtItemDetails; 
@@ -1305,5 +1308,247 @@ class BoughtDetailsController extends Controller
             return back();
         }
     }
-    
-}
+
+
+    // ========================================== INOICES ==========================================
+
+    /**
+     * Display invoice list
+     */
+    public function invoiceList()
+    {
+        return view('buy.invoice.invoice_list');
+    }
+
+    /**
+     * Get invoice data for DataTable
+     */
+    public function getInvoiceData(Request $request)
+    {
+        $invoices = BuyInvoice::with(['supplier', 'currency'])
+            ->orderBy('id', 'DESC');
+
+        return DataTables::of($invoices)
+            ->addIndexColumn()
+            ->addColumn('supplier_name', function($invoice) {
+                return $invoice->supplier ? $invoice->supplier->name : '-';
+            })
+            ->addColumn('total_amount', function($invoice) {
+                return number_format($invoice->total_amount, 2);
+            })
+            ->addColumn('paid_amount', function($invoice) {
+                return number_format($invoice->paid_amount, 2);
+            })
+            ->addColumn('remaining_amount', function($invoice) {
+                return number_format($invoice->remaining_amount, 2);
+            })
+            ->addColumn('status', function($invoice) {
+                $statusClasses = [
+                    0 => 'badge-secondary',
+                    1 => 'badge-warning',
+                    2 => 'badge-info',
+                    3 => 'badge-success',
+                    4 => 'badge-danger'
+                ];
+                $statusLabels = [
+                    0 => __('order.draft'),
+                    1 => __('order.pending'),
+                    2 => __('order.partial'),
+                    3 => __('order.paid'),
+                    4 => __('order.cancelled')
+                ];
+                return '<span class="badge ' . ($statusClasses[$invoice->status] ?? 'badge-secondary') . '">' 
+                    . ($statusLabels[$invoice->status] ?? __('order.unknown')) . '</span>';
+            })
+            ->addColumn('invoice_date', function($invoice) {
+                return $invoice->invoice_date->format('Y-m-d');
+            })
+            ->addColumn('action', function($invoice) {
+                return '<a href="' . route('boughtList.showInvoice', $invoice->id) . '" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i>
+                        </a>';
+            })
+            ->rawColumns(['status', 'action'])
+            ->make(true);
+    }
+
+    /**
+     * Generate invoice from selected bought items
+     */
+    public function generateInvoice(Request $request)
+    {
+        try {
+            $boughtItemIds = $request->bought_item_ids;
+            
+            if (empty($boughtItemIds)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.select_at_least_one')
+                ]);
+            }
+
+            // Get selected bought items
+            $boughtItems = BoughtItem::whereIn('id', $boughtItemIds)->get();
+            
+            if ($boughtItems->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.no_items_found')
+                ]);
+            }
+
+            // Check if all items belong to same supplier
+            $supplierId = $boughtItems->first()->customer_account_id;
+            $differentSupplier = $boughtItems->where('customer_account_id', '!=', $supplierId)->count() > 0;
+            
+            if ($differentSupplier) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.different_suppliers')
+                ]);
+            }
+
+            DB::beginTransaction();
+
+            // Generate invoice number
+            $invoiceNumber = 'INV-' . date('Ymd') . '-' . (BuyInvoice::count() + 1);
+
+            // Calculate totals
+            $totalAmount = $boughtItems->sum('total_price');
+            $paidAmount = $boughtItems->sum('cur_pay');
+            $remainingAmount = $boughtItems->sum('remained');
+
+            // Create invoice
+            $invoice = BuyInvoice::create([
+                'invoice_number' => $invoiceNumber,
+                'supplier_id' => $supplierId,
+                'total_amount' => $totalAmount,
+                'paid_amount' => $paidAmount,
+                'remaining_amount' => $remainingAmount,
+                'currency_id' => $boughtItems->first()->currency_id,
+                'status' => $remainingAmount > 0 ? 1 : 3, // 1: pending, 3: paid
+                'invoice_date' => now(),
+                'due_date' => now()->addDays(30),
+                'notes' => __('buy.invoice_generated_from_bought_items'),
+                'created_by' => auth()->id(),
+                'times' => time()
+            ]);
+
+            // Create invoice items
+            foreach ($boughtItems as $boughtItem) {
+                // Get details for this bought item
+                $details = BoughtItemDetails::where('bought_item_id', $boughtItem->id)->get();
+                
+                foreach ($details as $detail) {
+                    BuyInvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'bought_item_detail_id' => $detail->id,
+                        'bought_item_id' => $boughtItem->id,
+                        'pre_list_id' => $detail->pre_list_id,
+                        'amount' => $detail->amount,
+                        'unit_price' => $detail->bought_up,
+                        'tax_percentage' => $detail->buy_tax_percentage ?? 0,
+                        'tax_amount' => $detail->buy_tax_price ?? 0,
+                        'total' => $detail->total,
+                        'times' => time()
+                    ]);
+                }
+            }
+
+            // Update bought_items to mark as invoiced (you need to add a column)
+            BoughtItem::whereIn('id', $boughtItemIds)->update(['has_invoice' => 1]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('buy.invoice_generated_successfully'),
+                'invoice_id' => $invoice->id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Generate Invoice Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show invoice details
+     */
+    public function showInvoice($id)
+    {
+        $invoice = BuyInvoice::with(['supplier', 'items.preList', 'payments', 'currency'])
+            ->findOrFail($id);
+        
+        return view('buy.invoice.invoice_details', compact('invoice'));
+    }
+
+        /**
+         * Add payment to invoice
+         */
+        public function addPayment(Request $request)
+        {
+            try {
+                $validated = $request->validate([
+                    'invoice_id' => 'required|exists:buy_invoices,id',
+                    'amount' => 'required|numeric|min:0.01',
+                    'payment_method' => 'required|in:1,2,3',
+                    'account_id' => 'required|exists:accounts,id',
+                    'payment_date' => 'required|date',
+                    'reference_number' => 'nullable|string|max:100',
+                    'notes' => 'nullable|string|max:255'
+                ]);
+
+                DB::beginTransaction();
+
+                $invoice = BuyInvoice::findOrFail($validated['invoice_id']);
+                
+                // Create payment record
+                $payment = BuyInvoicePayment::create([
+                    'invoice_id' => $invoice->id,
+                    'payment_date' => $validated['payment_date'],
+                    'amount' => $validated['amount'],
+                    'payment_method' => $validated['payment_method'],
+                    'account_id' => $validated['account_id'],
+                    'reference_number' => $validated['reference_number'],
+                    'notes' => $validated['notes'],
+                    'created_by' => auth()->id(),
+                    'times' => time()
+                ]);
+
+                // Update invoice paid amount
+                $newPaidAmount = $invoice->paid_amount + $validated['amount'];
+                $newRemainingAmount = $invoice->total_amount - $newPaidAmount;
+                
+                $invoice->update([
+                    'paid_amount' => $newPaidAmount,
+                    'remaining_amount' => $newRemainingAmount,
+                    'status' => $newRemainingAmount <= 0 ? 3 : 2 // 3: paid, 2: partial
+                ]);
+
+                // Also update the bought_items cur_pay and remained
+                // You can update the related bought_items here
+
+                DB::commit();
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => __('buy.payment_added_successfully'),
+                    'data' => $payment
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                \Log::error('Add Payment Error: ' . $e->getMessage());
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+                ], 500);
+            }
+        }
+        
+    }

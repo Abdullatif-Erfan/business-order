@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use App\Models\Setting\Currency;
-use App\Models\Setting\Branch;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
 use App\Models\Transaction\Journal;
@@ -26,14 +25,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalesController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected  $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -53,9 +50,8 @@ class SalesController extends Controller
             
 
         $currencies = Currency::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         $orgbios = OrgBio::all();
-        $branchs = Branch::where('id', $this->branch_id)->get();
         return view('sales.list',compact('currencies','todaysDate','orgbios','branchs'));
     }
 
@@ -64,8 +60,7 @@ class SalesController extends Controller
             $soldItems = DB::table('warehouse_sales')
             ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
             ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
-            ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
-            ->where('warehouse_sales.branch_id', $this->branch_id)
+            ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
             ->orderBy('warehouse_sales.id','DESC');
             
 
@@ -122,23 +117,22 @@ class SalesController extends Controller
      */
     public function create()
     {
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
         $warehouseItems = DB::table('warehouse_items')
                         ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
                         ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
                         ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
                         ->where('warehouse_items.available_amount', '>', 0)
-                        ->select('warehouse_items.id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.branch_id','bought_item_pre_lists.id as pre_list_id')
-                        ->where('warehouse_items.branch_id', $this->branch_id)
+                        ->select('warehouse_items.id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.id as pre_list_id')
                         ->get();
 
-        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::all();
-        $billno =  WarehouseSales::where('branch_id', $this->branch_id)->max('billno') + 1;
-        $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
+        $billno =  WarehouseSales::max('billno') + 1;
+        $journal_code = Journal::max('code') + 1;
         $times = time();
         
 
@@ -420,11 +414,9 @@ class SalesController extends Controller
             // Prepare date and other fields
             $full_date = $request->todays_date . ' ' . now()->format('H:i:s A');
             $insertedBy = auth()->user()->full_name ?? '';
-            $short_date = $request->todays_date ?? Jalalian::now()->format('Y-m-d');
+            $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
             [$year, $month, $day] = explode('-', $short_date);
     
-            // // Ensure branch_id is an array before accessing the first element
-            $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
             // \Log::info('Start inserting into warehouse sales', ['request' => $request->all()]);
     
            
@@ -433,7 +425,6 @@ class SalesController extends Controller
                 'billno' => $request->billno, 
                 'factor' => $request->factor, 
                 'account_id' => $request->from_account_id, 
-                'branch_id' => $this->branch_id ?? $branch_id, 
                 'customer_account_id' => $request->customer_account_id, 
                 'total_price' => $request->total_price, 
                 'total_discount' => $request->total_discount, 
@@ -480,13 +471,12 @@ class SalesController extends Controller
      */
     private function createSalesDetails($request, $warehouseSalesId)
     {
-        $todays_date = $request->todays_date ?? Jalalian::now()->format('Y-m-d');
+        $todays_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
 
         foreach($request->warehouseItemId as $index => $itemId)
         {
              SalesDetails::create([
                 'billno' => $request->billno, 
-                'branch_id' => $this->branch_id ?? $request->branch_id[$index], 
                 'warehouse_id' => $request->warehouse_id[$index],
                 'warehouse_sales_id' => $warehouseSalesId, 
                 'pre_list_id' => $request->pre_list_id[$index], 
@@ -615,7 +605,6 @@ class SalesController extends Controller
 
     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
-        $branch_id = is_array($request->branch_id) ? $request->branch_id[0] : $request->branch_id;
         $account_type_id = Account::where('id', $account_id)->value('account_type_id');
 
         Journal::create([
@@ -623,7 +612,6 @@ class SalesController extends Controller
             'code' =>  $request->code,
             'account_type_id' => $account_type_id,
             'account_id' => $account_id,
-            'branch_id' => $this->branch_id ?? $branch_id,
             'amount' => $amount,
             'currency_id' => $request->currency_id,
             'transaction_type' => $ttype,
@@ -652,9 +640,9 @@ class SalesController extends Controller
     public function details(string $billno)
     {
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
-        $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
-        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
+        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
 
         $customer_account_id = $warehouseSales->first()->customer_account_id ?? 0;
         $currency_id = $warehouseSales->first()->currency_id ?? 1;
@@ -699,7 +687,7 @@ class SalesController extends Controller
             ])
             ->where('currency_id', $currency_id)
             ->where('account_id', $customer_account_id)
-            ->where('branch_id', $this->branch_id)
+            
             // ->where('journals.times', '<=', $times)
             ->first();
 
@@ -722,13 +710,13 @@ class SalesController extends Controller
     {
 
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
-        $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
-        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->where('branch_id', $this->branch_id)->get();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
+        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
         $billno = $billno;
 
-        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::select('id','name')->get();
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
@@ -858,7 +846,7 @@ class SalesController extends Controller
     
         try {
             // Find the warehouse sale record
-            $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->where('branch_id', $this->branch_id)->firstOrFail();
+            $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->firstOrFail();
     
            
             // Update warehouse sale details
@@ -872,7 +860,7 @@ class SalesController extends Controller
             ]);
     
             // Retrieve old journal records
-            $oldJournals = Journal::where('times', $request->times)->where('branch_id', $this->branch_id)->where('status', 8)->get();
+            $oldJournals = Journal::where('times', $request->times)->where('status', 8)->get();
     
             if ($oldJournals->isNotEmpty()) {
                 // Clone request to avoid modifying original data
@@ -882,7 +870,7 @@ class SalesController extends Controller
                 ]);
     
                 // Delete all journal records in a single query
-                Journal::where('times', $request->times)->where('branch_id', $this->branch_id)->where('status', 8)->delete();
+                Journal::where('times', $request->times)->where('status', 8)->delete();
     
                 // Handle new journal entry
                 $checkJournal = $this->handleJournalEntry($clonedRequest);
@@ -940,7 +928,7 @@ class SalesController extends Controller
             $warehouseItem = WarehouseItem::where('warehouse_id', $SalesDetails->warehouse_id)
                                         ->where('buy_pre_id', $SalesDetails->pre_list_id)
                                         ->where('unit_id', $SalesDetails->unit_id)
-                                        ->where('branch_id', $this->branch_id)
+                                        
                                         ->first();
 
             if (!$warehouseItem) {
@@ -983,19 +971,19 @@ class SalesController extends Controller
         DB::beginTransaction();
         try {
             $warehouse_sales = WarehouseSales::where('times', $times)
-                ->where('branch_id', $this->branch_id)
+                
                 ->first();
 
             if ($warehouse_sales) {
                 SalesDetails::where('warehouse_sales_id', $warehouse_sales->id)
-                    ->where('branch_id', $this->branch_id)
+                    
                     ->delete();
 
                 $warehouse_sales->delete();
             }
 
             Journal::where('times', $times)
-                ->where('branch_id', $this->branch_id)
+                
                 ->delete();
 
             DB::commit();
@@ -1023,7 +1011,7 @@ class SalesController extends Controller
     // Create with other currency
     public function createWithOtherCurrency()
     {
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
         $warehouseItems = DB::table('warehouse_items')
                         ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
@@ -1031,20 +1019,18 @@ class SalesController extends Controller
                         ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
                         // ->join('currencies', 'currencies.id', '=', 'warehouse_items.currency_id')
                         ->where('warehouse_items.available_amount', '>', 0)
-                        ->select('warehouse_items.id','warehouse_items.currency_id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.branch_id','bought_item_pre_lists.id as pre_list_id')
-                        // 'currencies.name as currency_name'
-                        ->where('warehouse_items.branch_id', $this->branch_id)
+                        ->select('warehouse_items.id','warehouse_items.currency_id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.id as pre_list_id')
                         ->get();
         // return $warehouseItems;
         // die();
         
-        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::all();
         $default_currency = Currency::select('id')->where('is_base','=','yes')->first();
-        $billno =  WarehouseSales::where('branch_id', $this->branch_id)->max('billno') + 1;
-        $journal_code = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
+        $billno =  WarehouseSales::max('billno') + 1;
+        $journal_code = Journal::max('code') + 1;
         $times = time();
 
         

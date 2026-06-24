@@ -12,7 +12,7 @@ return [
     'salary' => 'معاشات',
     'orders' => 'سفارشات',
     'report' => 'گزارش',
-    'buy' => ' خرید عمومی',
+    'buy' => ' خرید ',
     'buy_pre_list' => 'لیست اجناس',
     'new_buy' => 'خرید جدید',
     'bought_list' => 'لیست خرید نظر به بیل',
@@ -38,5 +38,6 @@ return [
     'chartOfAccount' => 'چارت حسابات',
 
     'production' => 'تولیدی',
-    'new_sales_with_other_currency' => 'فروشات جدید باکرنسی دیگر'
+    'new_sales_with_other_currency' => 'فروشات جدید باکرنسی دیگر',
+    'invoices' => 'انوایس ها',
 ];

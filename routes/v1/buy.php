@@ -50,6 +50,15 @@ Route::prefix('boughtList')->group(function(){
     Route::post('/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])
            ->name('boughtList.deleteSingleItem')->middleware('access:buy,delete_records');
     Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
+
+    // Invoice routes
+    Route::get('/invoices', [BoughtDetailsController::class, 'invoiceList'])->name('boughtList.invoices');
+     Route::get('/invoice-data', [BoughtDetailsController::class, 'getInvoiceData'])->name('boughtList.invoiceData');
+    Route::post('/generate-invoice', [BoughtDetailsController::class, 'generateInvoice'])->name('boughtList.generateInvoice');
+    Route::get('/invoice/{id}', [BoughtDetailsController::class, 'showInvoice'])->name('boughtList.showInvoice');
+    Route::post('/invoice-payment', [BoughtDetailsController::class, 'addPayment'])->name('boughtList.addPayment');
+
+
 });
 
 
