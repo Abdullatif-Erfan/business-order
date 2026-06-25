@@ -47,7 +47,7 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
     Route::get('/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
     Route::get('/destroy/{times}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy')->middleware('access:buy,delete_records');
-    Route::post('/deleteSingleItem',[BoughtDetailsController::class,'deleteSingleItem'])
+    Route::get('/deleteSingleItem/{id}',[BoughtDetailsController::class,'deleteSingleItem'])
            ->name('boughtList.deleteSingleItem')->middleware('access:buy,delete_records');
     Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
 

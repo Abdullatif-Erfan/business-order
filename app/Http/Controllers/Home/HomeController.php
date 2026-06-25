@@ -26,6 +26,7 @@ class HomeController extends Controller
     
     public function index(Request $request)
     {        
+        // return ['user',auth()->user()];
         $orgBio = OrgBio::first(); 
         $drivers = Account::select('id','name')->where('account_type_id',2)->get();
         $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
@@ -104,4 +105,45 @@ class HomeController extends Controller
             'progress_percentage' => $progressPercentage,
         ];
     }
+
+
+     public function cleanAll()
+    {
+        $tables = [
+            'journals',
+            'bought_items',
+            'bought_item_details',
+            'qalams',
+            'models',
+            'clearances',
+            'sales_details',
+            'warehouse_items',
+            'warehouse_sales',
+            'warehouse_wastage',
+        ];
+
+        try {
+            foreach ($tables as $table) {
+                if (DB::getSchemaBuilder()->hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
+
+            session()->put('notification', [
+                'type' => 'success',
+                'message' => __('common.deleted_successfully'),
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error truncating tables: ' . $e->getMessage());
+
+            session()->put('notification', [
+                'type' => 'danger',
+                'message' => __('common.delete_failed'),
+            ]);
+        }
+
+        return redirect()->route('home');
+    }
+
 }

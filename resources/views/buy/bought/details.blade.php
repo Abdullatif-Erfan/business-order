@@ -61,8 +61,8 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     <th>{{__('common.unit')}}</th>
                                                     <th>{{__('common.unit_price')}}</th>
                                                     @if($orgbios[0]->tax_activation === 1)
-                                                    <th>{{__('buy.buy_tax_percentage')}}</th>
-                                                    <th>{{__('buy.buy_tax_price')}}</th>
+                                                    <th>{{__('buy.buy_tax_percentage_s')}}</th>
+                                                    <th>{{__('buy.buy_tax_price_s')}}</th>
                                                     @endif
                                                     <th>{{__('common.total_price')}}</th>
                                                     <th>{{__('common.unit')}}</th>
@@ -87,23 +87,23 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
 
                                                 <td>
                                                     @php
-                                                    echo fmod($detail->bought_up, 1) == 0
-                                                        ? number_format($detail->bought_up, 0)
-                                                        : number_format($detail->bought_up, 2);
+                                                    echo fmod($detail->buy_up, 1) == 0
+                                                        ? number_format($detail->buy_up, 0)
+                                                        : number_format($detail->buy_up, 2);
                                                     @endphp
                                                 </td>
                                                 
                                                 @if($orgbios[0]->tax_activation === 1)
-                                                <td> {{$detail->buy_tax_percentage}} % </td>
+                                                <td> % {{$detail->buy_tax_per}}  </td>
                                                 <td> {{$detail->buy_tax_price}} </td>
                                                 @endif
 
                                                 <td>
-                                                    @php
-                                                    echo fmod($detail->total, 1) == 0
-                                                        ? number_format($detail->total, 0)
-                                                        : number_format($detail->total, 2);
-                                                    @endphp
+                                                    @if($orgbios[0]->tax_activation === 1)
+                                                     {{number_format($detail->total_vat,2)}}  
+                                                     @else 
+                                                     {{number_format($detail->total,2)}} 
+                                                    @endif
                                                 </td>
 
                                                 <td>{{ $currency_name ?? '' }}</td>
@@ -160,7 +160,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                         </tr>
                                         <tr>
                                             <td> {{__('common.account_payer')}}‌: {{ $boughtItems->first()->account->name ?? '' }}</td>
-                                            <td>   {{__('common.user')}}‌ : {{ $boughtItems->first()->iby ?? '' }}</td>
+                                            <td>   {{__('common.user')}}‌ : {{ $boughtItems->first()->user_name ?? '' }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -174,10 +174,12 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     <th>{{__('buy.bought_amount')}}</th>
                                                     <th>{{__('common.unit')}}</th>
                                                     <th>{{__('common.unit_price')}}</th>
+                                                     @if($orgbios[0]->tax_activation === 1)
+                                                    <th>{{__('buy.buy_tax_percentage_s')}}</th>
+                                                    <th>{{__('buy.buy_tax_price_s')}}</th>
+                                                    @endif
                                                     <th>{{__('common.total_price')}}</th>
                                                     <th>{{__('common.currency')}}</th>
-                                                    <th>{{__('buy.discount')}}</th>
-                                                    <th>{{__('buy.transport')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -197,29 +199,28 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
 
                                                 <td>
                                                     @php
-                                                        echo number_format($detail->bought_up,2);
+                                                        echo number_format($detail->buy_up,2);
                                                     @endphp
                                                 </td>
 
+                                                  
+                                                @if($orgbios[0]->tax_activation === 1)
+                                                <td> %  {{$detail->buy_tax_per}} </td>
+                                                <td> {{$detail->buy_tax_price}} </td>
+                                                @endif
+
                                                 <td>
-                                                    @php
-                                                        echo  number_format($detail->total,2);
-                                                    @endphp
+                                                    @if($orgbios[0]->tax_activation === 1)
+                                                     {{number_format($detail->total_vat,2)}}  
+                                                     @else 
+                                                     {{number_format($detail->total,2)}} 
+                                                    @endif
                                                 </td>
+
 
                                                 <td>{{  $boughtItems->first()->currencyRelation->name ?? ''}}</td>
 
-                                                <td>
-                                                    @php
-                                                        echo  number_format($detail->discount,2);
-                                                    @endphp
-                                                </td>
-
-                                                <td>
-                                                    @php
-                                                        echo  number_format($detail->transport,2);
-                                                    @endphp
-                                                </td>
+                                              
                                             </tr>
                                         @endforeach
 
@@ -245,31 +246,13 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                         {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
-                                                <tr>
-                                                    <td colspan="2" class="price-section">  {{__('buy.discount')}} </td>
-                                                    <td colspan="3" class="price-section">
-                                                        @php
-                                                           echo 
-                                                           number_format($boughtItems->first()->trans_spend);
-                                                        @endphp
-                                                        {{ $currency_name ?? '' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="2" class="price-section"> {{__('buy.payable')}} </td>
-                                                    <td colspan="3" class="price-section">
-                                                        @php echo number_format($boughtItems->first()->cur_pay);
-                                                        @endphp
-                                                        {{ $currency_name ?? '' }}
-                                                    </td>
-                                                </tr>
 
                                                 <tr>
                                                     <td colspan="2" class="price-section"> {{__('buy.cur_pay')}}  </td>
                                                     <td colspan="3" class="price-section">
                                                          @php
                                                            echo 
-                                                           number_format($boughtItems->first()->payable,2) ;
+                                                           number_format($boughtItems->first()->cur_pay,2) ;
                                                          @endphp
                                                          {{ $currency_name ?? '' }}
                                                     </td>

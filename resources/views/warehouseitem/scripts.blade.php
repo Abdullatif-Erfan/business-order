@@ -70,8 +70,8 @@ function fetchList() {
                 { data: 'in_amount', name: 'in_amount' },
                 { data: 'out_amount', name: 'out_amount' }, 
                 { data: 'available_amount', name: 'available_amount'},
-                { data: 'bought_up', name: 'bought_up' },
-                { data: 'avg_up', name: 'avg_up' },
+                { data: 'buy_up', name: 'buy_up' },
+                { data: 'id', name: 'id' },
                 { data: 'sell_up', name: 'sell_up' },
                 { data: 'available_total', name: 'available_total' },
                 { data: 'view', name: 'view', orderable: false, searchable: false }

@@ -32,39 +32,9 @@
             value="{{ $boughtItemDetails->amount ?? ''}}" required >
         </div>
 
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="bought_up">{{__('buy.bought_up')}} </label>
-            <input  name="old_bought_up" id="old_bought_up" type="hidden" value="{{ $boughtItemDetails->bought_up ?? 0}}" >
-            <input class="form-control" name="bought_up" id="bought_up" type="number" step="0.01" 
-            value="{{ $boughtItemDetails->bought_up ?? 0}}" required >
-
-            <input class="form-control" name="total" id="total" type="hidden" step="0.01" 
-            value="{{ $boughtItemDetails->total ?? 0 }}" >
-
-        </div>
-
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="discount">{{__('buy.discount')}} </label>
-            <input class="form-control" name="discount" id="discount" type="number" step="0.01"
-            value="{{ $boughtItemDetails->discount ?? 0}}"  >
-        </div>
-
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="transport">{{__('buy.transport')}} </label>
-            <input class="form-control" name="transport" id="transport" type="number" step="0.01" 
-            value="{{ $boughtItemDetails->transport ?? 0}}" required>
-        </div>
-
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="expire_date"> {{__('buy.expired_date')}} </label>
-            <input class="form-control" name="expire_date" id="expire_date" type="text" placeholder="1403-03-01"  
-            value="{{ $boughtItemDetails->expire_date ?? ''}}"  >
-        </div>
-
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="amount">{{__('common.currency')}}  </label>
+          <div class="col-md-3 col-sm-4 col-xs-6">
+            <label for="amount">{{__('common.unit')}}  </label>
             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
-                <option value=""> ---  {{__('common.currency')}} ---</option>
                 @foreach($units as $unitItem)
                 $unit_name = $boughtItemDetails->unit_id == $unitItem->id ? $unitItem->name : '';
                  <option value="{{  $unitItem->id }}" {{ $boughtItemDetails->unit_id == $unitItem->id ? 'selected' : '' }} >{{ $unitItem->name }}</option>
@@ -72,87 +42,185 @@
             </select>
         </div>
 
+        <!-- tax_activation -->
         <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="notification_amount">{{__('buy.notify_amount')}} </label>
-            <input class="form-control" name="notification_amount" id="notification_amount" type="number" step="0.01" 
-            value="{{ $warehouseItems->first()->notification_amount ?? 0 }}" >
+            <label for="buy_up">{{__('buy.bought_up')}} </label>
+            <input  name="old_buy_up" id="old_buy_up" type="hidden" value="{{ $boughtItemDetails->buy_up ?? 0}}" >
+            <input class="form-control" name="buy_up" id="buy_up" type="number" step="0.01" 
+            value="{{ $boughtItemDetails->buy_up ?? 0}}" required >
+
+            <input class="form-control" name="total" id="total" type="hidden" step="0.01" 
+            value="{{ $boughtItemDetails->total ?? 0 }}" >
         </div>
+
+
+
+        <!-- VAT = Value Added Tax -->
+        @if(intval($tax_activation->tax_activation) === 1) 
+            <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+                <label for="buy_tax_per">  {{__('buy.buy_tax_percentage')}} </label>
+                <input class="form-control" name="buy_tax_per" id="buy_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , 
+                max=100 value="{{ $boughtItemDetails->buy_tax_per ?? 0 }}"
+                oninput="calculateTax(this.value);" >
+            </div>
+
+            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+                <label for="buy_tax_price"> {{__('buy.buy_tax_price')}} </label>
+                <input class="form-control" name="buy_tax_price" id="buy_tax_price" value="{{ $boughtItemDetails->buy_tax_price ?? 0 }}"  type="number" step="0.01" >
+            </div>
+
+            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+                <label for="buy_up_vat"> {{__('buy.buy_up_vat')}} </label>
+                <input class="form-control" name="buy_up_vat" id="buy_up_vat" value="{{ $boughtItemDetails->buy_up_vat ?? 0 }}"  type="number" step="0.01" >
+            </div>
+
+            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+                <label for="total_vat"> {{__('buy.total_buy_with_tax')}} </label>
+                <input class="form-control" name="total_vat" id="total_vat" value="{{ $boughtItemDetails->total_vat ?? 0 }}"  type="number" step="0.01" >
+            </div>
+            
+         @endif
+            <div class="col-md-3 col-sm-4 col-xs-12 m-t-10">
+                <label for="note"> {{__('buy.comment')}} </label>
+                <input class="form-control" name="note" id="note" type="text" value="{{ $boughtItemDetails->note ?? 0 }}" placeholder="{{__('buy.comment')}}" >
+            </div>
+    <!-- / Third Row -->
+
+    <!-- Fourth Row -->
+        <div class="col-12">
+          <div class="col-12" style="background-color:#f3f3f3; margin-top:10px;padding: 5px;">
+            <strong><center>{{__('buy.sales_section')}}</center></strong>
+          </div>
+        </div>
+    <!-- / Fourth Row -->
+
+
+    <!-- fifth Row -->
+        <div class="col-md-3 col-sm-4 col-xs-6">
+        <label for="sell_up"> {{__('buy.sell_up')}} </span></label>
+        <input type="number" name="sell_up" id="sell_up" step="0.01" class="form-control" placeholder="{{__('buy.sell_up')}}" 
+        value="{{ $boughtItemDetails->sell_up ?? 0 }}">
+     </div>
+
+    @if(intval($tax_activation->tax_activation) === 1) 
+     <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_tax_per">  {{__('buy.sales_tax_percentage')}} </label>
+        <input class="form-control" name="sell_tax_per" id="sell_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100
+        value="{{ $boughtItemDetails->sell_tax_per ?? 0 }}" oninput="calculateSalesTax(this.value);"  >
     </div>
 
+    <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_tax_price"> {{__('buy.sell_tax_price')}} </label>
+        <input class="form-control" name="sell_tax_price" id="sell_tax_price"  type="number" step="0.01"
+        value="{{ $boughtItemDetails->sell_tax_price ?? 0 }}">
+    </div>
 
+    <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_up_vat"> {{__('buy.sell_up_vat')}} </label>
+        <input class="form-control" name="sell_up_vat" id="sell_up_vat"  type="number" step="0.01" 
+        value="{{ $boughtItemDetails->sell_up_vat ?? 0 }}" >
+    </div>
 
-    <div class="row m-t-10 m-b-10 p-10">
-        
-        <div class="col-md-12 col-sm-12 col-xs-12 ">
-            <h5 class="m-r-10">
-             {{__('buy.note1')}}
-            <br>[]
-             {{__('buy.note2')}}
-            </h5>
-            <div class="alert alert-success" id="amountMessage" style="display:none"></div>
-            <!-- {{$warehouseItems->first()->warehouseRelation->name ?? ''}} -->
-        </div>
-        @foreach($warehouseItems as $item)
-        @php
-            $warehouseName = $item->warehouseRelation ? $item->warehouseRelation->name : 'Not Found';
-        @endphp
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="name"> {{__('buy.available_in')}} :  </label>
-            <input  name="warehouse_id[]" id="wid" type="hidden" value="{{ $item->warehouse_id}} " >
-            <select  class="form-control select2" readonly disabled >
-                <option value="">{{ $warehouseName }}</option>
-            </select>
-        </div>
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="available_amount"> {{__('buy.available_amount')}} ({{ $unit_name }})  </label>
-            <input class="form-control" name="available_amount" id="available_amount" type="number" step="0.01" readonly
-            value="{{$item->available_amount}}" >
-        </div>
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="increment"> {{__('buy.increment_amount')}}  </label>
-            <input class="form-control" name="increment[]" id="increment" type="number" step="0.01" readonly 
-            placeholder="{{__('buy.incase_of_increment')}}" >
-        </div>
-        <div class="col-md-3 col-sm-4 col-xs-6">
-            <label for="decrement"> {{__('buy.decrement_amount')}}  </label>
-            <input class="form-control" name="decrement[]" id="decrement" type="number" step="0.01" readonly placeholder="{{__('buy.incase_of_decrement')}}" >
-        </div>
-        @endforeach
+    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="total_sales_with_tax"> {{__('buy.total_sales_with_tax')}} </label>
+        <input class="form-control" name="total_sales_with_tax" id="total_sales_with_tax"  type="number" step="0.01" 
+        value="{{ $boughtItemDetails->sell_up_vat * $boughtItemDetails->amount ?? 0 }}" >
+    </div>
+
+    @endif
+    <!-- / fifth Row -->
+
 
     </div>
 
 
 <script>
-    function checkAmountChanges(cur_amount) {
-        var old_amount = parseFloat($('#old_amount').val());
-        var new_amount = parseFloat(cur_amount || 0); // Ensure it's a number
-        var bought_up = parseFloat($('#bought_up').val());
+$(document).ready(function () {
 
-        var new_total = cur_amount * bought_up;
-        $('#total').val(new_total.toFixed(2));
+    $('#amount').on('input change', function () {
 
-        // Empty the fields before applying readonly
-        $('input[name="increment[]"]').val('');
-        $('input[name="decrement[]"]').val('');
-        
-        if (new_amount === old_amount) {
-            $('input[name="increment[]"]').prop('readonly', true);
-            $('input[name="decrement[]"]').prop('readonly', true);
-            $('#amountMessage').fadeOut(1);
-        } 
-        else if (new_amount > old_amount) { // Enable increment
-            var diff = (new_amount - old_amount).toFixed(2);
-            $('input[name="increment[]"]').prop('readonly', false);
-            $('input[name="decrement[]"]').prop('readonly', true);
-            $('#amountMessage').fadeIn(1);
-            $('#amountMessage').html("{{__('buy.msg1')}}" + diff + "{{__('buy.msg1')}}");
-        } 
-        else if (new_amount < old_amount) { // Enable decrement
-            var diff = (old_amount - new_amount).toFixed(2);
-            $('input[name="increment[]"]').prop('readonly', true);
-            $('input[name="decrement[]"]').prop('readonly', false);
-            $('#amountMessage').fadeIn(1);
-            $('#amountMessage').html("{{__('buy.msg3')}}" + diff + "{{__('buy.msg4')}}");
-        }
-    }
+        calculateTax($('#buy_tax_per').val());
+        calculateSalesTax($('#sell_tax_per').val());
+
+        updateTotal();
+    });
+
+    $('#buy_up').on('input change', function () {
+
+        calculateTax($('#buy_tax_per').val());
+
+        updateTotal();
+    });
+
+    $('#buy_tax_per').on('input change', function () {
+
+        calculateTax($(this).val());
+    });
+
+    $('#sell_up').on('input change', function () {
+
+        calculateSalesTax($('#sell_tax_per').val());
+    });
+
+    $('#sell_tax_per').on('input change', function () {
+
+        calculateSalesTax($(this).val());
+    });
+
+    // Initial load
+    calculateTax($('#buy_tax_per').val());
+    calculateSalesTax($('#sell_tax_per').val());
+    updateTotal();
+});
+
+
+function updateTotal()
+{
+    var amount = parseFloat($('#amount').val()) || 0;
+    var buyUp  = parseFloat($('#buy_up').val()) || 0;
+
+    $('#total').val((amount * buyUp).toFixed(2));
+}
+
+
+function calculateTax(tax_percent)
+{
+    var taxPercent = parseFloat(tax_percent) || 0;
+    var quantity = parseFloat($('#amount').val()) || 0;
+    var unitPrice = parseFloat($('#buy_up').val()) || 0;
+
+    var curTotal = quantity * unitPrice;
+    var taxAmount = (curTotal * taxPercent) / 100;
+
+    $('#buy_tax_price').val(taxAmount.toFixed(2));
+
+    var unitPriceWithVAT = unitPrice + taxAmount;
+
+    $('#buy_up_vat').val(unitPriceWithVAT.toFixed(2));
+
+    var totalWithVAT = unitPriceWithVAT * quantity;
+
+    $('#total_vat').val(totalWithVAT.toFixed(2));
+}
+
+
+function calculateSalesTax(sales_tax_percent)
+{
+    var salesTaxPercent = parseFloat(sales_tax_percent) || 0;
+    var quantity = parseFloat($('#amount').val()) || 0;
+    var unitPrice = parseFloat($('#sell_up').val()) || 0;
+
+    var totalWithoutTax = quantity * unitPrice;
+    var totalTaxAmount = (totalWithoutTax * salesTaxPercent) / 100;
+
+    $('#sell_tax_price').val(totalTaxAmount.toFixed(2));
+
+    var unitPriceWithTax = unitPrice + totalTaxAmount;
+
+    $('#sell_up_vat').val(unitPriceWithTax.toFixed(2));
+
+    var totalWithTax = unitPriceWithTax * quantity;
+
+    $('#total_sales_with_tax').val(totalWithTax.toFixed(2));
+}
 </script>

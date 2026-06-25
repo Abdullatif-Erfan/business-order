@@ -11,7 +11,6 @@ use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 use App\Models\Transaction\Journal;
 use App\Models\Setting\Category;
-use App\Models\Setting\Branch;
 use App\Models\Setting\OrgBio;
 use App\Models\Buy\BuyPreList;
 use App\Models\Setting\Unit;
@@ -20,15 +19,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }

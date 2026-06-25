@@ -103,8 +103,8 @@ class BoughtDetailsBasedItemController extends Controller
                 return $boughtItem->billno ? $boughtItem->billno : '';
             })
 
-            ->addColumn('buy_tax_percentage', function($boughtItem){
-                return "%". " ".$boughtItem->buy_tax_percentage;
+            ->addColumn('buy_tax_per', function($boughtItem){
+                return "%". " ".$boughtItem->buy_tax_per;
             })
             // ->addColumn('total_price', function ($boughtItem) {
             //     $total_price = $boughtItem->total_price;
@@ -114,7 +114,7 @@ class BoughtDetailsBasedItemController extends Controller
             // })
 
             ->addColumn('total', function ($boughtItem) {
-                return $boughtItem ? number_format($boughtItem->total) : '';
+                return $boughtItem->total_vat ? number_format($boughtItem->total_vat,2) : number_format($boughtItem->total,2);
             })
 
             ->rawColumns(['billno'])

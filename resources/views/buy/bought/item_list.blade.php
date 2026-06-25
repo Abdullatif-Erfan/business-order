@@ -104,7 +104,7 @@
                                             <th>{{ __('sales.unit') }}</th>
                                             <th>{{ __('sales.unit_price') }}</th>
                                            @if($orgbios[0]->tax_activation === 1)
-                                            <th>{{__('buy.buy_tax_percentage_s')}}</th>
+                                            <th>% {{__('buy.tax')}}</th>
                                             <th>{{__('buy.buy_tax_price_s')}}</th>
                                             @endif 
                                             <th>{{ __('sales.total_price') }}</th>
@@ -167,13 +167,13 @@ function fetchList() {
         { data: 'pre_list_relation.name', name: 'pre_list_relation.name' },
         { data: 'amount', name: 'amount' },
         { data: 'unit_relation.name', name: 'unit_relation.name' },
-        { data: 'bought_up', name: 'bought_up' }
+        { data: 'buy_up', name: 'buy_up' }
     ];
 
     // Add tax columns if flag is 1
     if (flag === 1) {
         columns.push(
-            { data: 'buy_tax_percentage', name: 'buy_tax_percentage' },
+            { data: 'buy_tax_per', name: 'buy_tax_per' },
             { data: 'buy_tax_price', name: 'buy_tax_price' }
         );
     }
@@ -239,10 +239,10 @@ function fetchList() {
 
                 // Tax columns (only if flag is 1)
                 if (flag === 1) {
-                    // buy_tax_percentage is at index 7
-                    $(api.column(7).footer()).html(sumColumn(7));
-                    // buy_tax_price is at index 8
+                    // buy_tax_per is at index 7
                     $(api.column(8).footer()).html(sumColumn(8));
+                    // buy_tax_price is at index 8
+                    $(api.column(9).footer()).html(sumColumn(9));
                 }
             }
         });

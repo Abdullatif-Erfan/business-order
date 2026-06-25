@@ -208,7 +208,7 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_relation.name', name: 'customer_relation.name' },
-                { data: 'total_price', name: 'total_price' },
+                { data: 'total', name: 'total' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
                 { data: 'currencyRelation', name: 'currencyRelation' },

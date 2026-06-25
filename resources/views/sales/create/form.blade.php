@@ -73,11 +73,11 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-12">
                                         <div class="row">
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="customer_account_id"> {{__('sales.customer_selection')}} <span class="danger">*</span></label>
+                                                    <label for="customer_account_id"> {{__('order.supplier_selection')}} <span class="danger">*</span></label>
                                                     <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                                        <option value="">   {{__('sales.customer_selection')}} </option>
-                                                        @foreach($customers as $customer)
-                                                            <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
+                                                        <option value="">   {{__('order.supplier_selection')}} </option>
+                                                        @foreach($suppliers as $supplier)
+                                                            <option value="{{ $supplier->id }}">  {{ $supplier->name }} </option>
                                                         @endforeach
                                                     </select>
                                                     @error('customer_account_id')
@@ -86,17 +86,18 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6">
-                                                <label for="todays_date"> {{__('common.date')}} <span class="danger">*</span></label>
-                                                <div class="input-group " data-provide="datepicker">
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click" data-targetselector="#todays_date" data-englishnumber="true">
-                                                            <span class="fa fa-calendar"></span> 
-                                                        </span>
+                                              <div class="col-md-3 col-sm-4 col-xs-6">
+                                                    <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
+                                                    <div class="input-group date" id="datepicker">
+                                                        <input type="text" class="form-control" name="todays_date" 
+                                                            value="{{ date('Y-m-d') }}" placeholder="Select date">
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text">
+                                                                <i class="fas fa-calendar-alt"></i>
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <input class="form-control" tabindex="1" name="todays_date" id="todays_date" value="{{ $todaysDate }}" required data-mddatetimepicker="true" placeholder="{{__('common.date')}}" data-placement="right" data-englishnumber="true">
                                                 </div>
-                                            </div>
 
                                             <div class="col-md-3 col-sm-4 col-xs-6">
                                                 <label for="billno"> {{__('common.bill')}} <span class="danger">*</span></label>

@@ -103,26 +103,13 @@ class BoughtDetailsController extends Controller
                 return $boughtItem->billno ? $checkIcon.' '.'BUY_'.$boughtItem->billno: 0;
             })
 
-            ->addColumn('total_price', function ($boughtItem) {
-                $total_price = $boughtItem->total_price;
-                // return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
-                return  number_format($total_price, 2);
-
-            })
-
             ->addColumn('trans_spend', function ($boughtItem) {
                 $trans_spend = $boughtItem->trans_spend;
                 return (fmod($trans_spend, 1) == 0) ? number_format($trans_spend, 0) : number_format($trans_spend, 2);
             })
 
-            ->addColumn('discount', function ($boughtItem) {
-                $discount = $boughtItem->discount;
-                return (fmod($discount, 1) == 0) ? number_format($discount, 0) : number_format($discount, 2);
-            })
-
-            ->addColumn('payable', function ($boughtItem) {
-                $payable = $boughtItem->payable;
-                return (fmod($payable, 1) == 0) ? number_format($payable, 0) : number_format($payable, 2);
+             ->addColumn('total', function ($boughtItem) {
+                return $boughtItem->total_vat ? number_format($boughtItem->total_vat,2) : number_format($boughtItem->total,2);
             })
 
             ->addColumn('cur_pay', function ($boughtItem) {
@@ -158,7 +145,7 @@ class BoughtDetailsController extends Controller
         // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
         $currencies = Currency::select('id','name')->get();
         $warehouses = Warehouse::select('id','name')->get();
-        $customers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
         $billno =  BoughtItem::max('billno') + 1;
     
@@ -171,7 +158,7 @@ class BoughtDetailsController extends Controller
         $times = time();
 
         // return response()->json($preLists);
-        return view('buy.bought.create',compact('currencies','customers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
+        return view('buy.bought.create',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
     }
 
     /**
@@ -187,12 +174,10 @@ class BoughtDetailsController extends Controller
         $this->validateRequest($request);
 
         $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
-        $date = explode('-', $short_date);
-        $year = $date[0];
-        $month = $date[1];
-        $day = $date[2];
-        $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
-        $times = $request->times;
+        $date = Carbon::parse($short_date);
+        $time = $request->times ?? '00:00:00';
+        $full_date = $date->format('Y-m-d') . ' ' . $time;
+        $times = $request->times; 
         
 
         // Start the transaction
@@ -230,13 +215,11 @@ class BoughtDetailsController extends Controller
    
     private function createOrUpdateBoughtItem($request, $short_date, $times)
     {
-        $date = explode('-', $short_date);
-        $year = $date[0];
-        $month = $date[1];
-        $day = $date[2];
+        $date = Carbon::parse($request->todays_date);
+        $year = $date->year;   
+        $month = $date->month; 
+        $day = $date->day;     
         
-        // $note = "Total Payable: " . ($request->payable ?? 0) . ", Paid: " . ($request->cur_pay ?? 0) . ", Remained: " . ($request->remained ?? 0);
-
         // Check if a record with the same billno exists
         $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
 
@@ -245,32 +228,27 @@ class BoughtDetailsController extends Controller
             // ✅ Update existing record
             $BoughtItem->update([
                 'total_price'         => $request->total_price ?? 0,
-                'total_buy_tax'       => $request->total_buy_tax ?? NULL,
-                'total_sales_tax'     => $request->total_sales_tax ?? NULL,
-                'payable'             => $request->payable ?? 0,
+                'total_vat'           => $request->total_vat ?? 0,
                 'cur_pay'             => $request->cur_pay ?? 0,
                 'remained'            => $request->remained ?? 0,
                 'currency_id'         => $request->currency_id ?? 0,
                 'account_id'          => $request->from_account_id,
-                'customer_account_id' => $request->customer_account_id,
+                'supplier_account_id' => $request->supplier_account_id,
                 'tax_activation'      => $request->tax_activation ?? 0,
                 'note'                => $request->note ?? '',
             ]);
         } else {
-            // ✅ Create new record
             // \Log::info('Inserting BoughtItem');
             $BoughtItem = BoughtItem::create([
                 'factor'              => $request->factor ?? 0,
                 'billno'              => $request->billno,
                 'journal_code'        => $request->journal_code ?? 0,
                 'total_price'         => $request->total_price ?? 0,
-                'total_buy_tax'       => $request->total_buy_tax ?? 0,
-                'total_sales_tax'     => $request->total_sales_tax ?? 0,
-                'payable'             => $request->payable ?? 0,
+                'total_vat'           => $request->total_vat ?? 0,
                 'cur_pay'             => $request->cur_pay ?? 0,
                 'remained'            => $request->remained ?? 0,
                 'account_id'          => $request->from_account_id,
-                'customer_account_id' => $request->customer_account_id,
+                'supplier_account_id' => $request->supplier_account_id,
                 'currency_id'         => $request->currency_id,
                 'tax_activation'      => $request->tax_activation ?? 0,
                 'note'                => $request->note ?? '',
@@ -278,8 +256,11 @@ class BoughtDetailsController extends Controller
                 'year'                => $year,
                 'month'               => $month,
                 'day'                 => $day,
-                'iby'                 => auth()->user()->full_name ?? '',
                 'times'               => $times,
+                'user_id'             => auth()->user()->id ?? '',
+                'user_name'           => auth()->user()->full_name ?? '',
+                'has_invoice'         => 0,
+
             ]);
         }
 
@@ -291,113 +272,75 @@ class BoughtDetailsController extends Controller
     {
         // If not exists, create new record
         $flag = $request->tax_activation == 1 ? true : false;
-        $total =  $flag && intval($request->total_buy_with_tax) > 0 ? $request->total_buy_with_tax : $request->amount * $request->bought_up;
         return BoughtItemDetails::create([
             'billno' => $request->billno,
             'bought_item_id' => $boughtItemId,
+            'supplier_account_id' => $request->supplier_account_id,
             'pre_list_id' => $request->pre_list_id,
-            'customer_account_id' => $request->customer_account_id,
             'amount' => $request->amount,
             'unit_id' => $request->unit_id,
-            'bought_up' => $request->bought_up,
-            'buy_tax_percentage' => $flag ? $request->buy_tax_percentage : NULL, 
-            'buy_tax_price' =>  $flag ? $request->buy_tax_price : NULL, 
-            'sales_tax_percentage' =>  $flag ? $request->sales_tax_percentage : NULL, 
-            'sales_tax_price' =>  $flag ? $request->sales_tax_price : NULL,
-            'total' => $total,
+            'buy_up' => $request->buy_up,
+            'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
+            'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
+            'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
+            'total' => $request->total_price,   
+            // 'total_vat' => $flag ? $request->total_vat : NULL, 
+            'total_vat' => $flag ? $request->buy_up_vat * $request->amount : NULL, 
+            'sell_up' => $request->sell_up,
+            'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
+            'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
+            'sell_up_vat' =>  $flag ? $request->sell_up_vat : NULL,
             'is_moved' => 1,
-            'times' => $times
+            'times' => $times,
+            'user_id'             => auth()->user()->id ?? '',
+            'user_name'           => auth()->user()->full_name ?? '',
         ]);
         return true;
-    }
-    
+    }    
 
     private function createOrUpdateWarehouseItems($request)
     {
-        /**
-         * 1: Check based on (buy_pre_id and warehouse_id) 
-         * 2: If record exists, update it
-         * 3: If it doesn't exist, insert a new item
-         */
+        $flag = $request->tax_activation == 1 ? true : false;
+        $date = Carbon::parse($request->todays_date);
+        $year = $date->year;   
+        $month = $date->month; 
+        $day = $date->day;   
 
-        //TODO: include tax for total
-    
-        $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
-        [$year, $month, $day] = explode('-', $short_date);
-        $insertedBy = auth()->user()->full_name ?? '';
-    
-        // Prepare bulk insert/update data
+        // Prepare bulk insert data
         $warehouseItemsToInsert = [];
-        $warehouseItemsToUpdate = [];
-    
 
         $default_warehouse_id = 1;
-        
-            $WarehouseItem = WarehouseItem::where('warehouse_id', $default_warehouse_id)
-                ->where('buy_pre_id', $request->pre_list_id)
-                ->where('unit_id', $request->unit_id)
-                ->first();
-    
-            $new_total = $request->bought_up * $request->amount; // Cost of new stock
-            
-    
-            if ($WarehouseItem) 
-            {
-
-                // Update existing warehouse item
-                $warehouseItemsToUpdate[] = [
-                    'id' => $default_warehouse_id,
-                    'in_amount' => $WarehouseItem->in_amount + $request->amount,
-                    'available_amount' => $WarehouseItem->available_amount + $request->amount,
-                    'bought_up' => $request->bought_up,
-                    'buy_tax_percentage' => $request->buy_tax_percentage ?? NULL,
-                    'avg_up' => $request->bought_up,
-                    'total' => $WarehouseItem->total + $new_total,
-                    'available_total' => $WarehouseItem->available_total + $new_total,
-                    'sell_up' => $request->sell_up,
-                    'sales_tax_percentage' => $request->sales_tax_percentage ?? NULL,
-                    'inserted_by' => $insertedBy,
-                    'times' => $request->times,
-                    'is_cleared' => 0,
-
-                ];   
-            } 
-            else 
-            {
-                // Insert new warehouse item
-                $warehouseItemsToInsert[] = [
-                    'warehouse_id' => $default_warehouse_id,
-                    'buy_pre_id' => $request->pre_list_id,
-                    'name' => $request->item_name ?? '',
-                    'in_amount' => $request->amount,
-                    'out_amount' => 0.00,
-                    'available_amount' => $request->amount,
-                    'unit_id' => $request->unit_id,
-                    'bought_up' => $request->bought_up,
-                    'buy_tax_percentage' => $request->buy_tax_percentage ?? NULL,
-                    'avg_up' => $request->bought_up,
-                    'sell_up' => $request->sell_up,
-                    'sales_tax_percentage' => $request->sales_tax_percentage ?? NULL,
-                    'total' => $new_total,
-                    'available_total' => $new_total,
-                    'currency_id' => $request->currency_id,
-                    'inserted_by' => $insertedBy,
-                    'inserted_short_date' => $short_date,
-                    'year' => $year,
-                    'month' => $month,
-                    'day' => $day,
-                    'times' => $request->times,
-                    'is_cleared' => 0,
-                ];
-            }
-        
-    
-        // Bulk update existing records
-        if (!empty($warehouseItemsToUpdate)) {
-            foreach ($warehouseItemsToUpdate as $updateData) {
-                WarehouseItem::where('id', $updateData['id'])->update($updateData);
-            }
-        }
+        $new_total = $request->buy_up * $request->amount; // Cost of new stock   
+        // Insert new warehouse item
+        $warehouseItemsToInsert[] = [
+            'warehouse_id' => $default_warehouse_id,
+            'buy_pre_id' => $request->pre_list_id,
+            'name' => $request->item_name ?? '',
+            'in_amount' => $request->amount,
+            'out_amount' => 0.00,
+            'available_amount' => $request->amount,
+            'unit_id' => $request->unit_id,
+            'buy_up' => $request->buy_up,
+            'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
+            'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
+            'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
+            'total' => $request->total_price,
+            // 'total_vat' => $flag ? $request->total_vat : NULL, 
+            'total_vat' => $flag ? $request->buy_up_vat * $request->amount : NULL, 
+            'sell_up' => $request->sell_up,
+            'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
+            'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
+            'sell_up_vat' =>  $flag ? $request->sell_up_vat : NULL,
+            'currency_id' => $request->currency_id,
+            'category_id' => $request->category_id,
+            'idate' => $request->todays_date ?? Carbon::now()->format('Y-m-d'),
+            'user_id' => auth()->user()->id ?? 0,
+            'year' => $year,
+            'month' => $month,
+            'day' => $day,
+            'times' => $request->times,
+            'is_cleared' => 0,
+        ];
     
         // Bulk insert new records
         if (!empty($warehouseItemsToInsert)) {
@@ -418,25 +361,19 @@ class BoughtDetailsController extends Controller
 
         $validated = $request->validate([
             'billno' => 'required|numeric',
-            'total_price' => 'required',
+            'total_vat' => 'required', // VAT = Value Added Tax
             'cur_pay' => 'required',
             'remained' => 'required',
         ]);
     
-        // Use proper null coalescing to avoid precedence issues
-        // $note = "Total Payable: ".($request->payable ?? 0).", Paid: ".($request->cur_pay ?? 0).", Remained: ".($request->remained ?? 0);
-        
-        // Log::info('Query to check this bill number exists in BoughtItem or not');
-        // Ensure you're updating a specific record by using the where clause first
         $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
 
-    
         try {
             // Update BoughtItem record
             $BoughtItem->update([
                 'journal_code' => $request->journal_code,
                 'total_price' => $request->total_price,
-                'payable' => $request->payable,
+                'total_vat' => $request->total_vat,
                 'cur_pay' => $request->cur_pay,
                 'remained' => $request->remained,
                 'note' => $request->note ?? '',
@@ -523,12 +460,14 @@ class BoughtDetailsController extends Controller
     private function validateRequest($request)
     {
         $validated = $request->validate([
+            'todays_date' => 'required|date_format:Y-m-d', // Ensures it's exactly 2026-06-25
+            'times' =>       'nullable', // e.g., 14:30 (optional)
             'pre_list_id' => 'required|integer',
             'amount' => 'required|numeric|min:0.01',
             'unit_id' => 'required|integer',
-            'bought_up' => 'required|numeric|min:0.01',
+            'buy_up' => 'required|numeric|min:0.01',
             'billno' => 'required|integer|min:0',
-            'customer_account_id' => 'required|integer',
+            'supplier_account_id' => 'required|integer',
             'from_account_id' => 'required|integer',
             'currency_id' => 'required|integer',
         ], [
@@ -540,16 +479,16 @@ class BoughtDetailsController extends Controller
             'unit_id.required' => __('validate.unit_id_required'),
             'unit_id.integer' => __('validate.unit_id_integer'),
             
-            'bought_up.required' => __('validate.bought_up_required'),
-            'bought_up.numeric' => __('validate.bought_up_numeric'),
-            'bought_up.min' => __('validate.bought_up_min'),
+            'buy_up.required' => __('validate.bought_up_required'),
+            'buy_up.numeric' => __('validate.bought_up_numeric'),
+            'buy_up.min' => __('validate.bought_up_min'),
             
             'billno.required' => __('validate.billno_required'),
             'billno.integer' => __('validate.billno_integer'),
             'billno.min' => __('validate.billno_min'),
             
-            'customer_account_id.required' => __('validate.customer_account_id_required'),
-            'customer_account_id.integer' => __('validate.customer_account_id_integer'),
+            'supplier_account_id.required' => __('validate.customer_account_id_required'),
+            'supplier_account_id.integer' => __('validate.customer_account_id_integer'),
             
             'from_account_id.required' => __('validate.from_account_id_required'),
             
@@ -562,11 +501,14 @@ class BoughtDetailsController extends Controller
 
     private function handleJournalEntry($request)
     {
-            $date = explode('-', $request->todays_date);
-            $year = $date[0];
-            $month = $date[1];
-            $day = $date[2];
-            $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
+            $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
+            $date = Carbon::parse($short_date);
+            $day = $date->day;
+            $year = $date->year;
+            $month = $date->month;
+            $time = $request->times ?? '00:00:00';
+            $full_date = $date->format('Y-m-d') . ' ' . $time;
+           
              /**
              * ================================== insert in to journal ========================
              * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
@@ -581,17 +523,17 @@ class BoughtDetailsController extends Controller
              * خزانه باید قرضدار ثبت گردد = Recieved Loan 
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
+            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
                 $details = __('validate.tkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.tk'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
+                $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
+                $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total_price,
                  $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
@@ -612,13 +554,13 @@ class BoughtDetailsController extends Controller
                 // ثبت طلب مشتری = Paid Loan
                 $details =  __('validate.tkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel,  $request->customer_account_id, $request->remained,
+                $this->createJournalEntry($request, $optionLabel,  $request->supplier_account_id, $request->remained,
                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
              // تنها از حساب خزانه کم شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
+            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
@@ -626,15 +568,6 @@ class BoughtDetailsController extends Controller
                 $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
-            // ثبت مصارف ترانسپورت به روش فعلی هروقت که بزرگتر از صفر بود باید از حساب خزانه کم شود
-            if(intval($request->trans_spend) > 0 && intval($request->from_account_id) > 0) 
-            {
-                // رفت پول نقد از بابت ترانسپورت = Cache paid
-                $details =  __('validate.transExpBill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.transExp'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->trans_spend, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
-            }
-            
             DB::commit();
             return true; 
 
@@ -656,7 +589,9 @@ class BoughtDetailsController extends Controller
     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
         $account_type_id = Account::where('id', $account_id)->value('account_type_id');
-
+        $day = $date->day;
+        $year = $date->year;
+        $month = $date->month;
         Journal::create([
             'bill_no' => $request->billno,
             'code' =>  $request->journal_code,
@@ -669,12 +604,12 @@ class BoughtDetailsController extends Controller
             'option_label' => $optionLabel,
             'dynamic_type' => $dynamic_type,
             'dt_comment' => $dt_comment,
-            'user' => auth()->user()->full_name ?? '',
-            'year' =>  $date[0],
-            'month' =>  $date[1],
-            'day' =>  $date[2],
-            'inserted_short_date' => $request->todays_date,
-            'inserted_full_date' => $full_date,
+            'user_id' => auth()->user()->id ?? '',
+            'user_name' => auth()->user()->full_name ?? '',
+            'year' =>  $year,
+            'month' => $month,
+            'day' =>  $year,
+            'idate' => $request->todays_date,
             'details' => $details,
             'status' => 7,  
             'times' => $request->times,
@@ -776,14 +711,14 @@ class BoughtDetailsController extends Controller
                 'billno' => 'required|min:1',
                 'from_account_id' => 'required',
                 'total_price' => 'required|min:1',
-                'payable' => 'required|min:1',
+                'total_vat' => 'required|min:1',
                 'currency_id' => 'required',
             ], [
                 'journal_code.required' => __('validate.journal_code_required'),
                 'billno.required' => __('validate.billno_required'),
                 'from_account_id.required' => __('validate.from_account_id_required'),
                 'total_price.required' => __('validate.total_price_required'),
-                'payable.required' => __('validate.payable_required'),
+                'total_vat.required' => __('validate.payable_required'),
                 'currency_id.required' => __('validate.currency_id_required'),
 
             ]);
@@ -794,7 +729,7 @@ class BoughtDetailsController extends Controller
 
             $boughtItem->total_price = $request->total_price;
             $boughtItem->discount = $request->total_discount;
-            $boughtItem->payable = $request->payable;
+            $boughtItem->total_vat = $request->total_vat;
             $boughtItem->cur_pay = $request->cur_pay;
             $boughtItem->remained = $request->remained;
             $boughtItem->currency_id = $request->currency_id;
@@ -852,23 +787,14 @@ class BoughtDetailsController extends Controller
     public function getSingleRecordForEdit(string $id)
     {
         $units = Unit::select('id','name')->get();
+        $tax_activation = OrgBio::select('tax_activation')->first();
         $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])->where('id', $id)->first();
 
         if (!$boughtItemDetails) {
             return response()->json(['error' => 'Bought Item Details not found'], 404);
         }
 
-        // \Log::info('Pre List ID:', ['pre_list_id' => $boughtItemDetails->pre_list_id]);
-
-        $warehouseItems = WarehouseItem::with('warehouseRelation')
-            ->where('buy_pre_id', (int) $boughtItemDetails->pre_list_id) // Ensure correct type
-            
-            ->where('unit_id', (int) $boughtItemDetails->unit_id)
-            ->get();
-
-        //  return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails, 'warehouseItems' => $warehouseItems]);
-        return view('buy.bought.editModalContent', compact('boughtItemDetails', 'warehouseItems', 'units'));
+        return view('buy.bought.editModalContent', compact('boughtItemDetails', 'units','tax_activation'));
     }
 
 
@@ -879,24 +805,16 @@ class BoughtDetailsController extends Controller
     public function updateItemAndWarehouseItems(Request $request)
     {
         // return response()->json(['formData' => $request->all()]);
+
         // Validate input data
         $validated = $request->validate([
             'id'                    => 'required|exists:bought_item_details,id',
             'amount'                => 'required|numeric|min:0',
-            'bought_up'             => 'required|numeric|min:0',
-            'discount'              => 'nullable|numeric|min:0',
-            'transport'             => 'nullable|numeric|min:0',
+            'buy_up'                => 'required|numeric|min:0',
             'unit_id'               => 'required|exists:units,id',
-            'warehouse_id'          => 'required|array',
-            'warehouse_id.*'        => 'required|numeric',
-            'pre_list_id'           => 'required|exists:warehouse_items,buy_pre_id',
-            'increment'             => 'nullable|array',
-            'increment.*'           => 'nullable|numeric|min:0',
-            'decrement'             => 'nullable|array',
-            'decrement.*'           => 'nullable|numeric|min:0',
-            'notification_amount'   => 'nullable|numeric|min:0',
-            'expire_date'           => 'nullable|date',
+            'pre_list_id'           => 'required',
             'times'                 => 'required|string',
+            "total"                 => 'required|numeric|',
         ]);
         
 
@@ -906,226 +824,74 @@ class BoughtDetailsController extends Controller
             $boughtItemDetails = BoughtItemDetails::findOrFail($validated['id']);
             $boughtItemDetails->update([
                 'amount' => $validated['amount'],
-                'bought_up' => $validated['bought_up'],
-                'discount' => $validated['discount'],
-                'transport' => $validated['transport'],
+                'buy_up' => $validated['buy_up'],
+                'pre_list_id' => $validated['pre_list_id'],
                 'unit_id' => $validated['unit_id'],
-                'total' => $validated['amount'] * $validated['bought_up'],
+                'total' => $validated['total'],
+                "buy_tax_per"  =>  $request->buy_tax_per,
+                "buy_tax_price" =>  $request->buy_tax_price,
+                "buy_up_vat" =>  $request->buy_up_vat,
+                "total_vat" =>  $request->total_vat,
+                "note"  =>  $request->note,
+                "sell_up" =>  $request->sell_up,
+                "sell_tax_per" =>  $request->sell_tax_per,
+                "sell_tax_price" =>  $request->sell_tax_price,
+                "sell_up_vat" =>  $request->sell_up_vat,
             ]);
 
             // Refresh the model to get the updated value
             $boughtItemDetails->refresh();
+            
+                /**
+                 * If multiple users are updating warehouseItems simultaneously, one update might override another.
+                 * Solution: Use optimistic locking with a version column or locking queries:
+                 */
+                $WarehouseItem = WarehouseItem::where('times', $validated['times'])
+                    ->where('buy_pre_id', $validated['pre_list_id'])
+                    ->where('unit_id', $validated['unit_id'])
+                    ->lockForUpdate() // Prevents race conditions
+                    ->first();
 
-            $updated_available_total = $boughtItemDetails->available_total;
-
-            // Update warehouse_items
-            $insertedBy = auth()->user()->full_name ?? '';
-
-              /**
-               * صرف اگر قیمت فی واحد و مقدار تغیر کرده بود باید قیمت ها در گدام تغیر کند
-               */
-              
-            if ((int) $request->old_bought_up !== (int) $validated['bought_up'] 
-               || (int)$request->old_amount !== (int)$validated['amount']) 
-            {
-
-                foreach ($validated['warehouse_id'] as $index => $warehouseId) 
-                {
-                    /**
-                     * If multiple users are updating warehouseItems simultaneously, one update might override another.
-                     * Solution: Use optimistic locking with a version column or locking queries:
-                     */
-                    $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
-                        ->where('buy_pre_id', $validated['pre_list_id'])
-                        ->where('unit_id', $validated['unit_id'])
-                        
-                        ->lockForUpdate() // Prevents race conditions
-                        ->first();
+                $old_amount = (float) $request->old_amount;
+                $amount = (float) $request->amount;
+                $diff = $amount - $old_amount;
     
-                    if (!$WarehouseItem) {
-                        continue; // Skip if not found
-                    }
-    
-                    // Update existing record if increment has value
-                    /***
-                     * Logic
-                     * first:  amount = 30; bought_up = 100; total = 30 * 100 = 3000;
-                     * second: amount = 10;  bought_up = 150; total = 10 *  150 = 1500; 
-                     * find out the new bought unit price ?
-                     * first_total + second_total  divided by amounts, new_unit_price = ((3000 + 1500) / 40) = 112.5
-                     * 
-                     * Question
-                     * suppose I have 100 items in stock and bought unit price was 150; total = 15000
-                     * now i have bought 5 items and bought unit price is 200, total = 1000
-                     * how to find unit price of 105 items ?
-                     * Formula:  New Unit Price = (Old Total Value + New Total Value) / Total Quantity
-                     * or new unit price = 15000 + 1000 / 105; =  152.38
-                     * 
-                    */
-                    if (!empty($validated['increment'][$index]) && $validated['increment'][$index] > 0) 
-                    {
-                        $increment_qty = $validated['increment'][$index];
-                        $increment_price = $validated['bought_up']; // New purchase price
-
-                        // Calculate new total for the incremented stock
-                        $increment_total = $increment_price * $increment_qty;
-
-                        // Update total stock amount
-                        $new_in_amount = $WarehouseItem->in_amount + $increment_qty;
-                        $available_amount  = $WarehouseItem->available_amount + $increment_qty;
-
-                        // Calculate the new weighted average price
-
-                        $new_total = $WarehouseItem->total + $increment_total;
-                        $new_avg_total = $WarehouseItem->available_total + $increment_total;
-                        $new_avg_up = ($available_amount > 0) ? ($new_avg_total / $available_amount) : 0;
-
-
-                        $WarehouseItem->update([
-                            'in_amount' => $new_in_amount,
-                            'available_amount' => $available_amount,
-                            'bought_up' => $validated['bought_up'], // store last bought_up
-                            'avg_up'    => $new_avg_up,
-                            'total' => $new_total, 
-                            'available_total' => $new_avg_up * $available_amount,
-                            'notification_amount' => $validated['notification_amount'] ?? 0,
-                            'unit_id' => $validated['unit_id'],
-                            'inserted_by' => $insertedBy,
-                            'expire_date' => $validated['expire_date'] ?? null,
-                            'times' => $validated['times'],
-                        ]);
-                    } 
-                    // decreate the amounts
-                    else if (!empty($validated['decrement'][$index]) && $validated['decrement'][$index] > 0) 
-                    {
-                        $decrement_qty = $validated['decrement'][$index];
-                        $decrement_price = $validated['bought_up']; // New purchase price
-
-                        // Calculate how much value needs to be removed from the total
-                        $decrement_total = $decrement_price * $decrement_qty;
-
-                        // Update total stock amount
-                        $new_in_amount = $WarehouseItem->in_amount - $decrement_qty;
-                        $available_amount  = $WarehouseItem->available_amount - $decrement_qty;
-
-                        // Calculate the new weighted average price
-                        $new_total = $WarehouseItem->total - $decrement_total;
-                        $new_avg_total = $WarehouseItem->available_total - $decrement_total;
-                        $new_avg_up = ($available_amount > 0) ? ($new_avg_total / $available_amount) : 0;
-                        
-                        $WarehouseItem->update([
-                            'in_amount' => $new_in_amount,
-                            'available_amount' => $available_amount,
-                            'bought_up' => $validated['bought_up'], // store last bought_up
-                            'avg_up'    => $new_avg_up,
-                            'total' => $new_total, 
-                            'available_total' => $new_avg_up * $available_amount,
-                            'notification_amount' => $validated['notification_amount'] ?? 0,
-                            'unit_id' => $validated['unit_id'],
-                            'inserted_by' => $insertedBy,
-                            'expire_date' => $validated['expire_date'] ?? null,
-                            'times' => $validated['times'],
-                        ]);
-                    }
-                    else 
-                    {
-
-                         /**
-                         * ==========  قیمت فی واحد تغیر کرده باشد ===========
-                         * باید مقدار سابق با قیمت سابق شان از مجموع کم شود
-                         * قیمت فعلی با مقدار شان در مجموع اضافه شود
-                         * قیمت اوسط نیز دریافت گردد
-                         */
-
-                        /**
-                         * suppose I have 100 items in stock and bought unit price was 150; total = 15000 saved in table
-                         * now i have bought 5 items and bought unit price is 200, total = 1000  saved in table
-                         * then i will update just the unit price or just last entry  and change from 200 to 180
-                         * how to find average of unit price and then mulitply to findout the total ?
-                         * 
-                         * Formula
-                         * New Average Unit Price = (Total Previous Quantity + New Quantity) / (Total Previous Cost + New Purchase Cost) 
-                         * 
-                         * 
-                         * 
-                         */
-
-                        // ---------------- Update new unit price -----------------------------
-                        if ((int) $request->old_bought_up !== (int) $validated['bought_up']) {
-                            
-
-                            // Check if the bought_up has increased or decreased
-                            if ($validated['bought_up'] > $request->old_bought_up) 
-                            {
-                                // Case: Increase in bought_up
-
-                                // Calculate the new total for the bought items
-                                $just_new_increased_price_per_item = $validated['bought_up'] - $request->old_bought_up;
-                                // increased_price
-                                $just_new_increased_price_total = $just_new_increased_price_per_item * $validated['amount'];
-                                $new_total = $WarehouseItem->total + $just_new_increased_price_total;
-
-                                // ChatGPT Suggestion
-                                // $new_avg_up = ($WarehouseItem->available_total + ($validated['amount'] * $validated['bought_up'])) / ($WarehouseItem->available_total + $validated['amount']);
-
-
-                                $new_available_total = $WarehouseItem->available_total + $just_new_increased_price_total;
-                                $available_amount = $WarehouseItem->available_amount;
-
-                                // Update the bought_up and total values accordingly
-                                $new_avg_up = ($available_amount > 0) ? ($new_available_total / $available_amount) : 0;
-
-                        
-                                $WarehouseItem->update([
-                                    'bought_up' => $validated['bought_up'],
-                                    'avg_up' => $new_avg_up,
-                                    'total' => $new_total,
-                                    'available_total' => $new_avg_up * $available_amount,
-                                    'notification_amount' => $validated['notification_amount'] ?? 0,
-                                    'unit_id' => $validated['unit_id'],
-                                    'inserted_by' => $insertedBy,
-                                    'expire_date' => $validated['expire_date'] ?? null,
-                                    'times' => $validated['times'],
-                                ]);
-
-                            } 
-                            elseif ($validated['bought_up'] < $request->old_bought_up) 
-                            {
-                                // Case: Decrease in bought_up
-                        
-                                // Calculate the new total for the bought items
-                                $just_new_decrease_price_per_item = $request->old_bought_up - $validated['bought_up'];
-                                // decrease_price
-                                $just_new_decrease_price_total = $just_new_decrease_price_per_item * $validated['amount'];
-                                   
-                                $new_total = $WarehouseItem->total - $just_new_decrease_price_total;
-
-                                $new_available_total = $WarehouseItem->available_total - $just_new_decrease_price_total;
-                                $available_amount = $WarehouseItem->available_amount;
-
-                                // Update the bought_up and total values accordingly
-                                $new_avg_up = ($available_amount > 0) ? ($new_available_total / $available_amount) : 0;
-                        
-                                $WarehouseItem->update([
-                                    'bought_up' => $validated['bought_up'],
-                                    'avg_up' => $new_avg_up,
-                                    'total' => $new_total,
-                                    'available_total' => $new_avg_up * $available_amount,
-                                    'notification_amount' => $validated['notification_amount'] ?? 0,
-                                    'unit_id' => $validated['unit_id'],
-                                    'inserted_by' => $insertedBy,
-                                    'expire_date' => $validated['expire_date'] ?? null,
-                                    'times' => $validated['times'],
-                                ]);
-                            }
-                        }
-    
-                    }
+                // out_amount: amount that has been sold/used
+                // in_amount: total purchased amount
+                // available_amount: current stock
+                $in_amount = $WarehouseItem->in_amount + $diff;
+                $available_amount = $WarehouseItem->available_amount + $diff;
+                $out_amount = $WarehouseItem->out_amount; // Keep out_amount as is unless sold
+                
+                 // Prevent negative values
+                if (!$WarehouseItem || $available_amount < 0) {
+                   
+            
+                    Session::put('notification', [
+                        'message' => __('common.update_failed'),
+                        'type' => 'danger',
+                    ]);
+                     return redirect()->route('boughtList.edit', ['times' => $validated['times']]);
                 }
 
-            }
-        
-
+                $WarehouseItem->update([
+                    'in_amount' => $in_amount , 
+                    "out_amount" => $out_amount,
+                    "available_amount" => $available_amount,
+                    'buy_up' => $validated['buy_up'],
+                    'unit_id' => $validated['unit_id'],
+                    'total' => $validated['total'],
+                    "buy_tax_per"  =>  $request->buy_tax_per,
+                    "buy_tax_price" =>  $request->buy_tax_price,
+                    "buy_up_vat" =>  $request->buy_up_vat,
+                    "total_vat" =>  $request->total_vat,
+                    "note"  =>  $request->note,
+                    "sell_up" =>  $request->sell_up,
+                    "sell_tax_per" =>  $request->sell_tax_per,
+                    "sell_tax_price" =>  $request->sell_tax_price,
+                    "sell_up_vat" =>  $request->sell_up_vat,
+                ]);
+                
             DB::commit();
             Session::put('notification', [
                 'message' => __('common.updated_successfully'),
@@ -1193,83 +959,51 @@ class BoughtDetailsController extends Controller
     /**
      * delete a single item during buying form
      */
-    public function deleteSingleItem(Request $request)
+    public function deleteSingleItem(Request $request, $id)
     {
         DB::beginTransaction();
-    
-        try {
-            // Get BoughtItemDetails and delete based on bought_item_details_id
-            $boughtItemDetails = BoughtItemDetails::findOrFail($request->delete_id);
-            $boughtItemDetailsUnitId = $boughtItemDetails->unit_id ?? 0;
-            $boughtItemDetails->delete();
-    
-            // Ensure the current user ID or another identifier is set for inserted_by
-            $insertedBy = auth()->user()->id;
-    
-            // Process WarehouseItems
-            foreach ($request->warehouse_id as $index => $warehouseId) 
-            {
-                $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
-                ->where('buy_pre_id', $request->preListId)
-                ->where('unit_id', $boughtItemDetailsUnitId)
-                
-                ->first();
-    
-                if (!$WarehouseItem) {
-                    continue; // Skip if not found
-                }
-    
-                // Handle deletion or decrement
-                if ($request->delete_amount > 0) 
-                {
-                    if ($request->decrement[$index] == $WarehouseItem->available_amount) {
-                        $WarehouseItem->delete(); // Delete if available matches decrement
-                    } 
-                    elseif ($WarehouseItem->available_amount > $request->decrement[$index]) 
-                    {
-                        // Adjust stock values
-                        $newTotal = $WarehouseItem->total - ($WarehouseItem->bought_up * $request->decrement[$index]);
-                        $new_avg_total = $WarehouseItem->available_total - ($WarehouseItem->avg_up * $request->decrement[$index]);
 
-                        $newInAmount = $WarehouseItem->in_amount - $request->decrement[$index];
-                        $availableAmount = $WarehouseItem->available_amount - $request->decrement[$index];
-                  
-                        // Ensure stock never goes negative
-                        if ($newInAmount < 0 || $new_avg_total < 0) {
-                            throw new \Exception("Stock cannot be negative for warehouse ID: $warehouseId");
-                        }
-    
-                        // Update WarehouseItem
-                        $WarehouseItem->update([
-                            'in_amount' => $newInAmount,
-                            'available_amount' => $availableAmount,
-                            'total' => $newTotal,
-                            'available_total' => $new_avg_total,
-                            'inserted_by' => $insertedBy // Ensure this is defined
-                        ]);
-                    }
-                }
+        try {
+            // Get BoughtItemDetails
+            $boughtItemDetails = BoughtItemDetails::findOrFail($id);
+            $boughtItemDetailsUnitId = $boughtItemDetails->unit_id ?? 0;
+            $boughtItemDetailsPreListId = $boughtItemDetails->pre_list_id ?? 0;
+            $boughtItemDetailsTimes = $boughtItemDetails->times ?? 0;
+            
+            // Delete the bought item detail
+            $boughtItemDetails->delete();
+
+            // Find and delete the warehouse item
+            $WarehouseItem = WarehouseItem::where('times', $boughtItemDetailsTimes)
+                ->where('buy_pre_id', $boughtItemDetailsPreListId)
+                ->where('unit_id', $boughtItemDetailsUnitId)
+                ->first(); // Add ->first() to get the model instance
+
+            // Check if warehouse item exists before deleting
+            if ($WarehouseItem) {
+                $WarehouseItem->delete();
             }
-    
+
             DB::commit();
-    
+
             Session::put('notification', [
                 'message' => __('common.deleted_successfully'),
                 'type' => 'success',
             ]);
-    
-            return redirect()->route('boughtList.edit', ['times' => $request->times]);
+
+            return redirect()->route('boughtList.edit', ['times' => $boughtItemDetailsTimes]);
+
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             \Log::error('Error deleting records: ' . $e->getMessage());
-    
+
             Session::put('notification', [
                 'message' => __('common.delete_failed'),
                 'type' => 'danger',
             ]);
-    
-            return redirect()->route('boughtList.edit', ['times' => $request->times] );
+
+            return redirect()->route('boughtList.edit', ['times' => $boughtItemDetailsTimes ?? 0]);
         }
     }
     
@@ -1398,8 +1132,8 @@ class BoughtDetailsController extends Controller
             }
 
             // Check if all items belong to same supplier
-            $supplierId = $boughtItems->first()->customer_account_id;
-            $differentSupplier = $boughtItems->where('customer_account_id', '!=', $supplierId)->count() > 0;
+            $supplierId = $boughtItems->first()->supplier_account_id;
+            $differentSupplier = $boughtItems->where('supplier_account_id', '!=', $supplierId)->count() > 0;
             
             if ($differentSupplier) {
                 return response()->json([
@@ -1446,8 +1180,8 @@ class BoughtDetailsController extends Controller
                         'bought_item_id' => $boughtItem->id,
                         'pre_list_id' => $detail->pre_list_id,
                         'amount' => $detail->amount,
-                        'unit_price' => $detail->bought_up,
-                        'tax_percentage' => $detail->buy_tax_percentage ?? 0,
+                        'unit_price' => $detail->buy_up,
+                        'tax_per' => $detail->buy_tax_per ?? 0,
                         'tax_amount' => $detail->buy_tax_price ?? 0,
                         'total' => $detail->total,
                         'times' => time()

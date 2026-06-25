@@ -94,15 +94,19 @@ return [
 
     'buy_tax_percentage' => 'فیصدی مالیات برخرید',
     'buy_tax_price' => 'مبلغ مالیات خرید',
-    'total_buy_with_tax' => 'مبلغ مجموعی با مالیات',
+    'total_buy_with_tax' => ' مجموع با مالیات',
+    'buy_up_vat' => ' فیات با مالیات',
 
     'buy_tax_percentage_s' => 'فیصدی مالیات ',
     'buy_tax_price_s' => 'مبلغ مالیات ',
     'total_buy_with_tax_s' => 'مبلغ مجموعی ',
 
-    'sales_tax_percentage' => 'فیصدی مالیات برفروشات',
+    'sales_tax_percentage' => 'فیصدی مالیات',
     'sales_tax_price' => 'مبلغ مالیات فروشات',
+    'sell_tax_price' => 'مبلغ مالیات ',
     'total_sales_with_tax' => 'مبلغ مجموعی با مالیات',
+    'sell_up_vat' => ' فیات با مالیات',
+    
 
     // In resources/lang/fa/buy.php
     'generate_invoice' => 'ایجاد فاکتور',
@@ -140,5 +144,7 @@ return [
     'notes' => 'یادداشت‌ها',
     'invoice_generated_from_bought_items' => 'فاکتور از خریدهای انتخاب شده ایجاد شد',
     'generate_invoice' => 'ایجاد انوایس اتومات',
+    'buy_up' => 'فیات خرید',
+    'tax' => 'مالیات',
 
 ];

@@ -54,6 +54,9 @@ select.select2{text-align:right !important;direction:rtl !important;}
                         <input type="hidden" name="times" value="{{ $times; }}"> 
                         <input type="hidden" name="journal_code" value="{{ $newJournalCode; }}"> 
                         <input type="hidden" name="tax_activation" value="{{$tax->tax_activation}}">
+                        <!-- <input type="hidden2" name="total_price" value="0" id="total_price_no_tax"> -->
+                         <input type="hidden" name="currency_id" value="{{$currencies->first()->id}}" >
+
 
                         <!-- {{ json_encode(auth()->user()->full_name) }} -->
                         <!-- {{ json_encode(auth()->user()->id) }} -->
@@ -79,14 +82,14 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                     <!-- First Row -->
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="customer_account_id"> {{__('order.supplier_selection')}} <span class="danger">*</span></label>
-                                                    <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
+                                                    <label for="supplier_account_id"> {{__('order.supplier_selection')}} <span class="danger">*</span></label>
+                                                    <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="supplier_account_id" id="supplier_account_id" required>
                                                         <option value="">  {{__('order.supplier_name')}} </option>
-                                                        @foreach($customers as $customer)
-                                                            <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
+                                                        @foreach($suppliers as $supplier)
+                                                            <option value="{{ $supplier->id }}">  {{ $supplier->name }} </option>
                                                         @endforeach
                                                     </select>
-                                                    @error('customer_account_id')
+                                                    @error('supplier_account_id')
                                                         <span style='color:red'>{{ $message }}</span>
                                                     @enderror
                                             </div>
@@ -162,38 +165,39 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
-                                                <label for="bought_up">{{__('common.unit_price')}}<span class="danger">*</span> </label>
-                                                <input class="form-control" name="bought_up" id='bought_up' type="number" step="0.01"  oninput="recalculateEachTotal(this)" >
+                                                <label for="buy_up">{{__('common.unit_price')}}<span class="danger">*</span> </label>
+                                                <input class="form-control" name="buy_up" id='buy_up' type="number" step="0.01"
+                                                oninput="calculateTotalPrice(this.value)">
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
-                                                <label for="note">{{__('common.currency')}} <span class="danger">*</span>  </label>
-                                                <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="currency_id" required>
-                                                    <!-- <option value="">حساب پرداخت کننده</option> -->
-                                                    @foreach($currencies as $cur)
-                                                        <option value="{{ $cur->id }}">{{ $cur->name }}</option>
-                                                    @endforeach
-                                                </select>
+                                                <label for="total_price">{{__('common.total')}}<span class="danger">*</span> </label>
+                                                <input class="form-control" name="total_price" id='total_price_no_tax' type="number" step="0.01" >
                                             </div>
                                     <!-- / Second Row -->
 
                                     <!-- Third Row -->
+                                     <!-- VAT = Value Added Tax -->
                                         @if(intval($tax->tax_activation) === 1) 
                                             <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
-                                               <label for="tax_percentage">  {{__('buy.buy_tax_percentage')}} </label>
-                                                <input class="form-control" name="buy_tax_percentage" id="buy_tax_percentage" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100 
+                                               <label for="buy_tax_per">  {{__('buy.buy_tax_percentage')}} </label>
+                                                <input class="form-control" name="buy_tax_per" id="buy_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100 
                                                 oninput="calculateTax(this.value);" >
                                             </div>
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
-                                                <label for="tax_price"> {{__('buy.buy_tax_price')}} </label>
+                                            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+                                                <label for="buy_tax_price"> {{__('buy.buy_tax_price')}} </label>
                                                 <input class="form-control" name="buy_tax_price" id="buy_tax_price"  type="number" step="0.01" >
                                             </div>
 
-                                            <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
-                                                <label for="total"> {{__('buy.total_buy_with_tax')}} </label>
-                                                <input class="form-control" name="total_buy_with_tax" id="total_buy_with_tax"  type="number" 
-                                                step="0.01" >
+                                            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+                                                <label for="buy_up_vat"> {{__('buy.buy_up_vat')}} </label>
+                                                <input class="form-control" name="buy_up_vat" id="buy_up_vat"  type="number" step="0.01" >
+                                            </div>
+
+                                            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+                                                <label for="total_vat"> {{__('buy.total_buy_with_tax')}} </label>
+                                                <input class="form-control" name="total_vat" id="total_vat"  type="number" step="0.01" >
                                             </div>
                                             
                                       @endif
@@ -286,27 +290,54 @@ function showNotification(message, type = 'info', from = 'top', align = 'center'
     });
 }
 
+function calculateTotalPrice(buy_up)
+{
+    var buyUp = parseFloat(buy_up) || 0;
+    var amount = parseFloat($('#amount').val()) || 0;
+    var total = (buyUp * amount).toFixed(2);
+    $('#total_price_no_tax').val(total);
+}
+
 function calculateTax(tax_percent) {
     var taxPercent = parseFloat(tax_percent) || 0;
-    var amount = parseFloat($('#amount').val()) || 0;
-    var boughtUp = parseFloat($('#bought_up').val()) || 0;
-    var curTotal = amount * boughtUp;
-    // 1000  = 100%
-    //  x    = 15% 
-    //  x = 1000 * 15 / 100
-    var curTaxPrice = ((curTotal * taxPercent) / 100).toFixed(2);
-    $('#buy_tax_price').val(curTaxPrice);
-    $('#total_buy_with_tax').val((curTotal + parseFloat(curTaxPrice)).toFixed(2));
+    var quantity = parseFloat($('#amount').val()) || 0;
+    var unitPrice = parseFloat($('#buy_up').val()) || 0;
+    
+    // Calculate totals
+    var curTotal = quantity * unitPrice;  // Total without VAT
+    var taxAmount = (curTotal * taxPercent) / 100;  // Total VAT amount
+    
+    // Update fields with proper formatting
+    $('#buy_tax_price').val(taxAmount.toFixed(2));  // Total tax amount //مبلغ مالیات خرید
+    
+    // Unit price WITH VAT (per item)
+    var unitPriceWithVAT = unitPrice + taxAmount;
+    $('#buy_up_vat').val(unitPriceWithVAT.toFixed(2)); // فیات با مالیات
+    
+    // Total WITH VAT (all items)
+    var totalWithVAT = unitPriceWithVAT * quantity;  // Total with VAT
+    $('#total_vat').val(totalWithVAT.toFixed(2)); // مجموع با مالیات
 }
 
 function calculateSalesTax(sales_tax_percent) {
     var salesTaxPercent = parseFloat(sales_tax_percent) || 0;
-    var amount = parseFloat($('#amount').val()) || 0;
-    var sellUp = parseFloat($('#sell_up').val()) || 0;
-    var curTotal = amount * sellUp;
-    var curSalesTaxPrice = ((curTotal * salesTaxPercent) / 100).toFixed(2);
-    $('#sales_tax_price').val(curSalesTaxPrice);
-    $('#total_sales_with_tax').val((curTotal + parseFloat(curSalesTaxPrice)).toFixed(2));
+    var quantity = parseFloat($('#amount').val()) || 0;
+    var unitPrice = parseFloat($('#sell_up').val()) || 0;
+    
+    // Calculate totals
+    var totalWithoutTax = quantity * unitPrice;  // Total without VAT
+    var totalTaxAmount = (totalWithoutTax * salesTaxPercent) / 100;  // Total VAT
+    
+    // Update fields with proper formatting
+    $('#sell_tax_price').val(totalTaxAmount.toFixed(2));  // Total tax amount
+    
+    // Unit price WITH VAT (per item)
+    var unitPriceWithTax = unitPrice + totalTaxAmount;
+    $('#sell_up_vat').val(unitPriceWithTax.toFixed(2));
+    
+    // Total WITH VAT (all items)
+    var totalWithTax = unitPriceWithTax * quantity;  // Total with VAT
+    $('#total_sales_with_tax').val(totalWithTax.toFixed(2));
 }
 
 
@@ -366,9 +397,6 @@ function submiteBuyingForm()
                     $('#amount').val('');
                     $('#unit_id').val('');
                     $('#bought_up').val('');
-                    $('#expire_date').val('');
-                    $('#discount').val('0');
-                    $('#transport').val('0');
                     $('#buy_tax_percentage').val(0),
                     $('#buy_tax_price').val(0);
                     $('#total_buy_with_tax').val(0);

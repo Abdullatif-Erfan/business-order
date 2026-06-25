@@ -4,10 +4,10 @@
             <tr style="background:#e9fffe">
                 <th style="width:20%">{{__('wh.item_selection')}}</th>
                 <th style="width:10%">{{__('common.amount')}}</th>
-                <th style="width:10%">{{__('common.unit')}}</th>
-                <th style="width:10%"> {{__('wh.average')}}</th>
+                <th style="width:10%"> {{__('buy.buy_up')}}</th>
                 <th style="width:10%">{{__('sales.sold_up')}}</th>
-                <th style="width:10%">{{__('buy.discount')}}</th>
+                <th style="width:10%">{{__('buy.sales_tax_percentage')}}</th>
+                <th style="width:10%">{{__('buy.sales_tax_price')}}</th>
                 <th style="width:12%">{{__('sales.profit')}}</th>
                 <th style="width:15%">{{__('common.total')}}</th>
                 <th style="width:15%">{{__('common.add')}}</th>
@@ -20,33 +20,28 @@
                         @foreach($warehouseItems as $item)
                             <option value="{{ $item->id }}"
                                 data-available-amount="{{ $item->available_amount }}"
-                                data-unit-name="{{ $item->unit_name }}"
                                 data-unit-id="{{ $item->unit_id }}"
                                 data-avg-up="{{ $item->avg_up }}"
                                 data-sell-up="{{ $item->sell_up }}"
                                 data-warehouse-id="{{ $item->warehouse_id }}"
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 >
-                                {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})
-                                - {{ $item->warehouse_name }}
-                                @if(session('package_type') == 4)
-                                  / ( کد = {{ $item->code }}  ) 
-                                @endif
-                                                          
+                                {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})               
                             </option>
                         @endforeach
                     </select>
                 </td>
-                <td><input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required></td>
                 <td>
-                    <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
+                    <input name="amount[]" class="form-control amount" type="number" step="0.01" placeholder="{{__('common.amount')}}" required>
+                 
+                    <!-- hidden fields -->
+                     <input name="unit_id[]" class="form-control unit-id" type="hidden" readonly required>
                     <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
                     <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly required>
-                    <input name="unit_name[]" class="form-control unit-name" type="text" readonly required>  
-
                 </td>
                 <td><input name="avg_up[]" class="form-control avg-up" type="number" step="0.01" required></td>
                 <td><input name="sell_up[]" class="form-control sell-up" type="number" step="0.01" required></td>
+                <td></td>
                 <td><input name="discount[]" class="form-control discount" type="number" step="0.01"  value="0" ></td>
                 <td><input name="profit[]" class="form-control profit" type="number" step="0.01" readonly required></td>
                 <td><input name="total[]" class="form-control total" value="0" type="number" step="0.01" readonly required></td>
@@ -143,7 +138,6 @@ $(document).ready(function () {
     // Handle item select change
     $(document).on('change', '.item-select', function () {
         var selectedOption = $(this).find(':selected');
-        var unitName = selectedOption.data('unit-name');
         var unitId = selectedOption.data('unit-id');
         var warehouseId = selectedOption.data('warehouse-id');
         var preListId = selectedOption.data('pre-list-id');
@@ -151,8 +145,6 @@ $(document).ready(function () {
         var sellUp = selectedOption.data('sell-up');
         var availableAmount = selectedOption.data('available-amount');
         var row = $(this).closest('tr');
-
-        row.find('.unit-name').val(unitName);
         row.find('.unit-id').val(unitId);
         row.find('.warehouse-id').val(warehouseId);
         row.find('.pre-list-id').val(preListId);

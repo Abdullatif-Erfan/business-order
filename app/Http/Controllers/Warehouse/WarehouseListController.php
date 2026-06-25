@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Session;
 // use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
 // use App\Models\Setting\Branch;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
@@ -26,14 +26,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class WarehouseListController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -46,12 +44,9 @@ class WarehouseListController extends Controller
         $currencies = Currency::all();
         // $branches = Branch::all();
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
-        $warehouse = Warehouse::select('id','name')->where('id',$id)->where('branch_id', $this->branch_id)->first();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $warehouse = Warehouse::select('id','name')->where('id',$id)->first();
         
-        // $WarehouseItem = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])->where('warehouse_id',$id)->get();
-        // return response()->json(['data' => $warehouse]);
-
         return view('warehouseitem.list',compact('currencies','todaysDate','orgbios','warehouse'));
     }
 
@@ -69,7 +64,6 @@ class WarehouseListController extends Controller
         $warehouse_id = $request->input('warehouse_id');
         $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
         ->where('warehouse_id', $warehouse_id)
-        ->where('branch_id', $this->branch_id)
         ->orderBy('id','DESC')
         ->orderBy('buy_pre_id','DESC');
             
@@ -135,7 +129,7 @@ class WarehouseListController extends Controller
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $warehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
         ->where('id', $id)->get();
-        $warehouse = Warehouse::select('name')->where('id',$warehouseItems->first()->warehouse_id)->where('branch_id', $this->branch_id)->first();
+        $warehouse = Warehouse::select('name')->where('id',$warehouseItems->first()->warehouse_id)->first();
 
         //  return response()->json(['warehouseItems' => $WarehouseItems]);
 
@@ -148,8 +142,8 @@ class WarehouseListController extends Controller
     public function getWarehouseItemForTransfer(string $id)
     {
         $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation'])
-        ->where('branch_id', $this->branch_id)->where('id', $id)->first();
-        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
+        ->where('id', $id)->first();
+        $warehouses = Warehouse::select('id','name')->get();
         $units = Unit::all();
         // return response()->json(['data' => $warehouseItems]);
         // return response()->json(['data' => $warehouse]);
@@ -163,9 +157,9 @@ class WarehouseListController extends Controller
     public function getWarehouseItemForConversion(string $id)
     {
         $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation','currencyRelation'])
-        ->where('branch_id', $this->branch_id)->where('id', $id)->first();
+        ->where('id', $id)->first();
 
-        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
+        $warehouses = Warehouse::select('id','name')->get();
         $default_currency = Currency::select('id','name','symbols')->where('is_base','=','yes')->first();
         $units = Unit::all();
         // return response()->json(['data' => $warehouseItems]);
@@ -207,7 +201,7 @@ class WarehouseListController extends Controller
             // **Destination Warehouse**
             $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
                 ->where('warehouse_id', $validated['distination_warehouse_id'])
-                ->where('branch_id', $this->branch_id)
+                
                 ->where('unit_id', $validated['unit_id'])
                 ->first();
 
@@ -218,7 +212,6 @@ class WarehouseListController extends Controller
                 // \Log::info('Create New Record in Warehouse during transfer');
                 // Create new record in destination warehouse
                 $distWareHouseItem = new WarehouseItem();
-                $distWareHouseItem->branch_id = $this->branch_id ?? 0;
                 $distWareHouseItem->name = $validated['item_name'] ?? '';
                 $distWareHouseItem->warehouse_id = $validated['distination_warehouse_id'];
                 $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
@@ -323,7 +316,7 @@ class WarehouseListController extends Controller
             $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
                 ->where('warehouse_id', $validated['source_warehouse_id'])
                 ->where('unit_id', $validated['new_unit_id'])
-                ->where('branch_id', $this->branch_id)
+                
                 ->first();
 
             if (!$distWareHouseItem) // اگر ریکارد قبلی وجود نداشته باشد باید ثبت شود.
@@ -341,7 +334,6 @@ class WarehouseListController extends Controller
                 //     $avg_up  =  (($validated['convertable_amount'] / $validated['converted_amount']) * $sourceWareHouseItem->avg_up);
                 // }
                 $distWareHouseItem = new WarehouseItem();
-                $distWareHouseItem->branch_id = $this->branch_id ?? 0;
                 $distWareHouseItem->name = $validated['item_name'] ?? '';
                 $distWareHouseItem->warehouse_id = $validated['source_warehouse_id'];
                 $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
@@ -435,8 +427,8 @@ class WarehouseListController extends Controller
         // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
        
         $currencies = Currency::select('id','name')->get();
-        $warehouses = Warehouse::select('id','name')->where('branch_id', $this->branch_id)->get();
-        $preLists = BuyPreList::select('id','name','code','branch_id')->where('branch_id', $this->branch_id)->get();
+        $warehouses = Warehouse::select('id','name')->get();
+        $preLists = BuyPreList::select('id','name','code')->get();
 
         $todaysDate = Jalalian::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
@@ -542,7 +534,7 @@ class WarehouseListController extends Controller
             $WarehouseItem = WarehouseItem::where('warehouse_id', $warehouseId)
                 ->where('buy_pre_id', $request->pre_list_id)
                 ->where('unit_id', $request->unit_id)
-                ->where('branch_id', $this->branch_id)
+                
                 ->first();
     
             $warehouseAmount = $request->warehouse_amount[$index];
@@ -586,7 +578,6 @@ class WarehouseListController extends Controller
                     'wastage_amount' => $request->wastage_amount ?? 0,
                     'wastage_total' => $request->wastage_total ?? 0,
                     'unit_id' => $request->unit_id,
-                    'branch_id' => $this->branch_id ?? 0,
                     'bought_up' => $request->bought_up,
                     'avg_up' => $request->bought_up,
                     'sell_up' => $request->warehouse_sell_up[$index],
@@ -744,7 +735,7 @@ class WarehouseListController extends Controller
         // return response()->json(['message' => 'Debugging getData', 'request' => $request->all()]);
 
         $WarehouseItems = WarehouseItem::with(['warehouseRelation','currencyRelation','unitRelation','preListRelation'])
-        ->where('branch_id', $this->branch_id)
+        
         ->orderBy('id','DESC')
         ->orderBy('buy_pre_id','DESC');
             

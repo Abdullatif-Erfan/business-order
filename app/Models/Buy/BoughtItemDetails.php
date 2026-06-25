@@ -11,8 +11,19 @@ class BoughtItemDetails extends Model
 {
     protected $table = 'bought_item_details';
 
-    protected $fillable = ['billno', 'bought_item_id','customer_account_id','pre_list_id', 'amount', 'bought_up', 'sell_up', 'unit_id',
-    'buy_tax_percentage', 'buy_tax_price', 'sales_tax_percentage', 'sales_tax_price', 'total', 'is_moved', 'times'];
+    protected $fillable = ['billno', 'bought_item_id','supplier_account_id','pre_list_id', 'amount', 'unit_id', 
+    'buy_up', 'buy_tax_per','buy_tax_price', 'buy_up_vat', 'total', 'total_vat', 'sell_up','sell_tax_per','sell_tax_price','sell_up_vat',
+    'is_moved', 'times','user_id','user_name'];
+
+    // buy_up
+    //     buy_tax_per,
+    //     buy_up_vat,
+    //     total,
+	// total_vat
+
+    //     sell_up,
+    //     sell_tax_per,
+    //     sell_up_vat
 
     public function boughtItemRelation()
     {
@@ -31,7 +42,7 @@ class BoughtItemDetails extends Model
 
     public function accountRelation()
     {
-        return $this->belongsTo(Account::class,'customer_account_id','id');
+        return $this->belongsTo(Account::class,'supplier_account_id','id');
     }
     
 }

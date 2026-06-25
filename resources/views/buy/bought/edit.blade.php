@@ -55,7 +55,6 @@
                              <input type="hidden" name="times" value="{{ $boughtItems->first()->times }}">
                              <input type="hidden" name="todays_date" value="{{ $boughtItems->first()->idate ?? '' }}">
                              <input type="hidden" name="journal_code" value="{{ $journal_code->code ?? '' }}">
-                             <input type="hidden" name="branch_id" value="{{ $journal_code->branch_id ?? '' }}">
                              <input type="hidden" name="customer_account_id" value="{{ $boughtItemDetails->first()->accountRelation->id ?? '' }}">
                              
                              
@@ -108,8 +107,8 @@
                                                         <th width="100"> {{__('common.unit_price')}} </th>
 
                                                          @if($orgbios[0]->tax_activation === 1)
-                                                        <th>{{__('buy.buy_tax_percentage')}}</th>
-                                                        <th>{{__('buy.buy_tax_price')}}</th>
+                                                        <th>{{__('buy.buy_tax_percentage_s')}}</th>
+                                                        <th>{{__('buy.buy_tax_price_s')}}</th>
                                                         @endif
                                                         <th>{{__('common.total_price')}}</th>
 
@@ -118,23 +117,40 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach($boughtItemDetails as $key => $detail)
                                                     @php
-                                                        $grandTotal += $detail->amount * $detail->bought_up;
+                                                    $grandTotal = $orgbios[0]->tax_activation === 1 ? 
+                                                         number_format($boughtItems->first()->total_vat,2):  
+                                                         number_format($boughtItems->first()->total,2) 
                                                     @endphp
+                                                    @foreach($boughtItemDetails as $key => $detail)
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{$detail->accountRelation->name}} </td>
                                                         <td>{{ $detail->preListRelation->name }}</td>
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
-                                                        <td>{{ number_format($detail->bought_up,2) }}</td>
-                                                         <td> {{$detail->buy_tax_percentage}} % </td>
+                                                        <td>{{ number_format($detail->buy_up,2) }}</td>
+                                                         <td> % {{$detail->buy_tax_per}}  </td>
                                                          <td> {{$detail->buy_tax_price}} </td>
-                                                        <td>{{ number_format($detail->total,2)}}</td>
+                                                        <td>
+                                                            @if($orgbios[0]->tax_activation === 1)
+                                                            {{number_format($detail->total_vat,2)}}  
+                                                            @else 
+                                                            {{number_format($detail->total,2)}} 
+                                                            @endif
+                                                        </td>
                                                     
                                                         <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>
-                                                        <td class="hidden-print"><i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i></td>
+
+                                                        <td class="hidden-print">
+                                                         @if(auth()->user()->hasAccess('buy','delete_records'))
+                                                            <a href="{{ route('boughtList.deleteSingleItem', $detail->id) }}"  
+                                                                 onClick="return doConfirm();" class="hidden-print">
+                                                                <i class="fas fa-trash-alt danger font-20"></i> 
+                                                            </a>
+                                                            @endif
+                                                          </td>
+                                                        <!-- <i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i> -->
                                                     </tr>
                                                     @endforeach
                                                 </tbody>
@@ -144,14 +160,14 @@
                                             <tr>
                                                 <td> {{__('buy.total_price')}} &nbsp; </td>
                                                 <td><input type="number" step="0.01"  class="form-control" name="total_price" id="total_price" required readonly
-                                                value="{{ $grandTotal }}" ></td>
+                                                value="{{  $grandTotal }}" ></td>
                                                 <td> {{__('buy.cur_pay')}} </td>
                                                 <td><input type="number" step="0.01"  class="form-control" name="cur_pay" required
                                                 value="{{ $boughtItems->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" >
                                                 </td>
                                                 <td> {{__('buy.remained')}} </td>
                                                 <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
-                                                value="{{ $payable - $boughtItems->first()->cur_pay }}" ></td>
+                                                value="{{  number_format($boughtItems->first()->remained,2) }}" ></td>
                                             </tr>
                                             <tr>
                                                <td>{{__('buy.note')}} </td>
@@ -238,32 +254,6 @@
 </div>
 
 
-<!-- delete modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
-            <form action="{{ route('boughtList.deleteSingleItem')}}" method="POST">
-            @csrf
-            <div class="modal-header">
-                <h5 class="modal-title"> {{__('common.delete')}} </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="deleteModalContent"></div>
-                <div id="loading_delete" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin font-20"></i>{{__('common.loading')}}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{__('common.close')}}</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="delete_button" >{{__('common.confirm')}}</button>
-            </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 
 <script>
@@ -310,12 +300,12 @@
     }
 
     
-    function deleteThisRecord(boughtItemId)
+    function deleteThisRecord(times)
     {
         $('#deleteModal').modal('show');
         $('#loading_delete').show();
         $.ajax({
-            url: `/boughtList/getWarehouseListForDelete/${boughtItemId}`,
+            url: `/boughtList/getWarehouseListForDelete/${times}`,
             type: 'GET',
             success: (result) => {
                 $('#deleteModalContent').html(result);

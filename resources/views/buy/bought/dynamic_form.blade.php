@@ -6,14 +6,19 @@
     </div>
 
     @if(intval($tax->tax_activation) === 1) 
-     <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
-        <label for="sales_tax_percentage">  {{__('buy.sales_tax_percentage')}} </label>
-        <input class="form-control" name="sales_tax_percentage" id="sales_tax_percentage" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100 oninput="calculateSalesTax(this.value);"  >
+     <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_tax_per">  {{__('buy.sales_tax_percentage')}} </label>
+        <input class="form-control" name="sell_tax_per" id="sell_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100 oninput="calculateSalesTax(this.value);"  >
     </div>
 
-    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
-        <label for="sales_tax_price"> {{__('buy.sales_tax_price')}} </label>
-        <input class="form-control" name="sales_tax_price" id="sales_tax_price"  type="number" step="0.01" >
+    <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_tax_price"> {{__('buy.sell_tax_price')}} </label>
+        <input class="form-control" name="sell_tax_price" id="sell_tax_price"  type="number" step="0.01" >
+    </div>
+
+    <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_up_vat"> {{__('buy.sell_up_vat')}} </label>
+        <input class="form-control" name="sell_up_vat" id="sell_up_vat"  type="number" step="0.01" >
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">

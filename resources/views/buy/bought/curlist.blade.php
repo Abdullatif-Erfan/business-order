@@ -1,6 +1,6 @@
 @php 
     $grandTotal = 0; 
-    $payable =0;
+    $total_vat =0;
     $remained =0;
     $curPay=0;
 @endphp
@@ -19,7 +19,8 @@
     <tbody>
         @foreach($insertedData as $index => $data)
         @php 
-            $grandTotal += $data->total;
+            $curTotal = !empty($data->total_vat) ? $data->total_vat : $data->total;
+            $grandTotal += $curTotal;
         @endphp
         <tr data-id="{{ $data->id }}">
             <td>{{ $loop->iteration }}</td>
@@ -27,20 +28,19 @@
             <td>{{ $data->preListRelation->name ?? '' }}</td>
             <td>{{ $data->amount }}</td>
             <td>{{ $data->unitRelation->name ?? '' }}</td>
-            <td>{{ $data->bought_up }}</td>
-            <td>{{ $data->total }}</td>
+            <td>{{ !empty($data->buy_up_vat) ? number_format($data->buy_up_vat,2) : number_format($data->buy_up,2) }}</td>
+            <td>{{ number_format($curTotal,2) }}</td>
         </tr>
         @endforeach
     </tbody> 
 </table>
 
-<input type="hidden" name="branch_id" value="{{ $insertedData->first()->preListRelation->first()->branch_id  }}">
 <table class="table table-bordered new" style="margin-top:10px;">
    <tr>
        <td>{{__('buy.total_price')}} &nbsp; </td>
        <td>
             <input type="number" name="total_price" id="fina_total_price" value="{{ $grandTotal }}" readonly step="0.01" class="form-control">
-            <input type="hidden" name="payable" id="payable" value="{{ $grandTotal }}" readonly step="0.01" class="form-control">
+            <input type="hidden" name="total_vat" id="total_vat" value="{{ $grandTotal }}" readonly step="0.01" class="form-control">
         </td>
        <td>{{__('buy.cur_pay')}}</td>
        <td><input type="number" name="cur_pay" id="cur_pay" step="0.01" value="0"   oninput="updateCurPay(this.value);" class="form-control"></td>
