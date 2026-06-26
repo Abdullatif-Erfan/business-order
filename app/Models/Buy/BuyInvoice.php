@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 
+
 class BuyInvoice extends Model
 {
     protected $table = 'buy_invoices';
@@ -13,9 +14,11 @@ class BuyInvoice extends Model
     protected $fillable = [
         'invoice_number',
         'supplier_id',
-        'total_amount',
+        'total',
+        'total_vat',
         'paid_amount',
-        'remaining_amount',
+        'remaining',
+        'remaining_vat',
         'currency_id',
         'status', // 0: draft, 1: pending, 2: partial, 3: paid
         'invoice_date',

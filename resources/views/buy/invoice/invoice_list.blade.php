@@ -8,6 +8,7 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px; text-align:center;">
+                            <input type="hidden" id="tax_activation" value="{{ $tax->tax_activation }}">
                             <span class="card-title">{{ __('buy.invoices') }}</span>
                             <span class="pull-left">
                                 <a href="{{ url('boughtList') }}">
@@ -29,7 +30,7 @@
                                             <th>{{ __('buy.remaining_amount') }}</th>
                                             <th>{{ __('order.status') }}</th>
                                             <th>{{ __('buy.invoice_date') }}</th>
-                                            <th>{{ __('common.actions') }}</th>
+                                            <th>{{ __('common.details') }}</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -60,15 +61,18 @@ function fetchInvoices() {
         autoWidth: false,
         ajax: {
             url: '{{ route("boughtList.invoiceData") }}',
-            type: 'GET'
+            type: 'GET',
+            data: function (d) {
+                d.tax_activation = $('#tax_activation').val();
+            }
         },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
             { data: 'invoice_number', name: 'invoice_number' },
             { data: 'supplier_name', name: 'supplier_name' },
-            { data: 'total_amount', name: 'total_amount' },
+            { data: 'total', name: 'total' },
             { data: 'paid_amount', name: 'paid_amount' },
-            { data: 'remaining_amount', name: 'remaining_amount' },
+            { data: 'remaining', name: 'remaining' },
             { data: 'status', name: 'status' },
             { data: 'invoice_date', name: 'invoice_date' },
             { data: 'action', name: 'action', orderable: false, searchable: false }

@@ -1043,7 +1043,8 @@ class BoughtDetailsController extends Controller
      */
     public function invoiceList()
     {
-        return view('buy.invoice.invoice_list');
+        $tax = OrgBio::select('tax_activation')->first();
+        return view('buy.invoice.invoice_list',compact('tax'));
     }
 
     /**
@@ -1051,6 +1052,7 @@ class BoughtDetailsController extends Controller
      */
     public function getInvoiceData(Request $request)
     {
+        $tax_activation = $request->input('tax_activation');
         $invoices = BuyInvoice::with(['supplier', 'currency'])
             ->orderBy('id', 'DESC');
 
@@ -1059,14 +1061,18 @@ class BoughtDetailsController extends Controller
             ->addColumn('supplier_name', function($invoice) {
                 return $invoice->supplier ? $invoice->supplier->name : '-';
             })
-            ->addColumn('total_amount', function($invoice) {
-                return number_format($invoice->total_amount, 2);
+            ->addColumn('total', function($invoice) use ($tax_activation) {
+                return (int)$tax_activation === 1 
+                    ? number_format($invoice->total_vat ?? 0, 2) 
+                    : number_format($invoice->total ?? 0, 2);
             })
             ->addColumn('paid_amount', function($invoice) {
                 return number_format($invoice->paid_amount, 2);
             })
-            ->addColumn('remaining_amount', function($invoice) {
-                return number_format($invoice->remaining_amount, 2);
+            ->addColumn('remaining', function($invoice) use ($tax_activation) {
+                 return (int)$tax_activation === 1 
+                    ? number_format($invoice->remaining_vat ?? 0, 2) 
+                    : number_format($invoice->remaining ?? 0, 2);
             })
             ->addColumn('status', function($invoice) {
                 $statusClasses = [
@@ -1104,7 +1110,10 @@ class BoughtDetailsController extends Controller
     public function generateInvoice(Request $request)
     {
         try {
+            // id of bought_items table
             $boughtItemIds = $request->bought_item_ids;
+
+            // return ['boughtItemIds' => $boughtItemIds];
             
             if (empty($boughtItemIds)) {
                 return response()->json([
@@ -1141,18 +1150,22 @@ class BoughtDetailsController extends Controller
 
             // Calculate totals
             $totalAmount = $boughtItems->sum('total_price');
+            $totalAmountVat = $boughtItems->sum('total_vat');
             $paidAmount = $boughtItems->sum('cur_pay');
             $remainingAmount = $boughtItems->sum('remained');
+            $remainingAmountVat = $boughtItems->sum('remained_vat');
 
             // Create invoice
             $invoice = BuyInvoice::create([
                 'invoice_number' => $invoiceNumber,
                 'supplier_id' => $supplierId,
-                'total_amount' => $totalAmount,
+                'total' => $totalAmount,
+                'total_vat' => $totalAmountVat,
                 'paid_amount' => $paidAmount,
-                'remaining_amount' => $remainingAmount,
+                'remaining' => $remainingAmount,
+                'remaining_vat' => $remainingAmountVat,
                 'currency_id' => $boughtItems->first()->currency_id,
-                'status' => $remainingAmount > 0 ? 1 : 3, // 1: pending, 3: paid
+                'status' => ($remainingAmount || ($remainingAmountVat > 0)) ? 1 : 3, // 0: draft, 1: pending, 2: partial, 3: paid
                 'invoice_date' => now(),
                 'due_date' => now()->addDays(30),
                 'notes' => __('buy.invoice_generated_from_bought_items'),
@@ -1172,17 +1185,21 @@ class BoughtDetailsController extends Controller
                         'bought_item_id' => $boughtItem->id,
                         'pre_list_id' => $detail->pre_list_id,
                         'amount' => $detail->amount,
+                        'unit_id' => $detail->unit_id,
                         'unit_price' => $detail->buy_up,
-                        'tax_per' => $detail->buy_tax_per ?? 0,
+                        'unit_price_vat' => $detail->buy_up_vat ?? 0,
+                        'tax_percentage' => $detail->buy_tax_per ?? 0,
                         'tax_amount' => $detail->buy_tax_price ?? 0,
+                        'buy_up_vat' => $detail->buy_up_vat ?? 0,
                         'total' => $detail->total,
+                        'total_vat' => $detail->total_vat,  
                         'times' => time()
                     ]);
                 }
             }
 
             // Update bought_items to mark as invoiced (you need to add a column)
-            BoughtItem::whereIn('id', $boughtItemIds)->update(['has_invoice' => 1]);
+            BoughtItem::whereIn('id', $boughtItemIds)->update(['has_invoice' => 1,'invoice_id' => $invoice->id]);
 
             DB::commit();
 
@@ -1207,10 +1224,17 @@ class BoughtDetailsController extends Controller
      */
     public function showInvoice($id)
     {
-        $invoice = BuyInvoice::with(['supplier', 'items.preList', 'payments', 'currency'])
+        $orgbios = OrgBio::all();
+        $times = time();
+        $invoice = BuyInvoice::with(['supplier', 'items.unit', 'items.preList', 'payments', 'currency'])
             ->findOrFail($id);
-        
-        return view('buy.invoice.invoice_details', compact('invoice'));
+        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        $newJournalCode =  Journal::max('code') + 1;
+        $currencies = Currency::select('id','name')->get();
+        // return ['data' => $invoice];
+
+        return view('buy.invoice.invoice_details', compact('invoice','orgbios','suppliers','ownBanks','newJournalCode','times','currencies'));
     }
 
         /**

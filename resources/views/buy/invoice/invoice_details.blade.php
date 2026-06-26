@@ -104,21 +104,21 @@
                             <h4 class="card-title">
                                 {{ __('buy.invoice_details') }}
                                 <span class="pull-left">
+                                    <button class="btn btn-success btn-sm no-print" onclick="print_page_with_image()">
+                                        <i class="fas fa-print"></i> 
+                                    </button>
                                     <a href="{{ route('boughtList.invoices') }}">
                                         <button class="btn mybtn bg-default"> {{ __('common.back') }} </button>
                                     </a>
-                                    <button class="btn btn-success btn-sm no-print" onclick="window.print()">
-                                        <i class="fas fa-print"></i> {{ __('common.print') }}
-                                    </button>
                                 </span>
                             </h4>
                         </div>
 
                         <div class="card-body">
-                            <div class="invoice-container" id="invoice-area">
+                            <div class="invoice-container" id="print_area">
 
                                 <!-- Header -->
-                                <div class="invoice-header text-center">
+                                <div class="invoice-header text-center border">
                                     @if(isset($orgbios[0]->header))
                                         <img src="{{ asset($orgbios[0]->header) }}" alt="Logo" style="max-height:80px; margin-bottom:10px;">
                                     @endif
@@ -180,10 +180,16 @@
                                                 <th>#</th>
                                                 <th>{{ __('buy.item') }}</th>
                                                 <th>{{ __('common.amount') }}</th>
+                                                <th>{{ __('common.unit') }}</th>
                                                 <th>{{ __('common.unit_price') }}</th>
-                                                <th>{{ __('buy.tax') }} %</th>
-                                                <th>{{ __('buy.tax_amount') }}</th>
+                                                @if($orgbios[0]->tax_activation === 1)
+                                                <th>% {{ __('buy.tax') }} </th>
+                                                <th>{{ __('buy.tax_price') }}</th>
+                                                <th>{{ __('buy.buy_up_vat') }}</th>
+                                                <th>{{__('buy.total_with_tax')}}</th>
+                                                @else
                                                 <th>{{ __('common.total_price') }}</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -192,10 +198,16 @@
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $item->preList->name ?? '' }}</td>
                                                 <td>{{ number_format($item->amount, 2) }}</td>
+                                                <td>{{ $item->unit->name ?? '' }}</td>
                                                 <td>{{ number_format($item->unit_price, 2) }}</td>
-                                                <td>{{ $item->tax_percentage ?? 0 }}%</td>
+                                                @if($orgbios[0]->tax_activation === 1)
+                                                <td>% {{ $item->tax_percentage ?? 0 }}  </td>
                                                 <td>{{ number_format($item->tax_amount ?? 0, 2) }}</td>
+                                                <td>{{ $item->buy_up_vat ?? 0 }}  </td>
+                                                <td>{{ number_format($item->total_vat, 2) }}</td>
+                                                 @else
                                                 <td>{{ number_format($item->total, 2) }}</td>
+                                                @endif
                                             </tr>
                                             @endforeach
                                         </tbody>
@@ -214,7 +226,10 @@
                                                 <table style="width:100%">
                                                     <tr>
                                                         <td><strong>{{ __('common.total_price') }}</strong></td>
-                                                        <td style="text-align:right">{{ number_format($invoice->total_amount, 2) }}</td>
+                                                        <td style="text-align:right">
+                                                            {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->total, 2): 
+                                                            number_format($invoice->total_vat, 2) }}
+                                                        </td>
                                                     </tr>
                                                     <tr>
                                                         <td><strong>{{ __('buy.paid_amount') }}</strong></td>
@@ -223,7 +238,8 @@
                                                     <tr style="font-size:18px; font-weight:700;">
                                                         <td><strong>{{ __('buy.remaining_amount') }}</strong></td>
                                                         <td style="text-align:right; color:#e17055;">
-                                                            {{ number_format($invoice->remaining_amount, 2) }}
+                                                             {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->remaining, 2): 
+                                                            number_format($invoice->remaining_vat, 2) }}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -275,38 +291,61 @@
 
                                     <!-- Add Payment Form -->
                                     @if($invoice->status != 3 && $invoice->status != 4)
-                                    <div class="row no-print">
+                                    <div class="row no-print hidden-print">
                                         <div class="col-md-12">
                                             <h6>{{ __('buy.add_payment') }}</h6>
                                             <form id="paymentForm">
                                                 @csrf
                                                 <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
+                                                <input type="hidden" name="times" value="{{ $times }}">
+                                                <input type="hidden" name="newJournalCode" value="{{ $newJournalCode }}">
+
+                                                
                                                 <div class="row">
+                                                    <div class="col-md-3 col-sm-6 col-xs-6 m-b-4">
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="account_id">
+                                                            @foreach($ownBanks as $bank)
+                                                                <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3 col-sm-6 col-xs-6 m-b-4">
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="supplier_account_id">
+                                                            @foreach($suppliers as $supplier)
+                                                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                     <div class="col-md-3">
                                                         <input type="date" class="form-control" name="payment_date" value="{{ date('Y-m-d') }}" required>
                                                     </div>
                                                     <div class="col-md-3">
                                                         <input type="number" step="0.01" class="form-control" name="amount" placeholder="{{ __('common.amount') }}" required>
                                                     </div>
-                                                    <div class="col-md-2">
+                                                    <div class="col-md-2 mt-2">
                                                         <select class="form-control" name="payment_method" required>
                                                             <option value="1">{{ __('buy.cash') }}</option>
                                                             <option value="2">{{ __('buy.bank') }}</option>
                                                             <option value="3">{{ __('buy.loan') }}</option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-md-2">
+                                                    <div class="col-md-3 col-sm-6 col-xs-6  mt-2">
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
+                                                            @foreach($currencies as $currency)
+                                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2  mt-2">
                                                         <input type="text" class="form-control" name="reference_number" placeholder="{{ __('buy.reference_number') }}">
                                                     </div>
-                                                    <div class="col-md-2">
+                                                     <div class="col-md-3  mt-2">
+                                                        <input type="text" class="form-control" name="notes" placeholder="{{ __('buy.notes') }}">
+                                                    </div>
+                                                    <div class="col-md-2  mt-2">
                                                         <button type="submit" class="btn btn-primary btn-sm">
                                                             <i class="fas fa-plus"></i> {{ __('common.add') }}
                                                         </button>
-                                                    </div>
-                                                </div>
-                                                <div class="row mt-2">
-                                                    <div class="col-md-12">
-                                                        <input type="text" class="form-control" name="notes" placeholder="{{ __('buy.notes') }}">
                                                     </div>
                                                 </div>
                                             </form>

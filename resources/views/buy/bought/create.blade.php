@@ -390,31 +390,35 @@ function submiteBuyingForm()
                 showNotification("{{__('common.added_successfully')}}", 'success', 'top', 'right', 'withicon');
                 $('#insertedResult').html(response);
 
-                // ✅ Clear the form after successful submission
-                //  $('#buyingForm')[0].reset();
-                // ✅ Clear form fields manually except specific ones
-                    $('#pre_list_id').val('');
-                    $('#amount').val('');
-                    $('#unit_id').val('');
-                    $('#bought_up').val('');
-                    $('#buy_tax_percentage').val(0),
-                    $('#buy_tax_price').val(0);
-                    $('#total_buy_with_tax').val(0);
-        
-                    $('#notification_amount').val('0');
-                    // $('#note').val('');
-                    $('.dynamic-row').find('input, select').val('');
-                // ✅ Optionally, remove validation error messages
-                // $('.error-message').text('');
-                // $('#validationErrors').hide();
-
-
-                // Remove all dynamic rows except the first one
-                // $('.dynamic-row:not(:first)').remove();
                 
-                // Optional: Reset the first row's inputs if needed
-                // $('.dynamic-row:first').find('input').val('');
-                // $('.dynamic-row:first').find('select').val('').trigger('change');
+                // Clear form fields properly
+                // For regular inputs
+                $('#amount').val('');
+                $('#buy_up').val('');
+                $('#buy_tax_per').val('');
+                $('#buy_tax_price').val('');
+                $('#buy_up_vat').val('');
+                $('#total_vat').val('');
+                $('#sell_up').val('');
+                $('#sell_tax_per').val('');
+                $('#sell_tax_price').val('');
+                $('#sell_up_vat').val('');
+                $('#total_sales_with_tax').val('');
+                $('#total_vat').val('');
+                $('#total_price_no_tax').val('');
+                $('#note').val('');
+
+                // Clear Select2 fields properly
+                $('#pre_list_id').val('').trigger('change');
+                
+                // For unit_id
+                $('#unit_id').val('').trigger('change');
+                
+                // For supplier_account_id
+                // $('#supplier_account_id').val('').trigger('change');
+
+                // For from_account_id
+                // $('select[name="from_account_id"]').val('').trigger('change');
 
             }
 

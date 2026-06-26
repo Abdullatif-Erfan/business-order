@@ -242,7 +242,7 @@ function fetchList() {
                         }, 0)
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
-
+    
                 $(api.column(4).footer()).html(sumColumn(4));
                 $(api.column(5).footer()).html(sumColumn(5));
                 $(api.column(6).footer()).html(sumColumn(6));

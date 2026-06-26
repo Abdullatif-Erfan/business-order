@@ -15,6 +15,7 @@ class BuyInvoicePayment extends Model
         'amount',
         'payment_method', // 1: cash, 2: bank, 3: loan
         'account_id',
+        'supplier_account_id',
         'reference_number',
         'notes',
         'created_by',
