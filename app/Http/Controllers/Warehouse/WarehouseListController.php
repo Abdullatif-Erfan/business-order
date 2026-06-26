@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 // use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
-// use App\Models\Setting\Branch;
 use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
@@ -47,6 +46,15 @@ class WarehouseListController extends Controller
         $todaysDate = Carbon::now()->format('Y-m-d');
         $warehouse = Warehouse::select('id','name')->where('id',$id)->first();
         
+
+           
+        // $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
+        // ->where('warehouse_id', 1)
+        // ->orderBy('id','DESC')
+        // ->orderBy('buy_pre_id','DESC')->get();
+            
+        // return ['data', $WarehouseItems];
+        
         return view('warehouseitem.list',compact('currencies','todaysDate','orgbios','warehouse'));
     }
 
@@ -54,63 +62,61 @@ class WarehouseListController extends Controller
     /**
      * Get paginated data
      */
-    public function getData(Request $request)
-    {
+   public function getData(Request $request)
+{
+    // \Log::info('Received Request:', $request->all());
+    // Log::info('Received warehouse_id:', ['warehouse_id' => $request->input('warehouse_id')]);
+    // return response()->json(['message' => 'Debugging getData', 'request' => $request->all()]);
 
-        // \Log::info('Received Request:', $request->all()); // Log incoming request
-        // Log::info('Received warehouse_id:', ['warehouse_id' => $request->input('warehouse_id')]); // Log warehouse_id properly
-        // return response()->json(['message' => 'Debugging getData', 'request' => $request->all()]);
-
-        $warehouse_id = $request->input('warehouse_id');
-        $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
-        ->where('warehouse_id', $warehouse_id)
-        ->orderBy('id','DESC')
-        ->orderBy('buy_pre_id','DESC');
-            
+    $warehouse_id = 1;
+    $tax_activation = $request->input('tax_activation', 0); // Get from request or default 0
     
-        if ($request->input('item_name')) {
-            $WarehouseItems->whereHas('preListRelation', function ($query) use ($request) {
-                $query->where('name', 'LIKE', "%{$request->input('item_name')}%");
-            });
-        }
+    $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
+        ->where('warehouse_id', $warehouse_id)
+        ->orderBy('id', 'DESC')
+        ->orderBy('buy_pre_id', 'DESC');
         
-        if ($request->input('currency_id')) {
-            $WarehouseItems->where('currency_id', $request->input('currency_id'));
-        }
-        
-            return DataTables::of($WarehouseItems)
-            
-            ->addIndexColumn()
-
-            ->addColumn('prelist', function ($WarehouseItem) {
-                return optional($WarehouseItem->preListRelation)->name ?? '';
-            })
-
-            ->addColumn('currency', function ($WarehouseItem) {
-                return optional($WarehouseItem->currencyRelation)->name ??  '';
-            })
-
-            ->addColumn('unit', function ($WarehouseItem) {
-                return optional($WarehouseItem->unitRelation)->name ?? '';
-            })
-
-            ->addColumn('available_total', function ($WarehouseItem) {
-                return $WarehouseItem->avg_up ? number_format($WarehouseItem->avg_up * $WarehouseItem->available_amount,2) : '';
-            })
-           
-            ->addColumn('wastage_total', function ($WarehouseItem) {
-                return $WarehouseItem->wastage_total ? number_format($WarehouseItem->wastage_total,2) : '';
-            })
-           
-            ->addColumn('view', function ($WarehouseItem) {
-                return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print"><i class="fas fa-eye viewItems" 
-                data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i></a>';
-            })
-
-            ->rawColumns(['view'])
-            ->make(true);
-
+    if ($request->input('item_name')) {
+        $WarehouseItems->whereHas('preListRelation', function ($query) use ($request) {
+            $query->where('name', 'LIKE', "%{$request->input('item_name')}%");
+        });
     }
+    
+    if ($request->input('currency_id')) {
+        $WarehouseItems->where('currency_id', $request->input('currency_id'));
+    }
+    
+    return DataTables::of($WarehouseItems)
+        ->addIndexColumn()
+        ->addColumn('prelist', function ($WarehouseItem) {
+            return optional($WarehouseItem->preListRelation)->name ?? '';
+        })
+        ->addColumn('unit', function ($WarehouseItem) {
+            return optional($WarehouseItem->unitRelation)->name ?? '';
+        })
+        ->addColumn('buy_tax_per', function($WarehouseItem) {
+            return $WarehouseItem->buy_tax_per ? "% " . $WarehouseItem->buy_tax_per : '';
+        })
+        ->addColumn('total', function ($WarehouseItem) use ($tax_activation) {
+            // Use $tax_activation variable, not $this->$tax_activation
+            return (int)$tax_activation === 1 
+                ? number_format($WarehouseItem->total_vat ?? 0, 2) 
+                : number_format($WarehouseItem->total ?? 0, 2);
+        })
+        ->addColumn('sell_up', function ($WarehouseItem) use ($tax_activation) {
+            // Use $tax_activation variable, not $this->$tax_activation
+            return (int)$tax_activation === 1 
+                ? number_format($WarehouseItem->sell_up_vat ?? 0, 2) 
+                : number_format($WarehouseItem->sell_up ?? 0, 2);
+        })
+        ->addColumn('view', function ($WarehouseItem) {
+            return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print">
+                        <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>
+                    </a>';
+        })
+        ->rawColumns(['view'])
+        ->make(true);
+}
 
 
 

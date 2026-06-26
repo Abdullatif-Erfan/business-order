@@ -234,7 +234,7 @@
 
                 { data: 'currency', name: 'currency' },
                 // { data: 'option_label', name: 'option_label' },
-                { data: 'inserted_short_date', name: 'inserted_short_date' },
+                { data: 'idate', name: 'idate' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
            

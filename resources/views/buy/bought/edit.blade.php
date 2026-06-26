@@ -55,15 +55,13 @@
                              <input type="hidden" name="times" value="{{ $boughtItems->first()->times }}">
                              <input type="hidden" name="todays_date" value="{{ $boughtItems->first()->idate ?? '' }}">
                              <input type="hidden" name="journal_code" value="{{ $journal_code->code ?? '' }}">
-                             <input type="hidden" name="customer_account_id" value="{{ $boughtItemDetails->first()->accountRelation->id ?? '' }}">
-                             
+                             <input type="hidden" name="tax_activation" value="{{ $orgbios[0]->tax_activation ?? '' }}">
+                             <input type="hidden" name="supplier_account_id" value="{{ $boughtItemDetails->first()->accountRelation->id ?? '' }}">
                              
                                 <div class="form-body" style="padding: 0px 0px 15px !important;" id="print_area">
                             
                                     <div class="container col-md-12 col-sm-12 col-xs-12" style="padding: 10px 10px;">
                                         <p class="d-none">{{__('common.print_date')}}‌ : {{ now()->format('Y-m-d') }}</p>
-
-                                        
 
                                         <table style="width:100%">
                                             <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
@@ -81,7 +79,7 @@
                                                         @endforeach
                                                     </select>
                                                 </td>
-                                                <td>   {{__('common.currency')}}: 
+                                                <td> {{__('common.currency')}}: 
                                                 <select name="currency_id" class="form-control select2" required>
                                                         @foreach($currencies as $currency)
                                                             <option value="{{ $currency->id }}" {{ $boughtItems->first()->currency_id == $currency->id ? 'selected' : '' }}>
@@ -106,7 +104,7 @@
                                                         <th width="100">{{__('buy.bought_amount')}}</th>
                                                         <th width="100"> {{__('common.unit_price')}} </th>
 
-                                                         @if($orgbios[0]->tax_activation === 1)
+                                                        @if($orgbios[0]->tax_activation === 1)
                                                         <th>{{__('buy.buy_tax_percentage_s')}}</th>
                                                         <th>{{__('buy.buy_tax_price_s')}}</th>
                                                         @endif
@@ -116,13 +114,13 @@
                                                         <th class="hidden-print">{{__('common.delete')}}</th>
                                                     </tr>
                                                 </thead>
+
                                                 <tbody>
-                                                    @php
-                                                    $grandTotal = $orgbios[0]->tax_activation === 1 ? 
-                                                         number_format($boughtItems->first()->total_vat,2):  
-                                                         number_format($boughtItems->first()->total,2) 
-                                                    @endphp
                                                     @foreach($boughtItemDetails as $key => $detail)
+                                                    @php
+                                                      $ttl = $orgbios[0]->tax_activation === 1 ?  $detail->total_vat: $detail->total;
+                                                        $grandTotal +=  $ttl;
+                                                    @endphp
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{$detail->accountRelation->name}} </td>
@@ -130,8 +128,10 @@
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
                                                         <td>{{ number_format($detail->buy_up,2) }}</td>
+                                                        @if($orgbios[0]->tax_activation === 1)
                                                          <td> % {{$detail->buy_tax_per}}  </td>
                                                          <td> {{$detail->buy_tax_price}} </td>
+                                                         @endif
                                                         <td>
                                                             @if($orgbios[0]->tax_activation === 1)
                                                             {{number_format($detail->total_vat,2)}}  
@@ -166,8 +166,13 @@
                                                 value="{{ $boughtItems->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" >
                                                 </td>
                                                 <td> {{__('buy.remained')}} </td>
-                                                <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
-                                                value="{{  number_format($boughtItems->first()->remained,2) }}" ></td>
+                                               <td>
+                                                @php
+                                                    $remained = $grandTotal - ($boughtItems->first()->cur_pay ?? 0);
+                                                @endphp
+                                                     <input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" 
+                                                      required value="{{ $remained }}">
+                                                </td>
                                             </tr>
                                             <tr>
                                                <td>{{__('buy.note')}} </td>
@@ -266,8 +271,8 @@
 
     function updateRemain(cur_pay)
     {
-        var payable = parseFloat($('#payable').val());
-        var result = payable - parseFloat(cur_pay);
+        var totalPrice = parseFloat($('#total_price').val());
+        var result = totalPrice - parseFloat(cur_pay);
         if(result < 0) {
             alert("{{__('buy.incorrect_payment')}}");
             $('#submit_button').fadeOut(1);

@@ -45,33 +45,45 @@
 
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
-                                <input type="hidden" id="warehouse_id" value="{{ $warehouse->id }}" >
+                                <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation}}" />
                                 <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="warehouseItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                             @if($orgbios[0]->tax_activation === 1)
+                                             <td colspan="13">
+                                             @else
+                                             <td colspan="10">
+                                             @endif 
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                             @if($orgbios[0]->tax_activation === 1)
+                                             <td colspan="13">
+                                             @else
+                                             <td colspan="10">
+                                             @endif 
                                             <center> {{__('wh.existing_list')}}  {{ $warehouse->name ?? '' }}  </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.name')}} </th>
-                                            <th> {{__('common.currency')}}  </th>                                            
-                                            <th> {{__('common.unit')}} </th>
                                             <th> {{__('common.in')}} </th>
                                             <th> {{__('common.out')}} </th>
                                             <th> {{__('common.available')}}  </th>
-                                            <th> {{__('wh.last_bought')}} </th>
-                                            <th> {{__('wh.average')}}</th>
-                                            <th> {{__('buy.sold_price')}} </th>
-                                            <th> {{__('wh.available_in_wh')}} </th> 
-                                            <th> {{__('common.details')}} </th>
+                                            <th> {{__('common.unit')}} </th>
+                                            <th> {{__('buy.buy_up')}} </th>
+
+                                            @if($orgbios[0]->tax_activation === 1)
+                                            <th>% {{__('buy.tax')}}</th>
+                                            <th>{{__('buy.buy_tax_price_s')}}</th>
+                                            <th> {{__('buy.buy_up_vat')}} </th>
+                                            @endif 
+                                            <th> {{__('common.total')}} </th> 
+                                            <th> {{__('buy.sell_up')}} </th> 
+                                            <th> {{__('common.date')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -81,8 +93,11 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
+                                            @if($orgbios[0]->tax_activation === 1)
                                             <td></td>
                                             <td></td>
+                                            <td></td>
+                                            @endif 
                                             <td></td>
                                             <td></td>
                                             <td></td>

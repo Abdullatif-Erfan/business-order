@@ -203,6 +203,7 @@ function fetchList() {
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
                     d.item_name = $('#item_name').val();
+                    d.tax_activation = $('#tax_activation').val();
                 }
             },
             columns: columns,
@@ -234,15 +235,16 @@ function fetchList() {
                 // Total column index (depends on flag)
                 // Without tax: total is at index 6
                 // With tax: total is at index 8 (because 2 tax columns added)
-                var totalIndex = flag === 1 ? 8 : 6;
-                $(api.column(totalIndex).footer()).html(sumColumn(totalIndex));
-
                 // Tax columns (only if flag is 1)
                 if (flag === 1) {
                     // buy_tax_per is at index 7
                     $(api.column(8).footer()).html(sumColumn(8));
                     // buy_tax_price is at index 8
                     $(api.column(9).footer()).html(sumColumn(9));
+                } else {
+                    $(api.column(6).footer()).html(sumColumn(6));
+                    $(api.column(7).footer()).html(sumColumn(7));
+
                 }
             }
         });

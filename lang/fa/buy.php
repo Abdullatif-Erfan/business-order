@@ -106,6 +106,7 @@ return [
     'sell_tax_price' => 'مبلغ مالیات ',
     'total_sales_with_tax' => 'مبلغ مجموعی با مالیات',
     'sell_up_vat' => ' فیات با مالیات',
+    'sell_up' => ' فیات فروش',
     
 
     // In resources/lang/fa/buy.php

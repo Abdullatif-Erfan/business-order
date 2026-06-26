@@ -94,7 +94,7 @@ class JournalController extends Controller
         // ->orderBy('id', 'DESC');
 
         $journals = Journal::with(['accountRelation', 'currencyRelation'])
-        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'inserted_short_date', 'status', 'times', 'is_single_record')
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'idate', 'status', 'times', 'is_single_record')
         ->orderBy('id', 'DESC');
 
         // Apply filters if provided
@@ -106,11 +106,11 @@ class JournalController extends Controller
         }
        
         if ($request->start_date && $request->end_date) {
-            $journals->whereBetween('inserted_short_date', [$request->start_date, $request->end_date]);
+            $journals->whereBetween('idate', [$request->start_date, $request->end_date]);
         } elseif ($request->start_date) {
-            $journals->whereDate('inserted_short_date', '=', $request->start_date);
+            $journals->whereDate('idate', '=', $request->start_date);
         } elseif ($request->end_date) {
-            $journals->whereDate('inserted_short_date', '>=', $request->end_date); // Until today
+            $journals->whereDate('idate', '>=', $request->end_date); // Until today
         }
 
         if ($request->code_number) {

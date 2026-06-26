@@ -10,6 +10,7 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px; text-align:center;">
+                            <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation }}" >
                             <a href="{{ route('boughtList.create') }}" class="pull-right">
                                 <button type="button" class="btn btn-sm mybtn">
                                     <i class="fas fa-plus"></i> {{__('common.add')}}
@@ -188,6 +189,7 @@ function fetchList() {
                     d.bill_number = $('#bill_number').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
+                    d.tax_activation = $('#tax_activation').val();
                 }
             },
             columns: [

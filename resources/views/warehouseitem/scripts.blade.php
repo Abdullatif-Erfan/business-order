@@ -1,8 +1,4 @@
 <!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-
 <script>
 function showNotification(message, type = 'info', from = 'top', align = 'left', style = 'withicon') {
     var content = {};
@@ -18,10 +14,10 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
     content.target = '_blank';
 
     $.notify(content, {
-        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        type: type,
         placement: {
-            from: from, // top, bottom
-            align: align // right, center, left
+            from: from,
+            align: align
         },
         time: 500
     });
@@ -34,13 +30,40 @@ $(document).ready(function() {
 
     // Move the filter button click event outside
     $('#btn-filter').click(function() {
-        $('#warehouseItemTable').DataTable().ajax.reload(null, false); // Reload data without resetting pagination
+        $('#warehouseItemTable').DataTable().ajax.reload(null, false);
     });
 });
 
-
 function fetchList() {
-    let warehouseItemTable = $('#warehouseItemTable');
+    var flag = parseInt($('#tax_activation').val()) || 0;
+    var warehouseItemTable = $('#warehouseItemTable');
+
+    // Define columns based on flag
+    var columns = [
+        { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+        { data: 'prelist', name: 'prelist' },
+        { data: 'in_amount', name: 'in_amount' },
+        { data: 'out_amount', name: 'out_amount' }, 
+        { data: 'available_amount', name: 'available_amount'},
+        { data: 'unit', name: 'unit' },
+        { data: 'buy_up', name: 'buy_up' }
+    ];
+
+    // Add tax columns if flag is 1
+    if (flag === 1) {
+        columns.push(
+            { data: 'buy_tax_per', name: 'buy_tax_per' },
+            { data: 'buy_tax_price', name: 'buy_tax_price' },
+            { data: 'buy_up_vat', name: 'buy_up_vat' }
+        );
+    }
+
+    // Add remaining columns
+    columns.push(
+        { data: 'total', name: 'total' },
+        { data: 'sell_up', name: 'sell_up' },
+        { data: 'idate', name: 'idate', orderable: false, searchable: false }
+    );
 
     // Check if DataTable is already initialized
     if (!$.fn.DataTable.isDataTable(warehouseItemTable)) {
@@ -49,33 +72,18 @@ function fetchList() {
             processing: true,
             pageLength: 10,   
             lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'همه']
-                ],
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'همه']
+            ],
             ajax: {  
                 url: '{{ route("warehousesList.data") }}',
-                // url: '{{ route("boughtList.data") }}',
                 data: function (d) {
-                    d.warehouse_id = $('#warehouse_id').val();
+                    d.tax_activation = $('#tax_activation').val();
                     d.item_name = $('#item_name').val();
                     d.currency_id = $('#currency_id').val();
-                    // alert(d.warehouse_id);
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'prelist', name: 'prelist' },
-                { data: 'currency', name: 'currency' },
-                { data: 'unit', name: 'unit' },
-                { data: 'in_amount', name: 'in_amount' },
-                { data: 'out_amount', name: 'out_amount' }, 
-                { data: 'available_amount', name: 'available_amount'},
-                { data: 'buy_up', name: 'buy_up' },
-                { data: 'id', name: 'id' },
-                { data: 'sell_up', name: 'sell_up' },
-                { data: 'available_total', name: 'available_total' },
-                { data: 'view', name: 'view', orderable: false, searchable: false }
-            ],
+            columns: columns,
             drawCallback: function () {
                 var api = this.api();
 
@@ -90,10 +98,51 @@ function fetchList() {
                         }, 0)
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
-                $(api.column(7).footer()).html(sumColumn(7));
-                $(api.column(8).footer()).html(sumColumn(8));
-                $(api.column(9).footer()).html(sumColumn(9));
-                $(api.column(10).footer()).html(sumColumn(10));
+
+                // Calculate column indices based on flag
+                // Base columns: 0-6 (7 columns)
+                // Tax columns: 7, 8, 9 (if flag=1)
+                // Final columns: total, sell_up, idate
+                
+                if (flag === 1) {
+                    // With tax columns (11 total columns: 0-10)
+                    // Index 0: DT_RowIndex
+                    // Index 1: prelist
+                    // Index 2: in_amount
+                    // Index 3: out_amount
+                    // Index 4: available_amount
+                    // Index 5: unit
+                    // Index 6: buy_up
+                    // Index 7: buy_tax_per
+                    // Index 8: buy_tax_price
+                    // Index 9: buy_up_vat
+                    // Index 10: total
+                    // Index 11: sell_up
+                    // Index 12: idate
+                    
+                    // $(api.column(6).footer()).html(sumColumn(6));  // buy_up
+                    // $(api.column(7).footer()).html(sumColumn(7));  // buy_tax_per
+                    $(api.column(8).footer()).html(sumColumn(8));  // buy_tax_price
+                    $(api.column(9).footer()).html(sumColumn(9));  // buy_up_vat
+                    $(api.column(10).footer()).html(sumColumn(10)); // total
+                    $(api.column(11).footer()).html(sumColumn(11)); // sell_up
+                } else {
+                    // Without tax columns (9 total columns: 0-8)
+                    // Index 0: DT_RowIndex
+                    // Index 1: prelist
+                    // Index 2: in_amount
+                    // Index 3: out_amount
+                    // Index 4: available_amount
+                    // Index 5: unit
+                    // Index 6: buy_up
+                    // Index 7: total
+                    // Index 8: sell_up
+                    // Index 9: idate
+                    
+                    $(api.column(6).footer()).html(sumColumn(6));  // buy_up
+                    $(api.column(7).footer()).html(sumColumn(7));  // total
+                    $(api.column(8).footer()).html(sumColumn(8));  // sell_up
+                }
             }
         });
 

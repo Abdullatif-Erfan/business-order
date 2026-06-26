@@ -119,9 +119,11 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                         <tr>
                                             <td>{{__('common.total_price')}} &nbsp; </td>
                                             <td>
-                                                @php
-                                                    echo  number_format($boughtItems->first()->total_price,2);
-                                                @endphp
+                                                @if($orgbios[0]->tax_activation === 1)
+                                                    {{number_format($boughtItems->first()->total_vat,2)}}  
+                                                    @else 
+                                                    {{number_format($boughtItems->first()->total_price,2)}} 
+                                                @endif
                                             </td>
                                              <td>  {{__('buy.cur_pay')}} </td>
                                             <td> 
@@ -130,10 +132,12 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     @endphp
                                             </td>
                                             <td> {{__('buy.remained')}} </td>
-                                            <td> @php
-                                                    echo 
-                                                    number_format($boughtItems->first()->remained,2);
-                                                @endphp
+                                            <td>
+                                                 @if($orgbios[0]->tax_activation === 1)
+                                                    {{number_format($boughtItems->first()->remained_vat,2)}}  
+                                                    @else 
+                                                    {{number_format($boughtItems->first()->remained,2)}} 
+                                                @endif
                                             </td>
                                         </tr>
                                         <tr>
@@ -216,13 +220,9 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                      {{number_format($detail->total,2)}} 
                                                     @endif
                                                 </td>
-
-
                                                 <td>{{  $boughtItems->first()->currencyRelation->name ?? ''}}</td>
-
-                                              
                                             </tr>
-                                        @endforeach
+                                         @endforeach
 
                                                 <tr>
                                                     <td colspan="5" rowspan="7" style="padding: 40px;">
@@ -239,9 +239,11 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     <td colspan="2" class="price-section">{{__('buy.total_bill_price')}}</td>
                                                     <td colspan="3" class="price-section">
                                                        
-                                                        @php
-                                                           echo  number_format($boughtItems->first()->total_price,2);
-                                                        @endphp
+                                                          @if($orgbios[0]->tax_activation === 1)
+                                                                {{number_format($boughtItems->first()->total_vat,2)}}  
+                                                                @else 
+                                                                {{number_format($boughtItems->first()->total_price,2)}} 
+                                                            @endif
 
                                                         {{ $currency_name ?? '' }}
                                                     </td>
@@ -261,9 +263,11 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <tr>
                                                     <td colspan="2" class="price-section">  {{__('buy.remained')}}  </td>
                                                     <td colspan="3" class="price-section">
-                                                          @php
-                                                           echo  number_format($boughtItems->first()->remained,2);
-                                                          @endphp
+                                                           @if($orgbios[0]->tax_activation === 1)
+                                                                {{number_format($boughtItems->first()->remained_vat,2)}}  
+                                                                @else 
+                                                                {{number_format($boughtItems->first()->remained,2)}} 
+                                                            @endif
                                                           {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>

@@ -160,39 +160,15 @@
                     </li>
                 @endif
 
+
+                
                 @if($permissions['gudam'] || $isAdmin)
-                    <li class="nav-item">
-                        <a data-toggle="collapse" href="#items">
-                            <i class="fas fa-luggage-cart"></i>
-                            <p> {{ __('menu.warehouse')}}</p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse" id="items">
-                            <ul class="nav nav-collapse">
-                                <li>
-                                    <a href="{{ route('warehousesList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.warehouse_add')}} </span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('warehousesList.wastage') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.wastage')}}   </span>
-                                    </a>
-                                </li>
-                                    <li>
-                                        <a href="{{ route('warehousesList.index') }}?id=1">
-                                        <i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                            <span class="sub-item"> گدام عمومی</span>
-                                        </a>
-                                    </li>
-                                <li>
-                                    <a href="{{ route('warehousesList.all') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.warehouse_all_list')}} </span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                <li class="nav-item">
+                      <a href="{{ route('warehousesList.index') }}?id=1">
+                          <i class="fas fa-luggage-cart"></i>
+                          <p> {{ __('menu.warehouse')}} </p>
+                      </a>
+                  </li>
                 @endif
 
 

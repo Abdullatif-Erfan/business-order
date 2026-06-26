@@ -51,6 +51,8 @@ class BoughtDetailsBasedItemController extends Controller
 
     public function getData(Request $request)
     {
+
+            $tax_activation = $request->input('tax_activation', 0); // Get from request or default 0
             $boughtItems = BoughtItemDetails::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->orderBy('id', 'DESC');
             
               // Apply filters if provided
@@ -106,17 +108,13 @@ class BoughtDetailsBasedItemController extends Controller
             ->addColumn('buy_tax_per', function($boughtItem){
                 return "%". " ".$boughtItem->buy_tax_per;
             })
-            // ->addColumn('total_price', function ($boughtItem) {
-            //     $total_price = $boughtItem->total_price;
-            //     // return (fmod($total_price, 1) == 0) ? number_format($total_price, 0) : number_format($total_price, 2);
-            //     return  number_format($total_price, 2);
-
-            // })
-
-            ->addColumn('total', function ($boughtItem) {
-                return $boughtItem->total_vat ? number_format($boughtItem->total_vat,2) : number_format($boughtItem->total,2);
-            })
-
+         
+            ->addColumn('total', function ($boughtItem) use ($tax_activation) {
+            // Use $tax_activation variable, not $this->$tax_activation
+              return (int)$tax_activation === 1 
+                ? number_format($boughtItem->total_vat ?? 0, 2) 
+                : number_format($boughtItem->total ?? 0, 2);
+             })
             ->rawColumns(['billno'])
             ->make(true);
 
