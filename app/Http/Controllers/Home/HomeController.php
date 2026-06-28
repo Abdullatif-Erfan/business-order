@@ -97,13 +97,13 @@ class HomeController extends Controller
         $progressPercentage = $totalNew > 0 ? round(($totalCompleted / $totalNew) * 100) : 0;
 
         return [
-            'total_orders' => (int) ($result->total_orders ?? 0),
-            'total_draft' => (int) ($result->total_draft ?? 0),
-            'total_new' => (int) ($result->total_new ?? 0),
-            'total_cancelled' => (int) ($result->total_cancelled ?? 0),
-            'total_completed' => (int) ($result->total_completed ?? 0),
-            'progress_percentage' => $progressPercentage,
-        ];
+                'total_orders' => (int) ($result->total_orders ?? 0),
+            '    total_draft' => (int) ($result->total_draft ?? 0),
+                'total_new' => (int) ($result->total_new ?? 0),
+                'total_cancelled' => (int) ($result->total_cancelled ?? 0),
+                'total_completed' => (int) ($result->total_completed ?? 0),
+                'progress_percentage' => $progressPercentage,
+            ];
     }
 
 
@@ -113,13 +113,14 @@ class HomeController extends Controller
             'journals',
             'bought_items',
             'bought_item_details',
-            'qalams',
-            'models',
             'clearances',
             'sales_details',
             'warehouse_items',
             'warehouse_sales',
             'warehouse_wastage',
+            'buy_invoices',
+            'buy_invoice_items',
+            'buy_invoice_payments',
         ];
 
         try {

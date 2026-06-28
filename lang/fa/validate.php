@@ -35,6 +35,8 @@ return [
     // journal related for buy
     "qkbill" => "قرضه خرید - بل",
     "qkharid" => "قرضه خرید",
+    "inv_pay" => 'پرداخت انوایس',
+    "inv_rec" => 'دریافت انوایس',
     "tkbill" => "طلب خرید - بل",
     "tkharid" => "طلب خرید ",
     "pkbill" => "پرداخت خرید - بل",
@@ -245,7 +247,9 @@ return [
     "talab_clearance" => "تصفیه طلب",
     "clearance" => "تصفیه حساب",
     "cache_payment" => "پرداخت نقد",
+    "cache_payment_invoice" => "پرداخت نقد انوایس",
     "cache_recieved" => "دریافت نقد",
+    "cache_recieved_invoice" => "دریافت نقد انوایس",
     'sales' => 'فروشات',
     'buy' => 'خرید',
     'sale' => 'فروش',

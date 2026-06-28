@@ -101,6 +101,9 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px;">
+                            <input type="hidden" id="remained_amount_yet" value=" {{ $orgbios[0]->tax_activation === 1 ?
+                                                            $invoice->remaining_vat : 
+                                                            $invoice->remaining }}">
                             <h4 class="card-title">
                                 {{ __('buy.invoice_details') }}
                                 <span class="pull-left">
@@ -120,7 +123,8 @@
                                 <!-- Header -->
                                 <div class="invoice-header text-center border">
                                     @if(isset($orgbios[0]->header))
-                                        <img src="{{ asset($orgbios[0]->header) }}" alt="Logo" style="max-height:80px; margin-bottom:10px;">
+                                        <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" 
+                                                style="width: 100% !important;">
                                     @endif
                                     <h2 class="invoice-title">{{ $orgbios[0]->name ?? 'Company Name' }}</h2>
                                     <p style="color: #636e72; font-size:14px;">
@@ -227,8 +231,8 @@
                                                     <tr>
                                                         <td><strong>{{ __('common.total_price') }}</strong></td>
                                                         <td style="text-align:right">
-                                                            {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->total, 2): 
-                                                            number_format($invoice->total_vat, 2) }}
+                                                            {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->total_vat, 2): 
+                                                            number_format($invoice->total, 2) }}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -238,8 +242,8 @@
                                                     <tr style="font-size:18px; font-weight:700;">
                                                         <td><strong>{{ __('buy.remaining_amount') }}</strong></td>
                                                         <td style="text-align:right; color:#e17055;">
-                                                             {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->remaining, 2): 
-                                                            number_format($invoice->remaining_vat, 2) }}
+                                                             {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->remaining_vat, 2): 
+                                                            number_format($invoice->remaining, 2) }}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -298,21 +302,23 @@
                                                 @csrf
                                                 <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
                                                 <input type="hidden" name="times" value="{{ $times }}">
-                                                <input type="hidden" name="newJournalCode" value="{{ $newJournalCode }}">
-
+                                                <input type="hidden" name="journal_code" value="{{ $newJournalCode }}">
+                                                <input type="hidden" name="tax_activation" value="{{ $orgbios[0]->tax_activation }}">
+                                                <input type="hidden" name="supplier_account_id" value="{{ $invoice->supplier->id }}">
+                                                
                                                 
                                                 <div class="row">
                                                     <div class="col-md-3 col-sm-6 col-xs-6 m-b-4">
-                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="account_id">
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="account_id" id="account_id">
                                                             @foreach($ownBanks as $bank)
                                                                 <option value="{{ $bank->id }}">{{ $bank->name }}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3 col-sm-6 col-xs-6 m-b-4">
-                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="supplier_account_id">
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="supplier_account_id_disabled" disabled>
                                                             @foreach($suppliers as $supplier)
-                                                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                                                <option value="{{ $supplier->id }}" {{$supplier->id  === $invoice->supplier->id ? 'selected': ''}} >{{ $supplier->name }}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -320,7 +326,8 @@
                                                         <input type="date" class="form-control" name="payment_date" value="{{ date('Y-m-d') }}" required>
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <input type="number" step="0.01" class="form-control" name="amount" placeholder="{{ __('common.amount') }}" required>
+                                                        <input type="number" step="0.01" class="form-control" name="amount"
+                                                         placeholder="{{ __('common.amount') }}" oninput="checkRemaining(this.value)" required>
                                                     </div>
                                                     <div class="col-md-2 mt-2">
                                                         <select class="form-control" name="payment_method" required>
@@ -330,7 +337,7 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3 col-sm-6 col-xs-6  mt-2">
-                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="currency_id">
                                                             @foreach($currencies as $currency)
                                                                 <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                                             @endforeach
@@ -343,7 +350,7 @@
                                                         <input type="text" class="form-control" name="notes" placeholder="{{ __('buy.notes') }}">
                                                     </div>
                                                     <div class="col-md-2  mt-2">
-                                                        <button type="submit" class="btn btn-primary btn-sm">
+                                                        <button type="submit" class="btn btn-primary btn-sm" id="submit">
                                                             <i class="fas fa-plus"></i> {{ __('common.add') }}
                                                         </button>
                                                     </div>
@@ -364,6 +371,31 @@
 </div>
 
 <script>
+ function checkRemaining(cur_pay) {
+    var remained = parseFloat($('#remained_amount_yet').val()) || 0;
+    var curPay = parseFloat(cur_pay) || 0;
+    // Round to 2 decimal places to avoid floating point issues
+    remained = Math.round(remained * 100) / 100;
+    curPay = Math.round(curPay * 100) / 100;
+    
+    // Check if payment exceeds remaining
+    if (curPay > remained) {
+        alert("{{__('buy.over_pay_invoice')}}");
+        $('#submit').hide(); // Or .fadeOut(300) for smooth animation
+        return false;
+    } else if (curPay === remained) {
+        // Payment equals remaining - fully paid
+        $('#submit').show();
+        // Optionally show a message
+        // alert("Payment will fully clear the balance");
+        return true;
+    } else {
+        // Payment is less than remaining
+        $('#submit').show();
+        return true;
+    }
+}
+
 $(document).ready(function() {
     // Payment Form Submit
     $('#paymentForm').on('submit', function(e) {

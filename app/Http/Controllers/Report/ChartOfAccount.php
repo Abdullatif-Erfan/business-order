@@ -10,14 +10,12 @@ use App\Models\Setting\OrgBio;
 
 class ChartOfAccount extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected  $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -34,22 +32,20 @@ class ChartOfAccount extends Controller
         $banks_account_type_id = 6;
 
 
-        $branch_id = $this->branch_id ?? 0;
-
         $orgbios = OrgBio::all();
         $currencies = Currency::select('id','name')->get();
         // حسابات نقده شرکت
-        $company_accounts = $this->getCompanyAccountsReport($id, $khazana_account_type_id, $branch_id, $banks_account_type_id);
+        $company_accounts = $this->getCompanyAccountsReport($id, $khazana_account_type_id,  $banks_account_type_id);
         // حسابات فروشنده گان
-        $supplier_accounts = $this->getSellersAndCustomersReport($id, $supplier_account_type_id, $branch_id, 0);
+        $supplier_accounts = $this->getSellersAndCustomersReport($id, $supplier_account_type_id,  0);
         // حسابات مشتریان
-        $customer_accounts = $this->getSellersAndCustomersReport($id, $customer_account_type_id, $branch_id, 0);
+        $customer_accounts = $this->getSellersAndCustomersReport($id, $customer_account_type_id,  0);
         // سهم داران
-        $participant_accounts = $this->getSellersAndCustomersReport($id, $participant_account_type_id, $branch_id, 0);
+        $participant_accounts = $this->getSellersAndCustomersReport($id, $participant_account_type_id,  0);
 
 
         // دریافت طلبات و قرضه شرکت از حسابات مشتریان و فروشندگاه
-        $talabat_and_loans = $this->getTalabatAndLoansReport($id, $branch_id);
+        $talabat_and_loans = $this->getTalabatAndLoansReport($id);
 
         // return ['participant_accounts' => $participant_accounts];
         // return ['talabat_and_loans' => $talabat_and_loans];
@@ -70,7 +66,7 @@ class ChartOfAccount extends Controller
     }
 
 
-    private function getCompanyAccountsReport($currencyId = null, $account_type_id, $branch_id, $banks_account_type_id)
+    private function getCompanyAccountsReport($currencyId = null, $account_type_id,  $banks_account_type_id)
     {
         $currency_id = $currencyId ?? 1;
             
@@ -124,12 +120,10 @@ class ChartOfAccount extends Controller
         // ->get();
     
         $CacheReport = DB::table('accounts')
-        ->leftJoin('journals', function ($join) use ($currency_id, $branch_id) { 
+        ->leftJoin('journals', function ($join) use ($currency_id) { 
             $join->on('accounts.id', '=', 'journals.account_id')
-                ->where('journals.currency_id', $currency_id)
-                ->where('journals.branch_id', $branch_id);
+                ->where('journals.currency_id', $currency_id);
         })
-        ->where('accounts.branch_id', $branch_id)
         ->whereIn('accounts.account_type_id', [1,6])
         ->select([
             'accounts.id as accountId',
@@ -152,17 +146,15 @@ class ChartOfAccount extends Controller
     }
 
     // get customer accounts report
-    private function getSellersAndCustomersReport($currencyId = null, $account_type_id, $branch_id, $banks_account_type_id)
+    private function getSellersAndCustomersReport($currencyId = null, $account_type_id,  $banks_account_type_id)
     {
         $currency_id = $currencyId ?? 1;
         
         $accounts = DB::table('accounts')
-            ->leftJoin('journals', function ($join) use ($currency_id,$branch_id) { 
+            ->leftJoin('journals', function ($join) use ($currency_id) { 
                 $join->on('accounts.id', '=', 'journals.account_id')
-                    ->where('journals.currency_id', $currency_id)
-                    ->where('journals.branch_id', $branch_id);
+                    ->where('journals.currency_id', $currency_id);
             })
-            ->where('accounts.branch_id', $branch_id)
             ->where('accounts.account_type_id', $account_type_id)
             ->when($banks_account_type_id > 0, function ($query) {
                 return $query->orWhere('accounts.account_type_id', 6);
@@ -198,12 +190,11 @@ class ChartOfAccount extends Controller
     }
 
     
-    public function getTalabatAndLoansReport($currencyId = null, $branch_id)
+    public function getTalabatAndLoansReport($currencyId = null)
     {
         $currency_id = $currencyId ?? 1;
         
         $loanAndTalab = DB::table('journals')
-            ->where('journals.branch_id', $branch_id)
             ->where('journals.currency_id', $currency_id)
             ->whereIn('journals.account_type_id', [3, 4])
             ->select([

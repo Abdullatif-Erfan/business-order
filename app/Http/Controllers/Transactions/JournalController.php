@@ -121,7 +121,7 @@ class JournalController extends Controller
         }
         
          // check if searched_account_id is belongs to company accounts
-         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->where('branch_id', $this->branch_id)->exists();
+         $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)->exists();
 
         return DataTables::of($journals)
             
@@ -165,7 +165,7 @@ class JournalController extends Controller
             ])
 
             ->setRowClass(function ($journal) {
-                return $journal->status == 9 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
+                return $journal->status == 11 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
             })
             
             ->make(true);

@@ -519,10 +519,10 @@ class SalesController extends Controller
      */
     private function handleJournalEntry($request)
     {
-            $date = explode('-', $request->todays_date);
-            $year = $date[0];
+            $date  = explode('-', $request->todays_date);
+            $year  = $date[0];
             $month = $date[1];
-            $day  = $date[2];
+            $day   = $date[2];
             $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
              /**
              * ================================== insert in to journal ========================

@@ -85,7 +85,8 @@
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                             <td colspan="10">
-                                                <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
+                                                <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" 
+                                                style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
