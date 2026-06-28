@@ -105,20 +105,18 @@ class BoughtDetailsController extends Controller
             })
 
              ->addColumn('total', function ($boughtItem) use ($tax_activation) {
-                 return (int)$tax_activation === 1 
-                ? number_format($boughtItem->total_vat ?? 0, 2) 
-                : number_format($boughtItem->total_price ?? 0, 2);
+                //  return (int)$tax_activation === 1 
+                // ? number_format($boughtItem->total_vat ?? 0, 2) 
+                // : number_format($boughtItem->total_price ?? 0, 2);
+                 return number_format($boughtItem->total?? 0, 2);
             })
 
             ->addColumn('cur_pay', function ($boughtItem) {
-                $cur_pay = $boughtItem->cur_pay;
-                return (fmod($cur_pay, 1) == 0) ? number_format($cur_pay, 0) : number_format($cur_pay, 2);
+                return number_format($boughtItem->cur_pay?? 0, 2);
             })
 
             ->addColumn('remained', function ($boughtItem) use ($tax_activation) {
-                return (int)$tax_activation === 1 
-                ? number_format($boughtItem->remained_vat ?? 0, 2) 
-                : number_format($boughtItem->remained ?? 0, 2);
+                return number_format($boughtItem->remained?? 0, 2);
             })
 
             ->addColumn('currencyRelation', function ($boughtItem) {
@@ -224,16 +222,14 @@ class BoughtDetailsController extends Controller
 
         if ($BoughtItem) {
             // \Log::info('updating BoughtItem');
-            // ✅ Update existing record
+            // Update existing record
             $BoughtItem->update([
-                'total_price'         => $request->total_price ?? 0,
-                'total_vat'           => $request->total_vat ?? 0,
+                'total'               => $request->total ?? 0,
                 'cur_pay'             => $request->cur_pay ?? 0,
                 'remained'            => $request->remained ?? 0,
                 'currency_id'         => $request->currency_id ?? 0,
                 'account_id'          => $request->from_account_id,
                 'supplier_account_id' => $request->supplier_account_id,
-                'tax_activation'      => $request->tax_activation ?? 0,
                 'note'                => $request->note ?? '',
             ]);
         } else {
@@ -242,8 +238,7 @@ class BoughtDetailsController extends Controller
                 'factor'              => $request->factor ?? 0,
                 'billno'              => $request->billno,
                 'journal_code'        => $request->journal_code ?? 0,
-                'total_price'         => $request->total_price ?? 0,
-                'total_vat'           => $request->total_vat ?? 0,
+                'total'               => $request->total ?? 0,
                 'cur_pay'             => $request->cur_pay ?? 0,
                 'remained'            => $request->remained ?? 0,
                 'account_id'          => $request->from_account_id,
@@ -282,7 +277,7 @@ class BoughtDetailsController extends Controller
             'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
             'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
             'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
-            'total' => $request->total_price,   
+            'total' => $request->total,   
             // 'total_vat' => $flag ? $request->total_vat : NULL, 
             'total_vat' => $flag ? ($request->buy_up_vat ?? 0) * $request->amount : NULL, 
             'sell_up' => $request->sell_up,
@@ -299,17 +294,17 @@ class BoughtDetailsController extends Controller
 
     private function createOrUpdateWarehouseItems($request)
     {
-        $flag = $request->tax_activation == 1 ? true : false;
         $date = Carbon::parse($request->todays_date);
         $year = $date->year;   
         $month = $date->month; 
         $day = $date->day;   
-
+        
         // Prepare bulk insert data
         $warehouseItemsToInsert = [];
-
+        
         $default_warehouse_id = 1;
-        $new_total = $request->buy_up * $request->amount; // Cost of new stock   
+        $flag = $request->tax_activation == 1 ? true : false;
+        $new_total = $flag ? $request->buy_up_vat *  $request->amount : $request->buy_up * $request->amount; 
         // Insert new warehouse item
         $warehouseItemsToInsert[] = [
             'warehouse_id' => $default_warehouse_id,
@@ -323,9 +318,7 @@ class BoughtDetailsController extends Controller
             'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
             'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
             'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
-            'total' => $request->total_price,
-            // 'total_vat' => $flag ? $request->total_vat : NULL, 
-            'total_vat' => $flag ? ($request->buy_up_vat ?? 0) * $request->amount : NULL, 
+            'total' => $new_total, // اگر مالیات فعال باشد توتل با مالیات ذخیره 
             'sell_up' => $request->sell_up,
             'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
             'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
@@ -359,44 +352,20 @@ class BoughtDetailsController extends Controller
         // return ['data' => $request->all()];
 
         $validated = $request->validate([
-            'billno'    => 'required|numeric',
-            'total_vat' => 'required', // VAT = Value Added Tax
-            'cur_pay'   => 'required',
-            'remained'  => 'required',
+            'billno'          => 'required|numeric',
+            'total_price'     => 'required', 
+            'cur_pay'         => 'required',
+            'remained'        => 'required',
         ]);
 
         DB::beginTransaction(); // transaction start
 
         try {
             // Get sum of total and total_vat
-            $boughtItemDetails = BoughtItemDetails::where('billno', $validated['billno'])
-                ->selectRaw('SUM(total) as total_sum, SUM(total_vat) as total_vat_sum')
-                ->first();
-
-            if (!$boughtItemDetails) {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' => __('common.add_failed'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('boughtList.index');
-            }
-
-            $total_price = $boughtItemDetails->total_sum ?? 0;
-            $total_vat = $boughtItemDetails->total_vat_sum ?? 0;
-            
-            $cur_pay = (float) $request->cur_pay;
-            $remained = $total_price - $cur_pay;
-
-            // Calculate remained_vat 
-            if ((int) $request->tax_activation === 1) {
-                $remained_vat = $total_vat - $cur_pay; 
-                // If you have separate vat payment, use: $remained_vat = $total_vat - $request->cur_pay_vat;
-            } else {
-                $remained_vat = null;
-            }
-
-            $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
+            // $boughtItemDetails = BoughtItemDetails::where('billno', $validated['billno'])
+            //     ->selectRaw('SUM(total) as total_sum, SUM(total_vat) as total_sum_vat')
+            //     ->get();
+            $BoughtItem = BoughtItem::where('billno', $validated['billno'])->first();
 
             if (!$BoughtItem) {
                 DB::rollBack();
@@ -407,17 +376,29 @@ class BoughtDetailsController extends Controller
                 return redirect()->route('boughtList.index');
             }
 
+             $curPay = (float) $request->cur_pay;
+             $totalPrice = (float) $request->total_price;
+
+            if ($curPay > $totalPrice) {
+                DB::rollBack();
+                Session::put('notification', [
+                    'message' => __('buy.over_pay'),
+                    'type' => 'danger',
+                ]);
+                return redirect()->route('boughtList.edit', ['times' => $request->times]);
+            }
+
             // Update BoughtItem record
-            $BoughtItem->update([
+             $updateData = [
                 'journal_code' => $request->journal_code,
-                'total_price' => $total_price,
-                'total_vat' => $total_vat,
-                'cur_pay' => $cur_pay,
-                'remained' => $remained,
-                'remained_vat' => $remained_vat,
+                'total' => $totalPrice,  
+                'cur_pay' => $curPay,
+                'remained' => $request->remained,
                 'note' => $request->note ?? '',
                 'times' => $request->times,
-            ]);
+            ];
+            
+            $BoughtItem->update($updateData);
 
             // Log::info('Start inserting into Journal');
             // Insert into journal
@@ -564,17 +545,17 @@ class BoughtDetailsController extends Controller
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
 
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
+            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total))
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
                 $details = __('validate.tkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total_price,
+                $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total,
                  $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
@@ -601,7 +582,7 @@ class BoughtDetailsController extends Controller
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
              // تنها از حساب خزانه کم شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
+            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total)) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
@@ -627,7 +608,7 @@ class BoughtDetailsController extends Controller
         }
     }
 
-   private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment, $status = 7)
+     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details,    $dynamic_type, $dt_comment, $status = 7)
     {
         try {
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
@@ -765,15 +746,9 @@ class BoughtDetailsController extends Controller
             }
 
             // Update bought item
-            if ((int)$request->tax_activation === 1) {
-                $boughtItem->total_vat = $request->total_price ?? 0;
-                $boughtItem->cur_pay = $request->cur_pay ?? 0;
-                $boughtItem->remained_vat = $request->remained ?? 0;
-            } else {
-                $boughtItem->total_price = $request->total_price ?? 0;
-                $boughtItem->cur_pay = $request->cur_pay ?? 0;
-                $boughtItem->remained = $request->remained ?? 0;
-            }
+            $boughtItem->total = $request->total_price ?? 0;
+            $boughtItem->cur_pay = $request->cur_pay ?? 0;
+            $boughtItem->remained = $request->remained ?? 0;
             $boughtItem->account_id = $request->from_account_id;
             $boughtItem->note = $request->note ?? '';
             $boughtItem->save();
@@ -1111,17 +1086,13 @@ class BoughtDetailsController extends Controller
                 return $invoice->supplier ? $invoice->supplier->name : '-';
             })
             ->addColumn('total', function($invoice) use ($tax_activation) {
-                return (int)$tax_activation === 1 
-                    ? number_format($invoice->total_vat ?? 0, 2) 
-                    : number_format($invoice->total ?? 0, 2);
+                return  number_format($invoice->total ?? 0, 2);
             })
             ->addColumn('paid_amount', function($invoice) {
                 return number_format($invoice->paid_amount, 2);
             })
             ->addColumn('remaining', function($invoice) use ($tax_activation) {
-                 return (int)$tax_activation === 1 
-                    ? number_format($invoice->remaining_vat ?? 0, 2) 
-                    : number_format($invoice->remaining ?? 0, 2);
+                 return number_format($invoice->remaining ?? 0, 2);
             })
             ->addColumn('status', function($invoice) {
                 $statusClasses = [
@@ -1198,23 +1169,20 @@ class BoughtDetailsController extends Controller
             $invoiceNumber = 'INV-' . date('Ymd') . '-' . (BuyInvoice::count() + 1);
 
             // Calculate totals
-            $totalAmount = $boughtItems->sum('total_price');
-            $totalAmountVat = $boughtItems->sum('total_vat');
+            $totalAmount = $boughtItems->sum('total');
             $paidAmount = $boughtItems->sum('cur_pay');
             $remainingAmount = $boughtItems->sum('remained');
-            $remainingAmountVat = $boughtItems->sum('remained_vat');
 
             // Create invoice
             $invoice = BuyInvoice::create([
                 'invoice_number' => $invoiceNumber,
                 'supplier_id' => $supplierId,
                 'total' => $totalAmount,
-                'total_vat' => $totalAmountVat,
                 'paid_amount' => $paidAmount,
                 'remaining' => $remainingAmount,
-                'remaining_vat' => $remainingAmountVat,
                 'currency_id' => $boughtItems->first()->currency_id,
-                'status' => ($remainingAmount || ($remainingAmountVat > 0)) ? 1 : 3, // 0: draft, 1: pending, 2: partial, 3: paid
+                'status' =>   1, // 0: draft, 1: in progress, 2: partial, 3: paid
+                'tax_activation' => $boughtItems->tax_activation ?? 0, 
                 'invoice_date' => now(),
                 'due_date' => now()->addDays(30),
                 'notes' => __('buy.invoice_generated_from_bought_items'),
@@ -1314,17 +1282,9 @@ class BoughtDetailsController extends Controller
             
             // ========================= Update Invoice =================================
             $newPaidAmount = $invoice->paid_amount + $amount;
-            
-            if ($taxActivation === 1) {
-                $newRemainingVat = $invoice->total_vat - $newPaidAmount;
-                $newRemaining = $invoice->total - $newPaidAmount;
-            } else {
-                $newRemainingVat = null;
-                $newRemaining = $invoice->total - $newPaidAmount;
-            }
-            
+            $newRemaining = $invoice->total - $newPaidAmount;
             // Determine status
-            if ($newPaidAmount >= $invoice->total && ($taxActivation !== 1 || $newPaidAmount >= $invoice->total_vat)) {
+            if ($newPaidAmount >= $invoice->total) {
                 $status = 3; // Fully paid
             } elseif ($newPaidAmount > 0) {
                 $status = 2; // Partial
@@ -1335,7 +1295,6 @@ class BoughtDetailsController extends Controller
             $invoice->update([
                 'paid_amount' => $newPaidAmount,
                 'remaining' => max(0, $newRemaining),
-                'remaining_vat' => $taxActivation === 1 ? max(0, $newRemainingVat) : null,
                 'status' => $status
             ]);
 
@@ -1368,99 +1327,137 @@ class BoughtDetailsController extends Controller
 
             //  Check if single or multiple records
             $itemsCount = $boughtItems->count();
-            $remainingPayment = $amount;
+            $remainingPayment = (float) $amount;
 
-            if ($itemsCount === 1) {
+            if ($itemsCount === 1) 
+            {
                 // =============================================
                 // SINGLE RECORD - Apply payment directly
                 // =============================================
                 $boughtItem = $boughtItems->first();
                 
-                $itemTotalPrice = (float) $boughtItem->total_price;
-                $itemTotalVat = (float) $boughtItem->total_vat;
+                $itemTotalPrice = (float) $boughtItem->total;
                 $itemCurrentPaid = (float) $boughtItem->cur_pay;
                 
                 // Calculate new values
                 $newCurPay = $itemCurrentPaid + $amount;
                 $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
-                $newRemainingVat = $taxActivation === 1 
-                    ? max(0, $itemTotalVat - $newCurPay) 
-                    : null;
                 
                 // Update single item
                 $boughtItem->update([
                     'cur_pay' => $newCurPay,
                     'remained' => $newRemainingPrice,
-                    'remained_vat' => $newRemainingVat !== null ? $newRemainingVat : null,
-                    'status' => $newRemainingPrice <= 0.01 ? 3 : 2
+                    'status' => $newRemainingPrice <= 0 ? 3 : 2
                 ]);
+            }  
+            else 
+            {
+                /**
+                * 
+                * Initial State:
+                * Item 1: total=480, cur_pay=0, remained=480
+                * Item 2: total=200, cur_pay=0, remained=200
 
-                // \Log::info('Single Bought Item Updated:', [
-                //     'item_id' => $boughtItem->id,
-                //     'old_cur_pay' => $itemCurrentPaid,
-                //     'new_cur_pay' => $newCurPay,
-                //     'new_remained' => $newRemainingPrice,
-                //     'amount_paid' => $amount
-                // ]);
+                * Payment 1: 50
+                * → Item 1: allocated=50, cur_pay=50, remained=430, remaining_payment=0
+                * Result: Item 1 = 50/480, Item 2 = 0/200
 
-            } else {
+                * Payment 2: 350
+                * → Item 1: itemRemainingPrice = 480 - 50 = 430
+                * → allocated=350 (partial), cur_pay=400, remained=80, remaining_payment=0
+                * Result: Item 1 = 400/480, Item 2 = 0/200
+
+                * Payment 3: 100
+                * → Item 1: itemRemainingPrice = 480 - 400 = 80
+                * → allocated=80, cur_pay=480, remained=0, remaining_payment=20
+                * → Item 2: itemRemainingPrice = 200 - 0 = 200
+                * → allocated=20, cur_pay=20, remained=180, remaining_payment=0
+                * Result: Item 1 = 480/480 (PAID), Item 2 = 20/200 (PARTIAL)
+                *
+                */
                 // =============================================
                 // MULTIPLE RECORDS - Distribute payment sequentially
                 // =============================================
-                foreach ($boughtItems as $boughtItem) {
-                    // Skip if no remaining payment
+                
+                // Calculate total remaining for validation
+                $totalRemaining = 0;
+                foreach ($boughtItems as $item) {
+                    $totalRemaining += max(0, (float) $item->total - (float) $item->cur_pay);
+                }
+
+                if ($remainingPayment > $totalRemaining) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => __('buy.payment_exceeds_remaining', [
+                            'remaining' => number_format($totalRemaining, 2)
+                        ])
+                    ], 422);
+                }
+
+                // Distribute payment sequentially across items
+                foreach ($boughtItems as $index => $boughtItem) {
+                    // Stop if no more payment to distribute
                     if ($remainingPayment <= 0.01) {
                         break;
                     }
-
-                    // Get current values
-                    $itemTotalPrice = (float) $boughtItem->total_price;
-                    $itemTotalVat = (float) $boughtItem->total_vat;
-                    $itemCurrentPaid = (float) $boughtItem->cur_pay;
                     
-                    // Calculate remaining for this item
-                    $itemRemainingPrice = $itemTotalPrice - $itemCurrentPaid;
+                    $itemTotalPrice = (float) ($boughtItem->total ?? 0);
+                    $itemCurrentPaid = (float) ($boughtItem->cur_pay ?? 0);
+                    $itemRemainingPrice = max(0, $itemTotalPrice - $itemCurrentPaid);
                     
-                    // Skip if item is fully paid
+                    // Skip if item is already fully paid
                     if ($itemRemainingPrice <= 0.01) {
                         continue;
                     }
-
-                    // Calculate how much to allocate to this item
-                    $allocatedAmount = min($remainingPayment, $itemRemainingPrice);
                     
-                    // Update item values
-                    $newCurPay = $itemCurrentPaid + $allocatedAmount;
-                    $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
-                    $newRemainingVat = $taxActivation === 1 
-                        ? max(0, $itemTotalVat - $newCurPay) 
-                        : null;
-
-                    // Update the bought item
-                    $boughtItem->update([
-                        'cur_pay' => round($newCurPay, 2),
-                        'remained' => round($newRemainingPrice, 2),
-                        'remained_vat' => $newRemainingVat !== null ? round($newRemainingVat, 2) : null,
-                        'status' => $newRemainingPrice <= 0.01 ? 3 : 2
-                    ]);
-
-                    // Reduce remaining payment
-                    $remainingPayment -= $allocatedAmount;
-
-                    \Log::info('Bought Item Updated (Multiple):', [
-                        'item_id' => $boughtItem->id,
+                    // Determine how much to allocate to this item
+                    $allocatedAmount = 0;
+                    if ($remainingPayment >= $itemRemainingPrice) {
+                        // Pay the FULL remaining amount of this item
+                        $allocatedAmount = $itemRemainingPrice;
+                        $remainingPayment -= $itemRemainingPrice;
+                    } else {
+                        // Pay PARTIAL amount to this item (remainingPayment will become 0)
+                        $allocatedAmount = $remainingPayment;
+                        $remainingPayment = 0;
+                    }
+                    
+                    // Calculate new values
+                    $newCurPay = round($itemCurrentPaid + $allocatedAmount, 2);
+                    $newRemainingPrice = round($itemTotalPrice - $newCurPay, 2);
+                   
+                    
+                    // Determine status
+                    if ($newCurPay <= 0) {
+                        $status = 1;       // unpaid
+                    } elseif ($newRemainingPrice <= 0.01) {
+                        $status = 3;       // paid
+                    } else {
+                        $status = 2;       // partial
+                    }
+                    
+                    // Log before update
+                    \Log::info('Before Update - Item ' . $boughtItem->id, [
+                        'total_price' => $itemTotalPrice,
+                        'current_paid' => $itemCurrentPaid,
+                        'remaining' => $itemRemainingPrice,
                         'allocated' => $allocatedAmount,
-                        'new_cur_pay' => $newCurPay,
-                        'new_remained' => $newRemainingPrice,
-                        'remaining_payment' => $remainingPayment
+                        'new_paid' => $newCurPay,
+                        'new_remaining' => $newRemainingPrice
                     ]);
-                }
-
-                // Check if there's remaining payment (shouldn't happen if totals match)
-                if ($remainingPayment > 0.01) {
-                    \Log::warning('Remaining payment not fully distributed', [
-                        'remaining' => $remainingPayment,
-                        'invoice_id' => $invoice->id
+                    
+                    // Update the item
+                    $boughtItem->update([
+                        'cur_pay' => $newCurPay,
+                        'remained' => max(0, $newRemainingPrice),
+                        'status' => $status,
+                    ]);
+                    
+                    // Log after update
+                    \Log::info('After Update - Item ' . $boughtItem->id, [
+                        'cur_pay' => $boughtItem->fresh()->cur_pay,
+                        'remained' => $boughtItem->fresh()->remained
                     ]);
                 }
             }
@@ -1485,19 +1482,8 @@ class BoughtDetailsController extends Controller
             $dynamic_type = 2;
             $dt_comment = 'Invoice';
             
-            $check1 = $this->createJournalEntry(
-                $request, 
-                $optionLabel, 
-                $request->account_id, 
-                $amount, 
-                "2", // ttype: paid
-                "1", // ptype: cash
-                $date, 
-                $full_date, 
-                $details, 
-                $dynamic_type, 
-                $dt_comment, 
-                $status
+            $check1 = $this->createJournalEntry( $request, $optionLabel, $request->account_id,  $amount, 
+                "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
             );
 
             // Received by supplier
@@ -1505,18 +1491,8 @@ class BoughtDetailsController extends Controller
             $optionLabel = __('validate.inv_rec');
             
             $check2 = $this->createJournalEntry(
-                $request, 
-                $optionLabel, 
-                $request->supplier_account_id, 
-                $amount, 
-                "1", // ttype: received
-                "1", // ptype: cash
-                $date, 
-                $full_date, 
-                $details2, 
-                $dynamic_type, 
-                $dt_comment, 
-                $status
+                $request,  $optionLabel, $request->supplier_account_id, $amount, 
+                "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
             );
 
             if (!$check1 || !$check2) {

@@ -105,15 +105,24 @@ class BoughtDetailsBasedItemController extends Controller
                 return $boughtItem->billno ? $boughtItem->billno : '';
             })
 
+             ->addColumn('buy_up', function($boughtItem) {
+                //  <!--   اگر در زمان ثبت این ریکارد مالیات فعال بوده است حتما باید ریکارد مالیات دار  نشان داده شود در هر حالت -->
+                if ($boughtItem->buy_tax_per && $boughtItem->buy_tax_per > 0) {
+                    return $boughtItem->buy_up_vat;
+                }
+                return $boughtItem->buy_up;
+            })
+
             ->addColumn('buy_tax_per', function($boughtItem){
                 return "%". " ".$boughtItem->buy_tax_per;
             })
          
             ->addColumn('total', function ($boughtItem) use ($tax_activation) {
             // Use $tax_activation variable, not $this->$tax_activation
-              return (int)$tax_activation === 1 
-                ? number_format($boughtItem->total_vat ?? 0, 2) 
-                : number_format($boughtItem->total ?? 0, 2);
+               if ($boughtItem->buy_tax_per && $boughtItem->buy_tax_per > 0) {
+                    return $boughtItem->total_vat;
+                }
+                return $boughtItem->total;
              })
             ->rawColumns(['billno'])
             ->make(true);

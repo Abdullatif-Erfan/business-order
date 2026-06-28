@@ -10,7 +10,7 @@ use App\Models\Setting\Currency;
 class BoughtItem extends Model
 {
     protected $table = 'bought_items';
-    protected $fillable = ['billno','factor','journal_code', 'total_price', 'total_vat', 'cur_pay', 'remained','remained_vat', 'account_id','supplier_account_id','currency_id','tax_activation', 'note', 'idate', 'year', 'month', 'day','times', 'has_invoice', 'invoice_id',
+    protected $fillable = ['billno','factor','journal_code', 'total', 'cur_pay', 'remained', 'account_id','tax_activation','supplier_account_id','currency_id', 'note', 'idate', 'year', 'month', 'day','times', 'has_invoice', 'invoice_id',
     'user_id','user_name'];
 
     // Define relationships

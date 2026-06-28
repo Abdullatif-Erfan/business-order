@@ -54,7 +54,6 @@ select.select2{text-align:right !important;direction:rtl !important;}
                         <input type="hidden" name="times" value="{{ $times; }}"> 
                         <input type="hidden" name="journal_code" value="{{ $newJournalCode; }}"> 
                         <input type="hidden" name="tax_activation" value="{{$tax->tax_activation}}">
-                        <!-- <input type="hidden2" name="total_price" value="0" id="total_price_no_tax"> -->
                          <input type="hidden" name="currency_id" value="{{$currencies->first()->id}}" >
 
 
@@ -172,7 +171,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
                                                 <label for="total_price">{{__('common.total')}}<span class="danger">*</span> </label>
-                                                <input class="form-control" name="total_price" id='total_price_no_tax' type="number" step="0.01" >
+                                                <input class="form-control" name="total" id='total_with_or_without_tax' type="number" step="0.01" >
                                             </div>
                                     <!-- / Second Row -->
 
@@ -295,7 +294,7 @@ function calculateTotalPrice(buy_up)
     var buyUp = parseFloat(buy_up) || 0;
     var amount = parseFloat($('#amount').val()) || 0;
     var total = (buyUp * amount).toFixed(2);
-    $('#total_price_no_tax').val(total);
+    $('#total_with_or_without_tax').val(total);
 }
 
 function calculateTax(tax_percent) {
@@ -405,7 +404,7 @@ function submiteBuyingForm()
                 $('#sell_up_vat').val('');
                 $('#total_sales_with_tax').val('');
                 $('#total_vat').val('');
-                $('#total_price_no_tax').val('');
+                $('#total_with_or_without_tax').val('');
                 $('#note').val('');
 
                 // Clear Select2 fields properly

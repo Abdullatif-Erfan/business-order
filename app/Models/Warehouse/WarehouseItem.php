@@ -14,7 +14,7 @@ class WarehouseItem extends Model
 {
     protected $table = "warehouse_items";
     protected $fillable = ['warehouse_id', 'buy_pre_id', 'name', 'in_amount','out_amount','available_amount','unit_id',
-    'buy_up', 'buy_tax_per','buy_tax_price','buy_up_vat', 'total', 'total_vat', 'sell_up','sell_tax_per','sell_tax_price','sell_up_vat',
+    'buy_up', 'buy_tax_per','buy_tax_price','buy_up_vat', 'total', 'sell_up','sell_tax_per','sell_tax_price','sell_up_vat',
     'currency_id', 'category_id', 'user_id', 'idate', 'year', 'month', 'day','is_cleared'];
 
    public function warehouseRelation()

@@ -118,7 +118,7 @@
                                                 <tbody>
                                                     @foreach($boughtItemDetails as $key => $detail)
                                                     @php
-                                                      $ttl = $orgbios[0]->tax_activation === 1 ?  $detail->total_vat: $detail->total;
+                                                      $ttl = $detail->buy_tax_per > 0 ?  $detail->total_vat: $detail->total;
                                                         $grandTotal +=  $ttl;
                                                     @endphp
                                                     <tr>
@@ -127,13 +127,18 @@
                                                         <td>{{ $detail->preListRelation->name }}</td>
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
-                                                        <td>{{ number_format($detail->buy_up,2) }}</td>
+                                                        <td>{{ 
+                                                                $detail->buy_tax_per > 0 ? 
+                                                                number_format($detail->buy_up_vat,2) : 
+                                                                number_format($detail->buy_up,2);
+                                                            }}
+                                                       </td>
                                                         @if($orgbios[0]->tax_activation === 1)
                                                          <td> % {{$detail->buy_tax_per}}  </td>
                                                          <td> {{$detail->buy_tax_price}} </td>
                                                          @endif
                                                         <td>
-                                                            @if($orgbios[0]->tax_activation === 1)
+                                                            @if($detail->buy_tax_per > 0)
                                                             {{number_format($detail->total_vat,2)}}  
                                                             @else 
                                                             {{number_format($detail->total,2)}} 

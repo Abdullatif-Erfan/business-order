@@ -86,11 +86,12 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <td>{{ $detail->unitRelation->name }}</td>
 
                                                 <td>
-                                                    @php
-                                                    echo fmod($detail->buy_up, 1) == 0
-                                                        ? number_format($detail->buy_up, 0)
-                                                        : number_format($detail->buy_up, 2);
-                                                    @endphp
+                                                    <!-- اگر در زمان ثبت این ریکارد مالیات فعال بوده است حتما باید ریکارد مالیات دار  نشان داده شود -->
+                                                    {{ 
+                                                        $detail->buy_tax_per > 0 ? 
+                                                        number_format($detail->buy_up_vat,2) : 
+                                                        number_format($detail->buy_up,2);
+                                                    }}
                                                 </td>
                                                 
                                                 @if($orgbios[0]->tax_activation === 1)
@@ -99,11 +100,11 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 @endif
 
                                                 <td>
-                                                    @if($orgbios[0]->tax_activation === 1)
-                                                     {{number_format($detail->total_vat,2)}}  
-                                                     @else 
-                                                     {{number_format($detail->total,2)}} 
-                                                    @endif
+                                                    {{ 
+                                                        $detail->buy_tax_per > 0 ? 
+                                                        number_format($detail->total_vat,2) : 
+                                                        number_format($detail->total,2);
+                                                    }}
                                                 </td>
 
                                                 <td>{{ $currency_name ?? '' }}</td>
@@ -119,25 +120,15 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                         <tr>
                                             <td>{{__('common.total_price')}} &nbsp; </td>
                                             <td>
-                                                @if($orgbios[0]->tax_activation === 1)
-                                                    {{number_format($boughtItems->first()->total_vat,2)}}  
-                                                    @else 
-                                                    {{number_format($boughtItems->first()->total_price,2)}} 
-                                                @endif
+                                                {{  number_format($boughtItems->first()->total,2); }}
                                             </td>
                                              <td>  {{__('buy.cur_pay')}} </td>
                                             <td> 
-                                                @php
-                                                    echo  number_format($boughtItems->first()->cur_pay,2);
-                                                    @endphp
+                                                {{ number_format($boughtItems->first()->cur_pay,2); }}
                                             </td>
                                             <td> {{__('buy.remained')}} </td>
                                             <td>
-                                                 @if($orgbios[0]->tax_activation === 1)
-                                                    {{number_format($boughtItems->first()->remained_vat,2)}}  
-                                                    @else 
-                                                    {{number_format($boughtItems->first()->remained,2)}} 
-                                                @endif
+                                                {{  number_format($boughtItems->first()->remained,2);  }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -202,9 +193,12 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <td>{{ $detail->unitRelation->name }}</td>
 
                                                 <td>
-                                                    @php
-                                                        echo number_format($detail->buy_up,2);
-                                                    @endphp
+                                                     <!-- اگر در زمان ثبت این ریکارد مالیات فعال بوده است حتما باید ریکارد مالیات دار  نشان داده شود -->
+                                                    {{ 
+                                                        $detail->buy_tax_per > 0 ? 
+                                                        number_format($detail->buy_up_vat,2) : 
+                                                        number_format($detail->buy_up,2);
+                                                    }}
                                                 </td>
 
                                                   
@@ -214,11 +208,11 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 @endif
 
                                                 <td>
-                                                    @if($orgbios[0]->tax_activation === 1)
-                                                     {{number_format($detail->total_vat,2)}}  
-                                                     @else 
-                                                     {{number_format($detail->total,2)}} 
-                                                    @endif
+                                                     {{ 
+                                                        $detail->buy_tax_per > 0 ? 
+                                                        number_format($detail->total_vat,2) : 
+                                                        number_format($detail->total,2);
+                                                    }}
                                                 </td>
                                                 <td>{{  $boughtItems->first()->currencyRelation->name ?? ''}}</td>
                                             </tr>
@@ -238,13 +232,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     </td>
                                                     <td colspan="2" class="price-section">{{__('buy.total_bill_price')}}</td>
                                                     <td colspan="3" class="price-section">
-                                                       
-                                                          @if($orgbios[0]->tax_activation === 1)
-                                                                {{number_format($boughtItems->first()->total_vat,2)}}  
-                                                                @else 
-                                                                {{number_format($boughtItems->first()->total_price,2)}} 
-                                                            @endif
-
+                                                        {{  number_format($boughtItems->first()->total,2); }}
                                                         {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
@@ -252,10 +240,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <tr>
                                                     <td colspan="2" class="price-section"> {{__('buy.cur_pay')}}  </td>
                                                     <td colspan="3" class="price-section">
-                                                         @php
-                                                           echo 
-                                                           number_format($boughtItems->first()->cur_pay,2) ;
-                                                         @endphp
+                                                         {{ number_format($boughtItems->first()->cur_pay,2) }}
                                                          {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
@@ -263,27 +248,10 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <tr>
                                                     <td colspan="2" class="price-section">  {{__('buy.remained')}}  </td>
                                                     <td colspan="3" class="price-section">
-                                                           @if($orgbios[0]->tax_activation === 1)
-                                                                {{number_format($boughtItems->first()->remained_vat,2)}}  
-                                                                @else 
-                                                                {{number_format($boughtItems->first()->remained,2)}} 
-                                                            @endif
+                                                          {{ number_format($boughtItems->first()->remained,2); }}
                                                           {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
-
-                                                <!-- <tr>
-                                                    <td colspan="2" class="price-section"> بقایای سابقه   </td>
-                                                    <td colspan="2" class="price-section">
-                                                        ???
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="2" class="final-total">  مجموع عمومی   </td>
-                                                    <td colspan="2" class="final-total">
-                                                        ???
-                                                    </td>
-                                                </tr> -->
                                                 
                                             </tbody>
                                         </table>

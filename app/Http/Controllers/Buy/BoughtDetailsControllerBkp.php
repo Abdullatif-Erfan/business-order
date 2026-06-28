@@ -1692,4 +1692,272 @@ class BoughtDetailsController extends Controller
                 ], 500);
             }
         }
+
+
+
+        public function addPaymentNew(Request $request)
+    {
+        try 
+        {
+            $validated = $request->validate([
+                'invoice_id' => 'required|exists:buy_invoices,id',
+                'amount' => 'required|numeric|min:0.01',
+                'payment_method' => 'required|in:1,2,3',
+                'account_id' => 'required|exists:accounts,id',
+                'supplier_account_id' => 'required|exists:accounts,id',
+                'payment_date' => 'required|date',
+                'reference_number' => 'nullable|string|max:100',
+                'notes' => 'nullable|string|max:255',
+                'journal_code' => 'required',
+                'times' => 'required',
+                'currency_id' => 'required',
+                'tax_activation' => 'nullable|in:0,1'
+            ]);
+
+            DB::beginTransaction();
+
+            $invoice = BuyInvoice::findOrFail($validated['invoice_id']);
+            $taxActivation = (int) ($request->tax_activation ?? 0);
+            $amount = (float) $validated['amount'];
+            $invoice_id = substr($invoice->invoice_number, strrpos($invoice->invoice_number, '-') + 1);
+            
+            // ========================= Update Invoice =================================
+            $newPaidAmount = $invoice->paid_amount + $amount;
+            
+            if ($taxActivation === 1) {
+                $newRemainingVat = $invoice->total_vat - $newPaidAmount;
+                $newRemaining = $invoice->total - $newPaidAmount;
+            } else {
+                $newRemainingVat = null;
+                $newRemaining = $invoice->total - $newPaidAmount;
+            }
+            
+            // Determine status
+            if ($newPaidAmount >= $invoice->total && ($taxActivation !== 1 || $newPaidAmount >= $invoice->total_vat)) {
+                $status = 3; // Fully paid
+            } elseif ($newPaidAmount > 0) {
+                $status = 2; // Partial
+            } else {
+                $status = 1; // Pending
+            }
+            
+            $invoice->update([
+                'paid_amount' => $newPaidAmount,
+                'remaining' => max(0, $newRemaining),
+                'remaining_vat' => $taxActivation === 1 ? max(0, $newRemainingVat) : null,
+                'status' => $status
+            ]);
+
+            // ========================= Create Payment Record =================================
+            $payment = BuyInvoicePayment::create([
+                'invoice_id' => $invoice->id,
+                'payment_date' => $validated['payment_date'],
+                'amount' => $amount,
+                'payment_method' => $validated['payment_method'],
+                'account_id' => $validated['account_id'],
+                'supplier_account_id' => $validated['supplier_account_id'],
+                'reference_number' => $validated['reference_number'],
+                'notes' => $validated['notes'],
+                'created_by' => auth()->id(),
+                'times' => time()
+            ]);
+
+            // ========================= Update Bought Items =================================
+            $boughtItems = BoughtItem::where('invoice_id', $invoice->id)
+                ->orderBy('id', 'ASC')
+                ->get();
+
+            if ($boughtItems->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.record_not_found')
+                ], 404);
+            }
+
+            //  Check if single or multiple records
+            $itemsCount = $boughtItems->count();
+            $remainingPayment = (float) $amount;
+
+            if ($itemsCount === 1) {
+                // =============================================
+                // SINGLE RECORD - Apply payment directly
+                // =============================================
+                $boughtItem = $boughtItems->first();
+                
+                $itemTotalPrice = (float) $boughtItem->total_price;
+                $itemTotalVat = (float) $boughtItem->total_vat;
+                $itemCurrentPaid = (float) $boughtItem->cur_pay;
+                
+                // Calculate new values
+                $newCurPay = $itemCurrentPaid + $amount;
+                $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
+                $newRemainingVat = $taxActivation === 1 
+                    ? max(0, $itemTotalVat - $newCurPay) 
+                    : null;
+                
+                // Update single item
+                $boughtItem->update([
+                    'cur_pay' => $newCurPay,
+                    'remained' => $newRemainingPrice,
+                    'remained_vat' => $newRemainingVat !== null ? $newRemainingVat : null,
+                    'status' => $newRemainingPrice <= 0.01 ? 3 : 2
+                ]);
+            } 
+            else 
+            {
+                // =============================================
+                // MULTIPLE RECORDS - Distribute payment sequentially
+                // =============================================
+                    $totalDistributed = 0;
+                    $distributionLog = [];
+
+                    // Calculate total remaining for validation
+                    $totalRemaining = $boughtItems->sum(function ($item) {
+                        return max(0, (float) $item->total_price - (float) $item->cur_pay);
+                    });
+
+                    if ($remainingPayment > $totalRemaining) {
+                        DB::rollBack();
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => __('buy.payment_exceeds_remaining', [
+                                'remaining' => number_format($totalRemaining, 2)
+                            ])
+                        ], 422);
+                    }
+
+                    foreach ($boughtItems as $index => $boughtItem) 
+                    {
+                        if ($remainingPayment <= 0) {
+                            break;
+                        }
+                        
+                        $itemTotalPrice = (float) ($boughtItem->total_price ?? 0);
+                        $itemTotalVat = (float) ($boughtItem->total_vat ?? 0);
+                        $itemCurrentPaid = (float) ($boughtItem->cur_pay ?? 0);
+                        $itemRemainingPrice = max(0, $itemTotalPrice - $itemCurrentPaid);
+                        
+                        if ($itemRemainingPrice <= 0.01) {
+                            continue;
+                        }
+                        
+                        // Calculate allocation
+                        $allocatedAmount = min($remainingPayment, $itemRemainingPrice);
+                        $remainingPayment -= $allocatedAmount;
+                        $totalDistributed += $allocatedAmount;
+                        
+                        // Calculate new values
+                        $newCurPay = round($itemCurrentPaid + $allocatedAmount, 2);
+                        $newRemainingPrice = round($itemTotalPrice - $newCurPay, 2);
+                        $newRemainingVat = $taxActivation === 1 
+                            ? round($itemTotalVat - $newCurPay, 2) 
+                            : null;
+                    
+
+                        if ($newCurPay <= 0) {
+                            $status = 1;       // unpaid
+                        } elseif ($newRemainingPrice <= 0) {
+                            $status = 3;       // paid
+                        } else {
+                            $status = 2;       // partial
+                        }
+
+                        $boughtItem->update([
+                            'cur_pay'       => $newCurPay,
+                            'remained'      => max(0, $newRemainingPrice),
+                            'remained_vat'  => $taxActivation ? max(0, $newRemainingVat) : null,
+                            'status'        => $status,
+                        ]);
+
+                        
+                        // Log distribution
+                        $distributionLog[] = [
+                            'item_id' => $boughtItem->id,
+                            'allocated' => $allocatedAmount,
+                            'new_cur_pay' => $newCurPay,
+                            'new_remained' => $newRemainingPrice
+                        ];
+                    }
+
+                    // Verify all payment was distributed
+                    // if ($remainingPayment > 0.01) {
+                    //     \Log::warning('Payment not fully distributed', [
+                    //         'amount' => $amount,
+                    //         'distributed' => $totalDistributed,
+                    //         'remaining' => $remainingPayment
+                    //     ]);
+                    // }
+            }
+
+            // ========================= Journal Entries =================================
+            $date = $request->payment_date 
+                ? Carbon::parse($request->payment_date) 
+                : Carbon::now();
+
+            $time = $request->times ?? '00:00:00';
+            $full_date = $date->format('Y-m-d') . ' ' . $time;
+
+            $request->merge([
+                'bill_no' => 0,
+                'idate' => $date,
+            ]);
+
+            // Payment from account (Paid)
+            $details = __('validate.cache_payment_invoice') . ' INV_' . $invoice_id;
+            $status = 9; // buy invoice
+            $optionLabel = __('validate.inv_pay');
+            $dynamic_type = 2;
+            $dt_comment = 'Invoice';
+            
+            $check1 = $this->createJournalEntry( $request, $optionLabel, $request->account_id,  $amount, 
+                "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
+            );
+
+            // Received by supplier
+            $details2 = __('validate.cache_recieved_invoice') . ' INV_' . $invoice_id;
+            $optionLabel = __('validate.inv_rec');
+            
+            $check2 = $this->createJournalEntry(
+                $request,  $optionLabel, $request->supplier_account_id, $amount, 
+                "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
+            );
+
+            if (!$check1 || !$check2) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.add_failed')
+                ], 500);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('buy.payment_added_successfully'),
+                'data' => [
+                    'payment' => $payment,
+                    'invoice' => $invoice->fresh(),
+                    'bought_items' => $boughtItems->fresh(),
+                    'items_count' => $itemsCount
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Add Payment Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
     }

@@ -101,9 +101,7 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px;">
-                            <input type="hidden" id="remained_amount_yet" value=" {{ $orgbios[0]->tax_activation === 1 ?
-                                                            $invoice->remaining_vat : 
-                                                            $invoice->remaining }}">
+                            <input type="hidden" id="remained_amount_yet" value="{{ $invoice->remaining }}">
                             <h4 class="card-title">
                                 {{ __('buy.invoice_details') }}
                                 <span class="pull-left">
@@ -203,14 +201,17 @@
                                                 <td>{{ $item->preList->name ?? '' }}</td>
                                                 <td>{{ number_format($item->amount, 2) }}</td>
                                                 <td>{{ $item->unit->name ?? '' }}</td>
-                                                <td>{{ number_format($item->unit_price, 2) }}</td>
                                                 @if($orgbios[0]->tax_activation === 1)
+                                                <td>{{ number_format($item->unit_price, 2)  }}</td>
                                                 <td>% {{ $item->tax_percentage ?? 0 }}  </td>
                                                 <td>{{ number_format($item->tax_amount ?? 0, 2) }}</td>
                                                 <td>{{ $item->buy_up_vat ?? 0 }}  </td>
                                                 <td>{{ number_format($item->total_vat, 2) }}</td>
                                                  @else
-                                                <td>{{ number_format($item->total, 2) }}</td>
+                                                 <td>{{ $item->tax_percentage > 0 ? number_format($item->unit_price_vat, 2):
+                                                    number_format($item->unit_price, 2)  }}</td>
+                                                <td>{{ $item->tax_percentage > 0 ? number_format($item->total_vat, 2):
+                                                    number_format($item->total, 2)  }}</td>
                                                 @endif
                                             </tr>
                                             @endforeach
@@ -231,8 +232,7 @@
                                                     <tr>
                                                         <td><strong>{{ __('common.total_price') }}</strong></td>
                                                         <td style="text-align:right">
-                                                            {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->total_vat, 2): 
-                                                            number_format($invoice->total, 2) }}
+                                                            {{  number_format($invoice->total, 2) }}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -242,8 +242,7 @@
                                                     <tr style="font-size:18px; font-weight:700;">
                                                         <td><strong>{{ __('buy.remaining_amount') }}</strong></td>
                                                         <td style="text-align:right; color:#e17055;">
-                                                             {{ $orgbios[0]->tax_activation === 1 ? number_format($invoice->remaining_vat, 2): 
-                                                            number_format($invoice->remaining, 2) }}
+                                                             {{ number_format($invoice->remaining, 2) }}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -389,6 +388,9 @@
         // Optionally show a message
         // alert("Payment will fully clear the balance");
         return true;
+    } else if (curPay <= 0) {
+        $('#submit').hide();
+        alert("{{__('buy.empty_pay')}}");
     } else {
         // Payment is less than remaining
         $('#submit').show();
