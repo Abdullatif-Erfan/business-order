@@ -65,74 +65,68 @@ class BoughtDetailsController extends Controller
 
     public function getData(Request $request)
     {
-            $tax_activation = $request->input('tax_activation');
-            $boughtItems = BoughtItem::with(['currencyRelation', 'customerRelation'])->orderBy('id', 'DESC');
-            
-              // Apply filters if provided
-              if ($request->customer_name) {
-                $boughtItems->whereHas('customerRelation', function ($query) use ($request) {
-                    $query->where('name', 'LIKE', DB::raw('?'), ["%{$request->customer_name}%"]);
-                });
-            }
-            
-            if ($request->currency_id) {
-                $boughtItems->where('currency_id', $request->currency_id);
-            }
-            
-            if ($request->start_date && $request->end_date) {
-                $boughtItems->whereBetween('idate', [$request->start_date, $request->end_date]);
-            } elseif ($request->start_date) {
-                $boughtItems->whereDate('idate', '=', $request->start_date);
-            } elseif ($request->end_date) {
-                $boughtItems->whereDate('idate', '<=', $request->end_date); // Until today
-            }
-            
-            if ($request->bill_number) {
-                $boughtItems->where('billno', $request->bill_number);
-            }
-            
-            return DataTables::of($boughtItems->get())
-            
-
+        $tax_activation = $request->input('tax_activation');
+        $boughtItems = BoughtItem::with(['currencyRelation', 'customerRelation'])->orderBy('id', 'DESC');
+        
+        // Apply filters if provided
+        if ($request->customer_name) {
+            $boughtItems->whereHas('customerRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->customer_name . '%');
+            });
+        }
+        
+        if ($request->currency_id) {
+            $boughtItems->where('currency_id', $request->currency_id);
+        }
+        
+        if ($request->start_date && $request->end_date) {
+            $boughtItems->whereBetween('idate', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $boughtItems->whereDate('idate', '=', $request->start_date);
+        } elseif ($request->end_date) {
+            $boughtItems->whereDate('idate', '<=', $request->end_date);
+        }
+        
+        if ($request->bill_number) {
+            $boughtItems->where('billno', $request->bill_number);
+        }
+        
+        return DataTables::of($boughtItems->get())
             ->addIndexColumn()
-            // ->addColumn('branch', function($buyPreList) {
-            //     return $buyPreList->branchRelation->name;
-            // })
-
+            
             ->addColumn('billno', function($boughtItem) {
                 $checkIcon = $boughtItem->is_cleared == 1 ? '<i class="fas fa-check-circle success"></i>' : '';
-                return $boughtItem->billno ? $checkIcon.' '.'BUY_'.$boughtItem->billno: 0;
+                return $boughtItem->billno ? $checkIcon . ' ' . 'BUY_' . $boughtItem->billno : 0;
             })
 
-             ->addColumn('total', function ($boughtItem) use ($tax_activation) {
-                //  return (int)$tax_activation === 1 
-                // ? number_format($boughtItem->total_vat ?? 0, 2) 
-                // : number_format($boughtItem->total_price ?? 0, 2);
-                 return number_format($boughtItem->total?? 0, 2);
+            ->addColumn('total', function ($boughtItem) use ($tax_activation) {
+                return number_format($boughtItem->total ?? 0, 2);
             })
 
             ->addColumn('cur_pay', function ($boughtItem) {
-                return number_format($boughtItem->cur_pay?? 0, 2);
+                return number_format($boughtItem->cur_pay ?? 0, 2);
             })
 
             ->addColumn('remained', function ($boughtItem) use ($tax_activation) {
-                return number_format($boughtItem->remained?? 0, 2);
+                return number_format($boughtItem->remained ?? 0, 2);
             })
 
             ->addColumn('currencyRelation', function ($boughtItem) {
-                return $boughtItem->currencyRelation->name ? $boughtItem->currencyRelation->name : '';
+                return $boughtItem->currencyRelation->name ?? '';
             })
         
             ->addColumn('view', function ($boughtItem) {
-                return '<a href="boughtList/details/'.$boughtItem->times.'" class="hidden-print"><i class="fas fa-eye viewItems" 
-                data-id="' . $boughtItem->details_id . '" style="font-size:20px;"></i></a>';
+                return '<a href="boughtList/details/' . $boughtItem->times . '" class="hidden-print">
+                            <i class="fas fa-eye viewItems" 
+                            data-id="' . $boughtItem->details_id . '" 
+                            style="font-size:20px;">
+                            </i>
+                        </a>';
             })
 
-            ->rawColumns(['billno','view'])
+            ->rawColumns(['billno', 'view'])
             ->make(true);
-
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -545,17 +539,17 @@ class BoughtDetailsController extends Controller
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
 
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total))
+            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
                 $details = __('validate.tkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total,
+                $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total_price,
                  $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
@@ -582,7 +576,7 @@ class BoughtDetailsController extends Controller
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
              // تنها از حساب خزانه کم شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total)) 
+            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
@@ -1182,7 +1176,7 @@ class BoughtDetailsController extends Controller
                 'remaining' => $remainingAmount,
                 'currency_id' => $boughtItems->first()->currency_id,
                 'status' =>   1, // 0: draft, 1: in progress, 2: partial, 3: paid
-                'tax_activation' => $boughtItems->tax_activation ?? 0, 
+                'tax_activation' => $boughtItems->first()->tax_activation ?? 0,
                 'invoice_date' => now(),
                 'due_date' => now()->addDays(30),
                 'notes' => __('buy.invoice_generated_from_bought_items'),
@@ -1438,14 +1432,14 @@ class BoughtDetailsController extends Controller
                     }
                     
                     // Log before update
-                    \Log::info('Before Update - Item ' . $boughtItem->id, [
-                        'total_price' => $itemTotalPrice,
-                        'current_paid' => $itemCurrentPaid,
-                        'remaining' => $itemRemainingPrice,
-                        'allocated' => $allocatedAmount,
-                        'new_paid' => $newCurPay,
-                        'new_remaining' => $newRemainingPrice
-                    ]);
+                    // \Log::info('Before Update - Item ' . $boughtItem->id, [
+                    //     'total_price' => $itemTotalPrice,
+                    //     'current_paid' => $itemCurrentPaid,
+                    //     'remaining' => $itemRemainingPrice,
+                    //     'allocated' => $allocatedAmount,
+                    //     'new_paid' => $newCurPay,
+                    //     'new_remaining' => $newRemainingPrice
+                    // ]);
                     
                     // Update the item
                     $boughtItem->update([
@@ -1455,10 +1449,10 @@ class BoughtDetailsController extends Controller
                     ]);
                     
                     // Log after update
-                    \Log::info('After Update - Item ' . $boughtItem->id, [
-                        'cur_pay' => $boughtItem->fresh()->cur_pay,
-                        'remained' => $boughtItem->fresh()->remained
-                    ]);
+                    // \Log::info('After Update - Item ' . $boughtItem->id, [
+                    //     'cur_pay' => $boughtItem->fresh()->cur_pay,
+                    //     'remained' => $boughtItem->fresh()->remained
+                    // ]);
                 }
             }
 

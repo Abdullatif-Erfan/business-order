@@ -120,20 +120,20 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                         <tr>
                                             <td>{{__('common.total_price')}} &nbsp; </td>
                                             <td>
-                                                {{  number_format($boughtItems->first()->total,2); }}
+                                                {{  number_format($boughtItems->first()->total ?? 0,2); }}
                                             </td>
                                              <td>  {{__('buy.cur_pay')}} </td>
                                             <td> 
-                                                {{ number_format($boughtItems->first()->cur_pay,2); }}
+                                                {{ number_format($boughtItems->first()->cur_pay ?? 0,2); }}
                                             </td>
                                             <td> {{__('buy.remained')}} </td>
                                             <td>
-                                                {{  number_format($boughtItems->first()->remained,2);  }}
+                                                {{  number_format($boughtItems->first()->remained ?? 0,2);  }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>{{__('buy.note')}}</td>
-                                            <td colspan="5">{{$boughtItems->first()->note}}</td>
+                                            <td colspan="5">{{$boughtItems->first()->note ?? ''}}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -232,7 +232,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     </td>
                                                     <td colspan="2" class="price-section">{{__('buy.total_bill_price')}}</td>
                                                     <td colspan="3" class="price-section">
-                                                        {{  number_format($boughtItems->first()->total,2); }}
+                                                        {{  number_format($boughtItems->first()->total ?? 0,2); }}
                                                         {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
@@ -240,7 +240,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <tr>
                                                     <td colspan="2" class="price-section"> {{__('buy.cur_pay')}}  </td>
                                                     <td colspan="3" class="price-section">
-                                                         {{ number_format($boughtItems->first()->cur_pay,2) }}
+                                                         {{ number_format($boughtItems->first()->cur_pay ?? 0,2) }}
                                                          {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
@@ -248,7 +248,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <tr>
                                                     <td colspan="2" class="price-section">  {{__('buy.remained')}}  </td>
                                                     <td colspan="3" class="price-section">
-                                                          {{ number_format($boughtItems->first()->remained,2); }}
+                                                          {{ number_format($boughtItems->first()->remained ?? 0, 2); }}
                                                           {{ $currency_name ?? '' }}
                                                     </td>
                                                 </tr>
@@ -273,16 +273,16 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                     </button>
                                             
                                     <!-- edit button -->
-                                    @if($boughtItems->first()->is_cleared == 0)
-                                    <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}"   class="hidden-print">
-                                        <button class="btn btn-primary btn-sm m-r-10">
-                                        <i class="fas fa-pen"></i> {{__('common.edit')}}
-                                        </button>
-                                    </a>
+                                   @if($boughtItems->isNotEmpty() && $boughtItems->first()->is_cleared == 0)
+                                        <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}" class="hidden-print">
+                                            <button class="btn btn-primary btn-sm m-r-10">
+                                                <i class="fas fa-pen"></i> {{__('common.edit')}}
+                                            </button>
+                                        </a>
                                     @endif
 
                                      <!-- حذف بل های ناقص -->
-                                     @if(!$jexists)
+                                     @if(!$jexists && $boughtItems->isNotEmpty())
                                     <a href="{{ route('buy.delete_uncompleted_buy', $boughtItems->first()->times) }}"  onClick="return doConfirm();"   class="hidden-print">
                                         <button class="btn btn-warning btn-sm m-r-10">
                                         <i class="fas fa-trash"></i> {{__('buy.delete_uncompleted_buy')}} 

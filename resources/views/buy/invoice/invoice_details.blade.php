@@ -332,7 +332,7 @@
                                                         <select class="form-control" name="payment_method" required>
                                                             <option value="1">{{ __('buy.cash') }}</option>
                                                             <option value="2">{{ __('buy.bank') }}</option>
-                                                            <option value="3">{{ __('buy.loan') }}</option>
+                                                            <!-- <option value="3">{{ __('buy.loan') }}</option> -->
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3 col-sm-6 col-xs-6  mt-2">
