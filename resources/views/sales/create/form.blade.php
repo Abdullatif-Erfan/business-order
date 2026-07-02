@@ -73,11 +73,11 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                     <div class="col-md-12">
                                         <div class="row">
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="customer_account_id"> {{__('order.supplier_selection')}} <span class="danger">*</span></label>
+                                                    <label for="customer_account_id"> {{__('order.customer_selection')}} <span class="danger">*</span></label>
                                                     <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                                        <option value="">   {{__('order.supplier_selection')}} </option>
-                                                        @foreach($suppliers as $supplier)
-                                                            <option value="{{ $supplier->id }}">  {{ $supplier->name }} </option>
+                                                        <option value="">   {{__('order.employee_selection')}} </option>
+                                                        @foreach($customers as $customer)
+                                                            <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
                                                         @endforeach
                                                     </select>
                                                     @error('customer_account_id')
@@ -160,13 +160,6 @@ select.select2{text-align:right !important;direction:rtl !important;}
     </div>
 </div>
 
-@push('scripts')
-
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-@endpush
-
-
 <script>
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {};
@@ -194,34 +187,19 @@ function showNotification(message, type = 'info', from = 'top', align = 'center'
 
 
 function updateRemainOnCurPay(cur_pay) {
-    var payable = parseFloat($('#payable').val()) || 0;
+    var totalPrice = parseFloat($('#total_price').val()) || 0;
     cur_pay = parseFloat(cur_pay) || 0;
 
     // Ensure cur_pay is not more than payable
-    if (cur_pay > payable) {
-        cur_pay = payable;
-        $('#cur_pay').val(payable.toFixed(2)); // Update the input field to the max value
+    if (cur_pay > totalPrice) {
+        cur_pay = totalPrice;
+        $('#cur_pay').val(totalPrice.toFixed(2)); // Update the input field to the max value
     }
 
-    var result = payable - cur_pay;
+    var result = totalPrice - cur_pay;
     $('#remained').val(result.toFixed(2));
 }
 
-function updateCurPay(curPay) {
-    var payable = parseFloat($('#payable').val()) || 0;
-    var curPayVal = parseFloat(curPay) || 0;
-    
-    var result = payable - curPayVal;
-    $('#remained').val(Math.max(result, 0).toFixed(2)); // Prevent negative values
-
-    // Hide submit button if curPay is greater than payable
-    if (curPayVal > payable) {
-        $('#submit_button').hide(); // Hides the submit button
-        alert("{{__('buy.over_pay')}}");
-    } else {
-        $('#submit_button').show(); // Shows the submit button
-    }
-}
 
 function submiteBuyingForm()
 {

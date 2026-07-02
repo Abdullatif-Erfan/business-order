@@ -1,9 +1,3 @@
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
-
-
 <script>
 function showNotification(message, type = 'info', from = 'top', align = 'right', style = 'withicon') {
     var content = {};
@@ -70,50 +64,48 @@ function fetchList() {
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_name', name: 'customer_name' },
                 { data: 'factor', name: 'factor' },
-                { data: 'total_price', name: 'total_price' },
-                { data: 'total_discount', name: 'total_discount' },
-                { data: 'payable', name: 'payable'},
+                { data: 'total', name: 'total' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
                 { data: 'currency_name', name: 'currency_name' },
-                { data: 'short_date', name: 'short_date' },
+                { data: 'idate', name: 'idate' },
                 { data: 'view', name: 'view', orderable: false, searchable: false }
             ],
-            drawCallback: function () 
-            {
-                var api = this.api();
+            // drawCallback: function () 
+            // {
+            //     var api = this.api();
 
-                // Helper function for the modulo operation to check if it's an integer
-                function fmod(a, b) {
-                    return a - (b * Math.floor(a / b));
-                }
+            //     // Helper function for the modulo operation to check if it's an integer
+            //     function fmod(a, b) {
+            //         return a - (b * Math.floor(a / b));
+            //     }
 
-                function sumColumn(index) {
-                    return api
-                        .column(index, { page: 'current' })
-                        .data()
-                        .reduce(function (a, b) {
-                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
-                            var sum = numA + numB;
+            //     function sumColumn(index) {
+            //         return api
+            //             .column(index, { page: 'current' })
+            //             .data()
+            //             .reduce(function (a, b) {
+            //                 var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
+            //                 var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
+            //                 var sum = numA + numB;
 
-                            // Format the sum based on whether it has decimals
-                            if (fmod(sum, 1) === 0) {
-                                return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                            } else {
-                                return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            }
+            //                 // Format the sum based on whether it has decimals
+            //                 if (fmod(sum, 1) === 0) {
+            //                     return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            //                 } else {
+            //                     return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            //                 }
 
-                        }, 0)
-                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                }
+            //             }, 0)
+            //             .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            //     }
 
-                $(api.column(4).footer()).html(sumColumn(4));
-                $(api.column(5).footer()).html(sumColumn(5));
-                $(api.column(6).footer()).html(sumColumn(6));
-                $(api.column(7).footer()).html(sumColumn(7));
-                $(api.column(8).footer()).html(sumColumn(8));
-            }
+            //     $(api.column(4).footer()).html(sumColumn(4));
+            //     $(api.column(5).footer()).html(sumColumn(5));
+            //     $(api.column(6).footer()).html(sumColumn(6));
+            //     $(api.column(7).footer()).html(sumColumn(7));
+            //     $(api.column(8).footer()).html(sumColumn(8));
+            // }
 
         });
 

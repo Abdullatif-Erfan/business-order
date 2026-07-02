@@ -2,7 +2,6 @@
 
 @section('content')
 
-
 <!-- main content -->
 <div class="main-panel">
     <div class="content">
@@ -12,25 +11,40 @@
                     <div class="card">
                         <div class="card-header" style="padding: 10px;">
                             <span class="card-title">   {{__('wh.existing_list')}} {{ $warehouse->name ?? ''}} </span>
+                            <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <div class="pull-left" style="width:90px">
+                                <button type="button" class="responsive_button btn btn-sm  visible-xs"
+                                id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                <i class="fas fa-filter"></i>
+                            </button>
                             <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            </div>
                         </div>
 
 
-                        <div class="filterForm" id="searchWrapper1">
-                            <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="filter-section no-print" id="searchWrapper">
+                            <div class="col-md-12 col-sm-12 col-xs-12 pr-10 pl-10">
                                 <div class="row">
-                                    <div class="col-md-5 col-sm-6 col-xs-6">
+                                    <div class="col-md-4 col-sm-6 col-xs-6">
                                         <input type="text" id="item_name" placeholder="{{__('common.item_name')}}" class="form-control">
                                     </div>
 
-                                    <div class="col-md-5 col-sm-6 col-xs-6 m-b-4">
-                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
-                                            <!-- <option value="">  واحد پولی </option> -->
-                                            @foreach($currencies as $currency)
-                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                      <div class="col-md-3 col-sm-6 col-xs-6">
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
+                                        </div>
+							     	</div>
+                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
+                                        </div>
+							     	</div>
 
 
                                     <div class="col-md-2 col-sm-6 col-xs-6">

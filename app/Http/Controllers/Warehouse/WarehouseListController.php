@@ -85,6 +85,14 @@ class WarehouseListController extends Controller
     if ($request->input('currency_id')) {
         $WarehouseItems->where('currency_id', $request->input('currency_id'));
     }
+
+     if ($request->start_date && $request->end_date) {
+            $WarehouseItems->whereBetween('idate', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $WarehouseItems->whereDate('idate', '=', $request->start_date);
+        } elseif ($request->end_date) {
+            $WarehouseItems->whereDate('idate', '<=', $request->end_date);
+        }
     
     return DataTables::of($WarehouseItems)
         ->addIndexColumn()

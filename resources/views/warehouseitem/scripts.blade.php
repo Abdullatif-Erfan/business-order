@@ -23,7 +23,16 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
     });
 }
 </script>
-
+<script>
+    $(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 <script>
 $(document).ready(function() {
     fetchList();
@@ -80,7 +89,8 @@ function fetchList() {
                 data: function (d) {
                     d.tax_activation = $('#tax_activation').val();
                     d.item_name = $('#item_name').val();
-                    d.currency_id = $('#currency_id').val();
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
                 }
             },
             columns: columns,

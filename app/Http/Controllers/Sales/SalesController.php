@@ -43,8 +43,7 @@ class SalesController extends Controller
         // $soldItems = DB::table('warehouse_sales')
         //     ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
         //     ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
-        //     ->select('warehouse_sales.id','billno','factor','warehouse_sales.branch_id','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
-        //     ->where('warehouse_sales.branch_id', $this->branch_id)
+        //     ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
         //     ->orderBy('warehouse_sales.id','DESC')->get();
         // return $soldItems;
             
@@ -52,7 +51,7 @@ class SalesController extends Controller
         $currencies = Currency::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
         $orgbios = OrgBio::all();
-        return view('sales.list',compact('currencies','todaysDate','orgbios','branchs'));
+        return view('sales.list',compact('currencies','todaysDate','orgbios'));
     }
 
     public function getData(Request $request)
@@ -60,7 +59,7 @@ class SalesController extends Controller
             $soldItems = DB::table('warehouse_sales')
             ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
             ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
-            ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total_price','total_discount','payable','cur_pay','is_cleared','remained','currencies.name as currency_name','short_date','iby')
+            ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total','cur_pay','is_cleared','remained','currencies.name as currency_name','idate','user_name')
             ->orderBy('warehouse_sales.id','DESC');
             
 
@@ -74,11 +73,11 @@ class SalesController extends Controller
             }
             
             if ($request->start_date && $request->end_date) {
-                $soldItems->whereBetween('short_date', [$request->start_date, $request->end_date]);
+                $soldItems->whereBetween('idate', [$request->start_date, $request->end_date]);
             } elseif ($request->start_date) {
-                $soldItems->whereDate('short_date', '=', $request->start_date);
+                $soldItems->whereDate('idate', '=', $request->start_date);
             } elseif ($request->end_date) {
-                $soldItems->whereDate('short_date', '>=', $request->end_date); // Until today
+                $soldItems->whereDate('idate', '>=', $request->end_date); // Until today
             }
             
             if ($request->bill_number) {
@@ -95,9 +94,9 @@ class SalesController extends Controller
                     ? $checkIcon . ' SALES_' . $soldItem->billno 
                     : 0;
             })
-            ->addColumn('total_price', fn($s) => number_format($s->total_price, 2))
-            ->addColumn('total_discount', fn($s) => number_format($s->total_discount, 2))
-            ->addColumn('payable', fn($s) => number_format($s->payable, 2))
+            ->addColumn('total', fn($s) => number_format($s->total, 2))
+            // ->addColumn('total_discount', fn($s) => number_format($s->total_discount, 2))
+            // ->addColumn('payable', fn($s) => number_format($s->payable, 2))
             ->addColumn('cur_pay', fn($s) => number_format($s->cur_pay, 2))
             ->addColumn('remained', fn($s) => number_format($s->remained, 2))
             ->addColumn('view', function ($soldItem) {
@@ -119,14 +118,37 @@ class SalesController extends Controller
     {
         $todaysDate = Carbon::now()->format('Y-m-d');
         // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
-        $warehouseItems = DB::table('warehouse_items')
-                        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
-                        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
-                        ->where('warehouse_items.available_amount', '>', 0)
-                        ->select('warehouse_items.id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouse_items.warehouse_id', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.id as pre_list_id')
-                        ->get();
+       $warehouseItems = DB::table('warehouse_items')
+        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+        ->where('warehouse_items.available_amount', '>', 0)
+        ->select(
+            'warehouse_items.id',
+            'bought_item_pre_lists.code',
+            'warehouse_items.unit_id',
+            DB::raw("CASE 
+                WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 
+                THEN warehouse_items.buy_up_vat 
+                ELSE warehouse_items.buy_up 
+            END as buy_up"),
+            DB::raw("CASE 
+                WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 
+                THEN warehouse_items.sell_up_vat 
+                ELSE warehouse_items.sell_up 
+            END as sell_up"),
+            'warehouse_items.buy_tax_per',
+            'warehouse_items.sell_tax_per',
+            'warehouse_items.sell_tax_price',
+            'warehouse_items.available_amount',
+            'units.name as unit_name',
+            'warehouse_items.warehouse_id',
+            'bought_item_pre_lists.name as item_name',
+            'bought_item_pre_lists.id as pre_list_id',
+            'bought_item_pre_lists.category_id as category_id'
+        )
+        ->get();
 
-        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
+        $customers = Account::select('id','name')->where('account_type_id',3)->get();
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::all();
@@ -136,139 +158,65 @@ class SalesController extends Controller
         
 
         // return response()->json(['data' => $warehouseItems]);
-        return view('sales.create.form',compact('todaysDate','warehouseItems','suppliers','ownBanks','billno','currencies','journal_code','times'));
+        return view('sales.create.form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
     }
 
     /**
      * Store a newly created resource in storage.
-     */
+    */
     public function store(Request $request)
     {
-        // return response()->json(['data' => $request->all()]);
-        
-        // Validate the request and return errors if validation fails
         $validator = Validator::make($request->all(), $this->validationRules(), $this->validationMessages());
 
-        if ($validator->fails()) 
-        {
+        if ($validator->fails()) {
             return redirect()->route('sales.create')
                 ->withErrors($validator)
-                ->withInput(); // Preserve old input
+                ->withInput();
         }
 
-        // Start the transaction
         DB::beginTransaction();
 
-        try 
-        {
-            
-            // create warehouse_sales
+        try {
+            // Create warehouse_sales
             $warehouseSalesId = $this->createWarehouseSales($request);
-            
-            // create sales_details
-            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId);
-
-            // decrease from warehouse_items
-            $checkWarehouseItems = $this->decreaseWarehouseItemFromSoldAmount($request);
-
-            $checkJournal =  $this->handleJournalEntry($request);
-            if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
-            {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' =>  __('common.add_failed'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('sales.create');
+            if (!$warehouseSalesId) {
+                throw new \Exception('Failed to create warehouse sales');
             }
 
-            // Flash error message
+            // Create sales_details
+            $this->createSalesDetails($request, $warehouseSalesId);
+
+            // Decrease from warehouse_items
+            $this->decreaseWarehouseItemFromSoldAmount($request);
+
+            // Handle journal entry - NO TRANSACTION INSIDE
+            $this->handleJournalEntry($request);
+
             DB::commit();
+            
             Session::put('notification', [
-                'message' =>  __('common.added_successfully'),
+                'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
-             return redirect()->route('sales.create');
- 
- 
-         } catch (\Exception $e) {
-             // Rollback the transaction if an error occurs
-             DB::rollBack();
-             // Optionally, log the error for debugging
-             \Log::error('Error storing SalesController', ['error' => $e]);
+            
+            return redirect()->route('sales.create');
 
-            // Flash error message
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error storing SalesController', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             Session::put('notification', [
-                'message' =>  __('common.add_failed'),
+                'message' => $e->getMessage() ?: __('common.add_failed'),
                 'type' => 'danger',
             ]);
-             return redirect()->route('sales.create');
-         }   
-    }
-
-    public function storeWithOtherCurrency(Request $request)
-    {
-        // return response()->json(['data' => $request->all()]);
-        
-        // Validate the request and return errors if validation fails
-        $validator = Validator::make($request->all(), $this->validationRules(), $this->validationMessages());
-
-        if ($validator->fails()) 
-        {
-            return redirect()->route('sales.createWithOtherCurrency')
-                ->withErrors($validator)
-                ->withInput(); // Preserve old input
+            
+            return redirect()->route('sales.create')->withInput();
         }
-
-        // Start the transaction
-        DB::beginTransaction();
-
-        try 
-        {
-            
-            // create warehouse_sales
-            $warehouseSalesId = $this->createWarehouseSales($request);
-            
-            // create sales_details
-            $salesDetails = $this->createSalesDetails($request, $warehouseSalesId);
-
-            // decrease from warehouse_items
-            $checkWarehouseItems = $this->decreaseWarehouseItemFromSoldAmount($request);
-
-            $checkJournal =  $this->handleJournalEntry($request);
-            if(!$checkJournal || !$salesDetails || !$warehouseSalesId || !$checkWarehouseItems)
-            {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' =>  __('common.add_failed'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('sales.createWithOtherCurrency');
-            }
-
-            // Flash error message
-            DB::commit();
-            Session::put('notification', [
-                'message' =>  __('common.added_successfully'),
-                'type' => 'success',
-            ]);
-             return redirect()->route('sales.createWithOtherCurrency');
- 
- 
-         } catch (\Exception $e) {
-             // Rollback the transaction if an error occurs
-             DB::rollBack();
-             // Optionally, log the error for debugging
-             \Log::error('Error storing SalesController', ['error' => $e]);
-
-            // Flash error message
-            Session::put('notification', [
-                'message' =>  __('common.add_failed'),
-                'type' => 'danger',
-            ]);
-             return redirect()->route('sales.createWithOtherCurrency');
-         }   
     }
+   
 
     
     /**
@@ -291,19 +239,15 @@ class SalesController extends Controller
             'unit_id.*' => 'required|integer|exists:units,id',
             'unit_name' => 'required|array',
             'unit_name.*' => 'required|string|max:255',
-            'avg_up' => 'required|array',
-            'avg_up.*' => 'nullable|numeric|min:0',
+            'buy_up' => 'required|array',
+            'buy_up.*' => 'nullable|numeric|min:0',
             'sell_up' => 'required|array',
             'sell_up.*' => 'nullable|numeric|min:0',
-            'discount' => 'required|array',
-            'discount.*' => 'nullable|numeric|min:0',
             'profit' => 'required|array',
             'profit.*' => 'nullable|numeric',
             'total' => 'required|array',
             'total.*' => 'nullable|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
-            'general_discount' => 'nullable|numeric|min:0',
-            'payable' => 'required|numeric|min:0',
             'cur_pay' => 'required|numeric|min:0',
             'remained' => 'required|numeric|min:0',
             'from_account_id' => 'required|integer|exists:accounts,id',
@@ -404,64 +348,53 @@ class SalesController extends Controller
 
 
     /**
-    *  Create Warehouse Sales
+    * Create Warehouse Sales
     */
     private function createWarehouseSales($request)
     {
-        
         try {
-            // Prepare date and other fields
-            $full_date = $request->todays_date . ' ' . now()->format('H:i:s A');
-            $insertedBy = auth()->user()->full_name ?? '';
-            $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
-            [$year, $month, $day] = explode('-', $short_date);
-    
-            // \Log::info('Start inserting into warehouse sales', ['request' => $request->all()]);
-    
-           
-            // Insert the new warehouse sale record
+            $user_name = auth()->user()->full_name ?? '';
+            $user_id = auth()->user()->id ?? '';
+            
+            // Fix: Properly parse the date
+            $idate = $request->todays_date 
+                ? Carbon::parse($request->todays_date) 
+                : Carbon::now();
+            
+            $year = $idate->year;
+            $month = $idate->month;
+            $day = $idate->day;
+
             $warehouseSales = WarehouseSales::create([
-                'billno' => $request->billno, 
-                'factor' => $request->factor, 
-                'account_id' => $request->from_account_id, 
-                'customer_account_id' => $request->customer_account_id, 
-                'total_price' => $request->total_price, 
-                'total_discount' => $request->total_discount, 
-                'payable' => $request->payable, 
+                'billno' => $request->billno,
+                'factor' => $request->factor,
+                'account_id' => $request->from_account_id,
+                'customer_account_id' => $request->customer_account_id,
+                'total' => $request->total_price,
                 'cur_pay' => $request->cur_pay,
-                'remained' => $request->remained, 
-                'currency_id' => $request->currency_id,  
-                'note' => $request->note, 
-                'short_date' => $request->todays_date,
-                'ifull_date' => $full_date,
-                'iby' => $insertedBy, 
-                'uby' => '',
-                'year' => $year, 
-                'month' => $month, 
+                'remained' => $request->remained,
+                'currency_id' => $request->currency_id,
+                'note' => $request->note,
+                'idate' => $idate->format('Y-m-d'),
+                'user_id' => $user_id,
+                'user_name' => $user_name,
+                'year' => $year,
+                'month' => $month,
                 'day' => $day,
+                'has_invoice' => 0,
+                'invoice_id' => null,
                 'times' => $request->times,
                 'is_cleared' => 0,
             ]);
-    
-            // Check if the insertion was successful
-            // if ($warehouseSales) {
-            //     \Log::info('Successfully inserted warehouse sales', ['warehouseSales' => $warehouseSales]);
-            // } else {
-            //     \Log::error('Failed insertion - warehouse sales is null');
-            // }
-    
-            // Return the ID of the inserted record
-            return $warehouseSales->id ?? null;
-    
+
+            return $warehouseSales->id;
+
         } catch (\Exception $e) {
-            // Log the error in case of an exception
             \Log::error('Failed to insert warehouse sales', [
                 'error' => $e->getMessage(),
                 'request' => $request->all()
             ]);
-    
-            // Optionally rethrow or return null
-            return null;
+            throw $e; // Rethrow to be caught in store()
         }
     }
     
@@ -471,85 +404,115 @@ class SalesController extends Controller
     private function createSalesDetails($request, $warehouseSalesId)
     {
         $todays_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
+        $data = [];
 
-        foreach($request->warehouseItemId as $index => $itemId)
-        {
-             SalesDetails::create([
-                'billno' => $request->billno, 
+        foreach ($request->warehouseItemId as $index => $itemId) {
+            $data[] = [
+                'billno' => $request->billno,
                 'warehouse_id' => $request->warehouse_id[$index],
-                'warehouse_sales_id' => $warehouseSalesId, 
-                'pre_list_id' => $request->pre_list_id[$index], 
-                'unit_id' => $request->unit_id[$index], 
-                'amount' => $request->amount[$index], 
-                'avg_up' => $request->avg_up[$index], 
-                'sell_up' => $request->sell_up[$index], 
-                'discount' => $request->discount[$index],
-                'profit' => $request->profit[$index], 
-                'total' => $request->total[$index],  
-                'is_returned' => 0, 
+                'warehouse_sales_id' => $warehouseSalesId,
+                'pre_list_id' => $request->pre_list_id[$index],
+                'unit_id' => $request->unit_id[$index],
+                'category_id' => $request->category_id[$index],
+                'amount' => $request->amount[$index],
+                'buy_up' => $request->buy_up[$index],
+                'sell_up' => $request->sell_up[$index],
+                'sell_tax_per' => $request->sell_tax_per[$index] ?? 0,
+                'sell_tax_price' => $request->sell_tax_price[$index] ?? 0,
+                'profit' => $request->profit[$index],
+                'total' => $request->total[$index],
+                'is_returned' => 0,
                 'todays_date' => $todays_date,
-            ]);
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
 
-        return true;
+        if (empty($data)) {
+            throw new \Exception('No sales details to create');
+        }
+
+        SalesDetails::insert($data);
     }
 
     /**
      * Decrease the amount of items in stock by sold amount
+     * REMOVED NESTED TRANSACTION
      */
     private function decreaseWarehouseItemFromSoldAmount($request)
     {
-        foreach ($request->warehouseItemId as $index => $itemId) {
-            $warehouseItem = WarehouseItem::where('id', $itemId)->first(); 
-
-            if ($warehouseItem) {
-                $warehouseItem->out_amount += $request->amount[$index];
-                $warehouseItem->available_amount -= $request->amount[$index];
-                $warehouseItem->save();
-            } else {
-                return false;
-            }
+        if (!isset($request->warehouseItemId) || empty($request->warehouseItemId)) {
+            throw new \Exception('No warehouse items provided');
         }
-        return true;
+
+        // Using lockForUpdate() but NO transaction here - parent handles it
+        foreach ($request->warehouseItemId as $index => $itemId) {
+            $soldAmount = $request->amount[$index] ?? 0;
+
+            if ($soldAmount <= 0) {
+                continue;
+            }
+
+            // Lock for update to prevent race conditions
+            $warehouseItem = WarehouseItem::where('id', $itemId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$warehouseItem) {
+                throw new \Exception("Warehouse item not found: {$itemId}");
+            }
+
+            if ($warehouseItem->available_amount < $soldAmount) {
+                throw new \Exception(
+                    "Insufficient stock for item {$itemId}. Available: {$warehouseItem->available_amount}, Requested: {$soldAmount}"
+                );
+            }
+
+            $warehouseItem->out_amount += $soldAmount;
+            $warehouseItem->available_amount -= $soldAmount;
+            $warehouseItem->save();
+        }
     }
 
 
     /**
-     * Create Journal
+     * Create Journal Entry
      */
     private function handleJournalEntry($request)
-    {
-            $date  = explode('-', $request->todays_date);
-            $year  = $date[0];
-            $month = $date[1];
-            $day   = $date[2];
-            $full_date =  $year.'-'.$month.'-'.$day.' '.Date('H:i:s A');
-             /**
-             * ================================== insert in to journal ========================
-             * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
-             * transaction_type: 1:recieved   2:paid
-             * payment_type:     1: cache,    2: loan
-             */
-            
-            DB::beginTransaction();
-            try {
+    {       
+        $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
+        $date = Carbon::parse($short_date);
+        $day = $date->day;
+        $year = $date->year;
+        $month = $date->month;
+        $time = $request->times ?? '00:00:00';
+        $full_date = $date->format('Y-m-d') . ' ' . $time;
+
+        /**
+         * ================================== insert in to journal ========================
+         * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+         * transaction_type: 1:recieved   2:paid
+         * payment_type:     1: cache,    2: loan
+         */
+        
+        try {
             /**
              * اگر هیچ پرداخت نکند وتمام شان قرض ثبت گردد
              * خزانه باید طلب ثبت گردد =  paid Loan 
              * مشتری باید قرضدار ثبت گردد = Recieved Loan 
              */
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->payable))
+            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
                 $details =   __('validate.sales_talab_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->payable, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total_price, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
                 $details = __('validate.sales_loan_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->payable,
-                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->total_price,
+                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
@@ -565,7 +528,7 @@ class SalesController extends Controller
                 $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $request->remained,  
                 $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
-               
+            
                 // ثبت طلب خزانه = Paid Loan = t2p2
                 $details =  __('validate.sales_talab_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
@@ -573,9 +536,9 @@ class SalesController extends Controller
                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
-             // قرضدار نمانده است و مکمل پرداخت کرده است
-             // تنها در حساب خزانه اضافه شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->payable)) 
+            // قرضدار نمانده است و مکمل پرداخت کرده است
+            // تنها در حساب خزانه اضافه شود
+            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
@@ -584,50 +547,41 @@ class SalesController extends Controller
                 $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
         
-            DB::commit();
             return true; 
 
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
-            // Optionally, log the error for debugging
+            // Log the error for debugging
             \Log::error('Error storing journal entry in SalesController', ['error' => $e->getMessage()]);
-    
-            // Use MessageService to return error message
-            Session::put('notification', [
-                'message' =>  __('common.add_failed'),
-                'type' => 'danger',
-            ]);
-             return false;
+            throw $e; // Rethrow to be caught in store()
         }
     }
 
     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
         $account_type_id = Account::where('id', $account_id)->value('account_type_id');
-
+        
         Journal::create([
             'bill_no' => $request->billno,
-            'code' =>  $request->code,
+            'code' => $request->code,
             'account_type_id' => $account_type_id,
             'account_id' => $account_id,
             'amount' => $amount,
             'currency_id' => $request->currency_id,
             'transaction_type' => $ttype,
             'payment_type' => $ptype,
-            'dynamic_type' => $dynamic_type, 
+            'dynamic_type' => $dynamic_type,
             'dt_comment' => $dt_comment,
             'option_label' => $optionLabel,
-            'user' => auth()->user()->full_name ?? '',
-            'year' =>  $date[0],
-            'month' =>  $date[1],
-            'day' =>  $date[2],
-            'inserted_short_date' => $request->todays_date,
-            'inserted_full_date' => $full_date,
+            'user_id' => auth()->user()->id ?? '',
+            'user_name' => auth()->user()->full_name ?? '',
+            'year' => $date->year,
+            'month' => $date->month,
+            'day' => $date->day,
+            'idate' => $request->todays_date,
             'details' => $details,
-            'status' => 8,  
+            'status' => 8,
             'times' => $request->times,
-            'is_single_record' => 1, 
+            'is_single_record' => 1,
         ]);
     }
 
@@ -835,7 +789,6 @@ class SalesController extends Controller
             'total_price'         => 'required|numeric|min:0',
             'total_discount'      => 'required|numeric|min:0',
             'from_account_id'     => 'required|exists:accounts,id',
-            'payable'             => 'required|numeric|min:0',
             'cur_pay'             => 'required|numeric|min:0',
             'remained'            => 'required|numeric|min:0',
             'note'                => 'nullable|string|max:500',

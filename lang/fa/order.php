@@ -19,6 +19,8 @@ return [
     'order_number' => 'شماره',
     'supplier_name' => 'تهیه کننده',
     'supplier_selection' => 'انتخاب تهیه کننده',
+    'customer_selection' => 'انتخاب مشتریان',
+    'customers' => 'مشتریان',
     
     'employee_name' => 'راننده / کارمند',
     'employee_selection' => 'انتخاب راننده',

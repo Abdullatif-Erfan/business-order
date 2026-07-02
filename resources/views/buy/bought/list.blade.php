@@ -2,6 +2,7 @@
 
 @section('content')
 
+
 <!-- main content -->
 <div class="main-panel">
     <div class="content">

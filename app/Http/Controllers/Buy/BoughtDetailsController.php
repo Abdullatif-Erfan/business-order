@@ -526,10 +526,12 @@ class BoughtDetailsController extends Controller
            
              /**
              * ================================== insert in to journal ========================
-             * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+             * status => 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:clearance, 10:other
              * transaction_type: 1:recieved   2:paid
              * payment_type:     1: cache,    2: loan
              */
+
+             
             
             DB::beginTransaction();
             try {
