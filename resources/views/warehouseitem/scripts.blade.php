@@ -55,7 +55,8 @@ function fetchList() {
         { data: 'out_amount', name: 'out_amount' }, 
         { data: 'available_amount', name: 'available_amount'},
         { data: 'unit', name: 'unit' },
-        { data: 'buy_up', name: 'buy_up' }
+        { data: 'buy_up', name: 'buy_up' },
+        { data: 'available_total', name: 'available_total' }  // <-- MOVED HERE
     ];
 
     // Add tax columns if flag is 1
@@ -69,7 +70,6 @@ function fetchList() {
 
     // Add remaining columns
     columns.push(
-        { data: 'total', name: 'total' },
         { data: 'sell_up', name: 'sell_up' },
         { data: 'idate', name: 'idate', orderable: false, searchable: false }
     );
@@ -110,10 +110,6 @@ function fetchList() {
                 }
 
                 // Calculate column indices based on flag
-                // Base columns: 0-6 (7 columns)
-                // Tax columns: 7, 8, 9 (if flag=1)
-                // Final columns: total, sell_up, idate
-                
                 if (flag === 1) {
                     // With tax columns (11 total columns: 0-10)
                     // Index 0: DT_RowIndex
@@ -123,18 +119,17 @@ function fetchList() {
                     // Index 4: available_amount
                     // Index 5: unit
                     // Index 6: buy_up
-                    // Index 7: buy_tax_per
-                    // Index 8: buy_tax_price
-                    // Index 9: buy_up_vat
-                    // Index 10: total
+                    // Index 7: available_total      <-- UPDATED
+                    // Index 8: buy_tax_per
+                    // Index 9: buy_tax_price
+                    // Index 10: buy_up_vat
                     // Index 11: sell_up
                     // Index 12: idate
                     
-                    // $(api.column(6).footer()).html(sumColumn(6));  // buy_up
-                    // $(api.column(7).footer()).html(sumColumn(7));  // buy_tax_per
-                    $(api.column(8).footer()).html(sumColumn(8));  // buy_tax_price
-                    $(api.column(9).footer()).html(sumColumn(9));  // buy_up_vat
-                    $(api.column(10).footer()).html(sumColumn(10)); // total
+                    $(api.column(6).footer()).html(sumColumn(6));  // buy_up
+                    $(api.column(7).footer()).html(sumColumn(7));  // available_total
+                    $(api.column(9).footer()).html(sumColumn(9));  // buy_tax_price
+                    $(api.column(10).footer()).html(sumColumn(10)); // buy_up_vat
                     $(api.column(11).footer()).html(sumColumn(11)); // sell_up
                 } else {
                     // Without tax columns (9 total columns: 0-8)
@@ -145,12 +140,12 @@ function fetchList() {
                     // Index 4: available_amount
                     // Index 5: unit
                     // Index 6: buy_up
-                    // Index 7: total
+                    // Index 7: available_total      <-- UPDATED
                     // Index 8: sell_up
                     // Index 9: idate
                     
                     $(api.column(6).footer()).html(sumColumn(6));  // buy_up
-                    $(api.column(7).footer()).html(sumColumn(7));  // total
+                    $(api.column(7).footer()).html(sumColumn(7));  // available_total
                     $(api.column(8).footer()).html(sumColumn(8));  // sell_up
                 }
             }

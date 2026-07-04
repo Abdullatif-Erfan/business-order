@@ -55,7 +55,6 @@
                              @csrf
                              <input type="hidden" name="billno" value="{{ $warehouseSales->first()->billno }}">
                              <input type="hidden" name="todays_date" value="{{ $warehouseSales->first()->short_date ?? '' }}">
-                             <input type="hidden" name="branch_id" value="{{ $warehouseSales->first()->branch_id ?? '' }}">
                              <input type="hidden" name="times" value="{{ $warehouseSales->first()->times ?? '' }}">
 
 
@@ -100,9 +99,12 @@
                                                     <th>{{__('sales.item')}} </th>
                                                     <th>{{__('sales.sales_amount')}}</th>
                                                     <th>{{__('common.unit')}}</th>
-                                                    <th>{{__('common.unit_price')}}</th>
-                                                    <th>{{__('common.discount')}}</th>
-                                                    <th>{{__('common.total_price')}}</th>
+                                                    @if($saved_with_tax) 
+                                                    <th>  {{__('buy.sales_tax_percentage')}} </th>
+                                                    <th>  {{__('buy.sell_tax_price')}} </th>
+                                                    @endif
+                                                    <th>  {{__('common.unit_price')}}</th>
+                                                    <th>  {{__('common.total_price')}}</th>
                                                     <th class="hidden-print"> {{__('common.edit')}}</th>
                                                     <th class="hidden-print">{{__('common.delete')}}</th>
                                                 </tr>
@@ -117,13 +119,16 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td>{{ number_format($detail->amount,2) }}</td>
+                                                    <td> {{ $detail->amount  }} </td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
+                                                     @if($saved_with_tax) 
+                                                    <td> % {{ $detail->sell_tax_per }} </td>
+                                                    <td> {{  number_format($detail->sell_tax_price,2) }} </td>
+                                                    @endif
                                                     <td>{{ number_format($detail->sell_up,2) }}</td>
-                                                    <td>{{ number_format($detail->discount,2) }}</td>
-                                                    <td>{{ number_format($detail->total,2) }}</td>
+                                                    <td>{{ number_format($detail->total,2) }} </td>
                                                     <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>
-                                                        <td class="hidden-print"><i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i></td>
+                                                    <td class="hidden-print"><i class="fas fa-trash-alt danger font-20"  onclick="deleteThisRecord({{ $detail->id }})"></i></td>
                                                 </tr>
                                                 @endforeach
                                             </tbody>
@@ -135,9 +140,15 @@
                                             <td>{{__('buy.total_price')}} &nbsp; </td>
                                             <td><input type="number" step="0.01"  class="form-control" name="total_price" id="total_price" required readonly
                                             value="{{ $grandTotal }}" ></td>
-                                            <td> {{__('common.discount')}} </td>
-                                            <td><input type="number" step="0.01"  class="form-control" name="total_discount" required
-                                            value="{{ $grandDiscount }}" readonly oninput="updatePayAble(this.value)" ></td>
+
+                                            <td> {{__('buy.cur_pay')}} </td>
+                                           <td><input type="number" step="0.01"  class="form-control" name="cur_pay" required
+                                            value="{{ $warehouseSales->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" ></td>
+                                             <td> {{__('buy.remained')}} </td>
+                                            <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
+                                            value="{{ $payable - $warehouseSales->first()->cur_pay }}" ></td>
+                                        </tr>
+                                        <tr>
                                             <td> {{__('journal.reciever')}} </td>
                                             <td>
                                                 <select name="from_account_id" class="form-control select2" required>
@@ -148,21 +159,8 @@
                                                     @endforeach
                                                 </select>
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <td>{{__('buy.payable')}} </td>
-                                            <td><input type="number" readonly step="0.01"  class="form-control" name="payable" id="payable" required
-                                            value="{{ $payable }}" ></td>
-                                            <td>  {{__('buy.cur_pay')}}</td>
-                                            <td><input type="number" step="0.01"  class="form-control" name="cur_pay" required
-                                            value="{{ $warehouseSales->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" ></td>
-                                            <td> {{__('buy.remained')}} </td>
-                                            <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
-                                            value="{{ $payable - $warehouseSales->first()->cur_pay }}" ></td>
-                                        </tr>
-                                        <tr>
                                             <td>{{__('buy.note')}} </td>
-                                            <td colspan="5"><input type="text"  class="form-control" name="note" id="note"
+                                            <td colspan="3"><input type="text"  class="form-control" name="note" id="note"
                                             value="{{  $warehouseSales->first()->note }}" ></td>
                                         </tr>
                                     </table>
@@ -176,7 +174,7 @@
                                 <div class="row">
                                     
                                     <!-- edit button -->
-                                        <button type="submit" class="btn btn-primary btn-sm m-r-10">
+                                        <button type="submit" id="submit_button" class="btn btn-primary btn-sm m-r-10">
                                            <i class="fas fa-pen"></i> {{__('sales.final_save')}}
                                         </button>
 
@@ -243,7 +241,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content" style="width:800px !important">
-            <form action="{{ route('boughtList.deleteSingleItem')}}" method="POST">
+            <form action="" method="POST">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title"> {{__('common.delete')}} </h5>
@@ -277,14 +275,16 @@
 
     function updateRemain(cur_pay)
     {
-        var payable = parseFloat($('#payable').val());
-        var result = payable - parseFloat(cur_pay);
+        var total_price = parseFloat($('#total_price').val());
+        var result = (total_price - parseFloat(cur_pay)).toFixed(2);
         if(result < 0) {
             alert("{{__('sales.invalid_payment')}}");
+             $('#remained').val(0);
+             $('#cur_pay').val(total_price);
             $('#submit_button').fadeOut(1);
         } else {
           $('#submit_button').fadeIn(1);
-          $('#remained').val(result).toFixed(2);
+          $('#remained').val(result);
         }
     }
 

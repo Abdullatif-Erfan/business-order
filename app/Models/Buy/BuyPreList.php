@@ -9,7 +9,7 @@ use App\Models\Setting\Category;
 class BuyPreList extends Model
 {
     protected $table = 'bought_item_pre_lists';
-    protected $fillable=['code','name','category_id','is_prev_barcode','times','image_path','barcode_path'];
+    protected $fillable=['name','category_id'];
 
     public function categoryRelation()
     {

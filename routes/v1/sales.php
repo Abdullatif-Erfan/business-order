@@ -18,6 +18,7 @@ use App\Http\Controllers\Sales\SalesByItemController;
     Route::post('/updateSalesAndWarehouseItems',[SalesController::class, 'updateSalesAndWarehouseItems'])->name('sales.updateSalesAndWarehouseItems');
     Route::post('/update',[SalesController::class,'update'])->name('sales.update');
     Route::post('/deleteSingleItem/{id}',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
+    //  Route::post('/deleteSingleItem',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
     Route::get('/destroy/{times}',[SalesController::class,'destroy'])->name('sales.destroy')->middleware('access:sales,delete_records');
     // POS
     Route::get('/item_list',[PosSalesController::class,'item_list'])->name('sales.item_list')->middleware('access:sales,list');

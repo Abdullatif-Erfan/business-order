@@ -59,6 +59,7 @@ return [
     'print_date' => 'تاریخ چاپ',
     'expired_date' => 'تاریخ انقضا',
     'total' => 'مجموع',
+    'available_total' => 'مجموع موجود',
     'total_price' => 'قیمت مجموعی',
     'phone' => 'شماره',
     'address' => 'آدرس',

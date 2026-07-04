@@ -89,13 +89,13 @@
                                             <th> {{__('common.available')}}  </th>
                                             <th> {{__('common.unit')}} </th>
                                             <th> {{__('buy.buy_up')}} </th>
-
+                                            <th> {{__('common.available_total')}} </th> 
+                                            
                                             @if($orgbios[0]->tax_activation === 1)
                                             <th>% {{__('buy.tax')}}</th>
                                             <th>{{__('buy.buy_tax_price_s')}}</th>
                                             <th> {{__('buy.buy_up_vat')}} </th>
                                             @endif 
-                                            <th> {{__('common.total')}} </th> 
                                             <th> {{__('buy.sell_up')}} </th> 
                                             <th> {{__('common.date')}} </th>
                                         </tr>
@@ -107,12 +107,12 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
+                                            <td></td>
                                             @if($orgbios[0]->tax_activation === 1)
                                             <td></td>
                                             <td></td>
                                             <td></td>
                                             @endif 
-                                            <td></td>
                                             <td></td>
                                             <td></td>
                                         </tr>

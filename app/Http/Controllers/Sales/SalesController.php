@@ -147,7 +147,7 @@ class SalesController extends Controller
             'bought_item_pre_lists.category_id as category_id'
         )
         ->get();
-
+    
         $customers = Account::select('id','name')->where('account_type_id',3)->get();
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
@@ -294,18 +294,14 @@ class SalesController extends Controller
             'unit_name.*.string' => __('validate.unit_name_*_string'),
             'unit_name.*.max' => __('validate.unit_name_*_max'),
         
-            'avg_up.array' => __('validate.avg_up_array'),
-            'avg_up.*.numeric' => __('validate.avg_up_*_numeric'),
-            'avg_up.*.min' => __('validate.avg_up_*_min'),
+            'buy_up.array' => __('validate.buy_up_array'),
+            'buy_up.*.numeric' => __('validate.buy_up_*_numeric'),
+            'buy_up.*.min' => __('validate.buy_up_*_min'),
         
             'sell_up.array' => __('validate.sell_up_array'),
             'sell_up.*.numeric' => __('validate.sell_up_*_numeric'),
             'sell_up.*.min' => __('validate.sell_up_*_min'),
-        
-            'discount.array' => __('validate.discount_array'),
-            'discount.*.numeric' => __('validate.discount_*_numeric'),
-            'discount.*.min' => __('validate.discount_*_min'),
-        
+    
             'profit.array' => __('validate.profit_array'),
             'profit.*.numeric' => __('validate.profit_*_numeric'),
         
@@ -321,9 +317,6 @@ class SalesController extends Controller
             'general_discount.numeric' => __('validate.general_discount_numeric'),
             'general_discount.min' => __('validate.general_discount_min'),
         
-            'payable.required' => __('validate.payable_required'),
-            'payable.numeric' => __('validate.payable_numeric'),
-            'payable.min' => __('validate.payable_min'),
         
             'cur_pay.required' => __('validate.cur_pay_required'),
             'cur_pay.numeric' => __('validate.cur_pay_numeric'),
@@ -597,6 +590,10 @@ class SalesController extends Controller
         $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
         $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
 
+         $saved_with_tax = $salesDetails->contains(function($item) {
+            return $item->sell_tax_per > 0;
+        }) ? true : false;
+
         $customer_account_id = $warehouseSales->first()->customer_account_id ?? 0;
         $currency_id = $warehouseSales->first()->currency_id ?? 1;
         $times = $warehouseSales->first()->times ?? 1;
@@ -605,8 +602,9 @@ class SalesController extends Controller
         $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id,  $times);
         
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
-        // return ['customer_balance' => $customer_balance];
-        return view('sales.details',compact('warehouseSales','salesDetails','orgbios','todaysDate','customer_balance'));
+        // return ['warehouseSales' => $warehouseSales];
+        return view('sales.details',compact('warehouseSales','salesDetails','orgbios','todaysDate','customer_balance',
+        'saved_with_tax'));
 
     }
 
@@ -667,13 +665,16 @@ class SalesController extends Controller
         $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
         $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
         $billno = $billno;
+         $saved_with_tax = $salesDetails->contains(function($item) {
+            return $item->sell_tax_per > 0;
+        }) ? true : false;
 
         $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::select('id','name')->get();
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
-        return view('sales.edit',compact('warehouseSales','salesDetails','orgbios','todaysDate','customers','ownBanks','currencies','billno'));
+        return view('sales.edit',compact('warehouseSales','salesDetails','orgbios','todaysDate','customers','ownBanks','currencies','billno','saved_with_tax'));
     }
 
     /**
@@ -704,7 +705,6 @@ class SalesController extends Controller
             'billno'            => 'required|numeric|min:0',
             'unit_id'           => 'required|exists:units,id',
             'sell_up'           => 'required|numeric|min:1',
-            'discount'          => 'nullable|numeric|min:0', // Added validation for discount
         ]);
 
         DB::beginTransaction();
@@ -712,12 +712,11 @@ class SalesController extends Controller
             $salesDetails = SalesDetails::findOrFail($validated['id']);
 
             $new_total = $validated['amount'] * $validated['sell_up'];
-            $profit = $new_total - ($validated['amount'] * $salesDetails->avg_up);
+            $profit = $new_total - ($validated['amount'] * $salesDetails->buy_up);
 
             $salesDetails->update([
                 'amount'   => $validated['amount'],
                 'sell_up'  => $validated['sell_up'],
-                'discount' => $validated['discount'] ?? 0, // Handle nullable case
                 'profit'   => $profit,
                 'unit_id'  => $validated['unit_id'],
                 'total'    => $new_total,
@@ -727,26 +726,32 @@ class SalesController extends Controller
             $warehouseItem = WarehouseItem::where('warehouse_id', $validated['warehouse_id'])
                                             ->where('buy_pre_id', $validated['pre_list_id'])
                                             ->where('unit_id', $validated['unit_id'])
+                                            ->where('available_amount','>', 0)
                                             ->first();
 
             if (!$warehouseItem) {
                 throw new \Exception('Warehouse item not found.');
             }
 
+            $availabl_amount = $warehouseItem->available_amount ?? 0;
             if ($validated['old_amount'] > $validated['amount']) {
                 $diff = $validated['old_amount'] - $validated['amount'];
                 $warehouseItem->available_amount += $diff;
+                $availabl_amount = $warehouseItem->available_amount; // مقدار جدید موجودی
                 $warehouseItem->in_amount += $diff;
-            } elseif ($validated['amount'] > $validated['old_amount']) {
+            }
+            elseif ($validated['amount'] > $validated['old_amount']) 
+            {
                 $diff = $validated['amount'] - $validated['old_amount'];
                 if ($warehouseItem->available_amount < $diff) {
                     throw new \Exception('Not enough stock available in warehouse.');
                 }
                 $warehouseItem->available_amount -= $diff;
-                $warehouseItem->out_amount += $diff; // Adjusted to increase, not decrease
+                $availabl_amount = $warehouseItem->available_amount; // مقدار جدید موجودی
+                $warehouseItem->out_amount += $diff;
             }
 
-            $warehouseItem->available_total = $warehouseItem->available_amount * $warehouseItem->avg_up;
+            $warehouseItem->available_total = $availabl_amount * $warehouseItem->buy_up;
             $warehouseItem->save();
 
             DB::commit();
@@ -787,7 +792,6 @@ class SalesController extends Controller
             'customer_account_id' => 'required|exists:accounts,id',
             'currency_id'         => 'required|exists:currencies,id',
             'total_price'         => 'required|numeric|min:0',
-            'total_discount'      => 'required|numeric|min:0',
             'from_account_id'     => 'required|exists:accounts,id',
             'cur_pay'             => 'required|numeric|min:0',
             'remained'            => 'required|numeric|min:0',
@@ -803,9 +807,7 @@ class SalesController extends Controller
            
             // Update warehouse sale details
             $warehouseSales->update([
-                'total_price'    => $validated['total_price'],
-                'total_discount' => $validated['total_discount'],
-                'payable'        => $validated['payable'],
+                'total'    => $validated['total_price'],
                 'cur_pay'        => $validated['cur_pay'],
                 'remained'       => $validated['remained'],
                 'note'           => $validated['note'],
@@ -869,18 +871,10 @@ class SalesController extends Controller
             // Retrieve SalesDetails correctly
             $SalesDetails = SalesDetails::findOrFail($id);
 
-            // Debug: Log the retrieved SalesDetails info
-            \Log::info("Deleting SalesDetails ID: $id", [
-                'warehouse_id' => $SalesDetails->warehouse_id,
-                'buy_pre_id' => $SalesDetails->pre_list_id,
-                'unit_id' => $SalesDetails->unit_id
-            ]);
-
             // Find Warehouse Item
             $warehouseItem = WarehouseItem::where('warehouse_id', $SalesDetails->warehouse_id)
                                         ->where('buy_pre_id', $SalesDetails->pre_list_id)
                                         ->where('unit_id', $SalesDetails->unit_id)
-                                        
                                         ->first();
 
             if (!$warehouseItem) {
@@ -888,9 +882,11 @@ class SalesController extends Controller
             }
 
             // Update warehouse item
+            // در صورت حذف باید از رفت همان تعداد کم شود و در موجود اضافه شود
             $warehouseItem->available_amount += $SalesDetails->amount;
-            $warehouseItem->in_amount += $SalesDetails->amount; 
-            $warehouseItem->available_total = (($warehouseItem->available_amount + $SalesDetails->amount) * $warehouseItem->avg_up);
+            $warehouseItem->out_amount -= $SalesDetails->amount; 
+            // $warehouseItem->available_total = (($warehouseItem->available_amount + $SalesDetails->amount) * $warehouseItem->buy_up);
+            $warehouseItem->available_total = $warehouseItem->available_amount * $SalesDetails->buy_up;
             $warehouseItem->save();
 
             // Delete SalesDetails **after** updating warehouse item
@@ -899,7 +895,7 @@ class SalesController extends Controller
             DB::commit();
 
             Session::put('notification', [
-                'message' => __('common.updated_successfully'),
+                'message' => __('common.deleted_successfully'),
                 'type' => 'success',
             ]);
 
@@ -959,36 +955,4 @@ class SalesController extends Controller
             return back();
         }
     }
-
-    // Create with other currency
-    public function createWithOtherCurrency()
-    {
-        $todaysDate = Carbon::now()->format('Y-m-d');
-        // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
-        $warehouseItems = DB::table('warehouse_items')
-                        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
-                        ->join('warehouses', 'warehouses.id', '=', 'warehouse_items.warehouse_id')
-                        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
-                        // ->join('currencies', 'currencies.id', '=', 'warehouse_items.currency_id')
-                        ->where('warehouse_items.available_amount', '>', 0)
-                        ->select('warehouse_items.id','warehouse_items.currency_id','bought_item_pre_lists.code','warehouse_items.unit_id','avg_up','sell_up', 'warehouse_items.available_amount', 'units.name as unit_name','warehouses.id as warehouse_id', 'warehouses.name as warehouse_name', 'bought_item_pre_lists.name as item_name','bought_item_pre_lists.id as pre_list_id')
-                        ->get();
-        // return $warehouseItems;
-        // die();
-        
-        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
-
-        $currencies = Currency::all();
-        $default_currency = Currency::select('id')->where('is_base','=','yes')->first();
-        $billno =  WarehouseSales::max('billno') + 1;
-        $journal_code = Journal::max('code') + 1;
-        $times = time();
-
-        
-
-        // return response()->json(['data' => $warehouseItems]);
-        return view('sales.create.other_form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times','default_currency'));
-    }
-
 }

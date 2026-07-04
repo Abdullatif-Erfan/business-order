@@ -313,6 +313,7 @@ class BoughtDetailsController extends Controller
             'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
             'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
             'total' => $new_total, // اگر مالیات فعال باشد توتل با مالیات ذخیره 
+            'available_total' => $new_total, // اگر مالیات فعال باشد توتل با مالیات ذخیره 
             'sell_up' => $request->sell_up,
             'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
             'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
@@ -834,23 +835,7 @@ class BoughtDetailsController extends Controller
         try {
             // Update BoughtItemDetails
             $boughtItemDetails = BoughtItemDetails::findOrFail($validated['id']);
-            // $boughtItemDetails->update([
-            //     'amount' => $validated['amount'],
-            //     'buy_up' => $validated['buy_up'],
-            //     'pre_list_id' => $validated['pre_list_id'],
-            //     'unit_id' => $validated['unit_id'],
-            //     'total' => $validated['total'],
-            //     "buy_tax_per"  =>  $request->buy_tax_per ?? NULL,
-            //     "buy_tax_price" =>  $request->buy_tax_price ?? NULL,
-            //     "buy_up_vat" =>  $request->buy_up_vat ?? NULL,
-            //     "total_vat" =>  $request->total_vat ?? NULL,
-            //     "note"  =>  $request->note ?? '',
-            //     "sell_up" =>  $request->sell_up ?? NULL,
-            //     "sell_tax_per" =>  $request->sell_tax_per ?? NULL,
-            //     "sell_tax_price" =>  $request->sell_tax_price ?? NULL, 
-            //     "sell_up_vat" =>  $request->sell_up_vat ?? NULL,
-            // ]);
-
+          
             $boughtItemData['amount'] = $validated['amount'];
             $boughtItemData['buy_up'] = $validated['buy_up'];
             $boughtItemData['pre_list_id'] = $validated['pre_list_id'];
@@ -895,6 +880,13 @@ class BoughtDetailsController extends Controller
                 // available_amount: current stock
                 $in_amount = $WarehouseItem->in_amount + $diff;
                 $available_amount = $WarehouseItem->available_amount + $diff;
+
+                $available_total = $validated['total'];
+                if ($request->has('buy_tax_per')) { 
+                   $available_total = (int)$request->buy_tax_per > 0 ? $request->buy_up_vat * $validated['amount'] : $request->buy_up * $validated['amount'] ; 
+                } else {
+                     $available_total = $request->buy_up * $validated['amount'];
+                }
                 $out_amount = $WarehouseItem->out_amount; // Keep out_amount as is unless sold
                 
                  // Prevent negative values
@@ -932,6 +924,7 @@ class BoughtDetailsController extends Controller
             $WarehouseData['buy_up'] = $validated['buy_up'];
             $WarehouseData['unit_id'] = $validated['unit_id'];
             $WarehouseData['total'] = $validated['total'];
+            $WarehouseData['available_total'] = $available_total;
             // Add fields only if they exist in the request
             if ($request->has('buy_tax_per')) { $WarehouseData['buy_tax_per'] = $request->buy_tax_per; }
             if ($request->has('buy_tax_price')) { $WarehouseData['buy_tax_price'] = $request->buy_tax_price; }

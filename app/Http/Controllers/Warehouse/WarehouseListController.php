@@ -105,16 +105,13 @@ class WarehouseListController extends Controller
         ->addColumn('buy_tax_per', function($WarehouseItem) {
             return $WarehouseItem->buy_tax_per ? "% " . $WarehouseItem->buy_tax_per : '';
         })
-        ->addColumn('total', function ($WarehouseItem) use ($tax_activation) {
+        ->addColumn('available_total', function ($WarehouseItem) use ($tax_activation) {
             // Use $tax_activation variable, not $this->$tax_activation
-            return (int)$tax_activation === 1 
-                ? number_format($WarehouseItem->total_vat ?? 0, 2) 
-                : number_format($WarehouseItem->total ?? 0, 2);
+            return  number_format($WarehouseItem->available_total ?? 0, 2);
         })
         ->addColumn('sell_up', function ($WarehouseItem) use ($tax_activation) {
-            // Use $tax_activation variable, not $this->$tax_activation
-            return (int)$tax_activation === 1 
-                ? number_format($WarehouseItem->sell_up_vat ?? 0, 2) 
+             return (int)$WarehouseItem->buy_tax_per > 0 ? 
+                  number_format($WarehouseItem->sell_up_vat ?? 0, 2) 
                 : number_format($WarehouseItem->sell_up ?? 0, 2);
         })
         ->addColumn('view', function ($WarehouseItem) {

@@ -39,12 +39,5 @@
             <input class="form-control" name="sell_up" id="sell_up" type="number" step="0.01" 
             value="{{ $salesDetails->sell_up ?? 0}}" required >
         </div>
-
-        <div class="col-md-8 col-sm-4 col-xs-6">
-            <label for="discount">{{__('common.discount')}} </label>
-            <input class="form-control" name="discount" id="discount" type="number" step="0.01"
-            value="{{ $salesDetails->discount ?? 0}}">
-        </div>
-
     
     </div>

@@ -15,16 +15,6 @@ class BoughtItemDetails extends Model
     'buy_up', 'buy_tax_per','buy_tax_price', 'buy_up_vat', 'total', 'total_vat', 'sell_up','sell_tax_per','sell_tax_price','sell_up_vat',
     'is_moved', 'times','user_id','user_name'];
 
-    // buy_up
-    //     buy_tax_per,
-    //     buy_up_vat,
-    //     total,
-	// total_vat
-
-    //     sell_up,
-    //     sell_tax_per,
-    //     sell_up_vat
-
     public function boughtItemRelation()
     {
         return $this->belongsTo(BoughtItem::class,'bought_item_id');
