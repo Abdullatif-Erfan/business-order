@@ -13,11 +13,18 @@
                         <div class="card-header" style="padding: 10px;">
                             <span class="card-title">   {{__('sales.list_title')}}  {{ $warehouse->name ?? ''}} </span>
 
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                              <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <div class="pull-left" style="width:90px">
+                                <button type="button" class="responsive_button btn btn-sm  visible-xs"
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                   <i class="fas fa-filter"></i>
+                                 </button>
+                                 <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            </div>
                         </div>
 
 
-                        <div class="filterForm" id="searchWrapper1">
+                        <div class="filter-section no-print" id="searchWrapper">
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
@@ -37,33 +44,20 @@
                                         <input type="text" id="bill_number" placeholder="{{__('common.bill')}}" class="form-control">
                                     </div>
 
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" 
-                                            data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#start_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="start_date" id="start_date"
-                                            data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
+                                     <div class="col-md-2 col-sm-6 col-xs-6">
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-                                
-
                                      <div class="col-md-3 col-sm-6 col-xs-6">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#end_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="end_date" id="end_date"
-                                            data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
 
@@ -100,8 +94,6 @@
                                             <th> {{__('sales.customer')}} </th>
                                             <th> {{__('buy.factor')}} </th>
                                             <th> {{__('sales.total_price')}}</th>
-                                            <!-- <th> {{__('common.discount')}}  </th> -->
-                                            <!-- <th> {{__('buy.payable')}}  </th> -->
                                             <th> {{__('buy.cur_pay')}}  </th>
                                             <th> {{__('buy.remained')}}  </th>
                                             <th> {{__('common.currency')}} </th>
@@ -109,7 +101,7 @@
                                             <th> {{__('common.details')}}  </th>
                                         </tr>
                                     </thead>
-                                    <!-- <tfoot>
+                                    <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
@@ -118,10 +110,8 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td></td>
-                                            <td></td>
                                         </tr>
-                                    </tfoot>   -->
+                                    </tfoot>   
                                 </table>
                             </div> <!-- /table responsive -->
                         </div> <!-- /card-body -->

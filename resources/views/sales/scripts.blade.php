@@ -1,4 +1,12 @@
 <script>
+    $(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
 function showNotification(message, type = 'info', from = 'top', align = 'right', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
@@ -71,41 +79,39 @@ function fetchList() {
                 { data: 'idate', name: 'idate' },
                 { data: 'view', name: 'view', orderable: false, searchable: false }
             ],
-            // drawCallback: function () 
-            // {
-            //     var api = this.api();
+            drawCallback: function () 
+            {
+                var api = this.api();
 
-            //     // Helper function for the modulo operation to check if it's an integer
-            //     function fmod(a, b) {
-            //         return a - (b * Math.floor(a / b));
-            //     }
+                // Helper function for the modulo operation to check if it's an integer
+                function fmod(a, b) {
+                    return a - (b * Math.floor(a / b));
+                }
 
-            //     function sumColumn(index) {
-            //         return api
-            //             .column(index, { page: 'current' })
-            //             .data()
-            //             .reduce(function (a, b) {
-            //                 var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
-            //                 var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
-            //                 var sum = numA + numB;
+                function sumColumn(index) {
+                    return api
+                        .column(index, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            var sum = numA + numB;
 
-            //                 // Format the sum based on whether it has decimals
-            //                 if (fmod(sum, 1) === 0) {
-            //                     return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-            //                 } else {
-            //                     return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            //                 }
+                            // Format the sum based on whether it has decimals
+                            if (fmod(sum, 1) === 0) {
+                                return sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            } else {
+                                return sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
 
-            //             }, 0)
-            //             .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            //     }
+                        }, 0)
+                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
 
-            //     $(api.column(4).footer()).html(sumColumn(4));
-            //     $(api.column(5).footer()).html(sumColumn(5));
-            //     $(api.column(6).footer()).html(sumColumn(6));
-            //     $(api.column(7).footer()).html(sumColumn(7));
-            //     $(api.column(8).footer()).html(sumColumn(8));
-            // }
+                $(api.column(4).footer()).html(sumColumn(4));
+                $(api.column(5).footer()).html(sumColumn(5));
+                $(api.column(6).footer()).html(sumColumn(6));
+            }
 
         });
 

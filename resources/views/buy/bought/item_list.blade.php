@@ -17,11 +17,18 @@
                                 </button>
                             </a>
                             <span class="card-title">  {{__('buy.buy_title')}} </span>
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                              <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <div class="pull-left" style="width:150px">
+                                <button type="button" class="responsive_button btn btn-sm  visible-xs"
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                   <i class="fas fa-filter"></i>
+                                 </button>
+                                 <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            </div>
                         </div>
 
 
-                        <div class="filterForm" id="searchWrapper1">
+                        <div class="filter-section no-print" id="searchWrapper">
                             <div class="col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
@@ -45,7 +52,7 @@
                                         <input class="form-control" id="bill_number" placeholder="{{__('common.bill')}}">
                                     </div>
 
-                                     <div class="col-md-2">
+                                     <div class="col-md-2  col-sm-6 col-xs-6">
                                          <div class="filter-group" style="min-width: 120px;">
                                             <div class="input-group">
                                                 <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
@@ -53,7 +60,7 @@
                                             </div>
                                         </div>
 							     	</div>
-                                     <div class="col-md-2">
+                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <div class="filter-group" style="min-width: 120px;">
                                             <div class="input-group">
                                                 <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
@@ -61,7 +68,7 @@
                                             </div>
                                         </div>
 							     	</div>
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
+                                    <div class="col-md-1 col-sm-6 col-xs-12 mt-2">
                                         <button class="btn mybtn search_btn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
                                         </button>

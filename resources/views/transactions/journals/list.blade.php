@@ -33,17 +33,19 @@
                                 </button>
                             @endif
 
-                            {{-- <p>Session: {{ session()->has('notification') ? 'Yes' : 'No' }}</p> --}}
 
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
-
-                            <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
-                                <i class="fas fa-filter"></i>
-                            </button>
+                             <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <div class="pull-left" style="width:80px">
+                                <button type="button" class="responsive_button btn btn-sm  visible-xs"
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                   <i class="fas fa-filter"></i>
+                                 </button>
+                                 <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            </div>
                         </div>
 
                         {{-- Filter Form --}}
-                        <div class="filterForm" id="searchWrapper1">  
+                        <div class="filter-section no-print" id="searchWrapper">
                             <div class="col-md-12">
                                 <div class="row">
                                     <div class="col-md-2 col-sm-6 col-xs-6">
@@ -54,50 +56,27 @@
                                             @endforeach
                                         </select> 
                                     </div>
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <select class="form-control select2" id="currency_id" style="width:100%">
-                                            <option value=""> {{__('common.currency')}} </option>
-                                            @foreach($currencies as $currency)
-                                               <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                            @endforeach
-                                        </select> 
-                                    </div>
-
                                     
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#start_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="start_date" id="start_date"
-                                            data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true" 
-                                            placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
+                                  <div class="col-md-2 col-sm-6 col-xs-6">
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-                                
-
 
                                      <div class="col-md-3 col-sm-6 col-xs-6">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#end_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="end_date" id="end_date"
-                                            data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-
                                   
 
-                                    <div class="col-md-1 col-sm-6 col-xs-6">
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
                                         <input class="form-control" id="code_number" placeholder="{{__('journal.code')}}">
                                     </div>
 
@@ -105,10 +84,11 @@
                                         <input class="form-control" id="bill_number" placeholder="{{__('journal.bill_no')}}">
                                     </div>
 
-                                    <div class="col-md-1">
-                                        <button class="btn mybtn form-control" id="btn-filter">
-                                            <i class="fa fa-search"></i>
-                                        </button>
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <div class="filter-actions">
+                                            <button class="btn mybtn search_btn" id="btn-filter"><i class="fas fa-search"></i></button>
+                                            <button class="btn mybtn search_btn" id="btn-reset" title="{{ __('common.reset') }}"><i class="fas fa-undo"></i></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div> 
@@ -139,19 +119,6 @@
                                             <th> {{__('journal.account')}} </th>
                                             <th> {{__('journal.details')}} </th>
                                             
-                                            <!-- <th> رفت / قرض  </th>
-                                            <th>  آمد / طلب </th> -->
-
-                                       <!-- <th>  پرداخت / قرض  </th>
-                                            <th>  دریافت / طلب  </th> -->
-
-                                            <!-- <th>  رسیدگی / قرض  </th>
-                                            <th>  بردگی / طلب  </th> -->
-
-                                            <!-- <th>بردگی <br> نقد (+)</th>
-                                            <th>رسیدگی <br> نقد (-)</th>
-                                            <th>بردگی <br> قرض</th>
-                                            <th>رسیدگی <br> قرض / طلب</th> -->
 
                                             <th> {{__('journal.recieved')}} <br> {{__('journal.cache')}} (+)</th>
                                             <th>{{__('journal.paid')}} <br> {{__('journal.cache')}} (-)</th>
@@ -188,10 +155,16 @@
 </div>
 
 
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
+<script>
+    $(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 
 <script>
     $(document).ready(function() {
@@ -207,7 +180,6 @@
                 url: '{{ route('journal.data') }}',
                 data: function (d) {
                     d.account_id = $('#account_id').val();
-                    d.currency_id = $('#currency_id').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
                     d.code_number = $('#code_number').val();
@@ -319,6 +291,18 @@
         // When the filter button is clicked, refresh the table
          $('#btn-filter').on('click', function() {
             table.ajax.reload();
+        });
+
+        // =========================================
+        // RESET BUTTON
+        // =========================================
+        $('#btn-reset').on('click', function() {
+            $('#account_id').val('');
+            $('#start_date').val('');
+            $('#end_date').val('');
+            $('#code_number').val('');
+            $('#bill_number').val('');
+            table.ajax.reload(null, false);
         });
     });
 </script>
