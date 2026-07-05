@@ -79,7 +79,7 @@
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                              @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="11">
+                                             <td colspan="12">
                                              @else
                                              <td colspan="9">
                                              @endif 
@@ -88,7 +88,7 @@
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                              @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="11">
+                                             <td colspan="12">
                                              @else
                                              <td colspan="9">
                                              @endif 
@@ -99,13 +99,14 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}} </th>
                                             <th> {{__('order.supplier_name')}} </th>                                            
-                                            <th>{{ __('sales.buy_type') }}</th>
+                                            <th>{{ __('sales.item') }}</th>
                                             <th>{{ __('sales.quantity') }}</th>
                                             <th>{{ __('sales.unit') }}</th>
                                             <th>{{ __('sales.unit_price') }}</th>
                                            @if($orgbios[0]->tax_activation === 1)
                                             <th>% {{__('buy.tax')}}</th>
                                             <th>{{__('buy.buy_tax_price_s')}}</th>
+                                            <th>{{__('buy.buy_up_vat')}}</th>
                                             @endif 
                                             <th>{{ __('sales.total_price') }}</th>
                                             <th>{{ __('sales.date') }}</th>
@@ -119,6 +120,7 @@
                                             <td></td>
                                             <td></td>
                                             @if($orgbios[0]->tax_activation === 1)
+                                            <th></th>
                                             <th></th>
                                             <th></th>
                                             @endif 
@@ -174,7 +176,8 @@ function fetchList() {
     if (flag === 1) {
         columns.push(
             { data: 'buy_tax_per', name: 'buy_tax_per' },
-            { data: 'buy_tax_price', name: 'buy_tax_price' }
+            { data: 'buy_tax_price', name: 'buy_tax_price' },
+            { data: 'buy_up_vat', name: 'buy_up_vat' }
         );
     }
 
@@ -239,8 +242,8 @@ function fetchList() {
                 if (flag === 1) {
                     // buy_tax_per is at index 7
                     $(api.column(8).footer()).html(sumColumn(8));
-                    // buy_tax_price is at index 8
-                    $(api.column(9).footer()).html(sumColumn(9));
+                    $(api.column(9).footer()).html(sumColumn(9)); // buy_tax_price is at index 8
+                    $(api.column(10).footer()).html(sumColumn(10));
                 } else {
                     $(api.column(6).footer()).html(sumColumn(6));
                     $(api.column(7).footer()).html(sumColumn(7));

@@ -140,7 +140,7 @@ class BoughtDetailsController extends Controller
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
         $billno =  BoughtItem::max('billno') + 1;
     
-        $preLists = BuyPreList::select('id','name','code')->get();
+        $preLists = BuyPreList::select('id','name')->get();
         $todaysDate = Carbon::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
         $newJournalCode =  Journal::max('code') + 1;
@@ -183,7 +183,7 @@ class BoughtDetailsController extends Controller
         $this->storeBoughtItemDetails($request, $BoughtItemId,  $times);
 
         // 3: insert or update warehouse_items
-        $this->createOrUpdateWarehouseItems($request);
+        $this->createWarehouseItems($request);
 
         DB::commit();
 
@@ -286,7 +286,7 @@ class BoughtDetailsController extends Controller
         return true;
     }    
 
-    private function createOrUpdateWarehouseItems($request)
+    private function createWarehouseItems($request)
     {
         $date = Carbon::parse($request->todays_date);
         $year = $date->year;   

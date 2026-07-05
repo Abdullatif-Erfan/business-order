@@ -98,7 +98,7 @@ class HomeController extends Controller
 
         return [
                 'total_orders' => (int) ($result->total_orders ?? 0),
-            '    total_draft' => (int) ($result->total_draft ?? 0),
+                'total_draft' => (int) ($result->total_draft ?? 0),
                 'total_new' => (int) ($result->total_new ?? 0),
                 'total_cancelled' => (int) ($result->total_cancelled ?? 0),
                 'total_completed' => (int) ($result->total_completed ?? 0),

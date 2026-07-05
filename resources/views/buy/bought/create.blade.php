@@ -81,16 +81,16 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                     <!-- First Row -->
                                             <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="supplier_account_id"> {{__('order.supplier_selection')}} <span class="danger">*</span></label>
-                                                    <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="supplier_account_id" id="supplier_account_id" required>
-                                                        <option value="">  {{__('order.supplier_name')}} </option>
-                                                        @foreach($suppliers as $supplier)
-                                                            <option value="{{ $supplier->id }}">  {{ $supplier->name }} </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('supplier_account_id')
-                                                        <span style='color:red'>{{ $message }}</span>
-                                                    @enderror
+                                                <label for="supplier_account_id"> {{__('order.supplier_selection')}} <span class="danger">*</span></label>
+                                                <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="supplier_account_id" id="supplier_account_id" required>
+                                                    <option value="">  {{__('order.supplier_name')}} </option>
+                                                    @foreach($suppliers as $supplier)
+                                                        <option value="{{ $supplier->id }}">  {{ $supplier->name }} </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('supplier_account_id')
+                                                    <span style='color:red'>{{ $message }}</span>
+                                                @enderror
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6">
@@ -200,10 +200,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             </div>
                                             
                                       @endif
-                                            <div class="col-md-3 col-sm-4 col-xs-12 m-t-10">
-                                                <label for="note"> {{__('buy.comment')}} </label>
-                                                <input class="form-control" name="note" id="note" type="text" placeholder="{{__('buy.comment')}}" >
-                                            </div>
+                                           
                                     <!-- / Third Row -->
 
                                     <!-- Fourth Row -->

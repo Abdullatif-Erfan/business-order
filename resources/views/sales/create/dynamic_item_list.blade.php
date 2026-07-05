@@ -260,8 +260,7 @@
                                 data-warehouse-id="{{ $item->warehouse_id }}"
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 data-category-id="{{ $item->category_id }}"
-                                >
-                                {{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})               
+                                >{{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})               
                             </option>
                         @endforeach
                     </select>

@@ -28,13 +28,9 @@ class BuyPreListController extends Controller
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
-            $this->packageId = session('package_type') ? session('package_type') : 1;
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
-            $this->packageId = 1;
         }
     }
     
@@ -43,21 +39,8 @@ class BuyPreListController extends Controller
      */
     public function index()
     {
-        // $branchs = Branch::all();
-        // $buyPreLists = BuyPreList::with(['branchRelation','categoryRelation'])->get();
-        // return response()->json(['data' => $buyPreLists]);
-
-        $branchs = Branch::where('id',$this->branch_id)->get();
-        $categories = Category::select('id','name')->get();
-
-        if($this->packageId == 4) 
-        {
-           return view('buy.prelist.pos_list', compact('branchs','categories'));
-        }
-        else 
-        {
-            return view('buy.prelist.list', compact('branchs','categories'));
-        }
+       $categories = Category::select('id','name')->get();
+        return view('buy.prelist.list', compact('categories'));    
     }
 
     /**
@@ -65,18 +48,14 @@ class BuyPreListController extends Controller
      */
     public function getData(Request $request)
     {
-        $buyPreLists = BuyPreList::with(['branchRelation','categoryRelation'])
-        ->select('id','code', 'name','image_path','barcode_path','times', 'branch_id','category_id')
-        ->where('branch_id',$this->branch_id)
+        $buyPreLists = BuyPreList::with(['categoryRelation'])
+        ->select('id', 'name','category_id')
         ->orderBy('id', 'DESC');
     
         return DataTables::of($buyPreLists)
             
             ->addIndexColumn()
 
-            ->addColumn('branch', function($buyPreList) {
-                return $buyPreList->branchRelation->name;
-            })
 
             ->addColumn('category', function($buyPreList) {
                 return $buyPreList->categoryRelation->name ?? '';
@@ -92,71 +71,6 @@ class BuyPreListController extends Controller
             ->make(true);
     }
     
-
-    /**
-     * Show PosData
-     */
-    public function getPosData(Request $request)
-    {
-        $buyPreLists = BuyPreList::with('branchRelation')
-        ->select('id','code', 'name','image_path','barcode_path','times', 'branch_id')
-        ->where('branch_id',$this->branch_id)
-        ->orderBy('id', 'DESC');
-    
-        return DataTables::of($buyPreLists)
-            
-            ->addIndexColumn()
-
-            ->addColumn('branch', function($buyPreList) {
-                return $buyPreList->branchRelation->name;
-            })
-            ->addColumn('edit', function($buyPreList) {
-                return '<i class="fas fa-pen-square editIcon" data-id="'.$buyPreList->id.'" style="font-size:20px;"></i>';
-            })
-            ->addColumn('delete', function($buyPreList) {
-                return '<i class="fas fa-trash-alt deleteIcon" data-id="'.$buyPreList->id.'" style="font-size:20px; color:red;"></i>';
-            })
-            ->addColumn('image', function ($buyPreList) {
-                if ($buyPreList->image_path) {
-                    return '<img src="' . asset('storage/' . $buyPreList->image_path) . '" width="50" height="50" class="img-thumbnail">';
-                }
-                return 'No Image';
-            })
-            
-            // ->addColumn('barcode', function ($buyPreList) {
-            //     if ($buyPreList->barcode_path) {
-            //         return '<img src="' . asset('storage/' . $buyPreList->barcode_path) . '" width="50" height="50" class="img-thumbnail">';
-            //     }
-            //     return 'No Image';
-            // })
-            ->addColumn('barcode', function ($buyPreList) {
-                if ($buyPreList->barcode_path) {
-                    $url = asset('storage/' . $buyPreList->barcode_path);
-                    return '<img src="' . $url . '" width="100" height="40" class="img-thumbnail">';
-                }
-                return 'No Image';
-            })
-
-            ->rawColumns(['edit','delete','image','barcode'])
-            ->make(true);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function print_barcode(Request $request)
-    {
-        $perPage = 20;
-
-        $preList = BuyPreList::select('id','code', 'name','image_path','barcode_path','times', 'branch_id')
-            ->where('branch_id', $this->branch_id)
-            ->orderBy('id', 'DESC')
-            ->paginate($perPage);
-    
-        // return response()->json($buyPreLists);
-        return view('buy.prelist.print', compact('preList'));
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -168,7 +82,6 @@ class BuyPreListController extends Controller
             'name.max' => __('validate.pre_list_name_max'),
             'name.min' => __('validate.pre_list_name_min'),
             'name.unique' => __('validate.pre_list_name_unique'),
-            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
 
         $times = time();
@@ -176,16 +89,11 @@ class BuyPreListController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:2|unique:bought_item_pre_lists,name',
-            'branch_id' => 'required|exists:branches,id',
         ], $messages);
 
         BuyPreList::create([
             'name' => $validated['name'],
-            'branch_id' => $validated['branch_id'],
             'category_id' => $request->category_id,
-            'times' => $times,
-            'image_path' => '',
-            'barcode_path' => ''
         ]);
 
         return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
@@ -199,7 +107,6 @@ class BuyPreListController extends Controller
             'name.max' => __('validate.pre_list_name_max'),
             'name.min' => __('validate.pre_list_name_min'),
             'name.unique' => __('validate.pre_list_name_unique'),
-            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
 
 
@@ -262,104 +169,7 @@ class BuyPreListController extends Controller
         return response()->json(['status' => 'success', 'message' => 'موفقانه ثبت گردید']);
     }
 
-    public function pos_store(Request $request)
-    {
-        // Log::info('Starting QR code generation process');
-        
-        $messages = [
-            'name.required' => __('validate.pre_list_name_required'),
-            'name.string' => __('validate.pre_list_name_string'),
-            'name.max' => __('validate.pre_list_name_max'),
-            'name.min' => __('validate.pre_list_name_min'),
-            'name.unique' => __('validate.pre_list_name_unique'),
-            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
-        ];
-
-        
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
-            'branch_id' => 'required|exists:branches,id',
-        ], $messages);
-
-        $times = time();
-        // Log::debug('Generated unique code: '.$code);
-
-        // ✅ Ensure barcodes folder exists
-        $barcodeDir = storage_path('app/public/barcodes');
-        if (!File::exists($barcodeDir)) {
-            // Log::debug('Creating barcodes directory: '.$barcodeDir);
-            File::makeDirectory($barcodeDir, 0755, true);
-        }
-
-        try {
-
-            $code = DB::table('bought_item_pre_lists')->where('branch_id', $this->branch_id)->lockForUpdate()->max('code') + 1;
     
-            // Log::debug('Generating base QR code SVG');
-            $qrSvg = QrCode::format('svg')
-                ->size(300)
-                ->margin(10)
-                ->color(0, 0, 0)
-                ->backgroundColor(255, 255, 255)
-                ->errorCorrection('H')
-                ->encoding('UTF-8')
-                ->generate($code);
-
-            // Log::debug('Base QR code generated successfully');
-            // Log::debug('SVG length: '.strlen($qrSvg).' bytes');
-            
-            $label = $request->name;
-            // Log::debug('Preparing to add label: "'.$label.'"');
-
-            $labeledSvg = $this->addLabelInsideSvg($qrSvg, $label, [
-                'font_size' => 16,
-                'font_family' => 'Arial',
-                'text_color' => '#000000',
-                'bottom_margin' => 10
-            ]);
-
-            // Log::debug('Label added successfully');
-            // Log::debug('Final SVG length: '.strlen($labeledSvg).' bytes');
-
-            $qrFileName = $code . '.svg';
-            $qrStoragePath = 'barcodes/' . $qrFileName;
-            
-            // Log::debug('Saving to: '.$qrStoragePath);
-            $saveResult = Storage::disk('public')->put($qrStoragePath, $labeledSvg);
-            
-            if (!$saveResult) {
-                Log::error('Failed to save SVG file');
-                throw new \Exception('Failed to save QR code image');
-            }
-            // Log::info('QR code saved successfully');
-
-            // ✅ Handle image upload if any
-            $image_path = '';
-            if ($request->hasFile('image')) {
-                $image_path = $request->file('image')->store('item_images', 'public');
-                Log::info('Document uploaded', ['path' => $image_path]);
-            }
-
-
-            // ✅ Save in DB
-            BuyPreList::create([
-                'name' => $validated['name'],
-                'code' => $code,
-                'branch_id' => $validated['branch_id'],
-                'times' => $times,
-                'image_path' => $image_path,
-                'barcode_path' => $qrStoragePath
-            ]);
-
-            return response()->json(['status' => 'success', 'message' => 
-            __('common.added_successfully')]);
-
-        } catch (\Exception $e) {
-            Log::error('QR code generation failed: '.$e->getMessage());
-            Log::error('Stack trace: '.$e->getTraceAsString());
-            throw $e; // Re-throw after logging
-        }
-    }
 
     // used 
     public function storeWithBarcodeGeneration(Request $request)
@@ -530,10 +340,9 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
      */
     public function show(string $id)
     {
-        $branchs = Branch::where('id', $this->branch_id)->get();
         $categories = Category::select('id','name')->get();
-        $buyPreLists = BuyPreList::with(['branchRelation'])->where('id',$id)->get();
-        return view('buy.prelist.edit', compact('branchs','buyPreLists','categories'));
+        $buyPreLists = BuyPreList::where('id',$id)->get();
+        return view('buy.prelist.edit', compact('buyPreLists','categories'));
     }
 
     /**
@@ -568,7 +377,6 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
                 'min:3',
                 Rule::unique('bought_item_pre_lists')->ignore($request->id), // Exclude the current record
             ],
-            'branch_id' => 'required|exists:branches,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], $messages);
     

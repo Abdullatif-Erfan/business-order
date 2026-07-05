@@ -20,7 +20,7 @@
         <div class="col-md-4 col-sm-4 col-xs-6">
             <label for="amount"> {{__('common.amount')}} </label>
             <input name="old_amount"  type="hidden" step="0.01" value="{{ $salesDetails->amount ?? ''}}">
-            <input class="form-control" name="amount"  type="number" step="0.01" 
+            <input class="form-control" name="amount"  type="number" step="0.01" min="0.01" 
             value="{{ $salesDetails->amount ?? ''}}" required >
         </div>
 

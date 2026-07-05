@@ -63,7 +63,7 @@
                                    
                                     <table style="width:100%">
                                          <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="4">
+                                            <td colspan="5">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
@@ -86,8 +86,11 @@
                                                         @endforeach
                                                     </select>
                                                     </td>
-                                                <td> {{__('common.save_date')}}  : {{ $warehouseSales->first()->ifull_date ?? '' }}</td>
+                                                <td> {{__('common.date')}}  : {{ $warehouseSales->first()->idate ?? '' }}</td>
                                                 <td> {{__('common.bill')}}  : <input type="text" class="form-control" name="billno" required value="{{ $warehouseSales->first()->billno ?? '' }}" readonly></td>
+
+                                                <td> {{__('common.factor')}}  : <input type="text" class="form-control" name="factor"  value="{{ $warehouseSales->first()->factor ?? '' }}" ></td>
+
                                             </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />

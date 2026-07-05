@@ -29,14 +29,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalesByItemController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -45,59 +43,12 @@ class SalesByItemController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        // $boughtItemDetails = WarehouseSales::with(['boughtItemRelation','accountRelation','preListRelation','unitRelation'])->get();
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-
-        
-        // $salesDetails = SalesDetails::with([
-        //     'preListRelation',
-        //     'unitRelation',
-        //     'warehouseSale.customer'
-        // ])
-        // ->where('branch_id', $this->branch_id)
-        // ->get()
-        // ->map(function ($item) {
-        //     return [
-        //         'id' => $item->id,
-        //         'billno' => $item->billno,
-        //         'product_name' => $item->preListRelation->name ?? null,
-        //         'unit' => $item->unitRelation->name ?? null,
-        //         'amount' => $item->amount,
-        //         'sell_up' => $item->sell_up,
-        //         'total' => $item->total,
-        //         'customer_name' => $item->warehouseSale->customer->name ?? null, // 🔥 only customer name
-        //         'date' => $item->todays_date,
-        //     ];
-        // });
-
-        // $query = SalesDetails::select(
-        //     'sales_details.id',
-        //     'sales_details.billno',
-        //     'sales_details.amount',
-        //     'sales_details.sell_up',
-        //     'sales_details.total',
-        //     'sales_details.profit',
-        //     'sales_details.todays_date as date',
-        //     'bought_item_pre_lists.name as product_name',
-        //     'units.name as unit_name',
-        //     'accounts.name as customer_name'
-        // )
-        // ->leftJoin('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'sales_details.pre_list_id')
-        // ->leftJoin('units', 'units.id', '=', 'sales_details.unit_id')
-        // ->leftJoin('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
-        // ->leftJoin('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
-        // ->where('sales_details.branch_id', $this->branch_id)->get();
-        
-        // return response()->json(['salesDetails' => $query]);
-            
-        
+    {    
         $currencies = Currency::all();
-        $branches = Branch::where('id',$this->branch_id)->get();
         $orgbios = OrgBio::all();
         $todaysDate = Jalalian::now()->format('Y-m-d');
 
-        return view('sales.item_list',compact('currencies','branches','todaysDate','orgbios'));
+        return view('sales.item_list',compact('currencies','todaysDate','orgbios'));
     }
 
     public function getData2(Request $request)
@@ -107,7 +58,7 @@ class SalesByItemController extends Controller
             'preListRelation',
             'unitRelation',
             'warehouseSale.customer'
-        ])->where('branch_id', $this->branch_id);
+        ]);
     
         // 🔍 Filter: customer name
         if ($request->customer_name) {
@@ -175,8 +126,7 @@ public function getData(Request $request)
     ->leftJoin('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'sales_details.pre_list_id')
     ->leftJoin('units', 'units.id', '=', 'sales_details.unit_id')
     ->leftJoin('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
-    ->leftJoin('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
-    ->where('sales_details.branch_id', $this->branch_id);
+    ->leftJoin('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id');
 
     // 🔍 Filter: customer name
     if ($request->customer_name) {

@@ -26,7 +26,7 @@ return [
     'company_account' => ' حساب شرکت',
     'confirmed' => 'تایید است',
     'repeated_billno' => ' بل نمبر تکراری است',
-    'factor' => 'انوایس',
+    'factor' => 'فاکتور',
     'item_selection' => 'انتخاب جنس',
     'amount' => 'تعداد',
     'discount' => 'تخفیف',

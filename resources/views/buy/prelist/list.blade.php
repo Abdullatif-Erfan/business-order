@@ -23,7 +23,6 @@
                             <div class="box-body">
                             <form  id="buyPreListForm">
                             @csrf
-                            <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}">
                             <div class="form-body">
                                 <div class="row">
                                                     
@@ -79,7 +78,6 @@
                                     <thead>
                                         <tr>
                                             <th>{{__('common.number')}}     </th>
-                                            <th>{{__('common.branch')}}     </th>
                                             <th>{{__('buy.category')}}     </th>
                                             <th>{{__('common.item_name')}}  </th>
                                             <th>{{__('common.edit')}}       </th>
@@ -230,9 +228,6 @@ $('#updateSubmitBtn').on('click', function () {
             $('#loading2').hide();
             if (xhr.status === 422) {
                 var errors = xhr.responseJSON.errors;
-                if (errors?.branch_id) {
-                    $('#branchIdError2').text(errors.branch_id[0]);
-                }
                 if (errors?.name) {
                     $('#nameError2').text(errors.name[0]);
                 }
@@ -296,7 +291,6 @@ function fetchList() {
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'branch', name: 'branch' },
                 { data: 'category', name: 'category'},
                 { data: 'name', name: 'name' },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 

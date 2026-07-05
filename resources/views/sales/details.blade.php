@@ -41,7 +41,7 @@
                                    
                                     <table style="width:100%">
                                          <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="4">
+                                            <td colspan="5">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
@@ -50,6 +50,7 @@
                                             <td> {{__('common.unit')}}: {{ $warehouseSales->first()->currencyRelation->name ?? '' }}</td>
                                             <td> {{__('common.save_date')}} : {{ $warehouseSales->first()->idate ?? '' }}</td>
                                             <td> {{__('common.bill')}} : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
+                                            <td> {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -118,7 +119,10 @@
                                         </tr>
                                         <tr>
                                             <td> {{__('common.save_date')}}‌ : {{ $warehouseSales->first()->idate ?? '' }}</td>
-                                            <td> {{__('common.bill')}}‌ : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
+                                            <td> {{__('common.bill')}}‌ : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}
+                                                <br />
+                                                 {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}
+                                            </td>
                                         </tr>
                                         <tr>
                                             <td> {{__('sales.customer')}}‌ : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>

@@ -124,7 +124,6 @@ class SalesController extends Controller
         ->where('warehouse_items.available_amount', '>', 0)
         ->select(
             'warehouse_items.id',
-            'bought_item_pre_lists.code',
             'warehouse_items.unit_id',
             DB::raw("CASE 
                 WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 
@@ -430,7 +429,6 @@ class SalesController extends Controller
 
     /**
      * Decrease the amount of items in stock by sold amount
-     * REMOVED NESTED TRANSACTION
      */
     private function decreaseWarehouseItemFromSoldAmount($request)
     {
@@ -463,6 +461,15 @@ class SalesController extends Controller
 
             $warehouseItem->out_amount += $soldAmount;
             $warehouseItem->available_amount -= $soldAmount;
+            $buy_up = $warehouseItem->buy_up;
+
+            // Determine which price to use for valuation
+            if(intval($warehouseItem->buy_tax_per) > 0) {
+                $valuationPrice = $warehouseItem->buy_up_vat ?? $warehouseItem->buy_up;
+            } else {
+                $valuationPrice = $warehouseItem->buy_up;
+            }
+            $warehouseItem->available_total = round($warehouseItem->available_amount * $valuationPrice, 2);
             $warehouseItem->save();
         }
     }
@@ -590,7 +597,7 @@ class SalesController extends Controller
         $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
         $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
 
-         $saved_with_tax = $salesDetails->contains(function($item) {
+        $saved_with_tax = $salesDetails->contains(function($item) {
             return $item->sell_tax_per > 0;
         }) ? true : false;
 
@@ -726,32 +733,55 @@ class SalesController extends Controller
             $warehouseItem = WarehouseItem::where('warehouse_id', $validated['warehouse_id'])
                                             ->where('buy_pre_id', $validated['pre_list_id'])
                                             ->where('unit_id', $validated['unit_id'])
-                                            ->where('available_amount','>', 0)
+                                            ->where('available_amount', '>', 0)
                                             ->first();
 
             if (!$warehouseItem) {
                 throw new \Exception('Warehouse item not found.');
             }
 
-            $availabl_amount = $warehouseItem->available_amount ?? 0;
-            if ($validated['old_amount'] > $validated['amount']) {
-                $diff = $validated['old_amount'] - $validated['amount'];
-                $warehouseItem->available_amount += $diff;
-                $availabl_amount = $warehouseItem->available_amount; // مقدار جدید موجودی
-                $warehouseItem->in_amount += $diff;
+            // Calculate the difference
+            $oldAmount = (float) $validated['old_amount'];
+            $newAmount = (float) $validated['amount'];
+            $diff = abs($newAmount - $oldAmount);
+
+
+            
+            if (!$warehouseItem) {
+                throw new \Exception('Warehouse item not found.');
             }
-            elseif ($validated['amount'] > $validated['old_amount']) 
+
+            // Update warehouse quantities based on difference
+            // اگر مقدار کمتر شود باید به همان مقدار از 
+            // out_amount کم شود و available_amount نیز کم شود
+            // مثلا قبلا ۴ دانه فروخته بودیم و حالا ۲ ساختیم
+            if ($oldAmount > $newAmount) 
             {
-                $diff = $validated['amount'] - $validated['old_amount'];
+                // Amount decreased - return items to warehouse
+                $warehouseItem->available_amount += $diff;
+                $warehouseItem->out_amount -= $diff;
+                // اگر مقدار زیادتر شود باید از مقدار موجود کم شود و 
+                // مثلا: دو دانه فروخته بودیم حالا چهار دانه ویرایش میکنم این دو دانه 
+            } 
+            elseif ($newAmount > $oldAmount) 
+            {
+                // Amount increased - take more items from warehouse
                 if ($warehouseItem->available_amount < $diff) {
                     throw new \Exception('Not enough stock available in warehouse.');
                 }
                 $warehouseItem->available_amount -= $diff;
-                $availabl_amount = $warehouseItem->available_amount; // مقدار جدید موجودی
                 $warehouseItem->out_amount += $diff;
             }
 
-            $warehouseItem->available_total = $availabl_amount * $warehouseItem->buy_up;
+            // Determine the valuation price (with or without tax)
+            $valuationPrice = $warehouseItem->buy_up ?? 0;
+            if (intval($warehouseItem->buy_tax_per ?? 0) > 0) {
+                $valuationPrice = $warehouseItem->buy_up_vat ?? $warehouseItem->buy_up ?? 0;
+            }
+
+            // Calculate available_total = available_amount × valuation_price
+            $warehouseItem->available_total = round($warehouseItem->available_amount * $valuationPrice, 2);
+
             $warehouseItem->save();
 
             DB::commit();
@@ -773,7 +803,7 @@ class SalesController extends Controller
 
             return redirect()->back()->withInput()
                             ->with('notification', [
-                                'message' => __('common.update_failed') . $e->getMessage(),
+                                'message' => __('common.update_failed') . ' ' . $e->getMessage(),
                                 'type'    => 'danger',
                             ]);
         }
@@ -796,6 +826,7 @@ class SalesController extends Controller
             'cur_pay'             => 'required|numeric|min:0',
             'remained'            => 'required|numeric|min:0',
             'note'                => 'nullable|string|max:500',
+            'factor'              => 'nullable',
         ]);
     
         DB::beginTransaction();
@@ -807,10 +838,11 @@ class SalesController extends Controller
            
             // Update warehouse sale details
             $warehouseSales->update([
-                'total'    => $validated['total_price'],
+                'total'          => $validated['total_price'],
                 'cur_pay'        => $validated['cur_pay'],
                 'remained'       => $validated['remained'],
                 'note'           => $validated['note'],
+                'factor'         => $validated['factor'],
             ]);
     
             // Retrieve old journal records
