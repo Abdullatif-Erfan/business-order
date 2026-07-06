@@ -30,17 +30,13 @@ class Journal extends Model
         return $this->belongsTo(Account::class,'account_id');
     }
     
-      // A journal belongs to one user
+    // A journal belongs to one user
     //   public function userRelation()
     //   {
-    //       return $this->belongsTo(User::class, 'user_id', 'id');
+    //      return $this->belongsTo(User::class, 'user_id', 'id');
     //   }
-
     //   this (journal) is belongsTo branch
-      public function branchRelation()
-      {
-          return $this->belongsTo(Branch::class, 'branch_id', 'id');
-      }
+    
 
       public function  incomeTypeRelation()
       {

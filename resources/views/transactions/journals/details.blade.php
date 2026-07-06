@@ -52,7 +52,7 @@
                                         </tr>
                                         <tr>
                                             <td>{{ __('journal.register_date') }}</td>
-                                            <td>{{ $journals[0]['inserted_full_date'] }}</td>
+                                            <td>{{ $journals[0]['idate'] }}</td>
                                         </tr>
                                         <tr>
                                             <td>{{__('journal.account')}} {{ intval($journals[0]['transaction_type']) === 1 ? __('journal.account_receive') : __('journal.account_pay') }}</td>
@@ -90,7 +90,7 @@
                                         </tr>
                                         <tr>
                                             <td>{{ __('journal.registered_by') }}</td>
-                                            <td>{{ $journals[1]->user ?? '' }}</td>
+                                            <td>{{ $journals[1]->user_name ?? '' }}</td>
                                         </tr>
 
                                         <!-- action buttons -->

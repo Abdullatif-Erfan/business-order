@@ -62,7 +62,6 @@
                             @endif
                             </div>
                             <form action="{{ route('journal.store') }}" method="POST" enctype="multipart/form-data">
-                            <input type="hidden" name="branch_id" value="{{ $branchs->first()->id }}" required >
                             <input type="hidden" name="conversion_flag" id="conversion_flag" value="0" >
                             <input type="hidden" id="default_currency_id" name="default_currency" value="{{ $default_currency->id }}" >
                             <input type="hidden" name="default_currency_symbol" value="{{ $default_currency->symbols }}">
@@ -76,9 +75,9 @@
                                             <div class="form-group form-floating-label">
                                                 <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" id="options" required 
                                                 onchange="selectAccountsLabel(this.value)" > 
-                                                    <option value=""> {{ __('journal.transaction_type') }} </option>
+                                                    <!-- <option value=""> {{ __('journal.transaction_type') }} </option> -->
                                                     <option value="1">{{ __('journal.cash_transaction') }}</option>
-                                                    <option value="2">{{ __('journal.credit_transaction') }}</option>
+                                                    <!-- <option value="2">{{ __('journal.credit_transaction') }}</option> -->
                                                  </select> 
                                             </div> 
                                         </div>
@@ -93,24 +92,21 @@
                                         </div>
 
 
-                                        <div class="col-md-3">
-                                            <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                            <div class="input-group-append">
-                                            <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                                data-targetselector="#todays_date" data-englishnumber="true">
-                                                <span class="fa fa-calendar"></span> 
-                                            </span>
+                                       <div class="col-md-3 col-sm-4 col-xs-6">
+                                            <div class="input-group date" id="datepicker">
+                                                <input type="text" class="form-control" name="todays_date" 
+                                                    value="{{ date('Y-m-d') }}" placeholder="{{__('order.date')}}">
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    </span>
+                                                </div>
                                             </div>
-                                                <input class="form-control" name="todays_date" id="todays_date" required
-                                                data-targetselector="#todays_date" value="{{ $todaysDate }}" 
-                                                data-mddatetimepicker="true"  placeholder="{{ __('journal.register_date') }}"  data-placement="right" data-englishnumber="true"  >
-                                            </div>
-                                            @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <span class="typing-effect" id="from_account_label"></span>
+                                                <span class="typing-effect" id="from_account_label">{{ __('journal.payer') }}</span>
                                                 <span class="typing-effect" style="color:red; margin-right:10px" id="from_balance"></span>
                                                 <select class="form-control select2" name="from_account_id" id="from_account_id"
                                                 onchange="getFromBalance('from_balance',this.value)" required>
@@ -124,7 +120,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <span class="typing-effect" id="to_account_label"></span>
+                                                <span class="typing-effect" id="to_account_label">{{ __('journal.reciever') }}</span>
                                                 <span class="typing-effect" style="color:red; margin-right:10px" id="to_balance"></span>
                                                 <select class="form-control select2" name="to_account_id" id="to_account_id"
                                                 onchange="getToBalance('to_balance',this.value)" required>
@@ -240,11 +236,16 @@
     </div>
 </div>
 
-
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
+<script>
+    $(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 <script>
    function checkPrevCode()
    {

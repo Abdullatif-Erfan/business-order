@@ -69,11 +69,6 @@
                                 <input type="hidden" name="increment" id="increment" value=""> 
                                 <input type="hidden" name="decrement" id="decrement" value="">
 
-                                <input type="hidden" name="conversion_flag" id="conversion_flag" value="0" >
-                                <input type="hidden" id="default_currency_id" name="default_currency" value="{{ $default_currency->id }}" >
-                                <input type="hidden"  name="default_currency_symbol" value="{{ $default_currency->symbols }}">
-
-
                                 @csrf
                                 @method('PATCH') 
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -110,19 +105,16 @@
                                         </div>
 
 
-                                        <div class="col-md-3">
-                                                <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
+                                         <div class="col-md-3 col-sm-4 col-xs-6">
+                                            <div class="input-group date" id="datepicker">
+                                                <input type="text" class="form-control" name="todays_date" 
+                                                    value="{{ $journals[0]->idate }}" placeholder="{{ __('journal.register_date') }}">
                                                 <div class="input-group-append">
-                                                <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                                    data-targetselector="#todays_date" data-englishnumber="true">
-                                                    <span class="fa fa-calendar"></span> 
-                                                </span>
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    </span>
                                                 </div>
-                                                    <input class="form-control" name="todays_date" id="todays_date" required
-                                                    data-targetselector="#todays_date"  value="{{ $journals[0]->inserted_short_date }}" 
-                                                    data-mddatetimepicker="true"  placeholder="{{ __('journal.register_date') }}"  data-placement="right" data-englishnumber="true"  >
-                                                </div>
-                                                @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div>
                                         </div>
 
                                         <div class="col-md-6">

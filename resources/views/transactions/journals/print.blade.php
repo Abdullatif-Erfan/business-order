@@ -62,7 +62,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                         </tr>
                                         <tr>
                                             <td colspan="2">تاریخ ثبت</td>
-                                            <td colspan="2">{{ $journals[0]['inserted_full_date'] }}</td>
+                                            <td colspan="2">{{ $journals[0]['idate'] }}</td>
                                         </tr>
                                         <tr>
                                             <td> حساب بردگی </td>
@@ -95,7 +95,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="4" style="text-align:center; height: 20px;">خدمات نرم افزار کاوشگران</td>
+                                            <td colspan="4" style="text-align:center; height: 20px;">خدمات نرم افزار نوین تیک</td>
                                         </tr>
                                     </table>
                                 </div>
