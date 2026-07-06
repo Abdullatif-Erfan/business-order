@@ -91,7 +91,7 @@
 
                                                 <!-- Employee/Driver -->
                                                 <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="employee_id">{{ __('order.employee_name') }} <span class="text-danger">*</span></label>
+                                                    <label for="employee_id">{{ __('order.employee_name') }}  <span class="text-danger">*</span></label>
                                                     <select class="form-control select2" style="width: 100%; background-color:#ddd;" 
                                                             name="employee_id" id="employee_id" required>
                                                         <option value="">{{ __('order.employee_selection') }}</option>

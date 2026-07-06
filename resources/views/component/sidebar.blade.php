@@ -197,6 +197,12 @@
                                     </a>
                                 </li>
 
+                                   <li>
+                                    <a href="{{ route('sales.invoices')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> {{ __('menu.invoices')}} </span>
+                                    </a>
+                                </li>
+
                             </ul>
                         </div>
                     </li>

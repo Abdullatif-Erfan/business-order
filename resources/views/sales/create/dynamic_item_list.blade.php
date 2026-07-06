@@ -260,7 +260,8 @@
                                 data-warehouse-id="{{ $item->warehouse_id }}"
                                 data-pre-list-id="{{ $item->pre_list_id }}"
                                 data-category-id="{{ $item->category_id }}"
-                                >{{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})               
+                                data-sell-up-no-tax="{{ $item->sell_up_no_tax }}"
+                                >{{ $item->item_name }} ({{ $item->available_amount }} {{ $item->unit_name }})  
                             </option>
                         @endforeach
                     </select>
@@ -276,6 +277,7 @@
                     <input name="warehouse_id[]" class="form-control warehouse-id" type="hidden" readonly required>  
                     <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly required>
                     <input name="category_id[]" class="form-control category-id" type="hidden" readonly required>
+                    <input name="sell_up_no_tax[]" class="form-control sell-up-no-tax" type="hidden" readonly required>
                 </td>
 
                 <!-- buy_up -->
@@ -392,10 +394,11 @@ $(document).ready(function () {
         var warehouseId = selectedOption.data('warehouse-id');
         var preListId = selectedOption.data('pre-list-id');
         var categoryId = selectedOption.data('category-id');
-
+        
         var buyTaxPer = selectedOption.data('buy-tax-per');
         var sellTaxPer = selectedOption.data('sell-tax-per');
         var sellTaxPrice = selectedOption.data('sell-tax-price');
+        var sellUpNoTax = selectedOption.data('sell-up-no-tax'); 
 
         var buyUp = selectedOption.data('buy-up');
         var sellUp = selectedOption.data('sell-up');
@@ -415,6 +418,7 @@ $(document).ready(function () {
         // row.find('.buy-tax-per-label').text(buyTaxPer + '%');
         // row.find('.sell-tax-per-label').text(sellTaxPer + '%');
         
+        row.find('.sell-up-no-tax').val(sellUpNoTax);
         row.find('.pre-list-id').val(preListId);
         row.find('.category-id').val(categoryId);
         row.find('.buy-up').val(buyUp);

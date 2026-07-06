@@ -75,7 +75,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             <div class="col-md-3 col-sm-4 col-xs-6">
                                                     <label for="customer_account_id"> {{__('order.customer_selection')}} <span class="danger">*</span></label>
                                                     <select class="form-control select2" tabindex="0" style="width: 100%; border:none !important; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
-                                                        <option value="">   {{__('order.employee_selection')}} </option>
+                                                        <option value="">   {{__('buy.customer')}} </option>
                                                         @foreach($customers as $customer)
                                                             <option value="{{ $customer->id }}">  {{ $customer->name }} </option>
                                                         @endforeach

@@ -9,7 +9,6 @@ use App\Http\Controllers\Report\LawController;
 use App\Http\Controllers\Report\ProfitAndLossController;
 
 
-
 Route::prefix('reports')->group(function() {
     Route::get('/home',[ItemController::class, 'home'])->name('reports.home')->middleware('access:reports,list');
     Route::post('/daily',[ItemController::class, 'daily'])->name('reports.daily')->middleware('access:reports,list');

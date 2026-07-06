@@ -1466,7 +1466,7 @@ class BoughtDetailsController extends Controller
 
             // Payment from account (Paid)
             $details = __('validate.cache_payment_invoice') . ' INV_' . $invoice_id;
-            $status = 9; // buy invoice
+            $status = 9; // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:buy invoice,  10:sales invoice, 11:other
             $optionLabel = __('validate.inv_pay');
             $dynamic_type = 2;
             $dt_comment = 'Invoice';

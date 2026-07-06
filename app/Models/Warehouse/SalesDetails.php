@@ -20,6 +20,7 @@ class SalesDetails extends Model
         'amount',
         'buy_up',
         'sell_up',
+        'sell_up_no_tax',
         'sell_tax_per',
         'sell_tax_price',
         'profit',

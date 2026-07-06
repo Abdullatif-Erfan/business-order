@@ -108,7 +108,7 @@
                                     <button class="btn btn-success btn-sm no-print" onclick="print_page_with_image()">
                                         <i class="fas fa-print"></i> 
                                     </button>
-                                    <a href="{{ route('boughtList.invoices') }}">
+                                    <a href="{{ route('sales.invoices') }}">
                                         <button class="btn mybtn bg-default"> {{ __('common.back') }} </button>
                                     </a>
                                 </span>
@@ -136,8 +136,8 @@
                                         <tr>
                                             <td style="width:20%"><strong>{{ __('buy.invoice_number') }}:</strong></td>
                                             <td style="width:30%">{{ $invoice->invoice_number }}</td>
-                                            <td style="width:20%"><strong>{{ __('order.supplier_name') }}:</strong></td>
-                                            <td style="width:30%">{{ $invoice->supplier->name ?? '' }}</td>
+                                            <td style="width:20%"><strong>{{ __('buy.customer') }}:</strong></td>
+                                            <td style="width:30%">{{ $invoice->customer->name ?? '' }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong>{{ __('buy.invoice_date') }}:</strong></td>
@@ -199,17 +199,17 @@
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $item->preList->name ?? '' }}</td>
-                                                <td>{{ number_format($item->amount, 2) }}</td>
+                                                <td>{{ $item->amount }}</td>
                                                 <td>{{ $item->unit->name ?? '' }}</td>
                                                 @if($orgbios[0]->tax_activation === 1)
-                                                <td>{{ number_format($item->unit_price, 2)  }}</td>
+                                                <td>{{ $item->unit_price  }}</td>
                                                 <td>% {{ $item->tax_percentage ?? 0 }}  </td>
                                                 <td>{{ number_format($item->tax_amount ?? 0, 2) }}</td>
-                                                <td>{{ $item->buy_up_vat ?? 0 }}  </td>
+                                                <td>{{ $item->sell_up_vat ?? 0 }}  </td>
                                                 <td>{{ number_format($item->total_vat, 2) }}</td>
                                                  @else
-                                                 <td>{{ $item->tax_percentage > 0 ? number_format($item->unit_price_vat, 2):
-                                                    number_format($item->unit_price, 2)  }}</td>
+                                                 <td>{{ $item->tax_percentage > 0 ? number_format($item->sell_up_vat, 2):
+                                                    $item->unit_price  }}</td>
                                                 <td>{{ $item->tax_percentage > 0 ? number_format($item->total_vat, 2):
                                                     number_format($item->total, 2)  }}</td>
                                                 @endif
@@ -301,9 +301,9 @@
                                                 @csrf
                                                 <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
                                                 <input type="hidden" name="times" value="{{ $times }}">
-                                                <input type="hidden" name="journal_code" value="{{ $newJournalCode }}">
+                                                <input type="hidden" name="code" value="{{ $newJournalCode }}">
                                                 <input type="hidden" name="tax_activation" value="{{ $orgbios[0]->tax_activation }}">
-                                                <input type="hidden" name="supplier_account_id" value="{{ $invoice->supplier->id }}">
+                                                <input type="hidden" name="customer_account_id" value="{{ $invoice->customer->id }}">
                                                 
                                                 
                                                 <div class="row">
@@ -315,9 +315,9 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3 col-sm-6 col-xs-6 m-b-4">
-                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="supplier_account_id" disabled>
-                                                            @foreach($suppliers as $supplier)
-                                                                <option value="{{ $supplier->id }}" {{$supplier->id  === $invoice->supplier->id ? 'selected': ''}} >{{ $supplier->name }}</option>
+                                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="customer_account_id" disabled>
+                                                            @foreach($customers as $customer)
+                                                                <option value="{{ $customer->id }}" {{$customer->id  === $invoice->customer->id ? 'selected': ''}} >{{ $customer->name }}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -406,7 +406,7 @@ $(document).ready(function() {
         var formData = $(this).serialize();
         
         $.ajax({
-            url: '{{ route("boughtList.addPayment") }}',
+            url: '{{ route("sales.addPayment") }}',
             type: 'POST',
             data: formData,
             headers: {

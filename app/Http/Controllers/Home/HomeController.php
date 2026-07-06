@@ -121,6 +121,9 @@ class HomeController extends Controller
             'buy_invoices',
             'buy_invoice_items',
             'buy_invoice_payments',
+            'sales_invoices',
+            'sales_invoice_items',
+            'sales_invoice_payments',
         ];
 
         try {

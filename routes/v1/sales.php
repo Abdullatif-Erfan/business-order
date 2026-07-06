@@ -20,11 +20,13 @@ use App\Http\Controllers\Sales\SalesByItemController;
     Route::post('/deleteSingleItem/{id}',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
     //  Route::post('/deleteSingleItem',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
     Route::get('/destroy/{times}',[SalesController::class,'destroy'])->name('sales.destroy')->middleware('access:sales,delete_records');
-    // POS
-    Route::get('/item_list',[PosSalesController::class,'item_list'])->name('sales.item_list')->middleware('access:sales,list');
-    Route::get('/pos_create',[PosSalesController::class,'pos_create'])->name('sales.pos_create')->middleware('access:sales,create_records');
-    Route::post('/pos_store',[PosSalesController::class,'pos_store'])->name('sales.pos_store')->middleware('access:sales,create_records');
-    Route::get('/pos_print/{billno}',[PosSalesController::class,'pos_print'])->name('sales.pos_print');
+    
+    // Invoice routes
+    Route::get('/invoices', [SalesController::class, 'invoiceList'])->name('sales.invoices');
+    Route::get('/invoice-data', [SalesController::class, 'getInvoiceData'])->name('sales.invoiceData');
+    Route::post('/generate-invoice', [SalesController::class, 'generateInvoice'])->name('sales.generateInvoice');
+    Route::get('/invoice/{id}', [SalesController::class, 'showInvoice'])->name('sales.showInvoice');
+    Route::post('/invoice-payment', [SalesController::class, 'addPayment'])->name('sales.addPayment');
 });
 
 Route::prefix('soldItemList')->group(function(){

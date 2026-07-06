@@ -18,6 +18,10 @@ use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
 use App\Models\Warehouse\SalesDetails;
 
+use App\Models\SalesInvoice\SalesInvoice;
+use App\Models\SalesInvoice\SalesInvoiceItem;
+use App\Models\SalesInvoice\SalesInvoicePayment;
+
 use App\Models\Setting\Account;
 
 use Yajra\DataTables\Facades\DataTables;
@@ -59,7 +63,7 @@ class SalesController extends Controller
             $soldItems = DB::table('warehouse_sales')
             ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
             ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
-            ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total','cur_pay','is_cleared','remained','currencies.name as currency_name','idate','user_name')
+            ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total','cur_pay','is_cleared','remained','currencies.name as currency_name','idate','user_name','warehouse_sales.invoice_id','warehouse_sales.has_invoice')
             ->orderBy('warehouse_sales.id','DESC');
             
 
@@ -136,6 +140,7 @@ class SalesController extends Controller
                 ELSE warehouse_items.sell_up 
             END as sell_up"),
             'warehouse_items.buy_tax_per',
+            'warehouse_items.sell_up as sell_up_no_tax',
             'warehouse_items.sell_tax_per',
             'warehouse_items.sell_tax_price',
             'warehouse_items.available_amount',
@@ -344,6 +349,7 @@ class SalesController extends Controller
     */
     private function createWarehouseSales($request)
     {
+        $tax = OrgBio::select('tax_activation')->first();
         try {
             $user_name = auth()->user()->full_name ?? '';
             $user_id = auth()->user()->id ?? '';
@@ -366,6 +372,7 @@ class SalesController extends Controller
                 'cur_pay' => $request->cur_pay,
                 'remained' => $request->remained,
                 'currency_id' => $request->currency_id,
+                'tax_activation' => $tax->tax_activation ?? 0,
                 'note' => $request->note,
                 'idate' => $idate->format('Y-m-d'),
                 'user_id' => $user_id,
@@ -409,6 +416,7 @@ class SalesController extends Controller
                 'amount' => $request->amount[$index],
                 'buy_up' => $request->buy_up[$index],
                 'sell_up' => $request->sell_up[$index],
+                'sell_up_no_tax' =>  $request->sell_up_no_tax[$index],
                 'sell_tax_per' => $request->sell_tax_per[$index] ?? 0,
                 'sell_tax_price' => $request->sell_tax_price[$index] ?? 0,
                 'profit' => $request->profit[$index],
@@ -553,36 +561,48 @@ class SalesController extends Controller
             // Log the error for debugging
             \Log::error('Error storing journal entry in SalesController', ['error' => $e->getMessage()]);
             throw $e; // Rethrow to be caught in store()
+            return false;
         }
     }
 
     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment)
     {
-        $account_type_id = Account::where('id', $account_id)->value('account_type_id');
-        
-        Journal::create([
-            'bill_no' => $request->billno,
-            'code' => $request->code,
-            'account_type_id' => $account_type_id,
-            'account_id' => $account_id,
-            'amount' => $amount,
-            'currency_id' => $request->currency_id,
-            'transaction_type' => $ttype,
-            'payment_type' => $ptype,
-            'dynamic_type' => $dynamic_type,
-            'dt_comment' => $dt_comment,
-            'option_label' => $optionLabel,
-            'user_id' => auth()->user()->id ?? '',
-            'user_name' => auth()->user()->full_name ?? '',
-            'year' => $date->year,
-            'month' => $date->month,
-            'day' => $date->day,
-            'idate' => $request->todays_date,
-            'details' => $details,
-            'status' => 8,
-            'times' => $request->times,
-            'is_single_record' => 1,
-        ]);
+        try 
+        {
+            $account_type_id = Account::where('id', $account_id)->value('account_type_id');
+            Journal::create([
+                'bill_no' => $request->billno,
+                'code' => $request->code,
+                'account_type_id' => $account_type_id,
+                'account_id' => $account_id,
+                'amount' => $amount,
+                'currency_id' => $request->currency_id,
+                'transaction_type' => $ttype,
+                'payment_type' => $ptype,
+                'dynamic_type' => $dynamic_type,
+                'dt_comment' => $dt_comment,
+                'option_label' => $optionLabel,
+                'user_id' => auth()->user()->id ?? '',
+                'user_name' => auth()->user()->full_name ?? '',
+                'year' => $date->year,
+                'month' => $date->month,
+                'day' => $date->day,
+                'idate' => $request->todays_date,
+                'details' => $details,
+                'status' => 8,
+                'times' => $request->times,
+                'is_single_record' => 1,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Create Journal Entry Error: ' . $e->getMessage(), [
+                'account_id' => $account_id,
+                'amount' => $amount,
+                'details' => $details
+            ]);
+            return false;
+        }
     }
 
 
@@ -744,8 +764,6 @@ class SalesController extends Controller
             $oldAmount = (float) $validated['old_amount'];
             $newAmount = (float) $validated['amount'];
             $diff = abs($newAmount - $oldAmount);
-
-
             
             if (!$warehouseItem) {
                 throw new \Exception('Warehouse item not found.');
@@ -985,6 +1003,901 @@ class SalesController extends Controller
             ]);
 
             return back();
+        }
+    }
+
+
+    // ========================================== INVOICES ==========================================
+
+    /**
+     * Display invoice list
+     */
+    public function invoiceList()
+    {
+        $tax = OrgBio::select('tax_activation')->first();
+        return view('sales.invoice.invoice_list',compact('tax'));
+    }
+
+    /**
+     * Get invoice data for DataTable
+     */
+    public function getInvoiceData(Request $request)
+    {
+        $tax_activation = $request->input('tax_activation');
+        $invoices = SalesInvoice::with(['customer', 'currency'])
+            ->orderBy('id', 'DESC');
+
+        return DataTables::of($invoices)
+            ->addIndexColumn()
+            ->addColumn('customer_name', function($invoice) {
+                return $invoice->customer ? $invoice->customer->name : '-';
+            })
+            ->addColumn('total', function($invoice) use ($tax_activation) {
+                return  number_format($invoice->total ?? 0, 2);
+            })
+            ->addColumn('paid_amount', function($invoice) {
+                return number_format($invoice->paid_amount, 2);
+            })
+            ->addColumn('remaining', function($invoice) use ($tax_activation) {
+                 return number_format($invoice->remaining ?? 0, 2);
+            })
+            ->addColumn('status', function($invoice) {
+                $statusClasses = [
+                    0 => 'badge-secondary',
+                    1 => 'badge-warning',
+                    2 => 'badge-info',
+                    3 => 'badge-success',
+                    4 => 'badge-danger'
+                ];
+                $statusLabels = [
+                    0 => __('order.draft'),
+                    1 => __('order.pending'),
+                    2 => __('order.partial'),
+                    3 => __('order.paid'),
+                    4 => __('order.cancelled')
+                ];
+                return '<span class="badge ' . ($statusClasses[$invoice->status] ?? 'badge-secondary') . '">' 
+                    . ($statusLabels[$invoice->status] ?? __('order.unknown')) . '</span>';
+            })
+            ->addColumn('invoice_date', function($invoice) {
+                return $invoice->invoice_date->format('Y-m-d');
+            })
+            ->addColumn('action', function($invoice) {
+                return '<a href="' . route('sales.showInvoice', $invoice->id) . '" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i>
+                        </a>';
+            })
+            ->rawColumns(['status', 'action'])
+            ->make(true);
+    }
+
+    /**
+     * Generate invoice from selected bought items
+     */
+    public function generateInvoice(Request $request)
+    {
+        try 
+        {
+            // id of warehouse_sales table
+            $warehouseSalesIds = $request->sold_item_ids;
+
+            // return ['warehouseSalesIds' => $warehouseSalesIds];
+            
+            if (empty($warehouseSalesIds)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.select_at_least_one')
+                ]);
+            }
+
+            // Get selected sold items
+            $warehouseSales = WarehouseSales::whereIn('id', $warehouseSalesIds)->get();
+            
+            if ($warehouseSales->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.no_items_found')
+                ]);
+            }
+
+            // Check if all items belong to same customer
+            $customerId = $warehouseSales->first()->customer_account_id;
+            $differentCustomer = $warehouseSales->where('customer_account_id', '!=', $customerId)->count() > 0;
+            
+            if ($differentCustomer) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.different_customers')
+                ]);
+            }
+
+            DB::beginTransaction();
+
+            // Generate invoice number
+            $invoiceNumber = 'SINV-' . date('Ymd') . '-' . (SalesInvoice::count() + 1);
+
+            // Calculate totals
+            $totalAmount = $warehouseSales->sum('total');
+            $paidAmount = $warehouseSales->sum('cur_pay');
+            $remainingAmount = $warehouseSales->sum('remained');
+
+            // Create invoice
+            $invoice = SalesInvoice::create([
+                'invoice_number' => $invoiceNumber,
+                'customer_id' => $customerId,
+                'total' => $totalAmount,
+                'paid_amount' => $paidAmount,
+                'remaining' => $remainingAmount,
+                'currency_id' => $warehouseSales->first()->currency_id,
+                'status' =>   1, // 0: draft, 1: in progress, 2: partial, 3: paid
+                'tax_activation' => $warehouseSales->first()->tax_activation ?? 0,  
+                'invoice_date' => now(),
+                'due_date' => now()->addDays(30),
+                'notes' => __('buy.invoice_generated_from_bought_items'),
+                'created_by' => auth()->id(),
+                'times' => time()
+            ]);
+
+            // Create invoice items
+            foreach ($warehouseSales as $salestItem) {
+                // Get details for this Sales item from sales details
+                $details = SalesDetails::where('warehouse_sales_id', $salestItem->id)->get();
+                
+                foreach ($details as $detail) {
+                    SalesInvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'sales_details_id' => $detail->id,
+                        'warehouse_sales_id' => $salestItem->id,
+                        'pre_list_id' => $detail->pre_list_id,
+                        'amount' => $detail->amount,
+                        'unit_id' => $detail->unit_id,
+                        'unit_price' => $detail->sell_up_no_tax,
+                        'unit_price_vat' => $detail->sell_up_vat ?? 0, 
+                        'tax_percentage' => $detail->sell_tax_per ?? 0,
+                        'tax_amount' => $detail->sell_tax_price ?? 0,
+                        'sell_up_vat' => $detail->sell_up ?? 0, // in sales_details it stores with or without tax
+                        'total' => $detail->amount * $detail->sell_up_no_tax,
+                        'total_vat' => $detail->amount * $detail->sell_up,  
+                        'times' => time()
+                    ]);
+                }
+            }
+
+            // Update warehouse_sales to mark as invoiced (you need to add a column)
+            WarehouseSales::whereIn('id', $warehouseSalesIds)->update(['has_invoice' => 1,'invoice_id' => $invoice->id]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('buy.invoice_generated_successfully'),
+                'invoice_id' => $invoice->id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Generate Invoice Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show invoice details
+     */
+    public function showInvoice($id)
+    {
+        $orgbios = OrgBio::all();
+        $times = time();
+        $invoice = SalesInvoice::with(['customer', 'items.unit', 'items.preList', 'payments', 'currency'])
+            ->findOrFail($id);
+        $customers = Account::select('id','name')->whereIn('account_type_id',[3])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        $newJournalCode =  Journal::max('code') + 1;
+        $currencies = Currency::select('id','name')->get();
+        // return ['data' => $invoice];
+
+        return view('sales.invoice.invoice_details', compact('invoice','orgbios','customers','ownBanks','newJournalCode','times','currencies'));
+    }
+
+    public function addPayment(Request $request)
+    {
+        try 
+        {
+            $validated = $request->validate([
+                'invoice_id' => 'required|exists:sales_invoices,id',
+                'amount' => 'required|numeric|min:0.01',
+                'payment_method' => 'required|in:1,2,3',
+                'account_id' => 'required|exists:accounts,id',
+                'customer_account_id' => 'required|exists:accounts,id',
+                'payment_date' => 'required|date',
+                'reference_number' => 'nullable|string|max:100',
+                'notes' => 'nullable|string|max:255',
+                'code' => 'required',
+                'times' => 'required',
+                'currency_id' => 'required',
+                'tax_activation' => 'nullable|in:0,1'
+            ]);
+ 
+
+            // Log::info($request->all());
+
+            DB::beginTransaction();
+
+            $invoice = SalesInvoice::findOrFail($validated['invoice_id']);
+            $taxActivation = (int) ($request->tax_activation ?? 0);
+            $amount = (float) $validated['amount'];
+            $invoice_id = substr($invoice->invoice_number, strrpos($invoice->invoice_number, '-') + 1);
+            
+            // ========================= Update Invoice =================================
+            $newPaidAmount = $invoice->paid_amount + $amount;
+            $newRemaining = $invoice->total - $newPaidAmount;
+            // Determine status
+            if ($newPaidAmount >= $invoice->total) {
+                $status = 3; // Fully paid
+            } elseif ($newPaidAmount > 0) {
+                $status = 2; // Partial
+            } else {
+                $status = 1; // Pending
+            }
+            
+            $invoice->update([
+                'paid_amount' => $newPaidAmount,
+                'remaining' => max(0, $newRemaining),
+                'status' => $status
+            ]);
+
+            // ========================= Create Payment Record =================================
+            $payment = SalesInvoicePayment::create([
+                'invoice_id' => $invoice->id,
+                'payment_date' => $validated['payment_date'],
+                'amount' => $amount,
+                'payment_method' => $validated['payment_method'],
+                'account_id' => $validated['account_id'],
+                'customer_account_id' => $validated['customer_account_id'],
+                'reference_number' => $validated['reference_number'],
+                'notes' => $validated['notes'],
+                'created_by' => auth()->id(),
+                'times' => time()
+            ]);
+
+            // ========================= Update warehouse Sales =================================
+            $warehouseSales = WarehouseSales::where('invoice_id', $invoice->id)
+                ->orderBy('id', 'ASC')
+                ->get();
+
+            if ($warehouseSales->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.record_not_found')
+                ], 404);
+            }
+
+            //  Check if single or multiple records
+            $itemsCount = $warehouseSales->count();
+            $remainingPayment = (float) $amount;
+
+            if ($itemsCount === 1) 
+            {
+                // =============================================
+                // SINGLE RECORD - Apply payment directly
+                // =============================================
+                $warehouseItem = $warehouseSales->first();
+                
+                $itemTotalPrice = (float) $warehouseItem->total;
+                $itemCurrentPaid = (float) $warehouseItem->cur_pay;
+                
+                // Calculate new values
+                $newCurPay = $itemCurrentPaid + $amount;
+                $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
+                
+                // Update single item
+                $warehouseItem->update([
+                    'cur_pay' => $newCurPay,
+                    'remained' => $newRemainingPrice,
+                    'status' => $newRemainingPrice <= 0 ? 3 : 2
+                ]);
+            }  
+            else 
+            {
+                /**
+                * 
+                * Initial State:
+                * Item 1: total=480, cur_pay=0, remained=480
+                * Item 2: total=200, cur_pay=0, remained=200
+
+                * Payment 1: 50
+                * → Item 1: allocated=50, cur_pay=50, remained=430, remaining_payment=0
+                * Result: Item 1 = 50/480, Item 2 = 0/200
+
+                * Payment 2: 350
+                * → Item 1: itemRemainingPrice = 480 - 50 = 430
+                * → allocated=350 (partial), cur_pay=400, remained=80, remaining_payment=0
+                * Result: Item 1 = 400/480, Item 2 = 0/200
+
+                * Payment 3: 100
+                * → Item 1: itemRemainingPrice = 480 - 400 = 80
+                * → allocated=80, cur_pay=480, remained=0, remaining_payment=20
+                * → Item 2: itemRemainingPrice = 200 - 0 = 200
+                * → allocated=20, cur_pay=20, remained=180, remaining_payment=0
+                * Result: Item 1 = 480/480 (PAID), Item 2 = 20/200 (PARTIAL)
+                *
+                */
+                // =============================================
+                // MULTIPLE RECORDS - Distribute payment sequentially
+                // =============================================
+                
+                // Calculate total remaining for validation
+                $totalRemaining = 0;
+                foreach ($warehouseSales as $item) {
+                    $totalRemaining += max(0, (float) $item->total - (float) $item->cur_pay);
+                }
+
+                if ($remainingPayment > $totalRemaining) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => __('buy.payment_exceeds_remaining', [
+                            'remaining' => number_format($totalRemaining, 2)
+                        ])
+                    ], 422);
+                }
+
+                // Distribute payment sequentially across items
+                foreach ($warehouseSales as $index => $warehouseSalesItem) {
+                    // Stop if no more payment to distribute
+                    if ($remainingPayment <= 0.01) {
+                        break;
+                    }
+                    
+                    $itemTotalPrice = (float) ($warehouseSalesItem->total ?? 0);
+                    $itemCurrentPaid = (float) ($warehouseSalesItem->cur_pay ?? 0);
+                    $itemRemainingPrice = max(0, $itemTotalPrice - $itemCurrentPaid);
+                    
+                    // Skip if item is already fully paid
+                    if ($itemRemainingPrice <= 0.01) {
+                        continue;
+                    }
+                    
+                    // Determine how much to allocate to this item
+                    $allocatedAmount = 0;
+                    if ($remainingPayment >= $itemRemainingPrice) {
+                        // Pay the FULL remaining amount of this item
+                        $allocatedAmount = $itemRemainingPrice;
+                        $remainingPayment -= $itemRemainingPrice;
+                    } else {
+                        // Pay PARTIAL amount to this item (remainingPayment will become 0)
+                        $allocatedAmount = $remainingPayment;
+                        $remainingPayment = 0;
+                    }
+                    
+                    // Calculate new values
+                    $newCurPay = round($itemCurrentPaid + $allocatedAmount, 2);
+                    $newRemainingPrice = round($itemTotalPrice - $newCurPay, 2);
+                   
+                    
+                    // Determine status
+                    if ($newCurPay <= 0) {
+                        $status = 1;       // unpaid
+                    } elseif ($newRemainingPrice <= 0.01) {
+                        $status = 3;       // paid
+                    } else {
+                        $status = 2;       // partial
+                    }
+                    
+                    // Log before update
+                    // \Log::info('Before Update - Item ' . $warehouseSalesItem->id, [
+                    //     'total_price' => $itemTotalPrice,
+                    //     'current_paid' => $itemCurrentPaid,
+                    //     'remaining' => $itemRemainingPrice,
+                    //     'allocated' => $allocatedAmount,
+                    //     'new_paid' => $newCurPay,
+                    //     'new_remaining' => $newRemainingPrice
+                    // ]);
+                    
+                    
+                    $warehouseSalesItem->update([
+                        'cur_pay' => $newCurPay,
+                        'remained' => max(0, $newRemainingPrice),
+                        'status' => $status,
+                    ]);
+
+                    // Log after update
+                    // \Log::info('After Update - Item ' . $warehouseSalesItem->id, [
+                    //     'cur_pay' => $warehouseSalesItem->fresh()->cur_pay,
+                    //     'remained' => $warehouseSalesItem->fresh()->remained
+                    // ]);
+                }
+            }
+
+            // ========================= Journal Entries =================================
+            $date = $request->payment_date 
+                ? Carbon::parse($request->payment_date) 
+                : Carbon::now();
+
+            $full_date = $date->format('Y-m-d H:i:s');
+
+            // Add these to the request for the journal entry
+            $request->merge([
+                'bill_no' => $invoice_id,
+                'payment_date' => $date->format('Y-m-d'),
+                'todays_date' => $date->format('Y-m-d'), // Add this for compatibility
+                'idate' => $date,
+            ]);
+
+            // Payment from account (Paid)
+            $details = __('validate.cache_payment_invoice') . 'SINV_' . $invoice_id;
+            // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:buy invoice,  10:sales invoice, 11:other
+            $status = 10; 
+            $optionLabel = __('validate.inv_pay');
+            $dynamic_type = $invoice_id;
+            $dt_comment = 'Invoice';
+            
+            $check1 = $this->createJournalEntry($request, $optionLabel, $request->account_id,  $amount, 
+                "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
+            );
+
+            // Received by supplier
+            $details2 = __('validate.cache_recieved_invoice') . 'SINV_' . $invoice_id;
+            $optionLabel = __('validate.inv_rec');
+            
+            $check2 = $this->createJournalEntry(
+                $request,  $optionLabel, $request->customer_account_id, $amount, 
+                "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
+            );
+
+            if (!$check1 || !$check2) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.add_failed')
+                ], 500);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'payment' => $payment,
+                    'invoice' => $invoice->fresh(),
+                    'warehouseSales' => $warehouseSales->fresh(),
+                    'items_count' => $itemsCount
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Add Payment Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addPayment2(Request $request)
+    {
+        try 
+        {
+            \Log::info('=== START addPayment ===');
+            \Log::info('Request data:', $request->all());
+
+            $validated = $request->validate([
+                'invoice_id' => 'required|exists:sales_invoices,id',
+                'amount' => 'required|numeric|min:0.01',
+                'payment_method' => 'required|in:1,2,3',
+                'account_id' => 'required|exists:accounts,id',
+                'customer_account_id' => 'required|exists:accounts,id',
+                'payment_date' => 'required|date',
+                'reference_number' => 'nullable|string|max:100',
+                'notes' => 'nullable|string|max:255',
+                'code' => 'required',
+                'times' => 'required',
+                'currency_id' => 'required',
+                'tax_activation' => 'nullable|in:0,1'
+            ]);
+
+            \Log::info('Validation passed', ['validated' => $validated]);
+
+            DB::beginTransaction();
+            \Log::info('Transaction started');
+
+            $invoice = SalesInvoice::findOrFail($validated['invoice_id']);
+            \Log::info('Invoice found', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'total' => $invoice->total,
+                'paid_amount' => $invoice->paid_amount,
+                'remaining' => $invoice->remaining,
+                'status' => $invoice->status
+            ]);
+
+            $taxActivation = (int) ($request->tax_activation ?? 0);
+            $amount = (float) $validated['amount'];
+            $invoice_id = substr($invoice->invoice_number, strrpos($invoice->invoice_number, '-') + 1);
+            
+            \Log::info('Payment details', [
+                'amount' => $amount,
+                'tax_activation' => $taxActivation,
+                'invoice_id' => $invoice_id
+            ]);
+
+            // ========================= Update Invoice =================================
+            $newPaidAmount = $invoice->paid_amount + $amount;
+            $newRemaining = $invoice->total - $newPaidAmount;
+            
+            \Log::info('Invoice update calculation', [
+                'old_paid_amount' => $invoice->paid_amount,
+                'new_paid_amount' => $newPaidAmount,
+                'old_remaining' => $invoice->remaining,
+                'new_remaining' => $newRemaining
+            ]);
+
+            // Determine status
+            if ($newPaidAmount >= $invoice->total) {
+                $status = 3; // Fully paid
+            } elseif ($newPaidAmount > 0) {
+                $status = 2; // Partial
+            } else {
+                $status = 1; // Pending
+            }
+            
+            \Log::info('Invoice status determined', ['status' => $status]);
+            
+            $invoice->update([
+                'paid_amount' => $newPaidAmount,
+                'remaining' => max(0, $newRemaining),
+                'status' => $status
+            ]);
+
+            \Log::info('Invoice updated successfully');
+
+            // ========================= Create Payment Record =================================
+            $payment = SalesInvoicePayment::create([
+                'invoice_id' => $invoice->id,
+                'payment_date' => $validated['payment_date'],
+                'amount' => $amount,
+                'payment_method' => $validated['payment_method'],
+                'account_id' => $validated['account_id'],
+                'customer_account_id' => $validated['customer_account_id'],
+                'reference_number' => $validated['reference_number'],
+                'notes' => $validated['notes'],
+                'created_by' => auth()->id(),
+                'times' => time()
+            ]);
+
+            \Log::info('Payment record created', [
+                'payment_id' => $payment->id,
+                'payment_amount' => $payment->amount
+            ]);
+
+            // ========================= Update Warehouse Sales =================================
+            $warehouseSales = WarehouseSales::where('invoice_id', $invoice->id)
+                ->orderBy('id', 'ASC')
+                ->get();
+
+            \Log::info('Warehouse sales retrieved', [
+                'count' => $warehouseSales->count(),
+                'items' => $warehouseSales->map(function($item) {
+                    return [
+                        'id' => $item->id,
+                        'total' => $item->total,
+                        'cur_pay' => $item->cur_pay,
+                        'remained' => $item->remained,
+                        'status' => $item->status
+                    ];
+                })->toArray()
+            ]);
+
+            if ($warehouseSales->isEmpty()) {
+                \Log::error('No warehouse sales found for invoice', ['invoice_id' => $invoice->id]);
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.record_not_found')
+                ], 404);
+            }
+
+            $itemsCount = $warehouseSales->count();
+            $remainingPayment = (float) $amount;
+
+            \Log::info('Payment distribution started', [
+                'items_count' => $itemsCount,
+                'remaining_payment' => $remainingPayment
+            ]);
+
+            if ($itemsCount === 1) 
+            {
+                // =============================================
+                // SINGLE RECORD - Apply payment directly
+                // =============================================
+                \Log::info('=== SINGLE RECORD MODE ===');
+                
+                $warehouseItem = $warehouseSales->first();
+                
+                $itemTotalPrice = (float) $warehouseItem->total;
+                $itemCurrentPaid = (float) $warehouseItem->cur_pay;
+                
+                \Log::info('Single item before update', [
+                    'id' => $warehouseItem->id,
+                    'total' => $itemTotalPrice,
+                    'cur_pay' => $itemCurrentPaid,
+                    'remained' => $warehouseItem->remained
+                ]);
+                
+                // Calculate new values
+                $newCurPay = $itemCurrentPaid + $amount;
+                $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
+                
+                \Log::info('Single item calculation', [
+                    'new_cur_pay' => $newCurPay,
+                    'new_remaining' => $newRemainingPrice,
+                    'status' => $newRemainingPrice <= 0 ? 3 : 2
+                ]);
+                
+                // Update single item
+                $warehouseItem->update([
+                    'cur_pay' => $newCurPay,
+                    'remained' => $newRemainingPrice,
+                    'status' => $newRemainingPrice <= 0 ? 3 : 2
+                ]);
+
+                \Log::info('Single item updated', [
+                    'id' => $warehouseItem->id,
+                    'new_cur_pay' => $warehouseItem->fresh()->cur_pay,
+                    'new_remained' => $warehouseItem->fresh()->remained
+                ]);
+            }  
+            else 
+            {
+                // =============================================
+                // MULTIPLE RECORDS - Distribute payment sequentially
+                // =============================================
+                \Log::info('=== MULTIPLE RECORDS MODE ===');
+                
+                // Calculate total remaining for validation
+                $totalRemaining = 0;
+                foreach ($warehouseSales as $item) {
+                    $itemRemaining = max(0, (float) $item->total - (float) $item->cur_pay);
+                    $totalRemaining += $itemRemaining;
+                    \Log::info('Item remaining calculation', [
+                        'id' => $item->id,
+                        'total' => $item->total,
+                        'cur_pay' => $item->cur_pay,
+                        'remaining' => $itemRemaining
+                    ]);
+                }
+
+                \Log::info('Total remaining calculation', [
+                    'total_remaining' => $totalRemaining,
+                    'payment_amount' => $remainingPayment
+                ]);
+
+                if ($remainingPayment > $totalRemaining) {
+                    \Log::error('Payment exceeds total remaining', [
+                        'payment' => $remainingPayment,
+                        'total_remaining' => $totalRemaining
+                    ]);
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => __('buy.payment_exceeds_remaining', [
+                            'remaining' => number_format($totalRemaining, 2)
+                        ])
+                    ], 422);
+                }
+
+                // Distribute payment sequentially across items
+                $iteration = 0;
+                foreach ($warehouseSales as $warehouseSalesItem) {
+                    $iteration++;
+                    \Log::info("=== Iteration {$iteration} ===");
+                    
+                    // Stop if no more payment to distribute
+                    if ($remainingPayment <= 0.01) {
+                        \Log::info('No more payment to distribute, breaking loop');
+                        break;
+                    }
+                    
+                    $itemTotalPrice = (float) ($warehouseSalesItem->total ?? 0);
+                    $itemCurrentPaid = (float) ($warehouseSalesItem->cur_pay ?? 0);
+                    $itemRemainingPrice = max(0, $itemTotalPrice - $itemCurrentPaid);
+                    
+                    \Log::info('Item details', [
+                        'id' => $warehouseSalesItem->id,
+                        'total' => $itemTotalPrice,
+                        'current_paid' => $itemCurrentPaid,
+                        'remaining_price' => $itemRemainingPrice
+                    ]);
+                    
+                    // Skip if item is already fully paid
+                    if ($itemRemainingPrice <= 0.01) {
+                        \Log::info('Item already fully paid, skipping', ['id' => $warehouseSalesItem->id]);
+                        continue;
+                    }
+                    
+                    // Determine how much to allocate to this item
+                    $allocatedAmount = 0;
+                    if ($remainingPayment >= $itemRemainingPrice) {
+                        // Pay the FULL remaining amount of this item
+                        $allocatedAmount = $itemRemainingPrice;
+                        $remainingPayment -= $itemRemainingPrice;
+                        \Log::info('Paying full remaining amount', [
+                            'allocated' => $allocatedAmount,
+                            'remaining_payment' => $remainingPayment
+                        ]);
+                    } else {
+                        // Pay PARTIAL amount to this item
+                        $allocatedAmount = $remainingPayment;
+                        $remainingPayment = 0;
+                        \Log::info('Paying partial amount', [
+                            'allocated' => $allocatedAmount,
+                            'remaining_payment' => $remainingPayment
+                        ]);
+                    }
+                    
+                    // Calculate new values
+                    $newCurPay = round($itemCurrentPaid + $allocatedAmount, 2);
+                    $newRemainingPrice = round($itemTotalPrice - $newCurPay, 2);
+                
+                    // Determine status
+                    if ($newCurPay <= 0) {
+                        $status = 1;       // unpaid
+                    } elseif ($newRemainingPrice <= 0.01) {
+                        $status = 3;       // paid
+                    } else {
+                        $status = 2;       // partial
+                    }
+                    
+                    \Log::info('Before update - Item ' . $warehouseSalesItem->id, [
+                        'total_price' => $itemTotalPrice,
+                        'current_paid' => $itemCurrentPaid,
+                        'remaining' => $itemRemainingPrice,
+                        'allocated' => $allocatedAmount,
+                        'new_paid' => $newCurPay,
+                        'new_remaining' => $newRemainingPrice,
+                        'status' => $status
+                    ]);
+                    
+                    // Update the item
+                    $warehouseSalesItem->update([
+                        'cur_pay' => $newCurPay,
+                        'remained' => max(0, $newRemainingPrice),
+                        'status' => $status,
+                    ]);
+
+                    // Log after update
+                    $freshItem = $warehouseSalesItem->fresh();
+                    \Log::info('After update - Item ' . $warehouseSalesItem->id, [
+                        'cur_pay' => $freshItem->cur_pay,
+                        'remained' => $freshItem->remained,
+                        'status' => $freshItem->status
+                    ]);
+                }
+
+                \Log::info('Distribution complete', [
+                    'remaining_payment' => $remainingPayment,
+                    'items_processed' => $iteration
+                ]);
+            }
+
+            // ========================= Journal Entries =================================
+            \Log::info('=== Journal Entries ===');
+            
+            $date = $request->payment_date 
+                ? Carbon::parse($request->payment_date) 
+                : Carbon::now();
+
+            $time = $request->times ?? '00:00:00';
+            $full_date = $date->format('Y-m-d') . ' ' . $time;
+
+            $request->merge([
+                'bill_no' => 0,
+                'idate' => $date,
+            ]);
+
+            \Log::info('Journal entry details', [
+                'payment_date' => $date,
+                'full_date' => $full_date,
+                'amount' => $amount
+            ]);
+
+            // Payment from account (Paid)
+            $details = __('validate.cache_payment_invoice') . 'SINV_' . $invoice_id;
+            $status = 10; 
+            $optionLabel = __('validate.inv_pay');
+            $dynamic_type = 2;
+            $dt_comment = 'Invoice';
+            
+            \Log::info('Creating journal entry 1 (Payment from account)', [
+                'account_id' => $request->account_id,
+                'amount' => $amount,
+                'details' => $details
+            ]);
+            
+            $check1 = $this->createJournalEntry($request, $optionLabel, $request->account_id, $amount, 
+                "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
+            );
+
+            // Received by customer
+            $details2 = __('validate.cache_recieved_invoice') . 'SINV_' . $invoice_id;
+            $optionLabel = __('validate.inv_rec');
+            
+            \Log::info('Creating journal entry 2 (Received by customer)', [
+                'account_id' => $request->customer_account_id,
+                'amount' => $amount,
+                'details' => $details2
+            ]);
+            
+            $check2 = $this->createJournalEntry(
+                $request, $optionLabel, $request->customer_account_id, $amount, 
+                "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
+            );
+
+            \Log::info('Journal entries result', [
+                'check1' => $check1,
+                'check2' => $check2
+            ]);
+
+            if (!$check1 || !$check2) {
+                \Log::error('Journal entry creation failed', [
+                    'check1' => $check1,
+                    'check2' => $check2
+                ]);
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.add_failed')
+                ], 500);
+            }
+
+            DB::commit();
+            \Log::info('=== Transaction committed successfully ===');
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('buy.payment_added_successfully'),
+                'data' => [
+                    'payment' => $payment,
+                    'invoice' => $invoice->fresh(),
+                    'warehouseSales' => $warehouseSales->fresh(),
+                    'items_count' => $itemsCount
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('=== ADD PAYMENT ERROR ===');
+            \Log::error('Error message: ' . $e->getMessage());
+            \Log::error('Error trace: ' . $e->getTraceAsString());
+            \Log::error('Request data: ', $request->all());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function logWarehouseSalesState($warehouseSales, $label = 'State')
+    {
+        \Log::info("=== {$label} ===");
+        foreach ($warehouseSales as $item) {
+            \Log::info("Item {$item->id}:", [
+                'total' => $item->total,
+                'cur_pay' => $item->cur_pay,
+                'remained' => $item->remained,
+                'status' => $item->status
+            ]);
         }
     }
 }

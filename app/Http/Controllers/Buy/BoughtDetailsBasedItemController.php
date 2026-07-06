@@ -107,9 +107,9 @@ class BoughtDetailsBasedItemController extends Controller
 
              ->addColumn('buy_up', function($boughtItem) {
                 //  <!--   اگر در زمان ثبت این ریکارد مالیات فعال بوده است حتما باید ریکارد مالیات دار  نشان داده شود در هر حالت -->
-                // if ($boughtItem->buy_tax_per && $boughtItem->buy_tax_per > 0) {
-                //     return $boughtItem->buy_up_vat;
-                // }
+                if ($boughtItem->buy_tax_per && $boughtItem->buy_tax_per > 0) {
+                    return $boughtItem->buy_up_vat;
+                }
                 return $boughtItem->buy_up; 
             })
 

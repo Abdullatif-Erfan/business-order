@@ -121,6 +121,7 @@ return [
     'invoice_details' => 'جزئیات انوایس',
     'payment_added_successfully' => 'پرداخت با موفقیت ثبت شد',
     'different_suppliers' => 'موارد انتخاب شده متعلق به تهیه کننده‌های مختلف هستند',
+    'different_customers' => 'موارد انتخاب شده متعلق به مشتریان مختلف هستند',
     'no_items_found' => 'هیچ موردی یافت نشد',
     'invoice_number' => 'شماره انوایس',
     'invoice_date' => 'تاریخ انوایس',
@@ -150,5 +151,6 @@ return [
     'generate_invoice' => 'ایجاد انوایس اتومات',
     'buy_up' => 'فیات خرید',
     'tax' => 'مالیات',
+    'customer' => 'مشتری',
 
 ];
