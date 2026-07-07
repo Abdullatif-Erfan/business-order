@@ -75,6 +75,31 @@
         background: #2a7bc8;
         color: #fff;
     }
+    /* Loader */
+
+.dots-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.dots-loader span {
+    width: 12px;
+    height: 12px;
+    background: #4a6cf7;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dots-loader span:nth-child(1) { animation-delay: -0.32s; }
+.dots-loader span:nth-child(2) { animation-delay: -0.16s; }
+.dots-loader span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
 
 </style>
 
@@ -119,7 +144,7 @@
                             <div class="col-md-2 col-sm-4 col-xs-6">
                                 <div class="filter-group" style="min-width: 120px;">
                                     <div class="input-group">
-                                        <input type="text" class="form-control datepicker-input" id="start_date" placeholder="YYYY-MM-DD">
+                                        <input type="text" class="form-control datepicker-input" value="{{ $search['start_date'] ?? '' }}" id="start_date" placeholder="YYYY-MM-DD">
                                         <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                     </div>
                                 </div>
@@ -128,7 +153,7 @@
                             <div class="col-md-2 col-sm-4 col-xs-6">
                                 <div class="filter-group" style="min-width: 120px;">
                                     <div class="input-group">
-                                        <input type="text" class="form-control datepicker-input" id="end_date" placeholder="YYYY-MM-DD">
+                                        <input type="text" class="form-control datepicker-input"  id="end_date" placeholder="YYYY-MM-DD">
                                         <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                     </div>
                                 </div>
@@ -149,7 +174,7 @@
         <!-- tab -->
         <div class="col-12 tab-wrapper">
             @if($permissions['settings'] || $isAdmin)             
-                @include('dashboard.orders')
+                @include('dashboard.steps')
             @else
                 <h3>No Permission</h3>
             @endif
@@ -186,6 +211,10 @@ $(document).ready(function() {
     // RESET BUTTON
     // =========================================
     $('#btn-reset').click(function() {
+        // Show loader, hide button text
+        $('#filter-loader').show();
+        $('#btn-reset').prop('disabled', true);
+
         $('#supplier_id').val('');
         $('#driver_id').val('');
         $('#start_date').val('');
@@ -210,7 +239,7 @@ $(document).ready(function() {
 });
 
 // =========================================
-// FETCH DASHBOARD DATA
+// FETCH DASHBOARD DATA (Orders & Buy)
 // =========================================
 function fetchDashboardData() {
     var supplierId = $('#supplier_id').val();
@@ -218,6 +247,13 @@ function fetchDashboardData() {
     var startDate = $('#start_date').val();
     var endDate = $('#end_date').val();
 
+    // Show loader
+    $('#filter-loader').show();
+    $('#btn-filter').prop('disabled', true);
+    $('#btn-filter i').hide();
+    $('#btn-filter').append('<span id="filter-loading-text"> جستجو ...</span>');
+
+    // Fetch Orders
     $.ajax({
         url: '{{ route("home.orders") }}',
         type: 'GET',
@@ -229,15 +265,45 @@ function fetchDashboardData() {
         },
         success: function(response) {
             if (response.status === 'success') {
-                // Replace the entire orders card with new HTML
                 $('#orders').html(response.data);
-            } else {
-                showNotification(response.message || 'خطا در بارگذاری داده‌ها', 'danger');
             }
         },
         error: function(xhr) {
-            console.log('Error:', xhr);
-            showNotification('خطا در بارگذاری داده‌ها', 'danger');
+            console.log('Orders Error:', xhr);
+        }
+    });
+
+    // Fetch Buy (Bought) Data
+    $.ajax({
+        url: '{{ route("home.bought") }}',
+        type: 'GET',
+        data: {
+            supplier_id: supplierId,
+            start_date: startDate,
+            end_date: endDate
+        },
+        success: function(response) {
+            // Hide loader
+            $('#filter-loader').hide();
+            $('#btn-filter').prop('disabled', false);
+            $('#btn-filter i').show();
+            $('#filter-loading-text').remove();
+
+            if (response.status === 'success') {
+                $('#buy').html(response.data);
+            } else {
+                showNotification(response.message || 'خطا در بارگذاری داده‌های خرید', 'danger');
+            }
+        },
+        error: function(xhr) {
+            // Hide loader
+            $('#filter-loader').hide();
+            $('#btn-filter').prop('disabled', false);
+            $('#btn-filter i').show();
+            $('#filter-loading-text').remove();
+            
+            console.log('Buy Error:', xhr);
+            showNotification('خطا در بارگذاری داده‌های خرید', 'danger');
         }
     });
 }

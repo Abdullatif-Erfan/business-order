@@ -1,6 +1,16 @@
 <?php 
 return [
-    // first tab
+    // Buy
+    'buy' => 'خرید',
+    'fully_paid' => 'پرداخت کامل',
+    'partial_paid' => 'پرداخت ناتکمیل',
+    'payment_progress' => 'جریان پرداخت',
+    'total_amount' => 'مجموع',
+    'paid' => 'پرداخت شده',
+    'balance' => 'بیلانس',
+    'remained' => 'باقیمانده',
+
+
     'todays_tab' => 'معاملات امروز',
     'sales' => 'فروشات',
     'sales_income' => 'دریافت فروشات',
