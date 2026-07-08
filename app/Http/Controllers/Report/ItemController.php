@@ -6,20 +6,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting\Currency;
 use Illuminate\Support\Facades\DB;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 
 
 class ItemController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected  $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -37,9 +35,9 @@ class ItemController extends Controller
     public function daily(Request $request)
     {
         $orgbios = OrgBio::all();
-        $data['year'] = $request->input('year') ?? Jalalian::now()->format('Y');
-        $data['month'] = $request->input('month') ?? Jalalian::now()->format('n');
-        $data['day'] = Jalalian::now()->format('d');
+        $data['year'] = $request->input('year') ?? Carbon::now()->format('Y');
+        $data['month'] = $request->input('month') ?? Carbon::now()->format('n');
+        $data['day'] = Carbon::now()->format('d');
         $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
     
         if ($request->has('currency_id')) {
@@ -57,7 +55,7 @@ class ItemController extends Controller
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;
         }
     
-        $dailyReport = $this->getDailyReports($data['currency_id'],$data['year'],$data['month'], $this->branch_id);
+        $dailyReport = $this->getDailyReports($data['currency_id'],$data['year'],$data['month']);
         // return ['dailyReport', $dailyReport];
         
         return view('report.items.daily', compact('data','dailyReport','orgbios'));
@@ -69,7 +67,7 @@ class ItemController extends Controller
     public function monthly(Request $request)
     {
         $orgbios = OrgBio::all();
-        $data['year'] = $request->input('year') ?? Jalalian::now()->format('Y');
+        $data['year'] = $request->input('year') ?? Carbon::now()->format('Y');
         $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
         if ($request->has('currency_id')) {
             $data['currency_id'] = $request->input('currency_id');
@@ -86,7 +84,7 @@ class ItemController extends Controller
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;
         }
     
-        $monthlyReport = $this->getMonthlyReports($data['currency_id'],$data['year'], $this->branch_id);
+        $monthlyReport = $this->getMonthlyReports($data['currency_id'],$data['year']);
         // return ['monthlyReport', $monthlyReport];
         
         return view('report.items.monthly', compact('data','monthlyReport','orgbios'));
@@ -114,7 +112,7 @@ class ItemController extends Controller
             $data['currency_name'] = $data['currency'][0]['name'] ?? null;
         }
     
-        $yearlyReport = $this->getYearlyReports($data['currency_id'],$this->branch_id);
+        $yearlyReport = $this->getYearlyReports($data['currency_id']);
         // return ['yearlyReport', $yearlyReport];
         
         return view('report.items.yearly', compact('data','yearlyReport','orgbios'));
@@ -124,7 +122,7 @@ class ItemController extends Controller
     /**
      * Get Daily Reports
      */
-    private function getDailyReportsBkp($currencyId,$year,$month, $branch_id)
+    private function getDailyReportsBkp($currencyId,$year,$month)
     {
         $query1 = DB::table('warehouse_items')
             ->selectRaw("
@@ -137,7 +135,6 @@ class ItemController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->where('currency_id', $currencyId)
-            ->where('branch_id', $branch_id)
             ->groupBy('day');
 
         $query2 = DB::table('warehouse_sales')

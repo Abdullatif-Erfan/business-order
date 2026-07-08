@@ -1,5 +1,4 @@
 <!-- dashboard/cards/buy.blade.php -->
-<div class="step-card active" id="buy">
     <a href="/boughtList" class="step-link">
         <div class="step-icon-ring">
             <div class="step-icon-inner">
@@ -63,4 +62,3 @@
             </div>
         </div>
     </div>
-</div>

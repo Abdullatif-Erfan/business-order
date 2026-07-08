@@ -2,13 +2,21 @@
 return [
     // Buy
     'buy' => 'خرید',
-    'fully_paid' => 'پرداخت کامل',
-    'partial_paid' => 'پرداخت ناتکمیل',
+    'fully_paid' => 'پرداخت ',
+    'partial_paid' => 'باقی',
     'payment_progress' => 'جریان پرداخت',
     'total_amount' => 'مجموع',
     'paid' => 'پرداخت شده',
     'balance' => 'بیلانس',
     'remained' => 'باقیمانده',
+
+    // Sales
+    'sales' => 'فروشات',
+    'customer_name' => 'مشتری',
+    'clearance_progress' => 'جریان پرداخت',
+    'cleared' => 'تصفیه',
+    'not_cleared' => 'ناتصفیه',
+
 
 
     'todays_tab' => 'معاملات امروز',

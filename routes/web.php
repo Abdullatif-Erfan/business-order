@@ -70,6 +70,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/',[HomeController::class,'index'])->name('home');
         Route::get('/orders', [HomeController::class, 'getDashboardOrders'])->name('home.orders');
         Route::get('/bought', [HomeController::class, 'getDashboardBoughts'])->name('home.bought');
+        Route::get('/sales', [HomeController::class, 'getDashboardSales'])->name('home.sales');
+
 
         Route::post('/search',[HomeController::class,'index'])->name('home.search');
         Route::post('/currencyConverter',[HomeController::class,'currencyConverter'])->name('home.currencyConverter');
