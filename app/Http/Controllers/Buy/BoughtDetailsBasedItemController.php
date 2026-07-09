@@ -467,7 +467,155 @@ class BoughtDetailsBasedItemController extends Controller
         }
     }
 
+    /**
+     * Display return list
+     */
+    public function returnList()
+    {
+        $orgbios = OrgBio::all();
+        // $currencies = Currency::all();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+        
+        return view('buy.return.list', compact('orgbios', 'todaysDate','suppliers'));
+    }
 
+    /**
+     * Get return data for DataTable
+     */
+    public function getReturnData(Request $request)
+    {
+        $returns = BoughtReturn::with([
+            'boughtItem', 
+            'boughtItemDetail',
+            'supplier', 
+            'preList', 
+            'unit',
+            'currency'
+        ])->orderBy('id', 'DESC');
+        
+        // Apply filters
+        if ($request->return_number) {
+            $returns->where('return_number', 'LIKE', "%{$request->return_number}%");
+        }
+        
+        if ($request->billno) {
+            $returns->where('billno', $request->billno);
+        }
+        
+        if ($request->supplier_id) {
+            $returns->where('supplier_account_id', $request->supplier_id);
+        }
+        
+        if ($request->start_date && $request->end_date) {
+            $returns->whereBetween('return_date', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $returns->whereDate('return_date', '=', $request->start_date);
+        } elseif ($request->end_date) {
+            $returns->whereDate('return_date', '<=', $request->end_date);
+        }
+        
+        return DataTables::of($returns)
+            ->addIndexColumn()
+            ->addColumn('return_number', function($return) {
+                return  $return->return_number;
+            })
+            ->addColumn('billno', function($return) {
+                return 'BUY_' . ($return->billno ?? '');
+            })
+            ->addColumn('supplier_name', function($return) {
+                return $return->supplier->name ?? '';
+            })
+            ->addColumn('item_name', function($return) {
+                return $return->preList->name ?? '';
+            })
+            ->addColumn('unit_name', function($return) {
+                return $return->unit->name ?? '';
+            })
+            ->addColumn('quantity', function($return) {
+                return number_format($return->quantity, 2);
+            })
+            ->addColumn('unit_price', function($return) {
+                return number_format($return->unit_price, 2);
+            })
+            ->addColumn('total', function($return) {
+                return number_format($return->total, 2);
+            })
+            ->addColumn('return_date', function($return) {
+                return $return->return_date->format('Y-m-d');
+            })
+            ->addColumn('reason', function($return) {
+                return $return->reason ?? '-';
+            })
+            ->addColumn('created_by', function($return) {
+                return $return->user_name ?? '';
+            })
+            ->addColumn('action', function($return) {
+                return '<button class="btn btn-sm btn-info viewReturn" data-id="' . $return->id . '">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ';
+            })
+            ->rawColumns(['return_number', 'action'])
+            ->make(true);
+    }
+
+    /**
+     * Delete a return record
+     */
+    public function deleteReturn($id)
+    {
+        try {
+            $return = BoughtReturn::findOrFail($id);
+            
+            DB::beginTransaction();
+            
+            // Reverse the return if needed
+            // You might want to add back the quantity to inventory here
+            
+            $return->delete();
+            
+            DB::commit();
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.deleted_successfully')
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Delete Return Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.delete_failed')
+            ], 500);
+        }
+    }
+
+    /**
+     * View return details
+     */
+     public function viewReturn($id)
+    {
+        try {
+            $return = BoughtReturn::with([
+                'boughtItem',
+                'boughtItemDetail',
+                'supplier',
+                'preList',
+                'unit',
+                'currency'
+            ])->findOrFail($id);
+            
+            // Return the view for modal content
+            return view('buy.return.view', compact('return'));
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.record_not_found')
+            ], 404);
+        }
+    }
 
 
 

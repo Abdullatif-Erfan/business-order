@@ -64,16 +64,14 @@ Route::prefix('boughtList')->group(function(){
 Route::prefix('boughtListBasedItem')->group(function(){
     Route::get('/',[BoughtDetailsBasedItemController::class,'index'])->name('boughtListBasedItem.index')->middleware('access:buy,list');
     Route::get('/data',[BoughtDetailsBasedItemController::class,'getData'])->name('boughtListBasedItem.data');
-    Route::get('/create',[BoughtDetailsBasedItemController::class,'create'])->name('boughtListBasedItem.create')->middleware('access:buy,create_records'); // ADD THIS
-    Route::post('/return/{id}', [BoughtDetailsBasedItemController::class, 'returnItem'])->name('boughtListBasedItem.return');
-    Route::get('/get-return-data/{id}', [BoughtDetailsBasedItemController::class, 'getReturnData'])->name('boughtListBasedItem.getReturnData');
-    Route::post('/process-return', [BoughtDetailsBasedItemController::class, 'processReturn'])->name('boughtListBasedItem.processReturn');
-    Route::get('/return-history/{id}', [BoughtDetailsBasedItemController::class, 'getReturnHistory'])->name('boughtListBasedItem.returnHistory');
-    Route::get('/return-list', [BoughtDetailsBasedItemController::class, 'getReturnList'])->name('boughtListBasedItem.returnList');
+    Route::get('/create',[BoughtDetailsBasedItemController::class,'create'])->name('boughtListBasedItem.create')->middleware('access:buy,create_records'); 
 });
 
 // Return routes
 Route::prefix('return')->group(function(){
+   Route::get('/list', [BoughtDetailsBasedItemController::class, 'returnList'])->name('return.list')->middleware('access:buy,list');
+   Route::get('/data', [BoughtDetailsBasedItemController::class, 'getReturnData'])->name('return.data')->middleware('access:buy,list');
+   Route::get('/view/{id}', [BoughtDetailsBasedItemController::class, 'viewReturn'])->name('return.view')->middleware('access:buy,list');
    Route::get('/getSingleRecordForReturn/{id}',[BoughtDetailsBasedItemController::class,'getSingleRecordForReturn'])->name('return.getSingleRecordForReturn');
    Route::post('/addReturn',[BoughtDetailsBasedItemController::class, 'addReturn'])->name('return.addReturn');
 });

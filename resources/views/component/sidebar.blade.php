@@ -155,6 +155,11 @@
                                         <span class="sub-item">  {{ __('menu.invoices')}} </span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('return.list') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  {{ __('menu.return')}} </span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

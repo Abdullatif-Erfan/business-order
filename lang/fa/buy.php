@@ -171,5 +171,9 @@ return [
     'reason' => 'دلیل',
     'return_amount' => 'مقدار برگشتی',
     'should_update_from_bought_list' => 'باید از لیست خرید ویرایش شود زیرا پیمنت صورت گرفته است',
+    'return_list' => 'لیست اجناس برگشتی',
+    'return_number' => 'نمبر برگشتی',
+    'return_details' => 'جزییات اجناس برگشتی',
+    'tax_amount' => 'مبلغ مالیات',
 
 ];
