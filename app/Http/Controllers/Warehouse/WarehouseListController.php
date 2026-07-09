@@ -109,16 +109,33 @@ class WarehouseListController extends Controller
                 // Use $tax_activation variable, not $this->$tax_activation
                 return  number_format($WarehouseItem->available_total ?? 0, 2);
             })
-             ->addColumn('buy_up', function ($WarehouseItem)  use ($tax_activation) {
-                return (int)$tax_activation === 1 ? 
-                    number_format($WarehouseItem->buy_up ?? 0, 2) 
-                    : number_format($WarehouseItem->buy_up_vat ?? 0, 2);
+            //  ->addColumn('buy_up', function ($WarehouseItem)  use ($tax_activation) {
+            //     return (int)$tax_activation === 1 ? 
+            //         number_format($WarehouseItem->buy_up ?? 0, 2) 
+            //         : number_format($WarehouseItem->buy_up_vat ?? 0, 2);
+            // })
+            // ->addColumn('sell_up', function ($WarehouseItem) use ($tax_activation) {
+            //     return (int)$WarehouseItem->buy_tax_per > 0 ? 
+            //         number_format($WarehouseItem->sell_up_vat ?? 0, 2) 
+            //         : number_format($WarehouseItem->sell_up ?? 0, 2);
+            // })
+
+            ->addColumn('buy_up', function($WarehouseItem) {
+                // If tax is enabled, show price with VAT
+                if ($WarehouseItem->buy_tax_per && $WarehouseItem->buy_tax_per > 0) {
+                    return $WarehouseItem->buy_up_vat;
+                }
+                return $WarehouseItem->buy_up; 
             })
-            ->addColumn('sell_up', function ($WarehouseItem) use ($tax_activation) {
-                return (int)$WarehouseItem->buy_tax_per > 0 ? 
-                    number_format($WarehouseItem->sell_up_vat ?? 0, 2) 
-                    : number_format($WarehouseItem->sell_up ?? 0, 2);
+            
+            ->addColumn('sell_up', function($WarehouseItem) {
+                  if ($WarehouseItem->sell_tax_per && $WarehouseItem->sell_tax_per > 0) {
+                    return $WarehouseItem->sell_up_vat;
+                }
+                return $WarehouseItem->sell_up; 
             })
+
+
             ->addColumn('view', function ($WarehouseItem) {
                 return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print">
                             <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>

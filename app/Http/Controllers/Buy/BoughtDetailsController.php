@@ -91,7 +91,7 @@ class BoughtDetailsController extends Controller
             $boughtItems->where('billno', $request->bill_number);
         }
         
-        return DataTables::of($boughtItems->get())
+        return DataTables::of($boughtItems)
             ->addIndexColumn()
             
             ->addColumn('billno', function($boughtItem) {
@@ -260,11 +260,17 @@ class BoughtDetailsController extends Controller
     {
         // If not exists, create new record
         $flag = $request->tax_activation == 1 ? true : false;
+
+        $preListId = $request->pre_list_id ?? null;
+        if (!$preListId) {
+            throw new \Exception('Pre-list ID is required');
+        }
+
         return BoughtItemDetails::create([
             'billno' => $request->billno,
             'bought_item_id' => $boughtItemId,
             'supplier_account_id' => $request->supplier_account_id,
-            'pre_list_id' => $request->pre_list_id,
+            'pre_list_id' => $preListId,
             'amount' => $request->amount,
             'unit_id' => $request->unit_id,
             'buy_up' => $request->buy_up,
@@ -330,8 +336,14 @@ class BoughtDetailsController extends Controller
         ];
     
         // Bulk insert new records
-        if (!empty($warehouseItemsToInsert)) {
+        // if (!empty($warehouseItemsToInsert)) {
+        //     WarehouseItem::insert($warehouseItemsToInsert);
+        // }
+    
+        try {
             WarehouseItem::insert($warehouseItemsToInsert);
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to insert warehouse items: ' . $e->getMessage());
         }
     
         return true;
@@ -542,7 +554,7 @@ class BoughtDetailsController extends Controller
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
 
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
+            if ((float)$request->cur_pay === 0.00 && (float)$request->remained === (float)$request->total_price) 
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
@@ -557,7 +569,7 @@ class BoughtDetailsController extends Controller
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
-            else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
+            else if ((float)$request->remained > 0 && (float)$request->cur_pay > 0) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details = __('validate.pkbill').' BUY_'.$request->billno;
@@ -578,8 +590,8 @@ class BoughtDetailsController extends Controller
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
-             // تنها از حساب خزانه کم شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
+             // تنها از حساب خزانه کم شود 
+            else if ((float)$request->remained === 0.00 && (float)$request->cur_pay === (float)$request->total_price) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
@@ -629,7 +641,7 @@ class BoughtDetailsController extends Controller
                 'user_name' => auth()->user()->full_name ?? '',
                 'year' =>  $year,
                 'month' => $month,
-                'day' =>  $year,
+                'day' =>  $day,
                 'idate' => $request->todays_date,
                 'details' => $details,
                 'status' => $status,  
@@ -654,26 +666,31 @@ class BoughtDetailsController extends Controller
         $orgbios = OrgBio::all();
         $short_date = Carbon::now()->format('Y-m-d');
 
-            $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])
-            ->where('times',$times)->get();
-   
-            $boughtItems = BoughtItem::with(['account' => function($query) {
+        // FIX: Proper variable naming
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
+            ->where('times', $times)
+            ->get();
+
+        $boughtItems = BoughtItem::with([
+            'account' => function($query) {
                 $query->select('id', 'name');
-            }, 'currencyRelation' => function ($query){
-                $query->select('id','name','symbols');
-            }])->where('times', $times)->get();
+            }, 
+            'currencyRelation' => function ($query) {
+                $query->select('id', 'name', 'symbols');
+            }
+        ])->where('times', $times)->get();
 
-            $jexists = Journal::where('times', $times)->exists();
+        $jexists = Journal::where('times', $times)->exists();
 
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-        // return response()->json(['jexists' => $jexists]);
-
-        return view('buy.bought.details',compact('boughtItemDetails','boughtItems','short_date','orgbios','jexists'));
-
+        return view('buy.bought.details', compact('boughtItemDetails', 'boughtItems', 'short_date', 'orgbios', 'jexists'));
     }
 
     public function checkBillNoDuplication(Request $request)
     {
+        $request->validate([
+            'billno' => 'required|numeric'
+        ]);
+        
         $exists = BoughtItem::where('billno', $request->billno)->exists();
         return response()->json(['exists' => $exists]);
     }
@@ -684,28 +701,31 @@ class BoughtDetailsController extends Controller
      */
     public function edit(string $times)
     {
-        $billno =  BoughtItem::max('billno') + 1;   
-        $currencies = Currency::select('id','name')->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
-        $journal_code = Journal::select('code')->where('times',$times)->first();
+        $billno = BoughtItem::max('billno') + 1;   
+        $currencies = Currency::select('id', 'name')->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->orderBy('is_pre_select', 'DESC')->get();
+        $journal_code = Journal::select('code')->where('times', $times)->first();
 
-        if(!$journal_code)
-        {
-            echo "Journal Code and Branch Id not found";
-            die();
+        if (!$journal_code) {
+            Session::put('notification', [
+                'message' => __('common.record_not_found'),
+                'type' => 'danger',
+            ]);
+            return redirect()->route('boughtList.index');
         }
 
         $orgbios = OrgBio::all();
-        $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])
-        ->where('times',$times)->get();
-        $boughtItems = BoughtItem::select('id','billno','times','idate','account_id','currency_id','cur_pay','note')->where('times', $times)->get();
+        
+        // FIX: Proper variable naming
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
+            ->where('times', $times)
+            ->get();
+            
+        $boughtItems = BoughtItem::select('id', 'billno', 'times', 'idate', 'account_id', 'currency_id', 'cur_pay', 'note')
+            ->where('times', $times)
+            ->get();
 
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-        // return response()->json(['boughtItems' => $boughtItems]);
-        // echo $journal_code;
-        // die();
-
-        return view('buy.bought.edit',compact('boughtItemDetails','boughtItems','orgbios','currencies','ownBanks','journal_code'));
+        return view('buy.bought.edit', compact('boughtItemDetails', 'boughtItems', 'orgbios', 'currencies', 'ownBanks', 'journal_code'));
     }
 
     /**

@@ -19,7 +19,7 @@ return [
     'prev_record' => 'قبلی',
     'next_record' => 'بعدی',
     'create_title' => 'فورم خریداری',
-    'update_title' => 'ویرایش فور خریداری',
+    'update_title' => 'ویرایش فورم خریداری',
     'note' => 'نوت',
     'note_text' => 'دریک بل نمبر صرف خرید یک مشتری را ثبت نمایید',
     'seller_selection' => 'انتخاب فروشنده',
@@ -152,5 +152,24 @@ return [
     'buy_up' => 'فیات خرید',
     'tax' => 'مالیات',
     'customer' => 'مشتری',
+    
+    // return
+    'return' => 'برگشت',
+    'return_items' => 'اجناس برگشتی',
+    'cannot_return_invoiced' => 'جنس قابل برگشت نیست زیرا انوایس ایجاد شده است',
+    'return_quantity' => 'مقدار برگشتی',
+    'enter_return_quantity' => 'مقدار برگشت را بنویسید',
+    'max_return' => 'حداکثر',
+    'return_reason' => 'دلیل برگشت',
+    'enter_return_reason' => 'دلیل برگشت را بنویسید',
+    'return_summary' => 'معلومات مختصر',
+    'confirm_return' => 'تایید ',
+    'return_amount_exceeds_quantity' => 'مقدار برگشت زیادتر از مقدار موجود میباشد',
+    'cannot_return_invoiced' => 'انوایس ایجاد شده است حالا امکان برگشت وجود ندارد',
+    'already_returned' => 'قبلا برگشت داده شده است',
+    'returned_successfully' => 'جنس برگشت داده شد موفقانه',
+    'reason' => 'دلیل',
+    'return_amount' => 'مقدار برگشتی',
+    'should_update_from_bought_list' => 'باید از لیست خرید ویرایش شود زیرا پیمنت صورت گرفته است',
 
 ];

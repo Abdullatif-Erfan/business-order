@@ -53,12 +53,10 @@ Route::prefix('boughtList')->group(function(){
 
     // Invoice routes
     Route::get('/invoices', [BoughtDetailsController::class, 'invoiceList'])->name('boughtList.invoices');
-     Route::get('/invoice-data', [BoughtDetailsController::class, 'getInvoiceData'])->name('boughtList.invoiceData');
+    Route::get('/invoice-data', [BoughtDetailsController::class, 'getInvoiceData'])->name('boughtList.invoiceData');
     Route::post('/generate-invoice', [BoughtDetailsController::class, 'generateInvoice'])->name('boughtList.generateInvoice');
     Route::get('/invoice/{id}', [BoughtDetailsController::class, 'showInvoice'])->name('boughtList.showInvoice');
     Route::post('/invoice-payment', [BoughtDetailsController::class, 'addPayment'])->name('boughtList.addPayment');
-
-
 });
 
 
@@ -66,4 +64,19 @@ Route::prefix('boughtList')->group(function(){
 Route::prefix('boughtListBasedItem')->group(function(){
     Route::get('/',[BoughtDetailsBasedItemController::class,'index'])->name('boughtListBasedItem.index')->middleware('access:buy,list');
     Route::get('/data',[BoughtDetailsBasedItemController::class,'getData'])->name('boughtListBasedItem.data');
+    Route::get('/create',[BoughtDetailsBasedItemController::class,'create'])->name('boughtListBasedItem.create')->middleware('access:buy,create_records'); // ADD THIS
+    Route::post('/return/{id}', [BoughtDetailsBasedItemController::class, 'returnItem'])->name('boughtListBasedItem.return');
+    Route::get('/get-return-data/{id}', [BoughtDetailsBasedItemController::class, 'getReturnData'])->name('boughtListBasedItem.getReturnData');
+    Route::post('/process-return', [BoughtDetailsBasedItemController::class, 'processReturn'])->name('boughtListBasedItem.processReturn');
+    Route::get('/return-history/{id}', [BoughtDetailsBasedItemController::class, 'getReturnHistory'])->name('boughtListBasedItem.returnHistory');
+    Route::get('/return-list', [BoughtDetailsBasedItemController::class, 'getReturnList'])->name('boughtListBasedItem.returnList');
 });
+
+// Return routes
+Route::prefix('return')->group(function(){
+   Route::get('/getSingleRecordForReturn/{id}',[BoughtDetailsBasedItemController::class,'getSingleRecordForReturn'])->name('return.getSingleRecordForReturn');
+   Route::post('/addReturn',[BoughtDetailsBasedItemController::class, 'addReturn'])->name('return.addReturn');
+});
+
+
+     
