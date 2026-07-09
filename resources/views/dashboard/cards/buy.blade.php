@@ -33,7 +33,7 @@
             <div class="total-row">
                 <div class="total-label">{{ __('dashboard.total_amount') }}</div>
                 <div class="total-value">
-                    <span>$</span>
+                    <!-- <span>$</span> -->
                     <span id="totalBoughtAmount">{{ number_format($bought['total_amount'] ?? 0, 2) }}</span>
                 </div>
             </div>
@@ -42,14 +42,14 @@
                     <div class="payment-icon"><i class="fas fa-check-circle"></i></div>
                     <div class="payment-label">{{ __('dashboard.paid') }}</div>
                     <div class="payment-value" id="totalBoughtPaid">
-                        ${{ number_format($bought['total_paid'] ?? 0, 2) }}
+                        {{ number_format($bought['total_paid'] ?? 0, 2) }}
                     </div>
                 </div>
                 <div class="payment-cell remaining">
                     <div class="payment-icon"><i class="fas fa-clock"></i></div>
                     <div class="payment-label">{{ __('dashboard.remained') }}</div>
                     <div class="payment-value" id="totalBoughtRemained">
-                        ${{ number_format($bought['total_remained'] ?? 0, 2) }}
+                        {{ number_format($bought['total_remained'] ?? 0, 2) }}
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                 <i class="fas fa-wallet"></i>
                 <span class="balance-label">{{ __('dashboard.balance') }}:</span>
                 <span class="balance-value" id="boughtBalance">
-                    ${{ number_format(($bought['total_paid'] ?? 0) - ($bought['total_remained'] ?? 0), 2) }}
+                    {{ number_format(($bought['total_paid'] ?? 0) - ($bought['total_remained'] ?? 0), 2) }}
                 </span>
             </div>
         </div>

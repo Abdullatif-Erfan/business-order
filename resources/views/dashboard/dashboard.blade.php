@@ -342,6 +342,42 @@ function fetchDashboardData() {
             showNotification('خطا در بارگذاری داده‌های فروش', 'danger');
         }
     });
+
+     // Fetch Returns Data
+     $.ajax({
+        url: '{{ route("home.returns") }}',
+        type: 'GET',
+        data: {
+            supplier_id: supplierId,
+            driver_id: driverId,
+            start_date: startDate,
+            end_date: endDate
+        },
+        success: function(response) {
+            // Hide loader
+            $('#filter-loader').hide();
+            $('#btn-filter').prop('disabled', false);
+            $('#btn-filter i').show();
+            $('#filter-loading-text').remove();
+
+            if (response.status === 'success') {
+                $('#returns').html(response.data);
+            } else {
+                showNotification(response.message || 'خطا در بارگذاری داده‌های برگشتی', 'danger');
+            }
+        },
+        error: function(xhr) {
+            // Hide loader
+            $('#filter-loader').hide();
+            $('#btn-filter').prop('disabled', false);
+            $('#btn-filter i').show();
+            $('#filter-loading-text').remove();
+            
+            console.log('Returns Error:', xhr);
+            showNotification('خطا در بارگذاری داده‌های برگشتی', 'danger');
+        }
+    });
+
 }
 
 // =========================================

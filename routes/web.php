@@ -71,6 +71,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/orders', [HomeController::class, 'getDashboardOrders'])->name('home.orders');
         Route::get('/bought', [HomeController::class, 'getDashboardBoughts'])->name('home.bought');
         Route::get('/sales', [HomeController::class, 'getDashboardSales'])->name('home.sales');
+        Route::get('/returns', [HomeController::class, 'getDashboardReturns'])->name('home.returns');
 
 
         Route::post('/search',[HomeController::class,'index'])->name('home.search');

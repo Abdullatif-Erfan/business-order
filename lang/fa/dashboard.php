@@ -17,6 +17,11 @@ return [
     'cleared' => 'تصفیه',
     'not_cleared' => 'ناتصفیه',
 
+    // return
+    'supplier' => 'تهیه کننده',
+    'customer' => 'دریور',
+
+
 
 
     'todays_tab' => 'معاملات امروز',

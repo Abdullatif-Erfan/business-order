@@ -30,22 +30,11 @@
             </div>
         </div>
 
-        <!-- Clearance Progress -->
-        <div class="progress-wrapper" style="margin-top: 8px;">
-            <div class="progress-track">
-                <div class="progress-fill" id="clearanceProgressFill" style="width: {{ $sales['clearance_percentage'] ?? 0 }}%; background: linear-gradient(90deg, #6c5ce7, #a29bfe);"></div>
-            </div>
-            <div class="progress-label">
-                <span>{{ __('dashboard.clearance_progress') }}</span>
-                <span id="clearancePercentage">{{ $sales['clearance_percentage'] ?? 0 }}%</span>
-            </div>
-        </div>
-
         <div class="financial-section">
             <div class="total-row">
                 <div class="total-label">{{ __('dashboard.total_amount') }}</div>
                 <div class="total-value">
-                    <span>$</span>
+                    <!-- <span>$</span> -->
                     <span id="totalSalesAmount">{{ number_format($sales['total_amount'] ?? 0, 2) }}</span>
                 </div>
             </div>
@@ -54,37 +43,24 @@
                     <div class="payment-icon"><i class="fas fa-check-circle"></i></div>
                     <div class="payment-label">{{ __('dashboard.paid') }}</div>
                     <div class="payment-value" id="totalSalesPaid">
-                        ${{ number_format($sales['total_paid'] ?? 0, 2) }}
+                        {{ number_format($sales['total_paid'] ?? 0, 2) }}
                     </div>
                 </div>
                 <div class="payment-cell remaining">
                     <div class="payment-icon"><i class="fas fa-clock"></i></div>
                     <div class="payment-label">{{ __('dashboard.remained') }}</div>
                     <div class="payment-value" id="totalSalesRemained">
-                        ${{ number_format($sales['total_remained'] ?? 0, 2) }}
+                        {{ number_format($sales['total_remained'] ?? 0, 2) }}
                     </div>
                 </div>
             </div>
             
-            <!-- Clearance Status -->
-            <div class="clearance-status" style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #eee; margin-top: 8px;">
-                <span>
-                    <i class="fas fa-check-circle" style="color: #00b894;"></i>
-                    {{ __('dashboard.cleared') }}: 
-                    <strong id="salesCleared">{{ number_format($sales['cleared'] ?? 0) }}</strong>
-                </span>
-                <span>
-                    <i class="fas fa-times-circle" style="color: #e17055;"></i>
-                    {{ __('dashboard.not_cleared') }}: 
-                    <strong id="salesNotCleared">{{ number_format($sales['not_cleared'] ?? 0) }}</strong>
-                </span>
-            </div>
 
             <div class="balance-bar">
                 <i class="fas fa-wallet"></i>
                 <span class="balance-label">{{ __('dashboard.balance') }}:</span>
                 <span class="balance-value" id="salesBalance">
-                    ${{ number_format(($sales['total_paid'] ?? 0) - ($sales['total_remained'] ?? 0), 2) }}
+                    {{ number_format(($sales['total_paid'] ?? 0) - ($sales['total_remained'] ?? 0), 2) }}
                 </span>
             </div>
         </div>

@@ -10,6 +10,7 @@ use App\Models\Setting\Account;
 use App\Models\Setting\OrgBio;
 use App\Models\Order\Order;
 use App\Models\Buy\BoughtItem;
+use App\Models\Buy\BoughtReturn;
 use App\Models\Warehouse\WarehouseSales;
 use Carbon\Carbon;
 
@@ -28,7 +29,7 @@ class HomeController extends Controller
     
     public function index(Request $request)
     {        
-        $search['start_date'] = $request->input('start_date');
+        $search['start_date'] = $request->input('start_date') ?? Carbon::now()->format('Y-m-d');
         $search['end_date'] = $request->input('end_date');
         $search['supplier_id'] = $request->input('supplier_id') ?? 0;
         $search['driver_id'] = $request->input('driver_id') ?? 0;
@@ -42,8 +43,9 @@ class HomeController extends Controller
         $orders = $this->getDashboardOrdersData($request);
         $bought = $this->getDashboardBoughtsData($request);
         $sales = $this->getDashboardSalesData($request);
+        $returns = $this->getDashboardReturnsData($request);
 
-        return view('dashboard.dashboard', compact('orders', 'bought', 'sales', 'orgBio', 'drivers', 'suppliers', 'customers', 'search'));
+        return view('dashboard.dashboard', compact('orders', 'bought', 'sales', 'orgBio', 'drivers', 'suppliers', 'customers','returns', 'search'));
     }
 
     // ____ ORDER _______________________________________
@@ -97,7 +99,9 @@ class HomeController extends Controller
 
         $totalNew = (int) ($result->total_new ?? 0);
         $totalCompleted = (int) ($result->total_completed ?? 0);
-        $progressPercentage = $totalNew > 0 ? round(($totalCompleted / $totalNew) * 100) : 0;
+        $totalNewAndCompleted = $totalNew + $totalCompleted;
+        // x = done * 100 / totalAmount || x = 1 * 100 / 3 = 33;
+        $progressPercentage = $totalNew > 0 ? round(($result->total_completed * 100) / $totalNewAndCompleted) : 0;
 
         return [
             'total_orders' => (int) ($result->total_orders ?? 0),
@@ -133,13 +137,6 @@ class HomeController extends Controller
     {
         $query = DB::table('bought_items');
 
-        // Log::info('Search params in bought_items', [
-        //     'supplier_id' => $request->supplier_id,
-        //     'driver_id' => $request->driver_id,
-        //     'start_date' => $request->start_date,
-        //     'end_date' => $request->end_date,
-        // ]);
-
         if ($request->supplier_id) {
             $query->where('supplier_account_id', $request->supplier_id);
         }
@@ -158,9 +155,9 @@ class HomeController extends Controller
 
         $result = $query->select(
             DB::raw("COUNT(*) as total_bought"),
-            DB::raw("SUM(total) as total_amount"),
-            DB::raw("SUM(cur_pay) as total_paid"),
-            DB::raw("SUM(remained) as total_remained"),
+            DB::raw("COALESCE(SUM(total), 0) as total_amount"),
+            DB::raw("COALESCE(SUM(cur_pay), 0) as total_paid"),
+            DB::raw("COALESCE(SUM(remained), 0) as total_remained"),
             DB::raw("COUNT(CASE WHEN remained = 0 THEN 1 END) as fully_paid"),
             DB::raw("COUNT(CASE WHEN remained > 0 THEN 1 END) as partial_paid")
         )
@@ -168,7 +165,10 @@ class HomeController extends Controller
 
         $totalAmount = (float) ($result->total_amount ?? 0);
         $totalPaid = (float) ($result->total_paid ?? 0);
-        $progressPercentage = $totalAmount > 0 ? round(($totalPaid / $totalAmount) * 100) : 0;
+        
+        $progressPercentage = $totalAmount > 0 ? round(($result->fully_paid * 100) / $result->total_bought) : 0;
+
+
 
         return [
             'total_bought' => (int) ($result->total_bought ?? 0),
@@ -253,10 +253,8 @@ class HomeController extends Controller
         $totalPaid = (float) ($result->total_paid ?? 0);          
         $totalRemained = (float) ($result->total_remained ?? 0);  
         
-        $progressPercentage = $totalAmount > 0 ? round(($totalPaid / $totalAmount) * 100) : 0;
+        $progressPercentage = $totalAmount > 0 ? round(($result->fully_paid  * 100) / $totalSales) : 0;
         
-        $cleared = (int) ($result->cleared ?? 0);
-        $clearancePercentage = $totalSales > 0 ? round(($cleared / $totalSales) * 100) : 0;
 
         return [
             'total_sales' => $totalSales,
@@ -265,12 +263,79 @@ class HomeController extends Controller
             'total_remained' => $totalRemained,
             'fully_paid' => (int) ($result->fully_paid ?? 0),
             'partial_paid' => (int) ($result->partial_paid ?? 0),
-            'cleared' => $cleared,
             'not_cleared' => (int) ($result->not_cleared ?? 0),
             'progress_percentage' => $progressPercentage,
-            'clearance_percentage' => $clearancePercentage,
         ];
     }
+
+
+    // ____ RETURNS (BOUGHT_RETURNS) _______________________________________
+    public function getDashboardReturns(Request $request)
+    {
+        try {
+            $returns = $this->getDashboardReturnsData($request);
+            $html = view('dashboard.cards.returns', compact('returns'))->render();
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => $html
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Dashboard Returns Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to get dashboard returns data.'
+            ], 500);
+        }
+    }
+    
+    private function getDashboardReturnsData(Request $request)
+    {
+        $query = BoughtReturn::query();
+
+        // Apply filters
+        if ($request->filled('supplier_id') && $request->supplier_id > 0) {
+            $query->where('supplier_account_id', $request->supplier_id);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $startDate = Carbon::parse($request->start_date)->format('Y-m-d');
+            $endDate = Carbon::parse($request->end_date)->format('Y-m-d');
+            $query->whereBetween('return_date', [$startDate, $endDate]);
+        } elseif ($request->filled('start_date')) {
+            $startDate = Carbon::parse($request->start_date)->format('Y-m-d');
+            $query->where('return_date', '>=', $startDate);
+        } elseif ($request->filled('end_date')) {
+            $endDate = Carbon::parse($request->end_date)->format('Y-m-d');
+            $query->where('return_date', '<=', $endDate);
+        }
+
+        // Get summary statistics
+        $result = $query->select(
+            DB::raw("COUNT(*) as total_returns"),
+            DB::raw("COALESCE(SUM(quantity), 0) as total_quantity"),
+            DB::raw("COALESCE(SUM(total), 0) as total_amount"),
+            DB::raw("COUNT(DISTINCT billno) as total_bills"),
+            DB::raw("COUNT(DISTINCT supplier_account_id) as total_suppliers"),
+            DB::raw("COUNT(DISTINCT user_id) as total_customers")
+
+        )
+        ->first();
+
+        $totalReturns = (int) ($result->total_returns ?? 0);
+        $totalQuantity = (float) ($result->total_quantity ?? 0);
+        $totalAmount = (float) ($result->total_amount ?? 0);
+
+        return [
+            'total_returns' => $totalReturns,
+            'total_quantity' => $totalQuantity,
+            'total_amount' => $totalAmount,
+            'total_bills' => (int) ($result->total_bills ?? 0),
+            'total_suppliers' => (int) ($result->total_suppliers ?? 0),
+            'total_customers' => (int) ($result->total_customers ?? 0),
+        ];
+    }
+
 
     // ____ BALANCE _______________________________________
     public function getBalance(Request $request)

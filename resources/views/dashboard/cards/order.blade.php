@@ -28,21 +28,21 @@
     </div>
 
     <div class="financial-section">
-        <div class="payment-grid">
+        <div class="col-12 orderDetailsCard">
             <div class="payment-cell paid">
                 <div class="payment-label">{{ __('order.draft') }}</div>
                 <div class="payment-value" id="totalDraft">{{ number_format($orders['total_draft'] ?? 0) }}</div>
             </div>
-            <div class="payment-cell remaining">
-                <div class="payment-label">{{ __('order.new') }}</div>
+            <div class="payment-cell remained">
+                <div class="payment-label remained">{{ __('order.new') }}</div>
                 <div class="payment-value" id="totalNew">{{ number_format($orders['total_new'] ?? 0) }}</div>
             </div>
-            <div class="payment-cell remaining">
+            <div class="payment-cell ">
                 <div class="payment-label">{{ __('order.cancelled') }}</div>
                 <div class="payment-value" id="totalCancelled">{{ number_format($orders['total_cancelled'] ?? 0) }}</div>
             </div>
-            <div class="payment-cell remaining">
-                <div class="payment-label">{{ __('order.completed') }}</div>
+            <div class="payment-cell done">
+                <div class="payment-label done">{{ __('order.completed') }}</div>
                 <div class="payment-value" id="totalCompletedValue">{{ number_format($orders['total_completed'] ?? 0) }}</div>
             </div>
         </div>
