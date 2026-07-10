@@ -1,10 +1,10 @@
 <style>
    .navbar-header {
        /* background: linear-gradient(90deg,#03228f 10%,#0e73e4 100%); */
-       background: linear-gradient(90deg, #008fff 10%, #0068dd 50%);
+       background: linear-gradient(90deg, #18afed 10%, #007aab 50%);
    }
    .logo-header{
-       background: linear-gradient(90deg, #008cfa 10%, #0068dd 50%);
+       background: linear-gradient(90deg, #18afed 10%, #007aab 50%);
    }
    </style>
 
@@ -19,12 +19,17 @@
     <!-- Logo Header -->
     <div class="logo-header" >
         <a href="#" class="logo">
-            <img src="{{ asset(\App\Helpers\FunctionHelper::showWhere('logos', 'org_bios', ['is_active' => 1])) }}" alt="navbar brand" class="navbar-brand" style="width: 40px !important; border-radius: 8px;">
+            <img src="{{ asset(\App\Helpers\FunctionHelper::showWhere('logos', 'org_bios', ['is_active' => 1])) }}" alt="navbar brand" class="navbar-brand" style="width: 70px !important; border-radius: 3px;">
         </a>
         <button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse" data-target="collapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"><i class="fas fa-bars"></i></span>
         </button>
-        <button class="topbar-toggler more"><i class="icon-options-vertical"></i></button>
+
+        <button class="topbar-toggler more">
+            <!-- <i class="icon-options-vertical"></i> -->
+             <i class="fas fa-arrow-alt-circle-down" style="color:#fff"></i>
+        </button>
+
         <div class="nav-toggle">
             <button class="btn btn-toggle toggle-sidebar"><i class="fas fa-bars"></i></button>
         </div>

@@ -7,25 +7,23 @@ use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 use App\Models\Transaction\Journal;
-use App\Models\Setting\Branch;
 use App\Models\Setting\ExpenseType;
 use App\Models\Setting\OrgBio;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
+    
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -33,10 +31,10 @@ class ExpenseController extends Controller
     public function index()
     {
         $types = ExpenseType::all();
-        $accounts = Account::where('branch_id', $this->branch_id)->get();
+        $accounts = Account::get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        return view('transactions.expense.list',compact('accounts','currencies','orgbios','types'));
+        return view('transactions.expense.list', compact('accounts', 'currencies', 'orgbios', 'types'));
     }
 
     /**
@@ -47,134 +45,113 @@ class ExpenseController extends Controller
         /**
          * status: 1: old income, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
          */
-        $expenses = Journal::with(['accountRelation' => function($query){
-            $query->select('id','name');
-        },'currencyRelation' => function($query){
-            $query->select('id','name','symbols','color');
-        },'expenseTypeRelation' => function($query){
-            $query->select('id','name');
-        }])
-        // $expenses = Journal::with(['accountRelation','currencyRelation','expenseTypeRelation'])
-        ->select('id','code','bill_no','amount','account_id','transaction_type','payment_type','currency_id','details','inserted_short_date','status','times','is_single_record','dynamic_type','doc')
-        ->where('journals.status','=',4)
-        ->whereHas('accountRelation', function($query) {
-            $query->where('branch_id', $this->branch_id);
-        })
+        $expenses = Journal::with([
+            'accountRelation' => function($query) {
+                $query->select('id', 'name');
+            },
+            'currencyRelation' => function($query) {
+                $query->select('id', 'name', 'symbols', 'color');
+            },
+            'expenseTypeRelation' => function($query) {
+                $query->select('id', 'name');
+            }
+        ])
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
+                'payment_type', 'currency_id', 'details', 'idate', 'status', 'times', 
+                'is_single_record', 'dynamic_type', 'doc')
+        ->where('journals.status', '=', 4)
         ->orderBy('id', 'DESC');
-
 
         // Apply filters if provided
         if ($request->type_id) {
             $expenses->where('dynamic_type', $request->type_id);
         }
+        
         if ($request->currency_id) {
             $expenses->where('currency_id', $request->currency_id);
         }
        
         if ($request->start_date && $request->end_date) {
-            $expenses->whereBetween('inserted_short_date', [$request->start_date, $request->end_date]);
+            $expenses->whereBetween('idate', [$request->start_date, $request->end_date]);
         } elseif ($request->start_date) {
-            $expenses->whereDate('inserted_short_date', '=', $request->start_date);
+            $expenses->whereDate('idate', '=', $request->start_date);
         } elseif ($request->end_date) {
-            $expenses->whereDate('inserted_short_date', '>=', $request->end_date); // Until today
+            // ✅ FIX: Use <= instead of >= for end_date
+            $expenses->whereDate('idate', '<=', $request->end_date);
         }
 
         if ($request->code_number) {
             $expenses->where('code', 'LIKE', "%{$request->code_number}%");
         }
+        
         if ($request->bill_number) {
             $expenses->where('bill_no', 'LIKE', "%{$request->bill_number}%");
         }
-        
 
         return DataTables::of($expenses)
-            
             ->addIndexColumn()
-           
             ->addColumn('accountRelation', function ($expense) {
                 return $expense->accountRelation ? $expense->accountRelation->name : '';
             })
-
             ->addColumn('expenseTypeRelation', function ($expense) {
                 return $expense->expenseTypeRelation ? $expense->expenseTypeRelation->name : '';
             })
-
-            // recieved and recieveable is belongs to expense
             ->addColumn('transaction_type_2', function ($expense) {
                 $amount = $expense->amount;
-                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-                return $formattedAmount;     
+                return (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
             })
-            
-
             ->addColumn('currency', function ($expense) {
-                return '<i style="font-size:14px;color:'.$expense->currencyRelation->color.'">'.$expense->currencyRelation->symbols.'</i>';
+                $color = $expense->currencyRelation->color ?? '#000';
+                $symbol = $expense->currencyRelation->symbols ?? '';
+                return '<i style="font-size:14px;color:' . $color . '">' . $symbol . '</i>';
             })
-
-            // ->addColumn('doc', function ($expense) {
-            //     return '<i class="fas fa-file">'.$expense->doc.'</i>';
-            // })
-
-
             ->addColumn('doc', function ($expense) {
                 if ($expense->doc) {
-                    $url = asset('storage/' . $expense->doc); // Assuming the file is stored in 'storage/app/public/'
-                    return '<a href="' . $url . '" target="_blank">
-                                <i class="fa fa-download"></i>
+                    $url = asset('storage/' . $expense->doc);
+                    return '<a href="' . $url . '" target="_blank" title="Download Document">
+                                <i class="fa fa-file-pdf" style="font-size:18px;color:#dc3545;"></i>
                             </a>';
                 }
                 return '-';
             })
-
             ->addColumn('edit', function ($expense) {
-                return  '<a href="expense/edit/'.$expense->id.'" class="hidden-print"><i class="fas fa-pen-square editIcon" data-id="' . $expense->id . '" style="font-size:20px;"></i></a>';
-            })
-
-            ->addColumn('delete', function ($expense) {
-                return '<a href="expense/destroy/'.$expense->id.'" class="hidden-print" 
-                        onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
-                            <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $expense->id . '" style="font-size:20px;"></i>
+                return '<a href="' . route('expense.edit', $expense->id) . '" class="hidden-print">
+                            <i class="fas fa-pen-square editIcon" data-id="' . $expense->id . '" style="font-size:20px;color:#4a6cf7;"></i>
                         </a>';
             })
-
-            ->rawColumns(['edit','delete','doc','currency'])
+            ->addColumn('delete', function ($expense) {
+                return '<a href="' . route('expense.destroy', $expense->id) . '" class="hidden-print" 
+                            onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
+                            <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $expense->id . '" style="font-size:20px;color:#dc3545;"></i>
+                        </a>';
+            })
+            ->rawColumns(['edit', 'delete', 'doc', 'currency'])
             ->make(true);
     }
 
-
-    /**
-     * Show journal details
-     */
-  
     /**
      * Show create form
      */
     public function create()
     {
-        // $query = $this->db->get('currency'); 		   
-        // $data['currency'] = $query->result_array();
-        // $data['accounts'] = $this->journals->getAccounts();
-        // $data['customers'] = $this->journals->getCustomers();
-
-        // $this->db->order_by('id','DESC');
-        // $query = $this->db->get('branch'); 		   
-        // $data['branch'] = $query->result_array();
-
-
         $expenseTypes = ExpenseType::all();
-        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->where('branch_id', $this->branch_id)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        $customers = Account::select('id', 'name')->whereIn('account_type_id', [3, 4])->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])
+            ->orderBy('is_pre_select', 'DESC')
+            ->get();
 
-        if(!$ownBanks) {
-            return __('journal.default_account');
-            die();
+        if ($ownBanks->isEmpty()) {
+            Session::put('notification', [
+                'message' => __('journal.default_account'),
+                'type' => 'warning',
+            ]);
+            return redirect()->route('expense.index');
         }
 
         $currencies = Currency::all();
-        $branchs = Branch::where('id',$this->branch_id)->get();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
 
-        return view('transactions.expense.create',compact('customers','ownBanks','currencies','branchs','todaysDate','expenseTypes'));
+        return view('transactions.expense.create', compact('customers', 'ownBanks', 'currencies', 'todaysDate', 'expenseTypes'));
     }
 
     /**
@@ -182,109 +159,111 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        // return ['formData' => $request->all()];
-
         // Validation
         $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
             'bill_no' => 'nullable|numeric|min:0',
             'reciever_account_id' => 'required|exists:accounts,id',
-            'amount' => 'required|numeric',  // Decimal with up to 2 decimal places
+            'amount' => 'required|numeric|min:0.01',
             'currency_id' => 'required|exists:currencies,id',
-            'dynamic_type' => 'required|numeric',
+            'dynamic_type' => 'required|numeric|exists:expense_types,id',
             'details' => 'required|string|max:255',
+            'todays_date' => 'required|date',
             'doc' => 'nullable|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:2048',
         ]);
-    
+
         $todaysDate = $request->todays_date;
         $date = explode('-', $todaysDate);
-        $year = $date[0];
-        $month = $date[1];
-        $day = $date[2];
-        $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
-    
-        $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
-        $times = time();
-    
-        // Start the transaction
-        DB::beginTransaction();
-    
-        try {
+        $year = $date[0] ?? date('Y');
+        $month = $date[1] ?? date('m');
+        $day = $date[2] ?? date('d');
+        $full_date = $year . '-' . $month . '-' . $day . ' ' . date('h:i:s A');
 
+        $newJournalCode = Journal::max('code') + 1;
+        $times = time();
+
+        DB::beginTransaction();
+
+        try {
             $account_type_id = Account::where('id', $validated['reciever_account_id'])->value('account_type_id');
-            // Store the journal entry for the "paid cache" record
+
             $journal = new Journal();
             $journal->bill_no = $validated['bill_no'] ?? 0;
             $journal->code = $newJournalCode;
-            $journal->branch_id = $validated['branch_id'];
-            $journal->inserted_full_date = $full_date;
-            $journal->inserted_short_date = $todaysDate;
+            $journal->idate = $full_date;
+            $journal->idate = $todaysDate;
             $journal->dynamic_type = $validated['dynamic_type'];
-            $journal->user = auth()->user()->full_name ?? '';
+            $journal->user_name = auth()->user()->full_name ?? '';
+            $journal->user_id = auth()->user()->id ?? '';
             $journal->year = $year;
             $journal->month = $month;
             $journal->day = $day;
-            $journal->status = 4;  // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+            $journal->status = 4; // Expense
             $journal->times = $times;
-            $journal->is_single_record = 0; // 0: single, 1: pair; 
-    
-            // Handle the file upload
-            if ($request->hasFile('doc')) {
-                $docPath = $request->file('doc')->store('documents', 'public');
-                $journal->doc = $docPath;
-            }
-            
+            $journal->is_single_record = 0;
             $journal->account_type_id = $account_type_id;
             $journal->account_id = $validated['reciever_account_id'];
             $journal->amount = $validated['amount'];
             $journal->currency_id = $validated['currency_id'];
             $journal->details = $validated['details'];
-            $journal->transaction_type = 2; // 1: received, 2: paid
-            $journal->payment_type = 1; // 1: cache, 2: loan, 3: Talab
+            $journal->transaction_type = 2; // Paid
+            $journal->payment_type = 1; // Cash
             $journal->option_label = __('journal.store_expense_option_label');
+
+            // Handle file upload
+            if ($request->hasFile('doc')) {
+                $docPath = $request->file('doc')->store('documents', 'public');
+                $journal->doc = $docPath;
+            }
+
             $journal->save();
-    
-            // Commit the transaction
+
             DB::commit();
-    
+
             Session::put('notification', [
                 'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
-            return redirect()->route('expense.index'); 
+            return redirect()->route('expense.index');
 
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
             DB::rollBack();
-            // Optionally, log the error for debugging
             \Log::error('Error storing expense entry: ' . $e->getMessage());
-    
-            // Use MessageService to return error message
+
             Session::put('notification', [
-                'message' => __('common.add_failed'),
+                'message' => __('common.add_failed') . ': ' . $e->getMessage(),
                 'type' => 'danger',
             ]);
-             return back();
+            return back()->withInput();
         }
     }
-    
 
-  
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
+        $expense = Journal::with([
+            'accountRelation',
+            'currencyRelation',
+            'expenseTypeRelation'
+        ])->find($id);
+
+        if (!$expense) {
+            Session::put('notification', [
+                'message' => __('common.record_not_found'),
+                'type' => 'danger',
+            ]);
+            return redirect()->route('expense.index');
+        }
+
         $expenseTypes = ExpenseType::all();
         $currencies = Currency::all();
-        $branchs = Branch::where('id',$this->branch_id)->get();
+        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [3, 4])->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])
+            ->orderBy('is_pre_select', 'DESC')
+            ->get();
 
-        $expense = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
-        ->where('id', $id)
-        ->orderBy('id', 'ASC')
-        ->first();
-        // return response()->json(['data' => $expense]);
-        return view('transactions.expense.edit',compact('currencies','branchs','expense','expenseTypes'));
+        return view('transactions.expense.edit', compact('currencies', 'expense', 'expenseTypes', 'accounts', 'ownBanks'));
     }
 
     /**
@@ -292,127 +271,143 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        try{
-            // Validate input
+        // ✅ FIX: Add DB::beginTransaction()
+        DB::beginTransaction();
+
+        try {
             $validated = $request->validate([
-                'branch_id' => 'required|exists:branches,id',
                 'bill_no' => 'nullable|numeric|min:0',
-                'amount' => 'required|numeric',  // Decimal with up to 2 decimal places
+                'amount' => 'required|numeric|min:0.01',
                 'currency_id' => 'required|exists:currencies,id',
-                'dynamic_type' => 'required|numeric',
+                'dynamic_type' => 'required|numeric|exists:expense_types,id',
                 'details' => 'required|string|max:255',
+                'todays_date' => 'required|date',
                 'doc' => 'nullable|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:2048',
             ]);
-        
-         
-            // Get the expense entry 
-            $journal = Journal::where('id', $id)->first(); 
-        
+
+            $journal = Journal::find($id);
+
             if (!$journal) {
-                
+                DB::rollBack();
                 Session::put('notification', [
-                    'message' =>  __('common.update_failed'),
-                    'type' => 'success',
+                    'message' => __('common.record_not_found'),
+                    'type' => 'danger',
                 ]);
-                return back();
+                return redirect()->route('expense.index');
             }
-        
-            // Get the current date and time
+
             $todaysDate = $request->todays_date;
             $date = explode('-', $todaysDate);
-            $year = $date[0];
-            $month = $date[1];
-            $day = $date[2];
-            $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
-        
-            $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
-            $times = time();
-        
-            // Update the first journal entry ("paid cache")
+            $year = $date[0] ?? date('Y');
+            $month = $date[1] ?? date('m');
+            $day = $date[2] ?? date('d');
+            $full_date = $year . '-' . $month . '-' . $day . ' ' . date('h:i:s A');
+
+            // Update journal entry
             $journal->bill_no = $validated['bill_no'] ?? 0;
-            $journal->branch_id = $validated['branch_id'];
-            $journal->inserted_full_date = $full_date;
-            $journal->inserted_short_date = $todaysDate;
-            $journal->user =  auth()->user()->full_name ?? '';
+            $journal->idate = $full_date;
+            $journal->idate = $todaysDate;
+            $journal->user_name = auth()->user()->full_name ?? '';
+            $journal->user_id = auth()->user()->id ?? '';
             $journal->dynamic_type = $validated['dynamic_type'];
             $journal->year = $year;
             $journal->month = $month;
-            $journal->day = $day; 
-        
-            // Handle the file upload if new file is uploaded
+            $journal->day = $day;
+            $journal->amount = $validated['amount'];
+            $journal->currency_id = $validated['currency_id'];
+            $journal->details = $validated['details'];
+
+            // Handle file upload - delete old if new uploaded
             if ($request->hasFile('doc')) {
+                // Delete old file if exists
+                if ($journal->doc && Storage::disk('public')->exists($journal->doc)) {
+                    Storage::disk('public')->delete($journal->doc);
+                }
                 $docPath = $request->file('doc')->store('documents', 'public');
                 $journal->doc = $docPath;
             }
-        
-            // Update the journal entry fields for "paid cache"
-            $journal->amount = $validated['amount'];
-            $journal->currency_id = $validated['currency_id'];
-            $journal->details = $validated['details'];  
+
             $journal->save();
-            
-            // Commit the transaction if both entries were saved successfully
-          
-                DB::commit();
-                Session::put('notification', [
-                    'message' =>  __('common.updated_successfully'),
-                    'type' => 'success',
-                ]);
-                return redirect()->route('expense.index'); 
-        } 
-        catch (\Exception $e) 
-        { 
-            DB::rollBack();
-            \Log::error('Error occured in expense update' . $e->getMessage());
+
+            DB::commit();
+
             Session::put('notification', [
-                'message' =>  __('common.update_failed'),
+                'message' => __('common.updated_successfully'),
+                'type' => 'success',
+            ]);
+            return redirect()->route('expense.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error occurred in expense update: ' . $e->getMessage());
+
+            Session::put('notification', [
+                'message' => __('common.update_failed') . ': ' . $e->getMessage(),
                 'type' => 'danger',
             ]);
-            return back();
+            return back()->withInput();
         }
-       
-        
     }
-    
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        // Find all expense records with the same 'times' value
-        $journal = Journal::where('id', $id)->get();
+        // ✅ FIX: Use find() for single record
+        $journal = Journal::find($id);
 
-        if ($journal->isNotEmpty()) {
-            // Loop through each expense and delete its associated file
-            foreach ($journal as $docs) {
-                // Optionally delete the associated file if needed
-                if (Storage::exists('public/documents/' . $docs->doc)) {
-                    Storage::delete('public/documents/' . $docs->doc);
-                }
+        if (!$journal) {
+            Session::put('notification', [
+                'type' => 'danger',
+                'message' => __('common.record_not_found'),
+            ]);
+            return redirect()->route('expense.index');
+        }
 
-                // Delete the docs record
-                $docs->delete();
+        try {
+            // ✅ FIX: Delete associated file if exists
+            if ($journal->doc && Storage::disk('public')->exists($journal->doc)) {
+                Storage::disk('public')->delete($journal->doc);
             }
 
-            // Optionally, put a success message to session
-            session()->put('notification', [
+            // Delete the record
+            $journal->delete();
+
+            Session::put('notification', [
                 'type' => 'success',
                 'message' => __('common.deleted_successfully'),
             ]);
 
-            // Redirect to the expense listing page (or wherever you want)
-            return redirect()->route('expense.index');
-        } else {
-            // If no journal found with the given 'times' value, return back with error message
-            session()->put('notification', [
+        } catch (\Exception $e) {
+            \Log::error('Error deleting expense: ' . $e->getMessage());
+            
+            Session::put('notification', [
                 'type' => 'danger',
-                'message' => __('common.delete_failed'),
+                'message' => __('common.delete_failed') . ': ' . $e->getMessage(),
             ]);
-
-            return back();
         }
+
+        return redirect()->route('expense.index');
     }
 
-    
+    /**
+     * Get expense type details
+     */
+    public function getExpenseType($id)
+    {
+        $expenseType = ExpenseType::find($id);
+        
+        if ($expenseType) {
+            return response()->json([
+                'success' => true,
+                'data' => $expenseType
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Expense type not found'
+        ], 404);
+    }
 }

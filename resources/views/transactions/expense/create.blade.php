@@ -26,21 +26,6 @@
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
 
-                                        <!-- Row:1 - Col:1 -->
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <select class="form-control select2" name="branch_id" required>
-                                                    @if ($branchs->count() > 1)
-                                                        <option value="">--- {{ __('journal.branch_selection') }} ---</option>
-                                                    @endif
-                                                    @foreach ($branchs as $branch)
-                                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('branch_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
-
                                         <!-- Row:1 - Col:2  -->
                                         <div class="col-md-4">
                                            <div class="form-group">
@@ -52,18 +37,36 @@
 
 
                                         <!-- Row:1 - Col:3  -->
-                                        <div class="col-md-4">
-                                            <div class="form-group" data-provide="datepicker">
-                                                <input class="form-control" name="todays_date" id="todays_date" required
-                                                data-targetselector="#todays_date" value="{{ $todaysDate }}" 
-                                                data-mddatetimepicker="true"  placeholder="{{__('common.bill_no)')}}"  data-placement="right" data-englishnumber="true"  >
+
+                                        <div class="col-md-4 col-sm-4 col-xs-6 m-t-10">
+                                            <div class="input-group date" id="datepicker">
+                                                <input type="text" class="form-control" name="todays_date" required
+                                                    value="{{ date('Y-m-d') }}" placeholder="{{__('order.date')}} ">
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    </span>
+                                                </div>
                                             </div>
                                             @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
                                         </div>
 
 
+
                                         <!-- Row:2 - Col:1  -->
-                                        <div class="col-md-4">
+                                        <div class="col-md-4  col-sm-4 col-xs-6">
+                                            <div class="form-group form-floating-label">
+                                                <select class="form-control select2" name="currency_id" required>
+                                                    @foreach($currencies as $currency)
+                                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
+                                       
+                                          <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group">
                                                 <span class="typing-effect" id="dynamic_type"></span>
                                                 <select class="form-control select2" name="dynamic_type" required>
@@ -78,7 +81,7 @@
 
 
                                         <!-- Row:2 - Col:2  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group">
                                                 <input class="form-control" id="amount" name="amount" type="number" step="0.01" required placeholder="{{__('common.amount')}}">
                                                 @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
@@ -87,20 +90,17 @@
 
 
                                         <!-- Row:2 - Col:3  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group form-floating-label">
-                                                <select class="form-control select2" name="currency_id" required>
-                                                    @foreach($currencies as $currency)
-                                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div> 
+                                         <div class="col-md-4  col-sm-4 col-xs-6">
+                                            <div class="form-group">
+                                                <input type="file" class="form-control" name="doc" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
+                                                @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div>
                                         </div>
+                                       
 
 
                                         <!-- Row:3 - Col:1  -->
-                                        <div class="col-md-6">
+                                        <div class="col-md-6  col-sm-4 col-xs-6">
                                             <div class="form-group">
                                                 <input class="form-control" id="details" name="details" type="text" 
                                                 placeholder="{{__('common.details')}} " required>
@@ -109,16 +109,11 @@
                                         </div>
 
                                         <!-- Row:3 - Col:2  -->
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" name="doc" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
-                                                @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
+                                        
 
 
                                         <!-- Row:4 - Col:1  -->
-                                        <div class="col-md-6 m-t-30">
+                                        <div class="col-md-6  col-sm-4 col-xs-6 m-t-30">
                                             <div class="row">
                                                 <div class="col-6">
                                                     <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue">
@@ -138,8 +133,14 @@
         </div>
     </div>
 </div>
-
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
+<script>
+    $(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 @endsection

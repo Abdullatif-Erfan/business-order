@@ -49,7 +49,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="password">{{__('user.password')}} ({{__('user.required')}})</label>
-                                        <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" minlength="6" maxlength="20" value="{{ old('password') }}" required>
+                                        <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" minlength="5" maxlength="20" value="{{ old('password') }}" required>
                                         @error('password') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>
                                 </div>

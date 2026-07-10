@@ -42,7 +42,7 @@
                                 <div class="col-md-6 col-xs-8 col-xs-12" id="print_area">
                                     <table class="table table-bordered" style="width:50%">
                                         <tr>
-                                            <td colspan="2" style="background-color: #3f7cc7; color: #fff; text-align:center; font-size: 20px; padding: 4px">
+                                            <td colspan="2" style="background-color: #1483b0; color: #fff; text-align:center; font-size: 20px; padding: 4px">
                                                 {{ __('journal.details_title') }}
                                             </td>
                                         </tr>

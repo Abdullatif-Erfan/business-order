@@ -1,5 +1,3 @@
-<!-- resources/views/unauthorized.blade.php -->
-
 @extends('layouts.app') 
 
 @section('styles')

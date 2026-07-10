@@ -83,5 +83,6 @@ return [
     'admin' => 'ادمین',
     'sales' => 'فروشات',
     'buy' => 'خرید',
+    'current_document' => 'فایل فعلی',
 
 ];

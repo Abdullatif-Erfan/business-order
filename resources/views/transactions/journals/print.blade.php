@@ -53,7 +53,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
 
                                     <table class="table table-bordered" style="width:100%">
                                         <tr>
-                                            <td colspan="4" style="background-color: #3f7cc7; color: #fff; text-align:center; font-size: 20px; padding: 4px">
+                                            <td colspan="4" style="background-color: #1483b0; color: #fff; text-align:center; font-size: 20px; padding: 4px">
                                             رسید</td>
                                         </tr>
                                         <tr>

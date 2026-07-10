@@ -2387,7 +2387,7 @@ html body {
 }
 
 .bg-pink {
-    background-color: #E91E63 !important;
+    background-color: #be5527 !important;
     color: #fff;
 }
 
@@ -10613,7 +10613,7 @@ fieldset[disabled] .form-control {
     border-top-right-radius: 10px;
     border-top-left-radius: 10px;
     padding: 10px 0px;
-    border-top: 7px solid #1db9e8;
+    border-top: 7px solid #1483b0;
     border-bottom: 1px solid #2276a7;
 }
 

@@ -136,7 +136,7 @@ class UserController extends Controller
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name',
             'email' => 'nullable|email|max:128|unique:users,email',
-            'password' => 'required|string|min:6|max:20|confirmed',
+            'password' => 'required|string|min:5|max:20|confirmed',
             'roleId' => 'required|exists:roles,roleId',
             'branch_id' => 'required|exists:branches,id',
             'isAdmin' => 'required|boolean',
@@ -197,7 +197,7 @@ class UserController extends Controller
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name,' . $id,
             'email' => 'nullable|email|max:128|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:6|max:20|confirmed',
+            'password' => 'nullable|string|min:5|max:20|confirmed',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 

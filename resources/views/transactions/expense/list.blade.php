@@ -24,18 +24,21 @@
                                 </button>
                             @endif
 
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
-
-                            <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
-                                <i class="fas fa-filter"></i>
-                            </button>
+                             <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <div class="pull-left" style="width:80px">
+                                <button type="button" class="responsive_button btn btn-sm  visible-xs"
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                   <i class="fas fa-filter"></i>
+                                 </button>
+                                 <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            </div>
                         </div>
 
                         {{-- Filter Form --}}
-                        <div class="filterForm" id="searchWrapper1">  
+                        <div class="filter-section no-print" id="searchWrapper">
                             <div class="col-md-12">
                                 <div class="row">
-                                    <div class="col-md-2">
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="type_id">
                                             <option value=""> {{__('journal.expense_type')}} </option>
                                             @foreach($types as $type)
@@ -43,7 +46,7 @@
                                             @endforeach
                                         </select> 
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="currency_id">
                                             <option value=""> {{ __('common.currency') }} </option>
                                             @foreach($currencies as $currency)
@@ -51,49 +54,34 @@
                                             @endforeach
                                         </select> 
                                     </div>
-
                                     
-                                    <div class="col-md-2">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#start_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
-                                            <input class="form-control" name="start_date" id="start_date"
-                                            data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{ __('common.start_date') }}"  data-placement="right" data-englishnumber="true"  >
+							     	</div>
+
+                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
                                 
-
-
-                                     <div class="col-md-3">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#end_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="end_date" id="end_date"
-                                            data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{ __('common.end_date') }}"  data-placement="right" data-englishnumber="true" >
-                                        </div>
-							     	</div>
-
-                                  
-
-                                    <div class="col-md-1">
+                                    <div class="col-md-1 col-sm-6 col-xs-6">
                                         <input class="form-control" id="code_number" placeholder="{{ __('common.code') }}">
                                     </div>
 
-                                    <div class="col-md-1">
+                                    <div class="col-md-1 col-sm-6 col-xs-6">
                                         <input class="form-control" id="bill_number" placeholder="{{ __('common.bill') }}">
                                     </div>
 
-                                    <div class="col-md-1">
+                                    <div class="col-md-1 col-sm-6 col-xs-6">
                                         <button class="btn mybtn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
                                         </button>
@@ -127,12 +115,12 @@
                                             <th> {{ __('journal.expense_type') }}</th>
                                             <th> {{ __('journal.payer') }}  </th>
                                             <th> {{ __('common.details') }} </th>
-                                            <th>  {{ __('common.amount') }}  </th>
-                                            <th>{{ __('common.currency') }}</th>
-                                            <th>{{ __('common.date') }}</th>
-                                            <th>{{ __('common.document') }}</th>
-                                            <th>{{__('common.edit')}}</th>
-                                            <th>{{__('common.delete')}}</th>
+                                            <th> {{ __('common.amount') }}  </th>
+                                            <th> {{ __('common.currency') }}</th>
+                                            <th> {{ __('common.date') }}</th>
+                                            <th> {{ __('common.document') }}</th>
+                                            <th> {{__('common.edit')}}</th>
+                                            <th> {{__('common.delete')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -156,11 +144,42 @@
     </div>
 </div>
 
+<script>
+    $(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
+<script>
+    function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
+    var content = {};
+    content.message = '<span style="font-size:16px;">' + message + '</span>';
+    content.title = '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;"> {{ __('settings.message') }}  </span>';
+    
+    if (style === "withicon") {
+        content.icon = 'fa fa-bell';
+    } else {
+        content.icon = 'none';
+    }
+    content.url = '#';
+    content.target = '_blank';
 
+    $.notify(content, {
+        type: type, // Default, Primary, Secondary, Info, Success, Warning, Danger
+        placement: {
+            from: from, // top, bottom
+            align: align // right, center, left
+        },
+        time: 500
+    });
+}
+
+</script>
 <script>
     $(document).ready(function() {
         let table = $('#expenseTable').DataTable({
@@ -191,7 +210,7 @@
                 { data: 'details', name: 'details' },
                 { data: 'transaction_type_2', name: 'transaction_type_2' },
                 { data: 'currency', name: 'currency' },
-                { data: 'inserted_short_date', name: 'inserted_short_date' },
+                { data: 'idate', name: 'idate' },
                 { data: 'doc', name: 'doc', orderable: false, searchable: false },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false },
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
@@ -240,6 +259,9 @@
     function viewDetails(id) {
         alert("جزییات برای آی دی " + id);
     }
+
+  
+
 </script>
 
 
