@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\Auth\Role; 
 use App\Models\Auth\AccessMetrics; 
 use App\Models\Auth\Login; 
-use App\Models\Package; 
 
 
 class LoginController extends Controller
@@ -142,7 +141,6 @@ class LoginController extends Controller
             $accessInfo = $this->accessInfo($user->roleId);
             // return response()->json(['accessInfo' => $accessInfo]);
 
-            $active_package = Package::where('status',1)->first();
 
             Session::put([
                 'userId' => $user->id,
@@ -150,10 +148,8 @@ class LoginController extends Controller
                 'roleText' => $user->roleRelationName->role,
                 'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
-                'branch_id' => $user->branch_id,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
-                'package_type' => $active_package->type ?? 0,
             ]);
 
             // Session::put('lang', 'dr');
@@ -304,7 +300,6 @@ class LoginController extends Controller
                 'roleText' => $user->roleRelationName->name,
                 'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
-                'branch_id' => $user->branch_id,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
             ]);
@@ -321,19 +316,16 @@ class LoginController extends Controller
         }
     }
 
-    public function changeBranch(Request $request)
-    {
-        $user = auth()->user();
+    // public function changeBranch(Request $request)
+    // {
+    //     $user = auth()->user();
+    //     // Set new branch_id and isAdmin in session
+    //     session()->put('branch_id', $request->branch_id);
+    //     // session()->put('isAdmin', 0);
+    //     session()->save(); // Force save session
 
-        // Set new branch_id and isAdmin in session
-       
-        // Set new branch_id and isAdmin in session
-        session()->put('branch_id', $request->branch_id);
-        // session()->put('isAdmin', 0);
-        session()->save(); // Force save session
-
-        return response()->json(['status' => 'success', 'message' => 'Branch changed successfully!']);
-    }
+    //     return response()->json(['status' => 'success', 'message' => 'Branch changed successfully!']);
+    // }
 
     public function logout(Request $request)
     {

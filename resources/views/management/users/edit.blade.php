@@ -63,19 +63,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4 m-t-10">
-                                        <label for="">{{__('user.branch_selection')}}</label>
-                                        <select class="form-control @error('branch_id') is-invalid @enderror" name="branch_id" required>
-                                                <option value=""> {{__('user.branch_selection')}} </option>
-                                                @foreach ($branches as $branch)
-                                                    <option value="{{ $branch->id }}"
-                                                        {{  $user->branch_id == $branch->id ? 'selected' : '' }}>
-                                                        {{ $branch->name }} 
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('branch_id') <span class="text-danger">{{ $message }}</span> @enderror
-                                    </div>
+                                    
                                 </div>
 
                                 <div class="row">

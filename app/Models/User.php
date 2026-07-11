@@ -27,7 +27,6 @@ class User extends Authenticatable
         'password',
         'roleId',
         'isAdmin',
-        'branch_id',
         'isDeleted',
         'isHidden',
         'photo',
@@ -67,10 +66,6 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'roleId', 'roleId');  // 'roleId' is the foreign key
     }
 
-    public function branchRelation()
-    {
-        return $this->belongsTo(Branch::class,'branch_id');
-    }
 
     public function hasAccess($module, $option)
     {

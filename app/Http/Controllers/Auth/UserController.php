@@ -17,14 +17,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -54,7 +52,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        // $users = User::with(['roleRelationName','branchRelation'])->orderBy('created_at','DESC')->get();
+        // $users = User::with(['roleRelationName'])->orderBy('created_at','DESC')->get();
         // return ['users' => $users];
         $orgbios = OrgBio::all();
         return view('management.users.list',compact('orgbios'));
@@ -65,15 +63,15 @@ class UserController extends Controller
     {
           if($this->isAdmin)
           {
-              $users = User::with(['roleRelationName','branchRelation'])->where('isHidden',0)->orderBy('created_at','DESC');
+              $users = User::with(['roleRelationName'])->where('isHidden',0)->orderBy('created_at','DESC');
           }
           else 
           {
-             $users = User::with(['roleRelationName','branchRelation'])->where('isHidden',0)->where('branch_id', $this->branch_id)->orderBy('created_at','DESC');
+             $users = User::with(['roleRelationName'])->where('isHidden',0)->where('branch_id', $this->branch_id)->orderBy('created_at','DESC');
           }
            
             
-            return DataTables::of($users->get())
+            return DataTables::of($users)
             
             ->addIndexColumn()
            
@@ -121,9 +119,8 @@ class UserController extends Controller
         }
         $roles = Role::all();
         $orgbios = OrgBio::all();
-        $branches = Branch::all();
         $isAdmin = $this->isAdmin ?? 0;
-        return view('management.users.create',compact('roles','orgbios','branches','isAdmin'));
+        return view('management.users.create',compact('roles','orgbios','isAdmin'));
     }
 
     /**
@@ -138,7 +135,6 @@ class UserController extends Controller
             'email' => 'nullable|email|max:128|unique:users,email',
             'password' => 'required|string|min:5|max:20|confirmed',
             'roleId' => 'required|exists:roles,roleId',
-            'branch_id' => 'required|exists:branches,id',
             'isAdmin' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -150,7 +146,6 @@ class UserController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->roleId = $validated['roleId'];
         $user->isAdmin = $validated['isAdmin'];
-        $user->branch_id = $validated['branch_id'];
         $user->createdBy = auth()->id();
 
         if ($request->hasFile('photo')) {
@@ -179,10 +174,9 @@ class UserController extends Controller
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $user = User::findOrFail($id);
-        $branches = Branch::all();
         $isAdmin = $this->isAdmin ?? 0;
 
-        return view('management.users.edit',compact('roles','orgbios','user','branches','isAdmin'));
+        return view('management.users.edit',compact('roles','orgbios','user','isAdmin'));
     }
 
     /**
@@ -213,12 +207,10 @@ class UserController extends Controller
         if (auth()->user()->isAdmin) {
             $validatedAdminFields = $request->validate([
                 'roleId' => 'nullable|exists:roles,roleId',
-                'branch_id' => 'nullable|exists:branches,id',
                 'isAdmin' => 'nullable|boolean',
             ]);
 
             $user->roleId = $validatedAdminFields['roleId'] ?? $user->roleId;
-            $user->branch_id = $validatedAdminFields['branch_id'] ?? $user->branch_id;
             $user->isAdmin = $validatedAdminFields['isAdmin'] ?? $user->isAdmin;
         }
 

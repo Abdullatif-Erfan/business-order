@@ -37,6 +37,9 @@ return [
     'cacheflow' => 'صورت حساب ها ',
     'chartOfAccount' => 'چارت حسابات',
 
+    'orders_title' => 'لیست سفارشات',
+    'orders' => 'سفارشات',
+    'create_order' => 'ایجاد سفارش جدید',
     'production' => 'تولیدی',
     'new_sales_with_other_currency' => 'فروشات جدید باکرنسی دیگر',
     'invoices' => 'انوایس ها',

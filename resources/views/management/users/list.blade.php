@@ -38,7 +38,6 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.name')}} </th>
                                             <th> {{__('common.user')}} </th>
-                                            <th> {{__('common.branch')}} </th>
                                             <th> {{__('common.email')}} </th>
                                             <th> {{__('common.image')}}  </th>
                                             <th> {{__('user.priviledge')}} </th>

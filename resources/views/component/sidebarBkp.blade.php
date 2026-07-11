@@ -99,11 +99,6 @@
                                         <span class="sub-item">  {{ __('menu.employee_lists') }}  </span>
                                     </a>
                                 </li>
-                                <!-- <li>
-                                    <a href="{{ route('income.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> پیش پرداخت </span>
-                                    </a>
-                                </li> -->
                                 <li>
                                     <a href="{{ route('salary.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">  {{ __('menu.salary') }} </span>
@@ -155,44 +150,30 @@
                                         <span class="sub-item">  {{ __('menu.bought_list_item')}} </span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('boughtList.invoices') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  {{ __('menu.invoices')}} </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('return.list') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">  {{ __('menu.return')}} </span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>
                 @endif
 
+
+                
                 @if($permissions['gudam'] || $isAdmin)
-                    <li class="nav-item">
-                        <a data-toggle="collapse" href="#items">
-                            <i class="fas fa-luggage-cart"></i>
-                            <p> {{ __('menu.warehouse')}}</p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse" id="items">
-                            <ul class="nav nav-collapse">
-                                <li>
-                                    <a href="{{ route('warehousesList.create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.warehouse_add')}} </span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('warehousesList.wastage') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.wastage')}}   </span>
-                                    </a>
-                                </li>
-                                    <li>
-                                        <a href="{{ route('warehousesList.index') }}?id=1">
-                                        <i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                            <span class="sub-item"> گدام عمومی</span>
-                                        </a>
-                                    </li>
-                                <li>
-                                    <a href="{{ route('warehousesList.all') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.warehouse_all_list')}} </span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                <li class="nav-item">
+                      <a href="{{ route('warehousesList.index') }}?id=1">
+                          <i class="fas fa-luggage-cart"></i>
+                          <p> {{ __('menu.warehouse')}} </p>
+                      </a>
+                  </li>
                 @endif
 
 
@@ -210,21 +191,6 @@
                                         <span class="sub-item"> {{ __('menu.new_sales')}} </span>
                                     </a>
                                 </li>
-                                @if($packageId >= 3)
-                                <li>
-                                    <a href="{{ route('sales.createWithOtherCurrency') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.new_sales_with_other_currency')}} </span>
-                                    </a>
-                                </li>
-                                @endif
-                                <!-- businessplus + POS -->
-                                @if($packageId == 4)
-                                <li>
-                                    <a href="{{ route('sales.pos_create') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">  {{ __('menu.pos_sales')}} </span>
-                                    </a>
-                                </li>
-                                @endif
                                 <li>
                                     <a href="{{ route('sales.index')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">  {{ __('menu.sold_list')}}</span>
@@ -236,59 +202,18 @@
                                     </a>
                                 </li>
 
-                            </ul>
-                        </div>
-                    </li>
-                @endif
-
-                
-                @if(($permissions['clearance'] || $isAdmin) && $packageId >= 2)
-                <li class="nav-item">
-                    <a data-toggle="collapse" href="#clearance">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <p>  {{ __('menu.clearance')}} </p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="clearance">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="{{ route('clearance.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                    <span class="sub-item"> {{ __('menu.bought_clearance')}}</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('clearance.sales.index') }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                    <span class="sub-item"> {{ __('menu.sold_clearance')}}</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                @endif
-
-                @if($packageId ==1)
-                    <li class="nav-item">
-                        <a data-toggle="collapse" href="#reports">
-                            <i class="fas fa-list-ol"></i>
-                            <p>  {{ __('menu.reports')}} </p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse" id="reports">
-                            <ul class="nav nav-collapse">
-                                <li>
-                                    <a href="{{route('cacheflow.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.cacheflow') }} </span>
-                                       </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('chartOfAccount.index')}}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item"> {{ __('menu.chartOfAccount') }} </span>
+                                   <li>
+                                    <a href="{{ route('sales.invoices')  }}"><i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item"> {{ __('menu.invoices')}} </span>
                                     </a>
                                 </li>
+
                             </ul>
                         </div>
                     </li>
-                    @endif
+                @endif
+
+               
 
                     @if(($permissions['reports'] || $isAdmin) && $packageId >= 2)
                     <li class="nav-item">
