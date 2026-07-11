@@ -10589,12 +10589,39 @@ fieldset[disabled] .form-control {
     overflow-y: hidden;
     direction: rtl;
     text-align: right;
-}
-
-.login-page {
-    background-image: url(../../assets/img/bg.jpg)!important;
+    position: relative;
+    background-image: url(../../assets/img/bg2.jpg)!important;
     background-size: cover;
 }
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.login-page > *:not(.overlay) {
+    position: relative;
+    z-index: 2;
+}
+
+ /* .login-page {
+    padding-left: 0;
+    max-width: 360px;
+    margin: 5% auto;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    direction: rtl;
+    text-align: right;
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        url(../../assets/img/bg2.jpg)!important;
+    background-size: cover;
+    background-blend-mode: overlay; /* Optional: blends the overlay with the image */
+} */
 
 .login-page .login-box .msg {
     color: #555;

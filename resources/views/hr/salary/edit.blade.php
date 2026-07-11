@@ -10,8 +10,8 @@
                         <div class="card-header" style="padding: 10px;">
                             <h4 class="card-title">{{ __('hr.update_salary_form_title')}}  
                                 <span class="pull-left">
-                                    <a href="{{  route('salary.index') }}">
-                                        <button class="btn mybtn bg-default"> {{ __('common.back')}} </button>
+                                    <a href="{{ route('salary.index') }}">
+                                        <button class="btn mybtn bg-default">{{ __('common.back') }}</button>
                                     </a>
                                 </span>
                             </h4>
@@ -21,131 +21,137 @@
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" name="id" value="{{ $salary->id }}">
-                                <input type="hidden" name="from_account_id" value="{{ $ownBanks->first()->id }}">
-                                <input type="hidden" name="from_account_name" value="{{ $ownBanks->first()->name }}">
+                                <input type="hidden" name="from_account_id" value="{{ $ownBanks->first()->id ?? 0 }}">
+                                <input type="hidden" name="from_account_name" value="{{ $ownBanks->first()->name ?? '' }}">
                                               
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
 
-                                        <!-- Row:1 - Col:1 -->
-                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <!-- Row 1: Date -->
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
-                                               <label for=""> {{__('journal.branch_selection')}} </label>
-                                                <select class="form-control select2" name="branch_id" required>
-                                                    @if ($branchs->count() > 1)
-                                                        <option value="">--- {{__('journal.branch_selection')}} ---</option>
-                                                    @endif
-                                                    @foreach ($branchs as $branch)
-                                                        <option value="{{ $branch->id }}" 
-                                                            {{ $salary->branch_id == $branch->id ? 'selected' : '' }}>
-                                                            {{ $branch->name }}
+                                                <label for="todays_date">{{ __('common.save_date') }} <span class="text-danger">*</span></label>
+                                                <div class="input-group date" id="datepicker">
+                                                    <input type="text" class="form-control" name="todays_date" id="todays_date" required
+                                                        value="{{ old('todays_date', $salary->idate ?? $todaysDate) }}" 
+                                                        placeholder="{{ __('common.save_date') }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text datepicker-icon">
+                                                            <i class="fas fa-calendar-alt"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div>
+                                        </div>
+
+                                        <!-- Row 1: Year -->
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group">
+                                                <label for="year">{{ __('common.year') }} <span class="text-danger">*</span></label>
+                                                <select class="form-control select2" name="year" id="year" required>
+                                                    <option value="">{{ __('common.year') }}</option>
+                                                    @for($i=2020; $i<=2050; $i++)
+                                                        <option value="{{ $i }}" {{ old('year', $salary->year) == $i ? 'selected' : '' }}>
+                                                            {{ $i }}
                                                         </option>
-                                                    @endforeach
-                                                </select>
-
-                                                @error('branch_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
-
-
-                                        <!-- Row:1 - Col:3  -->
-                                        <div class="col-md-6 col-sm-6 col-xs-12">
-                                        <label for=""> {{__('common.save_date')}} </label>
-                                            <div class="form-group" data-provide="datepicker">
-                                                <input class="form-control" name="todays_date" id="todays_date" required
-                                                data-targetselector="#todays_date" value="{{ $todaysDate }}" 
-                                                data-mddatetimepicker="true"  placeholder="{{__('common.save_date')}}"  data-placement="right" data-englishnumber="true"  >
-                                            </div>
-                                            @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
-                                        </div>
-
-
-                                        <!-- Row:2 - Col:1  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                            <label for=""> {{__('common.save_date')}} </label>
-                                                <span class="typing-effect" id="to_account_id"></span>
-                                                <select class="form-control select2" name="to_account_id" required>
-                                                    <option value=""> {{__('common.save_date')}} </option>
-                                                    @foreach($employees as $emp)
-                                                        <option value="{{ $emp->id }}" {{ $emp->id == $salary->account_id ? 'selected': '' }}>{{ $emp->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('to_account_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
-
-
-                                        <!-- Row:2 - Col:2  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                            <label for="">{{__('hr.payable_amount')}}  </label>
-                                                <input class="form-control" id="amount" name="amount" type="number" step="0.01" required placeholder="{{__('hr.payable_amount')}} " value="{{ $salary->amount }}">
-                                                @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div> 
-                                        </div>
-
-
-                                        <!-- Row:2 - Col:3  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group form-floating-label">
-                                            <label for="">  {{__('common.currency')}}  </label>
-                                                <select class="form-control select2" name="currency_id" required>
-                                                    @foreach($currencies as $currency)
-                                                        <option value="{{ $currency->id }}" {{ $currency->id == $salary->currency_id ? 'selected' : '' }}>{{ $currency->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div> 
-                                        </div>
-
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                            <label for=""> {{__('common.year')}}  </label>
-                                                <span class="typing-effect" id="year"></span>
-                                                <select class="form-control select2" name="year" required>
-                                                    <option value="">   {{__('common.year')}}</option>
-                                                    @for($i=1400; $i<=1440; $i++)
-                                                        <option value="{{ $i }}" {{ $i == $salary->year ? 'selected' : ''}} >{{ $i }}</option>
                                                     @endfor
                                                 </select>
                                                 @error('year')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
 
+                                        <!-- Row 1: Month -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
-                                            <label for="">  {{__('common.month')}} </label>
-                                                <span class="typing-effect" id="month"></span>
-                                                <select class="form-control select2" name="month" required>
-                                                    <option value="">  {{__('common.month')}}</option>
+                                                <label for="month">{{ __('common.month') }} <span class="text-danger">*</span></label>
+                                                <select class="form-control select2" name="month" id="month" required>
+                                                    <option value="">{{ __('common.month') }}</option>
                                                     @foreach($months as $key => $month)
-                                                        <option value="{{ $key }}" {{ $key == $salary->month ? 'selected' : ''}}>{{ $month }}</option>
+                                                        <option value="{{ $key }}" {{ old('month', $salary->month) == $key ? 'selected' : '' }}>
+                                                            {{ $month }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                                 @error('month')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
 
-                                        <!-- Row:3 - Col:1  -->
+                                        <!-- Row 2: Employee -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
-                                            <label for="">  {{__('common.details')}} </label>
+                                                <label for="to_account_id">{{ __('hr.emp_selection') }} <span class="text-danger">*</span></label>
+                                                <select class="form-control select2" name="to_account_id" id="to_account_id" required>
+                                                    <option value="">{{ __('hr.emp_selection') }}</option>
+                                                    @foreach($employees as $emp)
+                                                        <option value="{{ $emp->id }}" {{ old('to_account_id', $salary->account_id) == $emp->id ? 'selected' : '' }}>
+                                                            {{ $emp->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('to_account_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div>
+                                        </div>
+
+                                        <!-- Row 2: Amount -->
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group">
+                                                <label for="amount">{{ __('hr.payable_amount') }} <span class="text-danger">*</span></label>
+                                                <input class="form-control" id="amount" name="amount" type="number" step="0.01" required 
+                                                    placeholder="{{ __('hr.payable_amount') }}" 
+                                                    value="{{ old('amount', $salary->amount) }}">
+                                                @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
+                                        <!-- Row 2: Currency -->
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group">
+                                                <label for="currency_id">{{ __('common.currency') }} <span class="text-danger">*</span></label>
+                                                <select class="form-control select2" name="currency_id" id="currency_id" required>
+                                                    @foreach($currencies as $currency)
+                                                        <option value="{{ $currency->id }}" {{ old('currency_id', $salary->currency_id) == $currency->id ? 'selected' : '' }}>
+                                                            {{ $currency->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
+                                        <!-- Row 3: Details -->
+                                        <div class="col-md-6 col-sm-12 col-xs-12">
+                                            <div class="form-group">
+                                                <label for="details">{{ __('common.details') }}</label>
                                                 <input class="form-control" id="details" name="details" type="text" 
-                                                placeholder=" {{__('common.details')}} "  value="{{ $salary->details }}" >
+                                                    placeholder="{{ __('common.details') }}" 
+                                                    value="{{ old('details', $salary->details) }}">
                                                 @error('details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
 
+                                        <!-- Row 3: Bank Account (Display Only) -->
+                                        <div class="col-md-6 col-sm-12 col-xs-12">
+                                            <div class="form-group">
+                                                <label for="from_account_display">{{ __('journal.payer_account') }}</label>
+                                                <input class="form-control" id="from_account_display" type="text" readonly
+                                                    value="{{ $ownBanks->first()->name ?? __('journal.default_account') }}">
+                                                
+                                            </div>
+                                        </div>
 
-                                        <!-- Row:4 - Col:1  -->
-                                        <div class="col-md-6 col-sm-6 col-xs-12 m-t-30">
+                                        <!-- Row 4: Submit Buttons -->
+                                        <div class="col-md-12 col-sm-12 col-xs-12 m-t-20">
                                             <div class="row">
-                                                <div class="col-6">
-                                                    <input type="submit" id="submit_button" name="submit" value=" {{__('common.save')}}" class="form-control btn bg-blue">
+                                                <div class="col-md-3 col-sm-4 col-xs-6">
+                                                    <button type="submit" id="submit_button" class="btn btn-success btn-block">
+                                                        <i class="fas fa-save"></i> {{ __('common.save') }}
+                                                    </button>
                                                 </div>
-                                                <div class="col-6">
-                                                    <a href="{{ route('salary.index') }}" class="btn bg-danger"> {{__('common.cancel')}}</a>
+                                                <div class="col-md-3 col-sm-4 col-xs-6">
+                                                    <a href="{{ route('salary.index') }}" class="btn btn-danger btn-block">
+                                                        <i class="fas fa-times"></i> {{ __('common.cancel') }}
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -160,7 +166,65 @@
     </div>
 </div>
 
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
+@push('scripts')
+<script>
+    $(document).ready(function() {
+      
+      
+
+        // Initialize Select2
+        $('.select2').select2({
+            width: '100%'
+        });
+
+        // Amount validation
+        $('#amount').on('input', function() {
+            var value = parseFloat($(this).val());
+            if (value < 0) {
+                $(this).val(0);
+                showNotification('{{ __("common.amount_positive") }}', 'warning');
+            }
+        });
+
+        // Form validation
+        $('form').on('submit', function(e) {
+            var amount = parseFloat($('#amount').val());
+            if (isNaN(amount) || amount <= 0) {
+                e.preventDefault();
+                showNotification('{{ __("common.enter_valid_amount") }}', 'danger');
+                $('#amount').focus();
+                return false;
+            }
+            
+            var employee = $('#to_account_id').val();
+            if (!employee) {
+                e.preventDefault();
+                showNotification('{{ __("hr.select_employee") }}', 'danger');
+                $('#to_account_id').focus();
+                return false;
+            }
+            
+            return true;
+        });
+    });
+
+    // Notification function
+    function showNotification(message, type = 'info', from = 'top', align = 'center') {
+        if (typeof $.notify === 'function') {
+            $.notify({
+                message: '<span style="font-size:14px;">' + message + '</span>',
+                title: '&nbsp;&nbsp;&nbsp;<span style="font-size:16px;">{{ __("settings.message") }}</span>',
+                icon: 'fa fa-bell'
+            }, {
+                type: type,
+                placement: {
+                    from: from,
+                    align: align
+                },
+                time: 3000
+            });
+        }
+    }
+</script>
+@endpush
 @endsection

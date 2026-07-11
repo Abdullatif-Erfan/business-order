@@ -13,205 +13,205 @@ use App\Models\Setting\OrgBio;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
 class SalaryController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
+    
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
 
     public function index()
     {
-        $accounts = Account::where('branch_id', $this->branch_id)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $months = $this->getTranslatedMonthName();
-        return view('hr.salary.list',compact('accounts','currencies','orgbios','months'));
+        return view('hr.salary.list', compact('currencies', 'orgbios', 'months'));
     }
 
     public function getTranslatedMonthName()
     {
         $locale = app()->getLocale();
         $months = array();
-        if($locale == "fa")
-        {
+        
+        if ($locale == "fa") {
             $months = array(
-                '1' => 'حمل',
-                '2' => 'ثور',
-                '3' => 'جوزا',
-                '4' => 'سرطان',
-                '5' => 'اسد',
-                '6' => 'سنبله',
-                '7' => 'میزان',
-                '8' => 'عقرب',
-                '9' => 'قوس',
-                '10' => 'جدی',
-                '11' => 'دلو',
-                '12' => 'حوت',
+                1  => 'جنوری',
+                2  => 'فبروری',
+                3  => 'مارچ',
+                4  => 'اپریل',
+                5  => 'می',
+                6  => 'جون',
+                7  => 'جولای',
+                8  => 'اگست',
+                9  => 'سپتمبر',
+                10 => 'اکتوبر',
+                11 => 'نومبر',
+                12 => 'دسمبر',
             );
-        }
-        else if ($locale == "pa") 
-        {
+        } else if ($locale == "pa") {
             $months = array(
-                '1' => 'وری',
-                '2' => 'غویی',
-                '3' => 'غبرګولی',
-                '4' => 'چنګاښ',
-                '5' => 'زمری',
-                '6' => 'وږی',
-                '7' => 'تله',
-                '8' => 'لړم',
-                '9' => 'ليندۍ',
-                '10' => 'مرغومی',
-                '11' => 'سلواغه',
-                '12' => 'کب',
+                1 => 'وری',
+                2 => 'غویی',
+                3 => 'غبرګولی',
+                4 => 'چنګاښ',
+                5 => 'زمری',
+                6 => 'وږی',
+                7 => 'تله',
+                8 => 'لړم',
+                9 => 'ليندۍ',
+                10 => 'مرغومی',
+                11 => 'سلواغه',
+                12 => 'کب',
             );
-        }
-        else
-        {
+        } else {
             $months = array(
-                '1' => 'January',
-                '2' => 'February',
-                '3' => 'March',
-                '4' => 'April',
-                '5' => 'May',
-                '6' => 'June',
-                '7' => 'July',
-                '8' => 'August',
-                '9' => 'September',
-                '10' => 'October',
-                '11' => 'November',
-                '12' => 'December',
+                1 => 'January',
+                2 => 'February',
+                3 => 'March',
+                4 => 'April',
+                5 => 'May',
+                6 => 'June',
+                7 => 'July',
+                8 => 'August',
+                9 => 'September',
+                10 => 'October',
+                11 => 'November',
+                12 => 'December',
             );
         }
         return $months;
     }
+
     /**
-     * Show the expense data
+     * Show the salary data
      */
     public function getData(Request $request)
     {
         /**
-         * status: 1: old income, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+         * status: 5 = salary
+         * dynamic_type: 1 = employee salary records
          */
-        $salary = Journal::with(['accountRelation' => function($query){
-            $query->select('id','name');
-        },'currencyRelation' => function($query){
-            $query->select('id','name','symbols','color');
-        }])
-        // $salary = Journal::with(['accountRelation','currencyRelation','expenseTypeRelation'])
-        ->select('id','code','bill_no','amount','account_id','currency_id','details','year','month','inserted_short_date','status','times')
-        ->where('journals.status','=',5)
-        ->where('journals.dynamic_type','=',1) // show just employee records
-        ->where('journals.branch_id', $this->branch_id)
+        $salary = Journal::with([
+            'accountRelation' => function($query) {
+                $query->select('id', 'name');
+            },
+            'currencyRelation' => function($query) {
+                $query->select('id', 'name', 'symbols', 'color');
+            }
+        ])
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'currency_id', 'details', 'year', 'month', 'idate', 'status', 'times')
+        ->where('journals.status', '=', 5)
+        ->where('journals.dynamic_type', '=', 1) // ✅ Show just employee records
         ->orderBy('id', 'DESC');
 
-
-        // Apply filters if provided
-
+        // Apply filters
         if ($request->employee_name) {
             $salary->whereHas('accountRelation', function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->employee_name . '%'); // Use LIKE for partial search
+                $query->where('name', 'LIKE', '%' . $request->employee_name . '%');
             });
         }
 
         if ($request->year) {
             $salary->where('year', $request->year);
         }
+        
         if ($request->month) {
             $salary->where('month', $request->month);
         }
+        
         if ($request->currency_id) {
             $salary->where('currency_id', $request->currency_id);
         }
+        
         if ($request->code_number) {
             $salary->where('code', 'LIKE', "%{$request->code_number}%");
         }
-        
 
         return DataTables::of($salary)
-            
             ->addIndexColumn()
-           
             ->addColumn('accountRelation', function ($salary) {
                 return $salary->accountRelation ? $salary->accountRelation->name : '';
             })
-
-            // recieved and recieveable is belongs to salary
             ->addColumn('amount', function ($salary) {
                 $amount = $salary->amount;
-                $formattedAmount = (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
-                return $formattedAmount;     
+                return (fmod($amount, 1) == 0) ? number_format($amount, 0) : number_format($amount, 2);
             })
-            
             ->addColumn('currency', function ($salary) {
-                return '<i style="font-size:14px;color:'.$salary->currencyRelation->color.'">'.$salary->currencyRelation->name.'</i>';
+                $color = $salary->currencyRelation->color ?? '#000';
+                $name = $salary->currencyRelation->name ?? '';
+                return '<i style="font-size:14px;color:' . $color . '">' . $name . '</i>';
             })
-
-
+             ->addColumn('month', function ($salary) {
+                return $salary->month ? $this->getMonthName($salary->month)  : '';
+            })
             ->addColumn('edit', function ($salary) {
-                return  '<a href="salary/edit/'.$salary->id.'" class="hidden-print"><i class="fas fa-pen-square editIcon" data-id="' . $salary->id . '" style="font-size:20px;"></i></a>';
-            })
-
-
-            ->addColumn('delete', function ($salary) {
-                return '<a href="salary/destroy/'.$salary->times.'" class="hidden-print" 
-                        onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
-                            <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $salary->id . '" style="font-size:20px;"></i>
+                return '<a href="' . route('salary.edit', $salary->id) . '" class="hidden-print">
+                            <i class="fas fa-pen-square editIcon" data-id="' . $salary->id . '" style="font-size:20px;color:#4a6cf7;"></i>
                         </a>';
             })
-
-            ->rawColumns(['edit','delete','doc','currency'])
+            ->addColumn('delete', function ($salary) {
+                return '<a href="' . route('salary.destroy', $salary->times) . '" class="hidden-print" 
+                            onClick="return confirm(\'' . __("common.delete_confirm") . '\')">
+                            <i class="fas fa-trash-alt danger deleteIcon" data-id="' . $salary->id . '" style="font-size:20px;color:#dc3545;"></i>
+                        </a>';
+            })
+            ->rawColumns(['edit', 'delete', 'currency']) // ✅ Removed 'doc' since not used
             ->make(true);
     }
 
+     function getMonthName($month=1)
+    {
+        $months = array(
+                1  => 'جنوری',    // January
+                2  => 'فبروری',    // February
+                3  => 'مارچ',    // March
+                4  => 'اپریل',    // April
+                5  => 'می',    // May
+                6  => 'جون',   // June
+                7  => 'جولای',  // July
+                8  => 'اگست',    // August
+                9  => 'سپتمبر',  // September
+                10 => 'اکتوبر',  // October
+                11 => 'نومبر',   // November
+                12 => 'دسمبر',    // December
+            );
+        return $months[$month];
+    }
 
-    /**
-     * Show journal details
-     */
-  
     /**
      * Show create form
      */
     public function create()
     {
-        // $query = $this->db->get('currency'); 		   
-        // $data['currency'] = $query->result_array();
-        // $data['accounts'] = $this->journals->getAccounts();
-        // $data['customers'] = $this->journals->getCustomers();
+        $employees = Account::select('id', 'name')->where('account_type_id', 2)->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])
+            ->orderBy('is_pre_select', 'DESC')
+            ->get();
 
-        // $this->db->order_by('id','DESC');
-        // $query = $this->db->get('branch'); 		   
-        // $data['branch'] = $query->result_array();
-
-        $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
-
-        if(!$ownBanks) {
-            return __('journal.default_account');
-            die();
+        if ($ownBanks->isEmpty()) {
+            Session::put('notification', [
+                'message' => __('journal.default_account'),
+                'type' => 'warning',
+            ]);
+            return redirect()->route('salary.index');
         }
 
         $months = $this->getTranslatedMonthName();
-
         $currencies = Currency::all();
-        $branchs = Branch::where('id',$this->branch_id)->get();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
-        $cur_year = Jalalian::now()->format('Y');
-        $cur_month = Jalalian::now()->format('n');
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $cur_year = Carbon::now()->format('Y');
+        $cur_month = Carbon::now()->format('n');
 
-
-        return view('hr.salary.create',compact('ownBanks','currencies','branchs','todaysDate','employees','months','cur_year','cur_month'));
+        return view('hr.salary.create', compact('ownBanks', 'currencies', 'todaysDate', 'employees', 'months', 'cur_year', 'cur_month'));
     }
 
     /**
@@ -219,144 +219,139 @@ class SalaryController extends Controller
      */
     public function store(Request $request)
     {
-        // return ['formData' => $request->all()];
-
         // Validation
         $validated = $request->validate([
             'from_account_id' => 'required|exists:accounts,id',
             'to_account_id' => 'required|exists:accounts,id',
-            'branch_id' => 'required|exists:branches,id',
-            'amount' => 'required|numeric',  
+            'amount' => 'required|numeric|min:0.01',
             'currency_id' => 'required|exists:currencies,id',
             'year' => 'required|numeric',
             'month' => 'required|numeric',
             'details' => 'nullable|string|max:255',
+            'todays_date' => 'required|date',
         ]);
-    
+
         $todaysDate = $request->todays_date;
         $date = explode('-', $todaysDate);
         $year = $validated['year'];
         $month = $validated['month'];
-        $day = $date[2];
-        $full_date =  $year.'-'.$month.'-'.$day.' '.Date('h:i:s A');
-    
-        $newJournalCode = Journal::where('branch_id', $this->branch_id)->max('code') + 1;
-        $times = time();
-    
-        $company_account_type_id   = Account::where('id', $request->from_account_id)->value('account_type_id');
-        $customer_account_type_id  = Account::where('id', $request->to_account_id)->value('account_type_id');
+        $day = $date[2] ?? date('d');
+        $full_date = $year . '-' . $month . '-' . $day . ' ' . date('h:i:s A');
 
-        // Start the transaction
+        $newJournalCode = Journal::max('code') + 1;
+        $times = time();
+
+        $company_account_type_id = Account::where('id', $request->from_account_id)->value('account_type_id');
+        $customer_account_type_id = Account::where('id', $request->to_account_id)->value('account_type_id');
+
         DB::beginTransaction();
-    
+
         try {
-            // ثبت ژورنال برای پرداخت خزانه
-            // Paid Cache = t2p1
+            // ✅ FIXED: Journal 1 - Company account (Paid from bank)
             $journal1 = new Journal();
-            $journal1->bill_no =  0;
+            $journal1->bill_no = 0;
             $journal1->code = $newJournalCode;
-            $journal1->branch_id = $validated['branch_id'];
-            $journal1->inserted_full_date = $full_date;
-            $journal1->inserted_short_date = $todaysDate;
-            $journal1->user = auth()->user()->full_name ?? '';
+            $journal1->idate = $todaysDate;
+            $journal1->user_name = auth()->user()->full_name ?? ''; // ✅ FIXED: Using $journal1
+            $journal1->user_id = auth()->id() ?? 0; // ✅ FIXED: Using $journal1
             $journal1->year = $year;
             $journal1->month = $month;
             $journal1->day = $day;
-            $journal1->status = 5;  // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+            $journal1->status = 5;
             $journal1->times = $times;
-            $journal1->is_single_record = 1; // 0: single, 1: pair; 
-            $journal1->dynamic_type = null ; // for khazan store null to not be shown in the salary list
+            $journal1->is_single_record = 1;
+            $journal1->dynamic_type = null; // Null for company side (not shown in salary list)
             $journal1->account_id = $validated['from_account_id'];
             $journal1->amount = $validated['amount'];
             $journal1->account_type_id = $company_account_type_id;
             $journal1->currency_id = $validated['currency_id'];
             $journal1->details = $validated['details'] ?? __('validate.salary_payment');
-            $journal1->transaction_type = 2; // 1: received, 2: paid
-            $journal1->payment_type = 1; // 1: cache, 2: loan
-            $journal1->option_label =  __('validate.salary_payment');
+            $journal1->transaction_type = 2; // Paid
+            $journal1->payment_type = 1; // Cash
+            $journal1->option_label = __('validate.salary_payment');
             $journal1->save();
-    
 
-            // ثبت ژورنال برای کارمند 
-            // Recieved Cache = T1P1
+            // ✅ Journal 2 - Employee account (Received salary)
             $journal2 = new Journal();
-            $journal2->bill_no =  0;
+            $journal2->bill_no = 0;
             $journal2->code = $newJournalCode;
-            $journal2->branch_id = $validated['branch_id'];
-            $journal2->inserted_full_date = $full_date;
-            $journal2->inserted_short_date = $todaysDate;
-            $journal2->user = auth()->user()->full_name ?? '';
+            $journal2->idate = $todaysDate;
+            $journal2->user_name = auth()->user()->full_name ?? '';
+            $journal2->user_id = auth()->id() ?? 0;
             $journal2->year = $year;
             $journal2->month = $month;
             $journal2->day = $day;
-            $journal2->status = 5;  // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+            $journal2->status = 5;
             $journal2->times = $times;
-            $journal2->is_single_record = 1; // 0: single, 1: pair; 
-            $journal2->dynamic_type = 1 ; // for employee store 1 to be shown in the salary list
+            $journal2->is_single_record = 1;
+            $journal2->dynamic_type = 1; // For employee (shown in salary list)
             $journal2->account_id = $validated['to_account_id'];
             $journal2->amount = $validated['amount'];
             $journal2->account_type_id = $customer_account_type_id;
             $journal2->currency_id = $validated['currency_id'];
             $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
-            $journal2->transaction_type = 1; // 1: received, 2: paid
-            $journal2->payment_type = 1; // 1: cache, 2: loan
+            $journal2->transaction_type = 1; // Received
+            $journal2->payment_type = 1; // Cash
             $journal2->option_label = __('validate.salary_recieve');
             $journal2->save();
 
-            // Commit the transaction
             DB::commit();
-    
+
             Session::put('notification', [
                 'message' => __('common.added_successfully'),
                 'type' => 'success',
             ]);
-            return redirect()->route('salary.index'); 
+            return redirect()->route('salary.index');
 
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
             DB::rollBack();
-            // Optionally, log the error for debugging
             \Log::error('Error storing salary entry: ' . $e->getMessage());
-    
-            // Use MessageService to return error message
+
             Session::put('notification', [
-                'message' => __('common.add_failed'),
+                'message' => __('common.add_failed') . ': ' . $e->getMessage(),
                 'type' => 'danger',
             ]);
-            return redirect()->route('salary.index'); 
+            return redirect()->route('salary.index')->withInput();
         }
     }
-    
 
-  
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
-        $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->where('branch_id', $this->branch_id)->orderBy('is_pre_select','DESC')->get();
+        $employees = Account::select('id', 'name')->where('account_type_id', 2)->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])
+            ->orderBy('is_pre_select', 'DESC')
+            ->get();
 
-
-        if(!$ownBanks) {
-            return __('validate.select_default_account');
-            die();
+        if ($ownBanks->isEmpty()) {
+            Session::put('notification', [
+                'message' => __('validate.select_default_account'),
+                'type' => 'warning',
+            ]);
+            return redirect()->route('salary.index');
         }
 
         $months = $this->getTranslatedMonthName();
-      
-        $todaysDate = Jalalian::now()->format('Y-m-d');
-        $cur_year = Jalalian::now()->format('Y');
-        $cur_month = Jalalian::now()->format('n');
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $cur_year = Carbon::now()->format('Y');
+        $cur_month = Carbon::now()->format('n');
         $currencies = Currency::all();
-        $branchs = Branch::where('id',$this->branch_id)->get();
 
-        $salary = Journal::with(['accountRelation', 'currencyRelation','branchRelation'])
-        ->where('id', $id)
-        ->orderBy('id', 'ASC')
-        ->first();
-        // return response()->json(['data' => $salary]);
-        return view('hr.salary.edit',compact('currencies','ownBanks','employees','branchs','salary','months','cur_year','cur_month','todaysDate'));
+        $salary = Journal::with(['accountRelation', 'currencyRelation'])
+            ->where('id', $id)
+            ->first();
+
+        if (!$salary) {
+            Session::put('notification', [
+                'message' => __('common.record_not_found'),
+                'type' => 'danger',
+            ]);
+            return redirect()->route('salary.index');
+        }
+
+        return view('hr.salary.edit', compact('currencies', 'ownBanks', 'employees', 'salary', 'months', 'cur_year', 'cur_month', 'todaysDate'));
     }
 
     /**
@@ -364,49 +359,46 @@ class SalaryController extends Controller
      */
     public function update(Request $request)
     {
-        DB::beginTransaction(); // Start transaction
+        DB::beginTransaction();
 
         try {
-            // Validate input
             $validated = $request->validate([
+                'id' => 'required|exists:journals,id',
                 'from_account_id' => 'required|exists:accounts,id',
                 'to_account_id' => 'required|exists:accounts,id',
-                'branch_id' => 'required|exists:branches,id',
-                'amount' => 'required|numeric',  
+                'amount' => 'required|numeric|min:0.01',
                 'currency_id' => 'required|exists:currencies,id',
                 'year' => 'required|numeric',
                 'month' => 'required|numeric',
                 'details' => 'nullable|string|max:255',
+                'todays_date' => 'required|date',
             ]);
 
-            // Get the salary entry
-            $journal1 = Journal::findOrFail($request->id); 
+            // Get the salary entry (employee side)
+            $journal1 = Journal::findOrFail($request->id);
 
-            // Prepare date values
             $todaysDate = $request->todays_date;
             $dateParts = explode('-', $todaysDate);
             $year = $validated['year'];
             $month = $validated['month'];
-            $day = $dateParts[2] ?? now()->day; 
-            $short_date = "{$year}-{$month}-{$day}";
-            $full_date = "{$year}-{$month}-{$day} " . now()->format('H:i:s');
+            $day = $dateParts[2] ?? date('d');
+            $short_date = $year . '-' . $month . '-' . $day;
 
-            // Update first journal entry
+            // Update employee journal entry
             $journal1->update([
                 'account_id' => $validated['to_account_id'],
-                'branch_id' => $validated['branch_id'],
-                'inserted_full_date' => $full_date,
-                'inserted_short_date' => $short_date,
-                'user' => auth()->user()->full_name ?? '',
+                'idate' => $short_date,
+                'user_name' => auth()->user()->full_name ?? '',
+                'user_id' => auth()->id() ?? 0,
                 'year' => $year,
                 'month' => $month,
                 'day' => $day,
                 'amount' => $validated['amount'],
                 'currency_id' => $validated['currency_id'],
-                'details' => $validated['details'],
+                'details' => $validated['details'] ?? $journal1->details,
             ]);
 
-            // Get related journal entry
+            // Update company journal entry (same code, same times)
             $journal2 = Journal::where('code', $journal1->code)
                 ->where('times', $journal1->times)
                 ->whereNull('dynamic_type')
@@ -415,91 +407,81 @@ class SalaryController extends Controller
             if ($journal2) {
                 $journal2->update([
                     'account_id' => $validated['from_account_id'],
-                    'branch_id' => $validated['branch_id'],
-                    'inserted_full_date' => $full_date,
-                    'inserted_short_date' => $short_date,
-                    'user' => auth()->user()->full_name ?? '',
+                    'idate' => $short_date,
+                    'user_name' => auth()->user()->full_name ?? '',
+                    'user_id' => auth()->id() ?? 0,
                     'year' => $year,
                     'month' => $month,
                     'day' => $day,
                     'amount' => $validated['amount'],
                     'currency_id' => $validated['currency_id'],
-                    'details' => $validated['details'],
+                    'details' => $validated['details'] ?? $journal2->details,
                 ]);
             }
 
-            DB::commit(); // Commit transaction
+            DB::commit();
 
             Session::put('notification', [
                 'message' => __('common.updated_successfully'),
                 'type' => 'success',
             ]);
-            return redirect()->route('salary.index'); 
-        } 
-        catch (\Exception $e) 
-        { 
-            DB::rollBack(); // Rollback on error
+            return redirect()->route('salary.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Error occurred in salary update: ' . $e->getMessage());
+
             Session::put('notification', [
-                'message' => __('common.update_failed'),
+                'message' => __('common.update_failed') . ': ' . $e->getMessage(),
                 'type' => 'danger',
             ]);
-            return back();
+            return back()->withInput();
         }
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $times)
     {
-        // Start a transaction for safety
         DB::beginTransaction();
-        
+
         try {
-            // Find all journal records with the given 'times' value
             $journals = Journal::where('times', $times)->get();
 
             if ($journals->isNotEmpty()) {
                 // Delete all found journal entries
                 Journal::where('times', $times)->delete();
 
-                // Commit transaction
                 DB::commit();
 
-                session()->put('notification', [
+                Session::put('notification', [
                     'type' => 'success',
                     'message' => __('common.deleted_successfully'),
                 ]);
 
                 return redirect()->route('salary.index');
             } else {
-                // Rollback transaction in case no records were found
                 DB::rollBack();
 
-                session()->put('notification', [
+                Session::put('notification', [
                     'type' => 'danger',
-                    'message' => __('common.delete_failed'),
+                    'message' => __('common.record_not_found'),
                 ]);
 
                 return back();
             }
         } catch (\Exception $e) {
-            // Rollback transaction in case of error
             DB::rollBack();
 
-            \Log::error('Error deleting journal entry: ' . $e->getMessage());
+            \Log::error('Error deleting salary entry: ' . $e->getMessage());
 
-            session()->put('notification', [
+            Session::put('notification', [
                 'type' => 'danger',
-                'message' => __('common.delete_failed'),
+                'message' => __('common.delete_failed') . ': ' . $e->getMessage(),
             ]);
 
             return back();
         }
     }
-
-
-    
 }

@@ -40,8 +40,12 @@
     <nav class="navbar navbar-header navbar-expand-lg" data-background-color="gradiant">
         <div class="container-fluid">
             <div class="collapse" id="search-nav">
+                <a href="{{ route('orders.create') }}">
+                    <button class="btn btn-sm btn-info"><i class="fas fa-cart-arrow-down">&nbsp;  {{__('order.orders')}} </i></button>
+                </a>
+                
                  <a href="{{ route('boughtList.create') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-cart-arrow-down">&nbsp; {{__('validate.buy')}}</i></button>
+                    <button class="btn btn-sm btn-info"><i class="fas fa-truck">&nbsp; {{__('validate.buy')}}</i></button>
                 </a>
                 <a href="{{ route('sales.create') }}">
                     <button class="btn btn-sm btn-info"><i class="fas fa-luggage-cart">&nbsp; {{__('validate.sale')}}</i></button>
@@ -49,9 +53,6 @@
                 <a href="{{ route('journal.index') }}">
                     <button class="btn btn-sm btn-info"><i class="fas fa-exchange-alt ">&nbsp; {{__('validate.journal')}}</i></button>
                 </a> 
-                <a href="{{ route('laws.index') }}">
-                    <button class="btn btn-sm btn-info"><i class="fas fa-file-invoice-dollar">&nbsp;  {{__('validate.lows')}}</i></button>
-                </a>
             </div>
             <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
                 <li class="nav-item toggle-nav-search hidden-caret">

@@ -24,7 +24,7 @@ return [
     'resave' => 'ذخیره تغییرات',
     'wh2wh_movement' => 'انتقال از گدام به گدام',
     'conversion_base_unit' => ' تبادله اجناس نظر به واحد اجناس',
-    'existing_list' => 'لست موجودی ',
+    'existing_list' => ' لیست اجناس موجود ',
     'print_date' => 'تاریخ چاپ',
     'last_bought' => 'خرید آخر',
     'average' => 'نرخ اوسط',

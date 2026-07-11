@@ -11,7 +11,7 @@
                     <div class="card">
                         
                         <div class="card-header" style="padding: 10px;">
-                            <span class="card-title">   {{__('wh.existing_list')}} {{ $warehouse->name ?? ''}} </span>
+                            <span class="card-title">   {{__('wh.existing_list')}} </span>
                             <!-- Responsive Filter Toggle Button - Visible only on XS -->
                             <div class="pull-left" style="width:90px">
                                 <button type="button" class="responsive_button btn btn-sm  visible-xs"
@@ -91,9 +91,9 @@
                                             <th> {{__('common.unit')}} </th>
                                             <th> {{__('buy.buy_up')}} </th>
                                             @if($orgbios[0]->tax_activation === 1)
-                                            <th>% {{__('buy.tax')}}</th>
-                                            <th>{{__('buy.buy_tax_price_s')}}</th>
-                                            <th> {{__('buy.buy_up_vat')}} </th>
+                                            <th>% {{__('buy.tax') ?? ''}}</th>
+                                            <th>{{__('buy.buy_tax_price_s') ?? ''}}</th>
+                                            <th> {{__('buy.buy_up_vat') ?? ''}} </th>
                                             @endif 
                                             <th> {{__('common.available_total')}} </th> 
                                             <th> {{__('buy.sell_up')}} </th> 

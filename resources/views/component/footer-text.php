@@ -10,7 +10,7 @@
 			</ul>
 		</nav>
 		<div class="copyright ml-auto">
-        Developed by Kaaweshgaraan Group
+        Developed by Abdul Latif Erfan. WhatsApp: 0093708088185
 		</div>				
 	</div>
 </footer>

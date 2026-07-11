@@ -37,7 +37,6 @@ function showNotification(message, type = 'info', from = 'top', align = 'left', 
 $(document).ready(function() {
     fetchList();
 
-    // Move the filter button click event outside
     $('#btn-filter').click(function() {
         $('#warehouseItemTable').DataTable().ajax.reload(null, false);
     });
@@ -58,7 +57,6 @@ function fetchList() {
         { data: 'buy_up', name: 'buy_up' }
     ];
 
-    // Add tax columns if flag is 1
     if (flag === 1) {
         columns.push(
             { data: 'buy_tax_per', name: 'buy_tax_per' },
@@ -67,14 +65,12 @@ function fetchList() {
         );
     }
 
-    // Add remaining columns
     columns.push(
         { data: 'available_total', name: 'available_total' },
         { data: 'sell_up', name: 'sell_up' },
         { data: 'idate', name: 'idate', orderable: false, searchable: false }
     );
 
-    // Check if DataTable is already initialized
     if (!$.fn.DataTable.isDataTable(warehouseItemTable)) {
         warehouseItemTable.DataTable({
             serverSide: true,
@@ -94,65 +90,59 @@ function fetchList() {
                 }
             },
             columns: columns,
+            // ✅ FIX: Ensure processing is hidden on load
+            processing: true,
             drawCallback: function () {
                 var api = this.api();
-
-                function sumColumn(index) {
-                    return api
-                        .column(index, { page: 'current' })
-                        .data()
-                        .reduce(function (a, b) {
-                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
-                            return numA + numB;
-                        }, 0)
-                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                }
-
-                // Calculate column indices based on flag
-                // Base columns: 0-6 (7 columns)
-                // Tax columns: 7, 8, 9 (if flag=1)
-                // Final columns: total, sell_up, idate
                 
-                if (flag === 1) {
-                    // With tax columns (11 total columns: 0-10)
-                    // Index 0: DT_RowIndex
-                    // Index 1: prelist
-                    // Index 2: in_amount
-                    // Index 3: out_amount
-                    // Index 4: available_amount
-                    // Index 5: unit
-                    // Index 6: buy_up
-                    // Index 7: buy_tax_per
-                    // Index 8: buy_tax_price
-                    // Index 9: buy_up_vat
-                    // Index 10: total
-                    // Index 11: sell_up
-                    // Index 12: idate
-                    
-                    // $(api.column(6).footer()).html(sumColumn(6));  // buy_up
-                    // $(api.column(7).footer()).html(sumColumn(7));  // buy_tax_per
-                    $(api.column(8).footer()).html(sumColumn(8));  // buy_tax_price
-                    $(api.column(9).footer()).html(sumColumn(9));  // buy_up_vat
-                    $(api.column(10).footer()).html(sumColumn(10)); // total
-                    $(api.column(11).footer()).html(sumColumn(11)); // sell_up
-                } else {
-                    // Without tax columns (9 total columns: 0-8)
-                    // Index 0: DT_RowIndex
-                    // Index 1: prelist
-                    // Index 2: in_amount
-                    // Index 3: out_amount
-                    // Index 4: available_amount
-                    // Index 5: unit
-                    // Index 6: buy_up
-                    // Index 7: total
-                    // Index 8: sell_up
-                    // Index 9: idate
-                    
-                    $(api.column(6).footer()).html(sumColumn(6));  // buy_up
-                    $(api.column(7).footer()).html(sumColumn(7));  // total
-                    $(api.column(8).footer()).html(sumColumn(8));  // sell_up
+                // ✅ FIX: Check if data exists
+                var pageData = api.rows({ page: 'current' }).data();
+                if (!pageData || pageData.length === 0) {
+                    // Hide processing and clear footer
+                    $('#warehouseItemTable_processing').hide();
+                    return;
                 }
+
+                function safeSum(index) {
+                    var data = api.column(index, { page: 'current' }).data();
+                    if (!data || data.length === 0) return '0.00';
+                    
+                    var sum = 0;
+                    data.each(function(value) {
+                        // ✅ FIX: Handle null/undefined/empty
+                        if (value !== null && value !== undefined && value !== '') {
+                            var num = parseFloat(value.toString().replace(/,/g, '')) || 0;
+                            sum += num;
+                        }
+                    });
+                    
+                    return sum.toLocaleString(undefined, { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    });
+                }
+
+                // ✅ FIX: Clear and update footer
+                if (flag === 1) {
+                    $(api.column(6).footer()).html(safeSum(6));
+                    $(api.column(7).footer()).html(safeSum(7));
+                    $(api.column(8).footer()).html(safeSum(8));
+                    $(api.column(9).footer()).html(safeSum(9));
+                    $(api.column(10).footer()).html(safeSum(10));
+                    $(api.column(11).footer()).html(safeSum(11));
+                } else {
+                    $(api.column(6).footer()).html(safeSum(6));
+                    $(api.column(7).footer()).html(safeSum(7));
+                    $(api.column(8).footer()).html(safeSum(8));
+                }
+                
+                // ✅ FIX: Hide processing
+                $('#warehouseItemTable_processing').hide();
+            },
+            language: {
+                emptyTable: 'داده‌ای موجود نیست',
+                zeroRecords: 'داده‌ای یافت نشد',
+                processing: '<i class="fa fa-spinner fa-spin"></i> در حال بارگذاری...'
             }
         });
 

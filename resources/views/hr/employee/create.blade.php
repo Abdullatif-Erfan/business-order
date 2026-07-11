@@ -58,28 +58,12 @@
                                             <div class="form-group col-sm-4" id="salary_currency" >
                                                 <label for="percent">  {{__('hr.salary_currency')}} </label>
                                                 <select class="form-control" name="salary_currency" required>
-                                                    <option value=""> {{__('common.currency')}} </option>
+                                                    <!-- <option value=""> {{__('common.currency')}} </option> -->
                                                     @foreach($currencies as $currency)
                                                     <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
-
-
-                                        @if(count($branchs) >= 2)
-                                        <div class="form-group col-sm-4">
-                                            <label for="account_type_id"> {{__('journal.branch_selection')}} </label>
-                                            <select class="form-control"  name="branch_id" required>
-                                                <option value=""> {{__('journal.branch_selection')}}</option>
-                                                @foreach($branchs as $branch)
-                                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            <span id="branchError" class="text-danger"></span>
-                                        </div>
-                                        @elseif(count($branchs) == 1) 
-                                            <input type="hidden" value="{{ $branchs[0]->id }}" name="branch_id" required>
-                                        @endif
 
                             
                                         <div class="col-md-6 m-t-30 m-b-30">

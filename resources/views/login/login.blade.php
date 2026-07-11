@@ -26,6 +26,7 @@
 </head>
 
 <body class="login-page">
+     <div class="overlay"></div>
     <div class="login-box animated fadeInDownBig">
         <div class="logo" style="background-color:#fff;">
             <center>

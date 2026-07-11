@@ -103,7 +103,7 @@ class LoginController extends Controller
 
         $request->validate([
             'user_name' => 'required|string',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:5',
         ], [
             'user_name.required' => __('validate.user_name_required'),
             'password.required'  => __('validate.password_required'),

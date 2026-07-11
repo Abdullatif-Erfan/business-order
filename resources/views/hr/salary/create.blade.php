@@ -28,72 +28,19 @@
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
 
                                         <!-- Row:1 - Col:1 -->
-                                        <div class="col-md-6 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                               <label for=""> {{__('journal.branch_selection')}} </label>
-                                                <select class="form-control select2" name="branch_id" required>
-                                                    @if ($branchs->count() > 1)
-                                                        <option value="">--- {{__('journal.branch_selection')}} ---</option>
-                                                    @endif
-                                                    @foreach ($branchs as $branch)
-                                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('branch_id')<span class="text-danger">{{ $message }}</span>@enderror
+                            
+                                          <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
+                                            <div class="input-group date m-t-10" id="datepicker">
+                                                <input type="text" class="form-control" name="todays_date" required
+                                                    value="{{ date('Y-m-d') }}" placeholder="{{__('order.date')}} ">
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-
-
-                                        <!-- Row:1 - Col:3  -->
-                                        <div class="col-md-6 col-sm-6 col-xs-12">
-                                        <label for=""> {{__('common.save_date')}} </label>
-                                            <div class="form-group" data-provide="datepicker">
-                                                <input class="form-control" name="todays_date" id="todays_date" required
-                                                data-targetselector="#todays_date" value="{{ $todaysDate }}" 
-                                                data-mddatetimepicker="true"  placeholder="{{__('common.save_date')}}" 
-                                                data-placement="right" data-englishnumber="true"  >
-                                            </div>
-                                            @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
-                                        </div>
-
-
-                                        <!-- Row:2 - Col:1  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                            <label for=""> {{__('hr.emp_selection')}} </label>
-                                                <span class="typing-effect" id="to_account_id"></span>
-                                                <select class="form-control select2" name="to_account_id" required>
-                                                    <option value=""> {{__('hr.emp_selection')}}</option>
-                                                    @foreach($employees as $emp)
-                                                        <option value="{{ $emp->id }}">{{ $emp->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('to_account_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div>
-                                        </div>
-
-
-                                        <!-- Row:2 - Col:2  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                            <label for=""> {{__('hr.payable_amount')}} </label>
-                                                <input class="form-control" id="amount" name="amount" type="number" step="0.01" required placeholder="{{__('hr.payable_amount')}}">
-                                                @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div> 
-                                        </div>
-
-
-                                        <!-- Row:2 - Col:3  -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group form-floating-label">
-                                            <label for=""> {{__('common.currency')}} </label>
-                                                <select class="form-control select2" name="currency_id" required>
-                                                    @foreach($currencies as $currency)
-                                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div> 
+                                             @error('todays_date')<span class="text-danger">{{ $message }}</span>@enderror
                                         </div>
 
                                         <div class="col-md-4 col-sm-6 col-xs-12">
@@ -102,7 +49,7 @@
                                                 <span class="typing-effect" id="year"></span>
                                                 <select class="form-control select2" name="year" required>
                                                     <option value=""> {{__('common.year')}}</option>
-                                                    @for($i=1400; $i<=1440; $i++)
+                                                    @for($i=2025; $i<=2050; $i++)
                                                         <option value="{{ $i }}" {{ $i == $cur_year ? 'selected' : ''}} >{{ $i }}</option>
                                                     @endfor
                                                 </select>
@@ -123,6 +70,44 @@
                                                 @error('month')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
+
+
+                                        <!-- Row:2 - Col:1  -->
+                                         <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group">
+                                            <label for=""> {{__('hr.emp_selection')}} </label>
+                                                <span class="typing-effect" id="to_account_id"></span>
+                                                <select class="form-control select2" name="to_account_id" required>
+                                                    <option value=""> {{__('hr.emp_selection')}}</option>
+                                                    @foreach($employees as $emp)
+                                                        <option value="{{ $emp->id }}">{{ $emp->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('to_account_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div>
+                                        </div>
+
+                                         <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group">
+                                            <label for=""> {{__('hr.payable_amount')}} </label>
+                                                <input class="form-control" id="amount" name="amount" type="number" step="0.01" required placeholder="{{__('hr.payable_amount')}}">
+                                                @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group form-floating-label">
+                                            <label for=""> {{__('common.currency')}} </label>
+                                                <select class="form-control select2" name="currency_id" required>
+                                                    @foreach($currencies as $currency)
+                                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
+
 
                                         <!-- Row:3 - Col:1  -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">

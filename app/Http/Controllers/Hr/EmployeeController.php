@@ -6,25 +6,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
-use App\Models\Setting\Branch;
 use App\Models\Setting\AccountType;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 // use App\Models\Transaction\Journal;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use Yajra\DataTables\Facades\DataTables;
 
 class EmployeeController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -40,7 +37,7 @@ class EmployeeController extends Controller
 
         // return response()->json($accounts);
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         return view('hr.employee.list', compact('orgbios','todaysDate'));
     }
 
@@ -50,7 +47,6 @@ class EmployeeController extends Controller
             $accounts = Account::with('salaryCurrency')
             ->select('id', 'account_type_id', 'name', 'phone', 'address', 'description','salary_currency','net_salary')
             ->where('account_type_id',$employee_account_type_id)
-            ->where('branch_id', $this->branch_id)
             ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($accounts)
@@ -81,10 +77,9 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $branchs = Branch::where('id',$this->branch_id)->get();
         $currencies = Currency::all();
 
-        return view('hr.employee.create', compact('branchs','currencies'));
+        return view('hr.employee.create', compact('currencies'));
     }
 
     public function store(Request $request)
@@ -94,13 +89,11 @@ class EmployeeController extends Controller
             'name.max' => __('validate.pre_list_name_max'),
             'name.min' => __('validate.pre_list_name_min'),
             'name.unique' => __('validate.pre_list_name_unique'),
-            'branch_id.required' => __('validate.pre_list_branch_id_required'),
         ];
 
         $validated = $request->validate([
             'account_type_id' => 'nullable|integer',
-            'name' => 'required|string|max:255|min:3|unique:accounts,name,NULL,id,branch_id,' . $request->branch_id,
-            'branch_id' => 'required|exists:branches,id',
+            'name' => 'required|string|max:255|min:3|unique:accounts,name,NULL,id',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'net_salary'    => 'nullable|numeric',
@@ -132,14 +125,13 @@ class EmployeeController extends Controller
     {
       
         $currencies = Currency::all();
-        $branchs = Branch::where('id',$this->branch_id)->get();
         $account = Account::findOrFail($id);
 
         if (!$account) {
             return response()->json(['status' => 'failed','message' => __('common.not_found')], 404);
         }
 
-        return view('hr.employee.edit', compact('account','currencies','branchs'));
+        return view('hr.employee.edit', compact('account','currencies'));
     }
 
     public function update(Request $request)
@@ -151,13 +143,11 @@ class EmployeeController extends Controller
         'name.max' => __('validate.pre_list_name_max'),
         'name.min' => __('validate.pre_list_name_min'),
         'name.unique' => __('validate.pre_list_name_unique'),
-        'branch_id.required' => __('validate.pre_list_branch_id_required'),
     ];
 
     $validated = $request->validate([
         'id' => 'required|exists:accounts,id',
-        'name' => 'required|string|max:255|min:3|unique:accounts,name,' . $request->id . ',id,branch_id,' . $request->branch_id,
-        'branch_id' => 'required|exists:branches,id',
+        'name' => 'required|string|max:255|min:3|unique:accounts,name,' . $request->id . ',id',
         'phone' => 'nullable|string|max:20',
         'address' => 'nullable|string|max:500',
         'net_salary' => 'nullable|numeric',

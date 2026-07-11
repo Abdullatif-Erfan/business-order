@@ -7,25 +7,22 @@ use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 use App\Models\Transaction\Journal;
-use App\Models\Setting\Branch;
 use App\Models\Setting\ExpenseType;
 use App\Models\Setting\OrgBio;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Morilog\Jalali\Jalalian;
+use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
 class SalaryReportController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected  $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -34,7 +31,7 @@ class SalaryReportController extends Controller
     {
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $employees = Account::select('id','name')->where('account_type_id',2)->where('branch_id', $this->branch_id)->get();
+        $employees = Account::select('id','name')->where('account_type_id',2)->get();
         $months = $this->getTranslatedMonthName();
         return view('hr.report.list',compact('employees','currencies','orgbios','months'));
     }
@@ -46,19 +43,20 @@ class SalaryReportController extends Controller
         if($locale == "fa")
         {
             $months = array(
-                '1' => 'حمل',
-                '2' => 'ثور',
-                '3' => 'جوزا',
-                '4' => 'سرطان',
-                '5' => 'اسد',
-                '6' => 'سنبله',
-                '7' => 'میزان',
-                '8' => 'عقرب',
-                '9' => 'قوس',
-                '10' => 'جدی',
-                '11' => 'دلو',
-                '12' => 'حوت',
+                1  => 'جنوری',    // January
+                2  => 'فبروری',    // February
+                3  => 'مارچ',    // March
+                4  => 'اپریل',    // April
+                5  => 'می',    // May
+                6  => 'جون',   // June
+                7  => 'جولای',  // July
+                8  => 'اگست',    // August
+                9  => 'سپتمبر',  // September
+                10 => 'اکتوبر',  // October
+                11 => 'نومبر',   // November
+                12 => 'دسمبر',    // December
             );
+
         }
         else if ($locale == "pa") 
         {
@@ -121,12 +119,14 @@ class SalaryReportController extends Controller
             $query->select('id','name','symbols','color');
         }])
         // $salary = Journal::with(['accountRelation','currencyRelation','expenseTypeRelation'])
-        ->select('id','code','bill_no','amount','account_id','currency_id','details','year','month','inserted_short_date','status','times','user')
+        ->select('id','code','bill_no','amount','account_id','currency_id','details','year','month','idate','status','times','user_name')
         ->where('journals.status','=',5)
         ->where('journals.currency_id','=',$currency_id)
-        ->where('journals.account_id','=',$account_id)
+        // ->where('journals.account_id','=',$account_id)
+        ->when(!empty($account_id), function ($query) use ($account_id) {
+                return $query->where('journal.account_id', $account_id);
+        })
         ->where('journals.dynamic_type','=',1) // show just employee records
-        ->where('journals.branch_id', $this->branch_id)
         ->orderBy('id', 'DESC');
 
 
@@ -159,6 +159,9 @@ class SalaryReportController extends Controller
             ->addColumn('accountRelation', function ($salary) {
                 return $salary->accountRelation ? $salary->accountRelation->name : '';
             })
+            ->addColumn('month', function ($salary) {
+                return $salary->month ? $this->getMonthName($salary->month)  : '';
+            })
 
             // recieved and recieveable is belongs to salary
             ->addColumn('amount', function ($salary) {
@@ -175,6 +178,25 @@ class SalaryReportController extends Controller
 
             ->rawColumns(['currency'])
             ->make(true);
+    }
+
+    function getMonthName($month=1)
+    {
+        $months = array(
+                1  => 'جنوری',    // January
+                2  => 'فبروری',    // February
+                3  => 'مارچ',    // March
+                4  => 'اپریل',    // April
+                5  => 'می',    // May
+                6  => 'جون',   // June
+                7  => 'جولای',  // July
+                8  => 'اگست',    // August
+                9  => 'سپتمبر',  // September
+                10 => 'اکتوبر',  // October
+                11 => 'نومبر',   // November
+                12 => 'دسمبر',    // December
+            );
+        return $months[$month];
     }
 
 

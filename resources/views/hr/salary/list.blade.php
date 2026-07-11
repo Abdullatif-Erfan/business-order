@@ -54,7 +54,7 @@
                                     <div class="col-md-2 col-sm-6 col-xs-12">
                                         <select class="form-control select2" id="year">
                                             <option value="">  {{__('common.year')}} </option>
-                                            @for($i=1400; $i<=1440; $i++)
+                                            @for($i=2025; $i<=2026; $i++)
                                                 <option value="{{ $i }}" >{{ $i }}</option>
                                             @endfor
                                         </select> 
@@ -129,10 +129,6 @@
 </div>
 
 
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
 <script>
     $(document).ready(function() {
         let table = $('#dataTable').DataTable({
@@ -163,7 +159,7 @@
                 { data: 'currency', name: 'currency' },
                 { data: 'year', name: 'year' },
                 { data: 'month', name: 'month' },
-                { data: 'inserted_short_date', name: 'inserted_short_date' },
+                { data: 'idate', name: 'idate' },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false },
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
 
