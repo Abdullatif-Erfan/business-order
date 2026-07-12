@@ -34,6 +34,7 @@ function fetchList() {
                 { data: 'email', name: 'email' },
                 { data: 'photo', name: 'photo',orderable: false, searchable: false  },
                 { data: 'priviledge', name: 'priviledge', orderable: false, searchable: false },
+                { data: 'link', name: 'link', orderable: false, searchable: false },
                 { data: 'relogin', name: 'relogin', orderable: false, searchable: false },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false  },
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }

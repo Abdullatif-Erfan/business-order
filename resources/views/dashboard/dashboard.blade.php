@@ -4,7 +4,8 @@
     $user = auth()->user();
     $isAdmin = $user->isAdmin == 1;
     $permissions = [
-        'settings' => $user->hasAccess('dashboard', 'total_access'),
+        'settings' => $user->hasAccess('dashboard', 'total_access') || 
+         $user->hasAccess('dashboard', 'list'),
     ];
 @endphp
 

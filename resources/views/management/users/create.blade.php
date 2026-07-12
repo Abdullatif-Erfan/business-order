@@ -20,7 +20,7 @@
                         <form action="{{ route('user.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="full_name">{{__('user.full_name')}} ({{__('user.required')}})</label>
                                         <input type="text" class="form-control @error('full_name') is-invalid @enderror" name="full_name" minlength="5" maxlength="128" required value="{{ old('full_name') }}">
@@ -28,7 +28,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="email">{{__('user.email')}} </label>
                                         <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" minlength="15" maxlength="128" value="{{ old('email') }}">
@@ -36,7 +36,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="user_name">{{__('user.user_name')}} ({{__('user.required')}})</label>
                                         <input type="text" class="form-control @error('user_name') is-invalid @enderror" name="user_name" minlength="5" maxlength="128" required value="{{ old('user_name') }}">
@@ -46,7 +46,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="password">{{__('user.password')}} ({{__('user.required')}})</label>
                                         <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" minlength="5" maxlength="20" value="{{ old('password') }}" required>
@@ -54,7 +54,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="password_confirmation"> {{__('user.password_confirmation')}} ({{__('user.required')}})</label>
                                         <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" name="password_confirmation" maxlength="20" required>
@@ -62,12 +62,24 @@
                                     </div>
                                 </div>
 
-                    
-                              
+                                    <div class="col-md-4 col-sm-6 col-xs-6">
+                                        <div class="form-group">
+                                            <label for="password_confirmation"> {{__('journal.select_account')}} </label>
+                                            <select class="form-control select2" name="account_id" style="width:100%">
+                                                <option value=""> {{__('journal.account')}} </option>
+                                                @foreach($accounts as $account)
+                                                <option value="{{ $account->id }}">{{ $account->name }}</option>
+                                                @endforeach
+                                            </select> 
+                                        </div>
+                                        <small style="font-size:10px;color:blue">
+                                           <!-- {{__('user.just_can_see_this_records')}} -->
+                                        </small>
+                                    </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="isAdmin">{{__('user.user_type')}} ({{__('user.required')}})</label>
                                         <select class="form-control @error('isAdmin') is-invalid @enderror" name="isAdmin"
@@ -79,7 +91,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="role">{{__('user.role')}}</label>
                                         <select class="form-control @error('roleId') is-invalid @enderror" name="roleId" required>
@@ -95,7 +107,7 @@
                                 </div>
 
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-sm-6 col-xs-6">
                                     <div class="form-group">
                                         <label for="photo">{{__('user.imageUpload')}}</label>
                                         <input type="file" class="form-control @error('photo') is-invalid @enderror" name="photo" accept=".jpg, .jpeg, .png, .PNG">

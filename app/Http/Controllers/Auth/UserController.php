@@ -8,22 +8,25 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Setting\Account;
 use App\Models\User; 
 use App\Models\Auth\Role; 
 use App\Models\Setting\OrgBio;
-use App\Models\Setting\Branch;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
-    protected $isAdmin;
+    protected $isAdmin, $accountId;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
-        } else {
+            $this->accountId = session('accountId', auth()->id());
+        } 
+        else 
+        {
             $this->isAdmin = false;
+            $this->accountId = 0;
         }
     }
 
@@ -54,6 +57,7 @@ class UserController extends Controller
     {
         // $users = User::with(['roleRelationName'])->orderBy('created_at','DESC')->get();
         // return ['users' => $users];
+        // return $this->userId;
         $orgbios = OrgBio::all();
         return view('management.users.list',compact('orgbios'));
     }
@@ -67,7 +71,7 @@ class UserController extends Controller
           }
           else 
           {
-             $users = User::with(['roleRelationName'])->where('isHidden',0)->where('branch_id', $this->branch_id)->orderBy('created_at','DESC');
+             $users = User::with(['roleRelationName'])->where('users.account_id',$this->accountId)->where('isHidden',0)->orderBy('created_at','DESC');
           }
            
             
@@ -83,6 +87,11 @@ class UserController extends Controller
                 return '<img src="' . $imagePath . '" alt="image" class="avatar-img rounded" style="width:30px;margin:2px 0px;">';
             })
 
+
+            ->addColumn('link', function ($user) {
+                return $user->account_id && $user->account_id > 0 ? '<i class="fas fa-check-circle success"></>' : 
+                '<i class="fas fa-times default"></>';
+            })
 
             ->addColumn('priviledge', function ($user) {
                 return $user->isAdmin ? __('common.admin') : $user->roleRelationName->role;
@@ -102,7 +111,7 @@ class UserController extends Controller
                 return $this->isAdmin ? '<a href="user/delete/'.$user->id.'" onclick="doConfirm()" class="hidden-print"><i class="fa fa-trash" 
                 data-id="' . $user->id . '" style="font-size:20px; color:red"></i></a>': ''; 
             })
-            ->rawColumns(['photo','relogin','edit','delete'])
+            ->rawColumns(['photo','relogin','edit','delete','link'])
             ->make(true);
 
     }
@@ -120,15 +129,18 @@ class UserController extends Controller
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $isAdmin = $this->isAdmin ?? 0;
-        return view('management.users.create',compact('roles','orgbios','isAdmin'));
+        // get list of customers and employess or drivers
+        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [2, 3])->get(); 
+        return view('management.users.create',compact('roles','orgbios','isAdmin','accounts'));
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
+    * Store a newly created resource in storage.
+    */
+
     public function store(Request $request)
     {
-        // return ['data' => $request->all()];
+        // Validate the request
         $validated = $request->validate([
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name',
@@ -136,26 +148,56 @@ class UserController extends Controller
             'password' => 'required|string|min:5|max:20|confirmed',
             'roleId' => 'required|exists:roles,roleId',
             'isAdmin' => 'required|boolean',
+            'account_id' => 'nullable|exists:accounts,id', 
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $user = new User();
-        $user->full_name = $validated['full_name'];
-        $user->user_name = $validated['user_name'];
-        $user->email = $validated['email'];
-        $user->password = Hash::make($validated['password']);
-        $user->roleId = $validated['roleId'];
-        $user->isAdmin = $validated['isAdmin'];
-        $user->createdBy = auth()->id();
+        try {
+            DB::beginTransaction();
 
-        if ($request->hasFile('photo')) {
-            $user->photo = $request->file('photo')->store('user_photos', 'public');
+            // Create user
+            $user = new User();
+            $user->full_name = $validated['full_name'];
+            $user->user_name = $validated['user_name'];
+            $user->email = $validated['email'] ?? null;
+            $user->password = Hash::make($validated['password']);
+            $user->roleId = $validated['roleId'];
+            $user->isAdmin = $validated['isAdmin'];
+            $user->account_id = $validated['account_id'] ?? null;
+            $user->createdBy = auth()->id();
+
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('user_photos', 'public');
+                $user->photo = $photoPath;
+            }
+
+            $user->save();
+
+            // Update account with user reference
+            if (!empty($validated['account_id'])) {
+                Account::where('id', $validated['account_id'])
+                    ->update(['user_account_id' => $user->id]);
+            }
+
+            DB::commit();
+
+            Session::put('notification', [
+                'message' => __('common.added_successfully'), 
+                'type' => 'success'
+            ]);
+            return redirect()->route('user.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error creating user: ' . $e->getMessage());
+
+            Session::put('notification', [
+                'message' => __('common.add_failed') . ': ' . $e->getMessage(), 
+                'type' => 'danger'
+            ]);
+            return redirect()->route('user.index')->withInput();
         }
-
-        $user->save();
-        
-        Session::put('notification', ['message' => __('common.admin'), 'type' => 'success']);
-        return redirect()->route('user.index');
     }
 
     /**
@@ -173,66 +215,140 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $orgbios = OrgBio::all();
-        $user = User::findOrFail($id);
+        
+        // Eager load the account relationship
+        $user = User::with('account')->findOrFail($id);
+        
         $isAdmin = $this->isAdmin ?? 0;
-
-        return view('management.users.edit',compact('roles','orgbios','user','isAdmin'));
+        
+        // Get list of customers, employees, or drivers
+        $accounts = Account::select('id', 'name')
+            ->whereIn('account_type_id', [2, 3])
+            ->get();
+        
+        // Get the user's current account
+        $userAccount = $user->account; // Returns Account model or null
+        
+        return view('management.users.edit', compact('roles', 'orgbios', 'user', 'isAdmin', 'accounts', 'userAccount'));
     }
 
-    /**
+
+     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
-    {  
-        $id = $id ?? 0;
-
-        // Validate the incoming data
-        $validated = $request->validate([
+    {
+        // Base validation rules
+        $rules = [
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name,' . $id,
             'email' => 'nullable|email|max:128|unique:users,email,' . $id,
             'password' => 'nullable|string|min:5|max:20|confirmed',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+            'account_id' => 'nullable',
+            'old_account_id' => 'nullable',
+        ];
 
-        // Find the user
-        $user = User::findOrFail($id);
-
-        // Update only allowed fields
-        $user->full_name = $validated['full_name'];
-        $user->user_name = $validated['user_name'];
-        $user->email = $validated['email'] ?? $user->email;
-
-        // Only an admin can update these fields
+        // Only admins can update these fields
         if (auth()->user()->isAdmin) {
-            $validatedAdminFields = $request->validate([
-                'roleId' => 'nullable|exists:roles,roleId',
-                'isAdmin' => 'nullable|boolean',
-            ]);
-
-            $user->roleId = $validatedAdminFields['roleId'] ?? $user->roleId;
-            $user->isAdmin = $validatedAdminFields['isAdmin'] ?? $user->isAdmin;
+            $rules['roleId'] = 'nullable|exists:roles,roleId';
+            $rules['isAdmin'] = 'nullable|boolean';
         }
 
-        // Update password if provided
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->input('password'));
-        }
+        $validated = $request->validate($rules);
 
-        // Handle photo upload
-        if ($request->hasFile('photo')) {
-            if ($user->photo && Storage::exists('public/user_photos/' . $user->photo)) {
-                Storage::delete('public/user_photos/' . $user->photo);
+        try {
+            DB::beginTransaction();
+
+            $user = User::findOrFail($id);
+
+            // Update basic fields
+            $user->full_name = $validated['full_name'];
+            $user->user_name = $validated['user_name'];
+            $user->email = $validated['email'] ?? null;
+            $user->account_id = $validated['account_id'] ?? null;
+
+            // Only update admin fields if user is admin
+            if (auth()->user()->isAdmin) {
+                if (isset($validated['roleId'])) {
+                    $user->roleId = $validated['roleId'];
+                }
+                if (isset($validated['isAdmin'])) {
+                    $user->isAdmin = $validated['isAdmin'];
+                }
             }
 
-            $user->photo = $request->file('photo')->store('user_photos', 'public');
+            // Update password if provided
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->input('password'));
+            }
+
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                // Delete old photo
+                if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+                
+                $photoPath = $request->file('photo')->store('user_photos', 'public');
+                $user->photo = $photoPath;
+            }
+
+            $user->save();
+
+            // Update account association
+            // قبلا حساب انتخاب شده بود وحالا یا حساب دیگر ویا پاک ساختیم باید اکاونت تیبل نیز آپدیت و نل شود
+            if(!empty($validated['old_account_id'])) {
+                $this->updateAccountAssociation($user->id, $validated['account_id'] ?? null);
+            }
+
+            DB::commit();
+
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'), 
+                'type' => 'success'
+            ]);
+            return redirect()->route('user.index');
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            Session::put('notification', [
+                'message' => __('common.record_not_found'), 
+                'type' => 'danger'
+            ]);
+            return redirect()->route('user.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating user: ' . $e->getMessage());
+
+            Session::put('notification', [
+                'message' => __('common.update_failed') . ': ' . $e->getMessage(), 
+                'type' => 'danger'
+            ]);
+            return redirect()->route('user.index')->withInput();
         }
+    }
 
-        // Save the updated user data
-        $user->save();
-
-        Session::put('notification', ['message' => __('common.updated_successfully'), 'type' => 'success']);
-        return redirect()->route('user.index');
+    /**
+     * Update account association for user
+     */
+    private function updateAccountAssociation($userId, $accountId)
+    {
+        // if (!empty($accountId)) {
+            // Remove old reference from previous account
+            Account::where('user_account_id', $userId)
+                ->where('id', '!=', $accountId)
+                ->update(['user_account_id' => null]);
+            
+            // Set new reference
+            Account::where('id', $accountId)
+                ->update(['user_account_id' => $userId]);
+        // } else {
+        //     // Remove all references
+        //     Account::where('user_account_id', $userId)
+        //         ->update(['user_account_id' => null]);
+        // }
     }
 
     
@@ -242,16 +358,38 @@ class UserController extends Controller
      */
     public function delete(string $id)
     {
-        $user = User::findOrFail($id);
-        if($user)
-        {
+        try {
+            // Find the user
+            $user = User::find($id);
+            
+            if (!$user) {
+                Session::put('notification', [
+                    'message' => __('common.record_not_found'), 
+                    'type' => 'danger'
+                ]);
+                return redirect()->route('user.index');
+            }
+
+            // First, update accounts to remove user reference
+            Account::where('user_account_id', $id)->update(['user_account_id' => null]);
+
+            // Then delete the user
             $user->delete();
-            Session::put('notification', ['message' => __('deleted_successfully'), 'type' => 'danger']);
+
+            Session::put('notification', [
+                'message' => __('common.deleted_successfully'), 
+                'type' => 'success'
+            ]);
+            return redirect()->route('user.index');
+
+        } catch (\Exception $e) {
+            \Log::error('Error deleting user: ' . $e->getMessage());
+            
+            Session::put('notification', [
+                'message' => __('common.delete_failed') . ': ' . $e->getMessage(), 
+                'type' => 'danger'
+            ]);
             return redirect()->route('user.index');
         }
-
-        Session::put('notification', ['message' => __('delete_failed'), 'type' => 'danger']);
-        return redirect()->route('user.index');
-
     }
 }

@@ -25,12 +25,12 @@
                                 <table id="userTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                            <td colspan="10">
                                             <img src="{{ $orgbios[0]->header }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="13">
+                                            <td colspan="10">
                                             <center> {{__('user.users_list')}}  </center>
                                             </td>
                                         </tr>
@@ -41,6 +41,7 @@
                                             <th> {{__('common.email')}} </th>
                                             <th> {{__('common.image')}}  </th>
                                             <th> {{__('user.priviledge')}} </th>
+                                            <th> {{__('user.hasAccount')}} </th>
                                             <th> {{__('user.login')}} </th>
                                             <th> {{__('common.edit')}} </th>
                                             <th> {{__('common.delete')}} </th>

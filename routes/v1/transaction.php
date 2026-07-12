@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Transactions\JournalController;
-use App\Http\Controllers\Transactions\IncomeController;
 use App\Http\Controllers\Transactions\ExpenseController;
 
 
@@ -18,17 +17,6 @@ use App\Http\Controllers\Transactions\ExpenseController;
     Route::get('/print/{times}', [JournalController::class, 'print'])->name('journal.print');
     Route::get('/edit/{times}', [JournalController::class, 'edit'])->name('journal.edit')->middleware('access:journal,edit_records');
     Route::delete('/destroy/{times}', [JournalController::class, 'destroy'])->name('journal.destroy')->middleware('access:journal,delete_records');
-});
-
-// income
-Route::prefix('income')->group(function(){
-    Route::get('/',[IncomeController::class, 'index'])->name('income.index')->middleware('access:income,list');
-    Route::get('/data', [IncomeController::class, 'getData'])->name('income.data');
-    Route::get('/create',[IncomeController::class, 'create'])->name('income.create')->middleware('access:income,create_records');
-    Route::post('/store', [IncomeController::class, 'store'])->name('income.store');
-    Route::get('/edit/{id}', [IncomeController::class, 'edit'])->name('income.edit')->middleware('access:income,edit_records');
-    Route::patch('/update/{id}', [IncomeController::class, 'update'])->name('income.update');
-    Route::get('/destroy/{id}', [IncomeController::class, 'destroy'])->name('income.destroy')->middleware('access:income,delete_records');
 });
 
 // expense

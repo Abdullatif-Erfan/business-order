@@ -72,7 +72,7 @@ Route::prefix('orgprofile')->group(function(){
     Route::get('/create', [OrgProfileController::class, 'create'])->name('orgprofile.create')->middleware('access:settings,create_records');
     Route::post('/store', [OrgProfileController::class, 'store'])->name('orgprofile.store');
     Route::get('/{id}', [OrgProfileController::class, 'edit'])->name('orgprofile.edit')->middleware('access:settings,edit_records');
-    Route::post('/update', [OrgProfileController::class, 'update'])->name('orgprofile.update'); 
+    Route::post('/update', [OrgProfileController::class, 'update'])->name('orgprofile.update')->middleware('access:settings,edit_records'); 
     Route::delete('/{id}', [OrgProfileController::class, 'destroy'])->name('orgprofile.destroy')->middleware('access:settings,delete_records');
 });
 

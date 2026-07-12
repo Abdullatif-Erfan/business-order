@@ -100,20 +100,13 @@
                                         </tr>
                                         <tr>
                                             <th> <center> {{__('reports.gudam')}}  </center> </th>
-                                            <th colspan="4"> <center> {{__('reports.sales')}}   </center> </th>
                                             <th colspan="4"> <center>  {{__('reports.buy')}}  </center> </th>
+                                            <th colspan="4"> <center> {{__('reports.sales')}}   </center> </th>
                                         </tr>
                                         <tr>
                                         <th style="border-top: 1px solid #fff !important;"><center>
                                          {{__('reports.gudam_in')}}</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>
-                                        {{__('reports.sales')}} </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>
-                                        {{__('reports.sales_income')}}</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>
-                                        {{__('reports.sales_talab')}} </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>
-                                         {{__('reports.sales_profit')}}</center></th>
+                                       
                                         <th style="border-top: 1px solid #fff !important;"><center>  
                                         {{__('reports.buy')}}</center></th>
                                         <th style="border-top: 1px solid #fff !important;"><center>  
@@ -122,6 +115,16 @@
                                         {{__('reports.buy_low')}} </center></th>
                                         <th style="border-top: 1px solid #fff !important;"><center>   
                                         {{__('reports.transport')}} </center></th>
+
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                        {{__('reports.sales')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                        {{__('reports.sales_income')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                        {{__('reports.sales_talab')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>
+                                         {{__('reports.sales_profit')}}</center></th>
+                                        
                                         </tr>
                                     </thead>
 
@@ -136,7 +139,6 @@
                                                 $totalBoughtPayable = 0;
                                                 $totalBoughtCurPay = 0;
                                                 $totalBoughtRemained = 0;
-                                                $totalBoughtTransport = 0;
                                             @endphp
 
                                             @foreach($dailyReport as $row)
@@ -152,7 +154,7 @@
                                                     ) ? 'table-success' : '';
 
                                                     // Calculate values for totals
-                                                    $warehouseValue = ($row->total_warehouse_value - $row->total_warehouse_wastage) ?? 0;
+                                                    $warehouseValue = $row->total_warehouse_value ?? 0;
                                                     $salesPayable = $row->total_sales_payable ?? 0;
                                                     $salesCurPay = $row->total_sales_curpay ?? 0;
                                                     $salesRemained = $row->total_sales_remained ?? 0;
@@ -171,20 +173,21 @@
                                                     $totalBoughtPayable += $boughtPayable;
                                                     $totalBoughtCurPay += $boughtCurPay;
                                                     $totalBoughtRemained += $boughtRemained;
-                                                    $totalBoughtTransport += $boughtTransport;
                                                 @endphp
 
                                                 <tr class="{{ $isToday }}">
                                                     <td>{{ $dayName }}</td>
                                                     <td>{{ number_format($warehouseValue,2) }}</td>
+                                                    
+                                                    <td>{{ number_format($boughtPayable,2) }}</td>
+                                                    <td>{{ number_format($boughtCurPay,2) }}</td>
+                                                    <td>{{ number_format($boughtRemained,2) }}</td>
+                                                    <td></td>
+                                                    
                                                     <td>{{ number_format($salesPayable,2) }}</td>
                                                     <td>{{ number_format($salesCurPay,2) }}</td>
                                                     <td>{{ number_format($salesRemained,2) }}</td>
                                                     <td>{{ number_format($salesProfit,2) }}</td>
-                                                    <td>{{ number_format($boughtPayable,2) }}</td>
-                                                    <td>{{ number_format($boughtCurPay,2) }}</td>
-                                                    <td>{{ number_format($boughtRemained,2) }}</td>
-                                                    <td>{{ number_format($boughtTransport,2) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -193,14 +196,17 @@
                                             <tr style="background-color:#fff8d9">
                                                 <td><strong>{{__('reports.total')}}</strong></td>
                                                 <td><strong>{{ number_format($totalWarehouseValue,2) }}</strong></td>
+                                                
+                                                <td><strong>{{ number_format($totalBoughtPayable,2) }} </strong></td>
+                                                <td><strong>{{ number_format($totalBoughtCurPay,2) }}  </strong></td>
+                                                <td><strong>{{ number_format($totalBoughtRemained,2) }} </strong></td>
+                                                <td></td>
+
                                                 <td><strong>{{ number_format($totalSalesPayable,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesCurPay,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesRemained,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesProfit,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtPayable,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtCurPay,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtRemained,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtTransport,2) }}</strong></td>
+                                                
                                             </tr>
                                         </tfoot>
                                     </table>

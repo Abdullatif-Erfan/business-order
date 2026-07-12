@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Auth\Role;
+use App\Models\Setting\Account;
 use App\Models\Setting\Branch;
 
 
@@ -21,6 +22,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */ 
     protected $fillable = [
+        'account_id',
         'full_name',
         'user_name',
         'email',
@@ -46,6 +48,26 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+     // Check if user has account assigned
+    public function hasAccount()
+    {
+        return !is_null($this->account);
+    }
+
+    // Get account details if assigned
+    public function getAccountNameAttribute()
+    {
+        return $this->account ? $this->account->name : null;
+    }
+
+      //  Relationship with Account (one-to-one)
+    public function account()
+    {
+        return $this->hasOne(Account::class, 'user_account_id', 'id');
+        // OR if using account_id in users table:
+        // return $this->belongsTo(Account::class, 'account_id');
+    }
 
     /**
      * Get the attributes that should be cast.

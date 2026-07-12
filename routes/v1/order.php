@@ -8,7 +8,7 @@ use App\Http\Controllers\Order\OrderController;
 Route::prefix('orders')->name('orders.')->group(function(){
     // List and Data
     Route::get('/', [OrderController::class, 'index'])->name('index')->middleware('access:order,list');
-    Route::get('/data', [OrderController::class, 'getData'])->name('data')->middleware('access:order,list');
+    Route::get('/data', [OrderController::class, 'getData'])->name('data');
     
     // Create
     Route::get('/create', [OrderController::class, 'create'])->name('create')->middleware('access:order,create_records');

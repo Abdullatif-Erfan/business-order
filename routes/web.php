@@ -67,11 +67,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::prefix('home')->group(function () {
-        Route::get('/',[HomeController::class,'index'])->name('home');
-        Route::get('/orders', [HomeController::class, 'getDashboardOrders'])->name('home.orders');
-        Route::get('/bought', [HomeController::class, 'getDashboardBoughts'])->name('home.bought');
-        Route::get('/sales', [HomeController::class, 'getDashboardSales'])->name('home.sales');
-        Route::get('/returns', [HomeController::class, 'getDashboardReturns'])->name('home.returns');
+        Route::get('/',[HomeController::class,'index'])->name('home')->middleware('access:dashboard,list');
+        Route::get('/orders', [HomeController::class, 'getDashboardOrders'])->name('home.orders')->middleware('access:dashboard,list');
+        Route::get('/bought', [HomeController::class, 'getDashboardBoughts'])->name('home.bought')->middleware('access:dashboard,list');
+        Route::get('/sales', [HomeController::class, 'getDashboardSales'])->name('home.sales')->middleware('access:dashboard,list');
+        Route::get('/returns', [HomeController::class, 'getDashboardReturns'])->name('home.returns')->middleware('access:dashboard,list');
 
 
         Route::post('/search',[HomeController::class,'index'])->name('home.search');
@@ -87,25 +87,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // backup
     Route::prefix('backups')->group(function(){
-        Route::get('/', [BackupController::class, 'index'])->name('backups.index');
+        Route::get('/', [BackupController::class, 'index'])->name('backups.index')->middleware('access:backup,list');
         Route::get('/data', [BackupController::class, 'getData'])->name('backups.data');
-        Route::post('/', [BackupController::class, 'createBackup'])->name('backups.create');
-        Route::post('/restore/{id}', [BackupController::class, 'restoreBackup'])->name('backups.restore');
+        Route::post('/', [BackupController::class, 'createBackup'])->name('backups.create')->middleware('access:backup,create_records');
+        Route::post('/restore/{id}', [BackupController::class, 'restoreBackup'])->name('backups.restore')->middleware('access:backup,create_records');
         Route::get('/download/{id}', [BackupController::class, 'download'])->name('backups.download');
-        Route::delete('/destroy/{id}', [BackupController::class, 'deleteBackup'])->name('backups.destroy');
+        Route::delete('/destroy/{id}', [BackupController::class, 'deleteBackup'])->name('backups.destroy')->middleware('access:backup,delete_records');
     });
     
-    // Rate
-    Route::prefix('rate')->group(function(){
-        Route::get('/', [RateController::class, 'index'])->name('rate.index')->middleware('access:rates,list');
-        Route::get('/data', [RateController::class, 'getData'])->name('rate.data');
-        Route::get('/create', [RateController::class, 'create'])->name('rate.create')->middleware('access:rates,create_records');
-        Route::post('/store', [RateController::class, 'store'])->name('rate.store');
-        Route::get('/edit/{id}', [RateController::class, 'edit'])->name('rate.edit')->middleware('access:rates,edit_records');
-        Route::put('/update', [RateController::class, 'update'])->name('rate.update')->middleware('access:rates,edit_records');
-        Route::delete('/destroy/{id}', [RateController::class, 'destroy'])->name('rate.destroy')->middleware('access:rates,delete_records');
-    });
-
     // setting
     require __DIR__ . '/v1/setting.php';
    
@@ -122,10 +111,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
      require __DIR__ . '/v1/warehouse.php';
 
 
-    // clearance
-    require __DIR__ . '/v1/clearance.php';
-    
-
     // transaction
     require __DIR__ . '/v1/transaction.php';
 
@@ -135,8 +120,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // hr
      require __DIR__ . '/v1/hr.php';
 
-     // production
-     require __DIR__ . '/v1/production.php';
 
 
    

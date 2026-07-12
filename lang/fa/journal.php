@@ -62,8 +62,10 @@ return [
     'upload_document' => 'ذخیره سند',
     'download' => 'دانلود',
     'select_account' => 'حساب را انتخاب نمایید',
+    'other_account_selection' => 'انتخاب حساب دیگر',
     'account' => 'حساب',
-
+    'no_account' => 'عدم موجودیت حساب',
+    
 
     // income
     'income_title' => 'عواید',

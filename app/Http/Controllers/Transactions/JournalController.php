@@ -20,7 +20,7 @@ use App\Services\NumberToWordsService;
 
 class JournalController extends Controller
 {
-    protected $isAdmin, $full_name, $numberToWordsService;
+    protected $isAdmin, $userId, $full_name, $numberToWordsService;
 
     // Inject the message service into the controller
     public function __construct(NumberToWordsService $numberToWordsService)
@@ -30,12 +30,15 @@ class JournalController extends Controller
         {
             $this->isAdmin = session('isAdmin', auth()->check() ? auth()->user()->isAdmin == 1 : false);
             $this->full_name = session('full_name', auth()->check() ? auth()->user()->full_name : 0);
+            $this->userId = session('userId', auth()->id());
             
         } else {
             $this->isAdmin = false;
             $this->full_name = '';
+            $this->userId = 0;
         }
     }
+
 
     /**
      * Display a listing of the resource.
@@ -54,6 +57,7 @@ class JournalController extends Controller
      */
     public function getData(Request $request)
     {
+        
         $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'idate', 'status', 'times', 'is_single_record')
         ->orderBy('id', 'DESC');

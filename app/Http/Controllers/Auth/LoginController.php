@@ -144,6 +144,7 @@ class LoginController extends Controller
 
             Session::put([
                 'userId' => $user->id,
+                'accountId' => $user->account_id,
                 'role' => $user->roleId,
                 'roleText' => $user->roleRelationName->role,
                 'name' => $user->full_name,
@@ -296,6 +297,7 @@ class LoginController extends Controller
 
             Session::put([
                 'userId' => $user->id,
+                'accountId' => $user->account_id,
                 'role' => $user->roleId,
                 'roleText' => $user->roleRelationName->name,
                 'name' => $user->full_name,

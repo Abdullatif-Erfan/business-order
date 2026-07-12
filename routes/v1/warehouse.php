@@ -22,11 +22,4 @@ use App\Http\Controllers\Warehouse\WarehouseWastageController;
         Route::get('/all', [WarehouseListController::class, 'all'])->name('warehousesList.all')->middleware('access:gudam,list');
         Route::get('/allData', [WarehouseListController::class, 'allData'])->name('warehousesList.allData')->middleware('access:gudam,list');
 
-        
-        // wastage
-        Route::get('/wastage', [WarehouseWastageController::class, 'index'])->name('warehousesList.wastage')->middleware('access:gudam,list');
-        Route::get('/wastage_data', [WarehouseWastageController::class, 'getData'])->name('warehousesList.wastage_data');
-        Route::get('/wastage/create', [WarehouseWastageController::class, 'create'])->name('warehousesList.wastage.create');
-        Route::post('/wastage/store', [WarehouseWastageController::class, 'store'])->name('warehousesList.wastage.store');
-
     });

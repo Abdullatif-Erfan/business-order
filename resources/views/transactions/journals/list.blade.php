@@ -28,7 +28,7 @@
                                     </button>
                                 </a>
                             @else
-                                <button type="button" onclick="alert('{{ __('commont.not_allowed') }}')" class="btn btn-sm mybtn">
+                                <button type="button" onclick="alert('{{ __('common.not_allowed') }}')" class="btn btn-sm mybtn">
                                     <i class="fas fa-plus"></i> <th>{{__('common.add')}}</th>
                                 </button>
                             @endif

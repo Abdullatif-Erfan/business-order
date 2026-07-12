@@ -9,14 +9,8 @@ use App\Http\Controllers\Buy\BoughtDetailsBasedItemController;
 Route::prefix('buyprelist')->group(function(){
     Route::get('/',[BuyPreListController::class, 'index'])->name('buyprelist.index')->middleware('access:buy,list');
     Route::get('/data',[BuyPreListController::class, 'getData'])->name('buyprelist.data');
-    Route::get('/pos_data',[BuyPreListController::class, 'getPosData'])->name('buyprelist.pos_data');
-    Route::get('/print_barcode', [BuyPreListController::class, 'print_barcode'])->name('buyprelist.print_barcode');
     Route::get('/{id}',[BuyPreListController::class, 'show'])->name('buyprelist.show')->middleware('access:buy,create_records');
-    Route::post('/store',[BuyPreListController::class, 'store'])->name('buyprelist.store')->middleware('access:buy,create_records');
-    Route::post('/pos_store',[BuyPreListController::class, 'pos_store'])->name('buyprelist.pos_store')->middleware('access:buy,create_records');
-    Route::post('/storeWithBarcodeGeneration',[BuyPreListController::class, 'storeWithBarcodeGeneration'])->name('buyprelist.storeWithBarcodeGeneration')->middleware('access:buy,create_records');
-   
-    
+    Route::post('/store',[BuyPreListController::class, 'store'])->name('buyprelist.store')->middleware('access:buy,create_records');  
     Route::post('/update',[BuyPreListController::class, 'update'])->name('buyprelist.update')->middleware('access:buy,edit_records');
     Route::delete('/destroy/{id}',[BuyPreListController::class, 'destroy'])->name('buyprelist.destroy')->middleware('access:buy,delete_records');
 });
@@ -52,11 +46,11 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
 
     // Invoice routes
-    Route::get('/invoices', [BoughtDetailsController::class, 'invoiceList'])->name('boughtList.invoices');
+    Route::get('/invoices', [BoughtDetailsController::class, 'invoiceList'])->name('boughtList.invoices')->middleware('access:buy,list');;
     Route::get('/invoice-data', [BoughtDetailsController::class, 'getInvoiceData'])->name('boughtList.invoiceData');
-    Route::post('/generate-invoice', [BoughtDetailsController::class, 'generateInvoice'])->name('boughtList.generateInvoice');
+    Route::post('/generate-invoice', [BoughtDetailsController::class, 'generateInvoice'])->name('boughtList.generateInvoice')->middleware('access:buy,create_records');;
     Route::get('/invoice/{id}', [BoughtDetailsController::class, 'showInvoice'])->name('boughtList.showInvoice');
-    Route::post('/invoice-payment', [BoughtDetailsController::class, 'addPayment'])->name('boughtList.addPayment');
+    Route::post('/invoice-payment', [BoughtDetailsController::class, 'addPayment'])->name('boughtList.addPayment')->middleware('access:buy,create_records');;
 });
 
 
@@ -70,10 +64,10 @@ Route::prefix('boughtListBasedItem')->group(function(){
 // Return routes
 Route::prefix('return')->group(function(){
    Route::get('/list', [BoughtDetailsBasedItemController::class, 'returnList'])->name('return.list')->middleware('access:buy,list');
-   Route::get('/data', [BoughtDetailsBasedItemController::class, 'getReturnData'])->name('return.data')->middleware('access:buy,list');
+   Route::get('/data', [BoughtDetailsBasedItemController::class, 'getReturnData'])->name('return.data');
    Route::get('/view/{id}', [BoughtDetailsBasedItemController::class, 'viewReturn'])->name('return.view')->middleware('access:buy,list');
    Route::get('/getSingleRecordForReturn/{id}',[BoughtDetailsBasedItemController::class,'getSingleRecordForReturn'])->name('return.getSingleRecordForReturn');
-   Route::post('/addReturn',[BoughtDetailsBasedItemController::class, 'addReturn'])->name('return.addReturn');
+   Route::post('/addReturn',[BoughtDetailsBasedItemController::class, 'addReturn'])->name('return.addReturn')->middleware('access:buy,create_records');
 });
 
 
