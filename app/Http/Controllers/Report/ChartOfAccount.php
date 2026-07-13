@@ -36,12 +36,16 @@ class ChartOfAccount extends Controller
         $currencies = Currency::select('id','name')->get();
         // حسابات نقده شرکت
         $company_accounts = $this->getCompanyAccountsReport($id, $khazana_account_type_id,  $banks_account_type_id);
-        // حسابات فروشنده گان
+        // حسابات تهیه کننده گان
         $supplier_accounts = $this->getSellersAndCustomersReport($id, $supplier_account_type_id,  0);
         // حسابات مشتریان
         $customer_accounts = $this->getSellersAndCustomersReport($id, $customer_account_type_id,  0);
+
+         // حسابات کارمندان
+        $employee_accounts = $this->getSellersAndCustomersReport($id, $employee_account_type_id,  0);
+
         // سهم داران
-        $participant_accounts = $this->getSellersAndCustomersReport($id, $participant_account_type_id,  0);
+        // $participant_accounts = $this->getSellersAndCustomersReport($id, $participant_account_type_id,  0);
 
 
         // دریافت طلبات و قرضه شرکت از حسابات مشتریان و فروشندگاه
@@ -56,9 +60,10 @@ class ChartOfAccount extends Controller
             'currency_id' => $id ?? 1,
             'currencies' => $currencies,
             'company_accounts' => $company_accounts,
+            'employee_accounts' => $employee_accounts,
             'supplier_accounts' => $supplier_accounts,
             'customer_accounts' => $customer_accounts,
-            'participant_accounts' => $participant_accounts,
+            // 'participant_accounts' => $participant_accounts,
             'talabat_and_loans' => $talabat_and_loans,
             'orgbios' => $orgbios,
         ]);

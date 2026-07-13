@@ -34,6 +34,21 @@ class ItemController extends Controller
      */
     public function daily(Request $request)
     {
+         $months = array(
+                1  => 'جنوری',    // January
+                2  => 'فبروری',    // February
+                3  => 'مارچ',    // March
+                4  => 'اپریل',    // April
+                5  => 'می',    // May
+                6  => 'جون',   // June
+                7  => 'جولای',  // July
+                8  => 'اگست',    // August
+                9  => 'سپتمبر',  // September
+                10 => 'اکتوبر',  // October
+                11 => 'نومبر',   // November
+                12 => 'دسمبر',    // December
+            );
+
         $orgbios = OrgBio::all();
         $data['year'] = $request->input('year') ?? Carbon::now()->format('Y');
         $data['month'] = $request->input('month') ?? Carbon::now()->format('n');
@@ -61,7 +76,7 @@ class ItemController extends Controller
         $dailyReport = $this->getDailyReports($data['currency_id'],$data['year'],$data['month']);
         // return ['dailyReport', $dailyReport];
         
-        return view('report.items.daily', compact('data','dailyReport','orgbios'));
+        return view('report.items.daily', compact('data','dailyReport','orgbios','months'));
     }
     
     /**
@@ -206,17 +221,6 @@ class ItemController extends Controller
                     ->where('currency_id', $currency_id)
             );
 
-        // Get warehouse data per day
-        $warehouseQuery = DB::table('warehouse_items')
-            ->select(
-                'day',
-                DB::raw('SUM(available_total) AS total_warehouse_value')
-            )
-            ->where('year', $year)
-            ->where('month', $month)
-            ->where('currency_id', $currency_id)
-            ->groupBy('day');
-
         $combinedQuery = DB::table('warehouse_sales AS ws')
         ->leftJoin('sales_details AS sd', 'ws.id', '=', 'sd.warehouse_sales_id')
         ->select(
@@ -248,8 +252,6 @@ class ItemController extends Controller
         // Final Query: Combine all data sources
         return DB::table(DB::raw("({$subQueryAllDays->toSql()}) as all_days"))
             ->mergeBindings($subQueryAllDays)
-            ->leftJoin(DB::raw("({$warehouseQuery->toSql()}) as w"), 'all_days.report_day', '=', 'w.day')
-            ->mergeBindings($warehouseQuery)
 
             ->leftJoin(DB::raw("({$combinedQuery->toSql()}) as s"), 'all_days.report_day', '=', 's.day')
             ->mergeBindings($combinedQuery)
@@ -259,8 +261,6 @@ class ItemController extends Controller
             ->mergeBindings($boughtQuery)
             ->select(
                 'all_days.report_day',
-                DB::raw('COALESCE(w.total_warehouse_value, 0) AS total_warehouse_value'),
-                // COMMENT:  DB::raw('COALESCE(w.total_warehouse_wastage, 0) AS total_warehouse_wastage'),
                 DB::raw('COALESCE(s.total_sales_payable, 0) AS total_sales_payable'),
                 DB::raw('COALESCE(s.total_sales_curpay, 0) AS total_sales_curpay'),
                 DB::raw('COALESCE(s.total_sales_remained, 0) AS total_sales_remained'),
@@ -268,12 +268,22 @@ class ItemController extends Controller
                 DB::raw('COALESCE(b.total_bought_payable, 0) AS total_bought_payable'),
                 DB::raw('COALESCE(b.total_bought_curpay, 0) AS total_bought_curpay'),
                 DB::raw('COALESCE(b.total_bought_remained, 0) AS total_bought_remained'),
-                // COMMENT:  DB::raw('COALESCE(b.total_bought_transport, 0) AS total_bought_transport')
             )
             ->orderBy('all_days.report_day')
             ->get();
     }
 
+
+    function getMonthsName($monthNumber)
+    {
+         $months = [
+            1 => 'جنوری', 2 => 'فبروری', 3 => 'مارچ',
+            4 => 'اپریل', 5 => 'می', 6 => 'جون',
+            7 => 'جولای', 8 => 'اگست', 9 => 'سپتمبر',
+            10 => 'اکتوبر', 11 => 'نومبر', 12 => 'دسیمبر',
+        ];
+        return $months[$monthNumber] ?? '';
+    }
 
 
     /**
@@ -281,27 +291,18 @@ class ItemController extends Controller
     */
     public function getMonthlyReports($currency_id, $year)
     {
-        $warehouseQuery = DB::table('warehouse_items')
-            ->select(
-                'month',
-                DB::raw('SUM(available_total) AS total_warehouse_value'),
-            )
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->groupBy('month');
-
         $salesQuery = DB::table('warehouse_sales AS ws')
-            ->leftJoin('sales_details AS sd', 'ws.billno', '=', 'sd.billno') // Join sales_details to aggregate profit
+            ->leftJoin('sales_details AS sd', 'ws.billno', '=', 'sd.billno')
             ->select(
                 'ws.month',
                 DB::raw('SUM(ws.total) AS total_sales_payable'),
                 DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
                 DB::raw('SUM(ws.remained) AS total_sales_remained'),
-                DB::raw('SUM(sd.profit) AS total_sales_profit') // Summing profit correctly
+                DB::raw('SUM(sd.profit) AS total_sales_profit')
             )
             ->where('ws.year', $year)
             ->where('ws.currency_id', $currency_id)
-            ->groupBy('ws.month'); // Grouping by month instead of day
+            ->groupBy('ws.month');
 
         $boughtQuery = DB::table('bought_items')
             ->select(
@@ -314,27 +315,55 @@ class ItemController extends Controller
             ->where('currency_id', $currency_id)
             ->groupBy('month');
 
-        return DB::table(DB::raw("({$warehouseQuery->toSql()}) as w"))
-            ->mergeBindings($warehouseQuery)
-            ->leftJoin(DB::raw("({$salesQuery->toSql()}) as s"), 'w.month', '=', 's.month')
-            ->mergeBindings($salesQuery)
-            ->leftJoin(DB::raw("({$boughtQuery->toSql()}) as b"), 'w.month', '=', 'b.month')
-            ->mergeBindings($boughtQuery)
-            ->select(
-                'w.month',
-                DB::raw('COALESCE(w.total_warehouse_value, 0) AS total_warehouse_value'),
-                // DB::raw('COALESCE(w.total_warehouse_wastage, 0) AS total_warehouse_wastage'),
-                DB::raw('COALESCE(s.total_sales_payable, 0) AS total_sales_payable'),
-                DB::raw('COALESCE(s.total_sales_curpay, 0) AS total_sales_curpay'),
-                DB::raw('COALESCE(s.total_sales_remained, 0) AS total_sales_remained'),
-                DB::raw('COALESCE(s.total_sales_profit, 0) AS total_sales_profit'),
-                DB::raw('COALESCE(b.total_bought_payable, 0) AS total_bought_payable'),
-                DB::raw('COALESCE(b.total_bought_curpay, 0) AS total_bought_curpay'),
-                DB::raw('COALESCE(b.total_bought_remained, 0) AS total_bought_remained'),
-                // DB::raw('COALESCE(b.total_bought_transport, 0) AS total_bought_transport')
-            )
-            ->orderBy('w.month')
-            ->get();
+        // Get all months with data using UNION
+        $allMonthsQuery = DB::table('warehouse_sales')
+            ->select('month')
+            ->where('year', $year)
+            ->where('currency_id', $currency_id)
+            ->union(
+                DB::table('bought_items')
+                    ->select('month')
+                    ->where('year', $year)
+                    ->where('currency_id', $currency_id)
+            );
+
+        $allMonths = $allMonthsQuery->get()->pluck('month')->unique()->sort();
+
+        // If no data, return all months with zero values
+        if ($allMonths->isEmpty()) {
+            return collect(range(1, 12))->map(function($month) {
+                return (object) [
+                    'month' => $month,
+                    'total_sales_payable' => 0,
+                    'total_sales_curpay' => 0,
+                    'total_sales_remained' => 0,
+                    'total_sales_profit' => 0,
+                    'total_bought_payable' => 0,
+                    'total_bought_curpay' => 0,
+                    'total_bought_remained' => 0,
+                ];
+            });
+        }
+
+        $salesData = $salesQuery->get()->keyBy('month');
+        $boughtData = $boughtQuery->get()->keyBy('month');
+
+        return $allMonths->map(function($month) use ($salesData, $boughtData) {
+            $sales = $salesData->get($month);
+            $bought = $boughtData->get($month);
+            
+            return (object) [
+                'month' => $month,
+                'month_name' => $this->getMonthsName($month),
+                'total_sales_payable' => $sales->total_sales_payable ?? 0,
+                'total_sales_curpay' => $sales->total_sales_curpay ?? 0,
+                'total_sales_remained' => $sales->total_sales_remained ?? 0,
+                'total_sales_profit' => $sales->total_sales_profit ?? 0,
+                'total_bought_payable' => $bought->total_bought_payable ?? 0,
+                'total_bought_curpay' => $bought->total_bought_curpay ?? 0,
+                'total_bought_remained' => $bought->total_bought_remained ?? 0,
+            ];
+        })->values();
     }
 
     /**

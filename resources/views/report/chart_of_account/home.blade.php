@@ -2,10 +2,52 @@
 @section('content')
 
 <style>
-.bg-dark {
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .table-responsive table {
+            font-size: 12px;
+        }
+        .custom-heading, a .custom-heading { 
+            font-size: 13px !important;
+        }
+
+        .table-responsive table th,
+        .table-responsive table td {
+            padding: 6px 8px !important;
+            font-size: 11px;
+        }
+        
+        .priceStyle {
+            font-size: 11px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .table-responsive table {
+            font-size: 10px;
+        }
+        
+        .table-responsive table th,
+        .table-responsive table td {
+            padding: 4px 6px !important;
+            font-size: 10px;
+        }
+        
+        .priceStyle {
+            font-size: 10px;
+        }
+    }
+
+    .bg-dark {
     background-color: #fffcf3 !important;
 }
 </style>
+
+
 
 <div class="main-panel">
     <div class="content">
@@ -27,13 +69,11 @@
                         <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                         </div>
                         <div class="panel-group" id="accordion">
-                            <div class="panel panel-default">
+                            <div class="panel panel-default" >
                                @include('report.chart_of_account.company_accounts')
                                @include('report.chart_of_account.suppliers')
                                @include('report.chart_of_account.customers')
-                               @if(session('package_type') >= 2)
-                                  @include('report.chart_of_account.participants')
-                               @endif
+                               {{-- @include('report.chart_of_account.employees') --}}
                             </div>
                          </div>
                       </div>

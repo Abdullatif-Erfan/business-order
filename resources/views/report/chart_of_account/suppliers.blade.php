@@ -1,6 +1,6 @@
 <div class="panel-heading m-t-10" style="background-color:#f0eded">
     <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion" href="#collapseSuppliers" class="">
+        <a data-toggle="collapse" data-parent="#accordion" href="#collapseSuppliers" class="custom-heading">
            {{__('reports.supplier')}}  
         </a>
     </h4>
@@ -15,7 +15,8 @@
         $general_balance = 0;
         $general_total_balance = 0;
     @endphp
-    <table class="table table-bordered"  style="width:100%">
+    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <table class="table table-bordered" style="min-width:400px">
         <tr style="background-color:#edf7ff">
             <th>{{__('common.number')}}</th>
             <th>{{__('reports.account')}}</th>
@@ -68,5 +69,44 @@
             </tr>
         </tfoot>
     </table>
+    </div>
    </div>
 </div>
+<style>
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .table-responsive table {
+            font-size: 12px;
+        }
+        
+        .table-responsive table th,
+        .table-responsive table td {
+            padding: 6px 8px !important;
+            font-size: 11px;
+        }
+        
+        .priceStyle {
+            font-size: 11px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .table-responsive table {
+            font-size: 10px;
+        }
+        
+        .table-responsive table th,
+        .table-responsive table td {
+            padding: 4px 6px !important;
+            font-size: 10px;
+        }
+        
+        .priceStyle {
+            font-size: 10px;
+        }
+    }
+</style>

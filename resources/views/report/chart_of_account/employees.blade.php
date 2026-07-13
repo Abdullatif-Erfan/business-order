@@ -1,11 +1,11 @@
 <div class="panel-heading m-t-10" style="background-color:#f0eded">
     <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion" href="#collapseCustomers" class="custom-heading">
-             {{__('reports.customers')}}  
+        <a data-toggle="collapse" data-parent="#accordion" href="#collapseEmployees" class="custom-heading">
+             {{__('reports.employees')}}  
         </a>
     </h4>
 </div>
-<div id="collapseCustomers" class="panel-collapse collapse in" style="height: auto;">
+<div id="collapseEmployees" class="panel-collapse collapse in" style="height: auto;">
 <div class="panel-body" id="body">       
     @php
         $total_loan_recieved = 0;
@@ -25,7 +25,7 @@
             <th>{{__('reports.balance')}} </th>
             <th>{{__('reports.specify')}}</th>
         </tr>
-        @foreach($customer_accounts as $index => $row)
+        @foreach($employee_accounts as $index => $row)
         @php
                 // Ensure values are always numeric (avoid null issues)
                 $loan_paid = $row->loan_paid ?? 0;
@@ -50,8 +50,7 @@
                 $general_total_balance += $general_balance;
 
         @endphp
-
-        <tr >
+            <tr >
                 <td class="priceStyle">{{ $loop->iteration }}</td>
                 <td class="priceStyle">{{ $row->name }}</td>
                 <td class="priceStyle">{{ number_format($loan_balance,2) }}</td>       <!--  قرضه -->
@@ -61,7 +60,7 @@
             </tr>
             @endforeach
         <tfoot>
-            <tr style="background-color:#edf7ff">
+            <tr  style="background-color:#edf7ff">
                 <td class="priceStyle" colspan="2">{{__('common.total')}}</td>
                 <td class="priceStyle" style="color:green;font-weight:bolder;">{{ number_format($total_loan_recieved,2) }}</td>   <!--  قرضه -->
                 <td class="priceStyle" style="color:red;font-weight:bolder;">{{ number_format($total_loan_paid,2) }}</td>       <!--  طلبات -->

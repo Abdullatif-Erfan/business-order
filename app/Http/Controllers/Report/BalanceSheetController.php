@@ -16,14 +16,12 @@ use Illuminate\Support\Facades\DB;
 class BalanceSheetController extends Controller
 {
     
-    protected $branch_id, $isAdmin;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -33,7 +31,7 @@ class BalanceSheetController extends Controller
     public function index()
     {
         // نمایش لیست مشتریان و خزانه ها و فروشنده گان
-        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->where('branch_id', $this->branch_id)->get();
+        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $accountTypes = AccountType::whereIn('id',[1,3,4,6])->get();
@@ -43,7 +41,7 @@ class BalanceSheetController extends Controller
         // $journals = Journal::with(['accountRelation:id,name', 'currencyRelation:id,name,symbols,color','userRelation:id,full_name'])
         //     ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
         //              'payment_type', 'options', 'option_label', 'currency_id', 'details', 
-        //              'inserted_short_date', 'status', 'times', 'is_single_record')
+        //              'idate', 'status', 'times', 'is_single_record')
         //     ->orderBy('id', 'DESC')->get();
 
         // return response()->json(['journals' =>  optional($journals->userRelation->full_name]));
@@ -62,7 +60,6 @@ class BalanceSheetController extends Controller
         $currency_id = $request->currency_id ?? 0;
         $account_type_id = $request->account_type_id ?? 0;
         $balance = 0 ;
-        $branch_id = $this->branch_id ?? 0;
 
         // Fetch currency details
         $currency = Currency::find($currency_id);
@@ -84,10 +81,9 @@ class BalanceSheetController extends Controller
         if($account_type_id == 1)
         {
             $accounts = DB::table('accounts')
-            ->join('journals', function ($join) use ($currency_id, $branch_id) {
+            ->join('journals', function ($join) use ($currency_id) {
                 $join->on('accounts.id', '=', 'journals.account_id')
-                    ->where('journals.currency_id', $currency_id)  
-                    ->where('journals.branch_id', $branch_id);  
+                    ->where('journals.currency_id', $currency_id);  
             })
             ->where('accounts.account_type_id', $account_type_id)
             ->select([
@@ -107,7 +103,6 @@ class BalanceSheetController extends Controller
             ->groupBy('accounts.id', 'accounts.name');
 
             $loanAndTalab = DB::table('journals')
-            ->where('journals.branch_id', $branch_id)
             ->where('journals.currency_id', $currency_id)
             ->whereIn('journals.account_type_id', [3, 4])
             ->select([
@@ -140,10 +135,9 @@ class BalanceSheetController extends Controller
         else 
         {
             $accounts = DB::table('accounts')
-                ->join('journals', function ($join) use ($currency_id, $branch_id) {
+                ->join('journals', function ($join) use ($currency_id) {
                     $join->on('accounts.id', '=', 'journals.account_id')
-                        ->where('journals.currency_id', $currency_id)  
-                        ->where('journals.branch_id', $branch_id);  
+                        ->where('journals.currency_id', $currency_id);  
                 })
                 ->where('accounts.account_type_id', $account_type_id)
                 ->select([
@@ -182,11 +176,11 @@ class BalanceSheetController extends Controller
         }
         
         if ($request->start_date && $request->end_date) {
-            $accounts->whereBetween('inserted_short_date', [$request->start_date, $request->end_date]);
+            $accounts->whereBetween('idate', [$request->start_date, $request->end_date]);
         } elseif ($request->start_date) {
-            $accounts->whereDate('inserted_short_date', '=', $request->start_date);
+            $accounts->whereDate('idate', '=', $request->start_date);
         } elseif ($request->end_date) {
-            $accounts->whereDate('inserted_short_date', '>=', $request->end_date);
+            $accounts->whereDate('idate', '>=', $request->end_date);
         }
       
         return DataTables::of($accounts)

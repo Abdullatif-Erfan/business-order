@@ -14,14 +14,12 @@ use Illuminate\Support\Facades\DB;
 
 class CacheFlowController extends Controller
 {
-    protected $branch_id, $isAdmin;
+    protected  $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
-            $this->branch_id = session('branch_id', auth()->user()->branch_id ?? 0);
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
         } else {
-            $this->branch_id = 0;
             $this->isAdmin = false;
         }
     }
@@ -31,7 +29,7 @@ class CacheFlowController extends Controller
     public function index()
     {
         // نمایش لیست مشتریان و خزانه ها و فروشنده گان
-        $accounts = Account::whereIn('account_type_id',[1,3,4,6])->where('branch_id', $this->branch_id)->get();
+        $accounts   = Account::whereIn('account_type_id',[1,3,4,6])->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         // $sums = $this->showFooterReport(1,33);
@@ -40,7 +38,7 @@ class CacheFlowController extends Controller
         // $journals = Journal::with(['accountRelation:id,name', 'currencyRelation:id,name,symbols,color','userRelation:id,full_name'])
         //     ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
         //              'payment_type', 'options', 'option_label', 'currency_id', 'details', 
-        //              'inserted_short_date', 'status', 'times', 'is_single_record')
+        //              'idate', 'status', 'times', 'is_single_record')
         //     ->orderBy('id', 'DESC')->get();
 
         // return response()->json(['journals' =>  optional($journals->userRelation->full_name]));
@@ -74,7 +72,6 @@ class CacheFlowController extends Controller
          * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
          */
     
-         $branch_id = $this->branch_id ?? 0 ;
          $total_talabat = 0;
         $total_loans = 0;
         $currency_id = $request->currency_id ?? 0;
@@ -95,24 +92,12 @@ class CacheFlowController extends Controller
         $journals = Journal::with(['accountRelation:id,name', 'currencyRelation:id,name,symbols,color'])
             ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
                      'payment_type', 'options', 'option_label', 'currency_id', 'details', 
-                     'inserted_short_date', 'status', 'times', 'is_single_record','user')
+                     'idate', 'status', 'times', 'is_single_record','user_name')
             ->where('account_id', $request->account_id)  // Enforce account_id filter
             ->where('currency_id', $request->currency_id) 
-            ->where('branch_id', $this->branch_id) 
             ->orderBy('id', 'DESC');
 
-        // check if searched_account_id is belongs to company accounts
-        //  $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $request->account_id)
-        //  ->where('branch_id', $this->branch_id)->exists();
-        
-        // $isKhazana = Account::where('account_type_id',1)
-        //  ->where('id', $request->account_id)
-        //  ->where('is_pre_select',1)
-        //  ->where('branch_id', $this->branch_id)
-        //  ->exists();
-
         $companyAccount = Account::where('id', $request->account_id)
-            ->where('branch_id', $this->branch_id)
             ->select('account_type_id', 'is_pre_select')
             ->first();
 
@@ -122,11 +107,11 @@ class CacheFlowController extends Controller
     
         // Apply optional filters
         if ($request->start_date && $request->end_date) {
-            $journals->whereBetween('inserted_short_date', [$request->start_date, $request->end_date]);
+            $journals->whereBetween('idate', [$request->start_date, $request->end_date]);
         } elseif ($request->start_date) {
-            $journals->whereDate('inserted_short_date', '=', $request->start_date);
+            $journals->whereDate('idate', '=', $request->start_date);
         } elseif ($request->end_date) {
-            $journals->whereDate('inserted_short_date', '>=', $request->end_date);
+            $journals->whereDate('idate', '>=', $request->end_date);
         }
         if ($request->code_number) {
             $journals->where('code', 'LIKE', "%{$request->code_number}%");
@@ -140,7 +125,6 @@ class CacheFlowController extends Controller
             $sumsKhazana = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
-            ->where('branch_id', $this->branch_id)
             ->where('is_cleared', 0)
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
@@ -149,10 +133,9 @@ class CacheFlowController extends Controller
             ->first();
 
             $loanAndTalab = DB::table('accounts')
-            ->join('journals', function ($join) use ($currency_id, $branch_id) {
+            ->join('journals', function ($join) use ($currency_id) {
                 $join->on('accounts.id', '=', 'journals.account_id')
-                    ->where('journals.currency_id', $currency_id)  
-                    ->where('journals.branch_id', $branch_id);  
+                    ->where('journals.currency_id', $currency_id);
             })
             ->whereIn('accounts.account_type_id', [3,4])
             ->select([
@@ -187,7 +170,6 @@ class CacheFlowController extends Controller
             $else_account = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
-            ->where('branch_id', $this->branch_id)
             ->where('is_cleared', 0)
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
@@ -233,7 +215,7 @@ class CacheFlowController extends Controller
                 return '<i style="font-size:14px;color:'.$journal->currencyRelation->color.'">'.$journal->currencyRelation->symbols.'</i>';
             })
             ->addColumn('full_name', function ($journal) {
-                return $journal->user ? $journal->user  : '';
+                return $journal->user_name ? $journal->user_name  : '';
             })
             ->rawColumns(['currency'])
             ->with([
@@ -245,7 +227,7 @@ class CacheFlowController extends Controller
                 'isCompanyAccount' => $isCompanyAccount
             ])
             ->setRowClass(function ($journal) {
-                return $journal->status == 9 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
+                return $journal->status == 11 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
             })
             ->make(true);
     }

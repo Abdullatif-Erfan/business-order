@@ -79,10 +79,10 @@ class JournalController extends Controller
         }
 
         if ($request->code_number) {
-            $journals->where('code', 'LIKE', "%{$request->code_number}%");
+            $journals->where('code', $request->code_number);
         }
         if ($request->bill_number) {
-            $journals->where('bill_no', 'LIKE', "%{$request->bill_number}%");
+            $journals->where('bill_no', $request->bill_number);
         }
         
          // check if searched_account_id is belongs to company accounts
@@ -101,7 +101,7 @@ class JournalController extends Controller
                 if (($journal->transaction_type == 1 && $journal->payment_type == 1)) {  return number_format($journal->amount,2); }
             })
 
-               // cachePaid  = t2p1 = پرداخت نقد
+            // cachePaid  = t2p1 = پرداخت نقد
             ->addColumn('cachePaid', function ($journal) {
                 if (($journal->transaction_type == 2 && $journal->payment_type == 1)) {  return number_format($journal->amount,2); }
             })

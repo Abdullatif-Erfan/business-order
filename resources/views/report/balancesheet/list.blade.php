@@ -10,19 +10,22 @@
                         <div class="card-header" style="padding: 11px 20px !important;">
                             
                             <strong>  {{__('reports.belance_sheet_title')}}  </strong>
-                            <button class="printBtn m-b-10" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
 
-                            <button type="button" class="btn btn-sm mybtn visible-xs" onclick="show_search_form(1)">
-                                <i class="fas fa-filter"></i>
-                            </button>
+                             <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <div class="pull-left" style="width:90px">
+                                <button type="button" class="responsive_button btn btn-sm  visible-xs"
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                   <i class="fas fa-filter"></i>
+                                 </button>
+                                 <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                            </div>
                         </div>
 
                         {{-- Filter Form --}}
-                        <div class="filterForm" id="searchWrapper1">  
+                        <div class="filter-section no-print" id="searchWrapper">
                             <div class="col-md-12">
                                 <div class="row">
                                 
-
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_type_id" style="width:100%">
                                             <!-- <option value=""> حساب اصلی </option> -->
@@ -52,33 +55,20 @@
                                     </div>
 
                                     
-                                    <div class="col-md-2  col-sm-6 col-xs-6">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#start_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="start_date" id="start_date"
-                                            data-targetselector="#start_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.start_date')}}"  data-placement="right" data-englishnumber="true"  >
+                                   <div class="col-md-2 col-sm-6 col-xs-6">
+                                         <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="start_date"  placeholder="{{__('common.start_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
-                                
-
-
-                                     <div class="col-md-3  col-sm-6 col-xs-6">
-                                        <div class="input-group" data-provide="datepicker">&nbsp;&nbsp;
-                                        <div class="input-group-append">
-                                        <span class="input-group-text" style="width:40px !important;" data-mddatetimepicker="true" data-trigger="click"
-                                            data-targetselector="#end_date" data-englishnumber="true">
-                                            <span class="fa fa-calendar"></span> 
-                                        </span>
-                                        </div>
-                                            <input class="form-control" name="end_date" id="end_date"
-                                            data-targetselector="#end_date" value="" 
-                                            data-mddatetimepicker="true"  placeholder="{{__('common.end_date')}}"  data-placement="right" data-englishnumber="true" >
+                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                        <div class="filter-group" style="min-width: 120px;">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
+                                                <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
                                         </div>
 							     	</div>
 
@@ -113,7 +103,7 @@
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} </th>
-                                             <th> {{__('reports.account')}} </th>
+                                            <th> {{__('reports.account')}} </th>
                                             <th> {{__('reports.cache_in')}}</th>
                                             <th>{{__('reports.cache_out')}} </th>
                                             <th> {{__('reports.loan')}}</th>
@@ -146,10 +136,16 @@
 </div>
 
 
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
+<script>
+$(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 
 <script>
     $(document).ready(function() {

@@ -22,7 +22,7 @@
             <div class="progress-fill" id="progressFill" style="width: {{ $orders['progress_percentage'] ?? 0 }}%"></div>
         </div>
         <div class="progress-label">
-            <span>Progress</span>
+            <span>جریان پیشرفت </span>
             <span id="progressPercentage">{{ $orders['progress_percentage'] ?? 0 }}%</span>
         </div>
     </div>

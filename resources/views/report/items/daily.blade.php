@@ -1,3 +1,6 @@
+@php
+    use Carbon\Carbon;
+@endphp
 @extends('layouts.app')
 
 @section('content')
@@ -44,11 +47,13 @@
                                         <div class="col-md-4 col-sm-6 col-xs-6">
                                            <select class="form-control mt-1 mb-1"
                                                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="month">
-                                                <option value="{{ $data['month'] }}">{{ $data['month'] }}</option>
+                                                <!-- <option value="{{ $data['month'] }}">{{ $data['month'] }}</option> -->
                                                 <option value="">-- {{__('reports.monthly_selection')}} --</option>
-                                                @for($i = 1; $i <= 12; $i++)
-                                                    <option value="{{ $i }}">{{ $i }}</option>
-                                                @endfor
+                                                @foreach($months as $key => $month)
+                                                <option value="{{ $key }}" {{ $data['month'] == $key ? 'selected' : '' }}>
+                                                    {{ $month }}
+                                                </option>
+                                                @endforeach
                                             </select>
                                         </div>
 
@@ -58,7 +63,7 @@
                                                 style="width: 100%; border:1px solid #ddd !important;" aria-hidden="true" name="year">
                                                 <option value="{{ $data['year'] }}">{{ $data['year'] }}</option>
                                                 <option value="">-- {{__('reports.yearly_selection')}} --</option>
-                                                @for($i = 1400; $i <= 1440; $i++)
+                                                @for($i = 2025; $i <= 2050; $i++)
                                                     <option value="{{ $i }}">{{ $i }}</option>
                                                 @endfor
                                             </select>
@@ -85,12 +90,12 @@
                                 <table class="table table-bordered table-striped dataTable my_table" style="width:100%">
                                     <thead>
                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
+                                            <td colspan="9">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
+                                            <td colspan="9">
                                                 <center> {{__('reports.daily_report')}}  </center>
                                             </td>
                                         </tr>
@@ -99,13 +104,10 @@
                                               {{__('reports.week_days')}} </center></th>
                                         </tr>
                                         <tr>
-                                            <th> <center> {{__('reports.gudam')}}  </center> </th>
-                                            <th colspan="4"> <center>  {{__('reports.buy')}}  </center> </th>
+                                            <th colspan="3"> <center>  {{__('reports.buy')}}  </center> </th>
                                             <th colspan="4"> <center> {{__('reports.sales')}}   </center> </th>
                                         </tr>
                                         <tr>
-                                        <th style="border-top: 1px solid #fff !important;"><center>
-                                         {{__('reports.gudam_in')}}</center></th>
                                        
                                         <th style="border-top: 1px solid #fff !important;"><center>  
                                         {{__('reports.buy')}}</center></th>
@@ -113,8 +115,8 @@
                                         {{__('reports.bought_paid')}} </center></th>
                                         <th style="border-top: 1px solid #fff !important;"><center> 
                                         {{__('reports.buy_low')}} </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>   
-                                        {{__('reports.transport')}} </center></th>
+                                        <!-- <th style="border-top: 1px solid #fff !important;"><center>   
+                                        {{__('reports.transport')}} </center></th> -->
 
                                         <th style="border-top: 1px solid #fff !important;"><center>
                                         {{__('reports.sales')}} </center></th>
@@ -146,11 +148,11 @@
                                                     // Convert report_day to Jalalian date
                                                     $dayName = $row->report_day.' - ' .\Morilog\Jalali\Jalalian::fromFormat('Y-n-j', $data['year'].'-'.$data['month'].'-'.$row->report_day)->format('%A');
 
-                                                    // Check if today's Jalali date matches report_day
+                                                    // Check if today's date matches report_day
                                                     $isToday = (
-                                                        $row->report_day == \Morilog\Jalali\Jalalian::now()->format('j') && 
-                                                        $data['month'] == \Morilog\Jalali\Jalalian::now()->format('n') &&
-                                                        $data['year'] == \Morilog\Jalali\Jalalian::now()->format('Y')
+                                                        $row->report_day == Carbon::now()->day && 
+                                                        $data['month'] == Carbon::now()->month &&
+                                                        $data['year'] == Carbon::now()->year
                                                     ) ? 'table-success' : '';
 
                                                     // Calculate values for totals
@@ -162,7 +164,6 @@
                                                     $boughtPayable = $row->total_bought_payable ?? 0;
                                                     $boughtCurPay = $row->total_bought_curpay ?? 0;
                                                     $boughtRemained = $row->total_bought_remained ?? 0;
-                                                    $boughtTransport = $row->total_bought_transport ?? 0;
 
                                                     // Sum up values
                                                     $totalWarehouseValue += $warehouseValue;
@@ -177,12 +178,11 @@
 
                                                 <tr class="{{ $isToday }}">
                                                     <td>{{ $dayName }}</td>
-                                                    <td>{{ number_format($warehouseValue,2) }}</td>
                                                     
                                                     <td>{{ number_format($boughtPayable,2) }}</td>
                                                     <td>{{ number_format($boughtCurPay,2) }}</td>
                                                     <td>{{ number_format($boughtRemained,2) }}</td>
-                                                    <td></td>
+                                                    <!-- <td></td> -->
                                                     
                                                     <td>{{ number_format($salesPayable,2) }}</td>
                                                     <td>{{ number_format($salesCurPay,2) }}</td>
@@ -195,12 +195,11 @@
                                         <tfoot>
                                             <tr style="background-color:#fff8d9">
                                                 <td><strong>{{__('reports.total')}}</strong></td>
-                                                <td><strong>{{ number_format($totalWarehouseValue,2) }}</strong></td>
                                                 
                                                 <td><strong>{{ number_format($totalBoughtPayable,2) }} </strong></td>
                                                 <td><strong>{{ number_format($totalBoughtCurPay,2) }}  </strong></td>
                                                 <td><strong>{{ number_format($totalBoughtRemained,2) }} </strong></td>
-                                                <td></td>
+                                                <!-- <td></td> -->
 
                                                 <td><strong>{{ number_format($totalSalesPayable,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesCurPay,2) }}</strong></td>

@@ -20,16 +20,19 @@ Route::get('/chartOfAccount/{id?}',[ChartOfAccount::class, 'index'])->name('char
 // Route::get('/cacheflow',[CacheFlowController::class, 'index'])->name('cacheflow.index')->middleware('access:reports,list');
 // Route::get('/cacheflow/data',[CacheFlowController::class, 'getData'])->name('cacheflow.data');
 
-Route::get('/cacheflow',[CacheFlowWithBalanceController::class, 'index'])->name('cacheflow.index')->middleware('access:reports,list');
-Route::get('/cacheflow/data',[CacheFlowWithBalanceController::class, 'getData'])->name('cacheflow.data');
+// CacheFlow
+Route::get('/cacheflow',[CacheFlowController::class, 'index'])->name('cacheflow.index')->middleware('access:reports,list');
+Route::get('/cacheflow/data',[CacheFlowController::class, 'getData'])->name('cacheflow.data');
+
+// CacheFlow With Balance
+Route::get('/cacheflowWithBalance',[CacheFlowWithBalanceController::class, 'index'])->name('cacheflowWithBalance.index')->middleware('access:reports,list');
+Route::get('/cacheflowWithBalance/data',[CacheFlowWithBalanceController::class, 'getData'])->name('cacheflowWithBalance.data');
+
 
 Route::get('/balancesheet',[BalanceSheetController::class,'index'])->name('balancesheet.index')->middleware('access:reports,list');
 Route::get('/balancesheet/data',[BalanceSheetController::class,'getData'])->name('balancesheet.data');
 Route::get('/laws',[LawController::class,'index'])->name('laws.index')->middleware('access:reports,list');
 Route::get('/profitloss',[ProfitAndLossController::class,'index'])->name('profitloss.index')->middleware('access:reports,list');
-
-
-
 
 
 

@@ -69,6 +69,10 @@
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="{{ route('cacheflow.index')}}">💰  {{__('reports.customer_accounts')}} </a>
                                                 </li>
+                                                 <li class="list-group-item">
+                                                    <a target="_blank" href="{{ route('cacheflowWithBalance.index')}}">💰 {{__('reports.customer_accounts_with_balance')}}</a>
+                                                </li>
+
                                                 <li class="list-group-item">
                                                     <a target="_blank" href="{{ route('balancesheet.index') }}">📑 
                                                     {{__('reports.balance_sheet')}}</a>
@@ -82,11 +86,10 @@
                                 </div>
 
                                 <!-- Treasury Reports -->
-                                @if(session('package_type') >=3)
                                 <div class="col-md-4">
                                     <div class="card border-warning shadow-sm">
                                         <div class="card-header bg-custom-grey">
-                                            <h6 class="mb-0 font-bold">🏦 {{__('reports.general_report')}}</h6>
+                                            <h6 class="mb-0 font-bold">🏦 {{__('reports.profit_and_loss_title')}}</h6>
                                         </div>
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
@@ -94,7 +97,7 @@
                                                     <a target="_blank" href="#">📜 سهم سهامداران</a>
                                                 </li> -->
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('profitloss.index') }}">💹  {{__('reports.general_report')}}  </a>
+                                                    <a target="_blank" href="{{ route('profitloss.index') }}">💹  {{__('reports.company_net_profit')}}  </a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     .
@@ -109,12 +112,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                @endif
 
 
                                   <!-- general low -->
 
-                                  <div class="col-md-12 col-sm-12 col-xs-12">
+                                  <!-- <div class="col-md-12 col-sm-12 col-xs-12">
                                     <div class="card border-success shadow-sm">
                                         <div class="card-header bg-custom-grey">
                                             <h6 class="mb-0 font-bold">👥 
@@ -128,7 +130,7 @@
                                             </ul>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
 
                             </div> <!-- End row -->
                         </div> <!-- End card-body -->

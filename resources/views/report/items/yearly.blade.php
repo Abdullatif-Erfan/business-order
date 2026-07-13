@@ -71,13 +71,17 @@
                                             <th rowspan="3"><center>  {{__('reports.year')}}  </center></th>
                                         </tr>
                                         <tr>
-                                            <th> <center>  {{__('reports.gudam')}} </center> </th>
+                                            <th colspan="3"> <center>  {{__('reports.buy')}} </center> </th>
                                             <th colspan="4"> <center>   {{__('reports.sales')}}  </center> </th>
-                                            <th colspan="4"> <center>  {{__('reports.buy')}} </center> </th>
                                         </tr>
                                         <tr>
-                                        <th style="border-top: 1px solid #fff !important;"><center>
-                                         {{__('reports.gudam_in')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>  
+                                                {{__('reports.buy')}}</center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center>  
+                                            {{__('reports.bought_paid')}} </center></th>
+                                        <th style="border-top: 1px solid #fff !important;"><center> 
+                                            {{__('reports.buy_low')}} </center></th>
+                                        
                                         <th style="border-top: 1px solid #fff !important;"><center>
                                         {{__('reports.sales')}} </center></th>
                                         <th style="border-top: 1px solid #fff !important;"><center>
@@ -86,21 +90,12 @@
                                         {{__('reports.sales_talab')}} </center></th>
                                         <th style="border-top: 1px solid #fff !important;"><center>
                                          {{__('reports.sales_profit')}}</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>  
-                                        {{__('reports.buy')}}</center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>  
-                                        {{__('reports.bought_paid')}} </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center> 
-                                        {{__('reports.buy_low')}} </center></th>
-                                        <th style="border-top: 1px solid #fff !important;"><center>   
-                                        {{__('reports.transport')}} </center></th>
 
                                         </tr>
                                     </thead>
                                     <tbody>
                                           @php
                                                 // Initialize totals
-                                                $totalWarehouseValue = 0;
                                                 $totalSalesPayable = 0;
                                                 $totalSalesCurPay = 0;
                                                 $totalSalesRemained = 0;
@@ -108,12 +103,10 @@
                                                 $totalBoughtPayable = 0;
                                                 $totalBoughtCurPay = 0;
                                                 $totalBoughtRemained = 0;
-                                                $totalBoughtTransport = 0;
                                             @endphp
                                             @foreach($yearlyReport as $row)
                                             @php
-                                                   // Calculate values for totals
-                                                   $warehouseValue = ($row->total_warehouse_value - $row->total_warehouse_wastage) ?? 0;
+                                                  
                                                    $salesPayable = $row->total_sales_payable ?? 0;
                                                    $salesCurPay = $row->total_sales_curpay ?? 0;
                                                    $salesRemained = $row->total_sales_remained ?? 0;
@@ -121,10 +114,8 @@
                                                    $boughtPayable = $row->total_bought_payable ?? 0;
                                                    $boughtCurPay = $row->total_bought_curpay ?? 0;
                                                    $boughtRemained = $row->total_bought_remained ?? 0;
-                                                   $boughtTransport = $row->total_bought_transport ?? 0;
 
                                                    // Sum up values
-                                                   $totalWarehouseValue += $warehouseValue;
                                                    $totalSalesPayable += $salesPayable;
                                                    $totalSalesCurPay += $salesCurPay;
                                                    $totalSalesRemained += $salesRemained;
@@ -132,34 +123,29 @@
                                                    $totalBoughtPayable += $boughtPayable;
                                                    $totalBoughtCurPay += $boughtCurPay;
                                                    $totalBoughtRemained += $boughtRemained;
-                                                   $totalBoughtTransport += $boughtTransport;
                                                @endphp
                                                 <tr>
                                                     <td>{{$row->year}} </td>
-                                                    <td>{{ number_format($row->total_warehouse_value - $row->total_warehouse_wastage) }}</td>
+                                                    <td>{{ number_format($row->total_bought_payable,2) }}</td>
+                                                    <td>{{ number_format($row->total_bought_curpay,2) }}</td>
+                                                    <td>{{ number_format($row->total_bought_remained,2) }}</td>
                                                     <td>{{ number_format($row->total_sales_payable,2) }}</td>
                                                     <td>{{ number_format($row->total_sales_curpay,2) }}</td>
                                                     <td>{{ number_format($row->total_sales_remained,2) }}</td>
                                                     <td>{{ number_format($row->total_sales_profit,2) }}</td>
-                                                    <td>{{ number_format($row->total_bought_payable,2) }}</td>
-                                                    <td>{{ number_format($row->total_bought_curpay,2) }}</td>
-                                                    <td>{{ number_format($row->total_bought_remained,2) }}</td>
-                                                    <td>{{ number_format($row->total_bought_transport,2) }}</td>
                                                 </tr>
                                             @endforeach
                                     </tbody>
                                     <tfoot>
                                             <tr style="background-color:#fff8d9">
                                                 <td><strong>{{__('reports.total')}}</strong></td>
-                                                <td><strong>{{ number_format($totalWarehouseValue,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtPayable,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtCurPay,2) }}</strong></td>
+                                                <td><strong>{{ number_format($totalBoughtRemained,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesPayable,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesCurPay,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesRemained,2) }}</strong></td>
                                                 <td><strong>{{ number_format($totalSalesProfit,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtPayable,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtCurPay,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtRemained,2) }}</strong></td>
-                                                <td><strong>{{ number_format($totalBoughtTransport,2) }}</strong></td>
                                             </tr>
                                         </tfoot>
                                 </table>

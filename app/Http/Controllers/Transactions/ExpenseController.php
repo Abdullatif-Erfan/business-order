@@ -80,12 +80,11 @@ class ExpenseController extends Controller
             $expenses->whereDate('idate', '<=', $request->end_date);
         }
 
-        if ($request->code_number) {
-            $expenses->where('code', 'LIKE', "%{$request->code_number}%");
+       if ($request->code_number) {
+            $journals->where('code', $request->code_number);
         }
-        
         if ($request->bill_number) {
-            $expenses->where('bill_no', 'LIKE', "%{$request->bill_number}%");
+            $journals->where('bill_no', $request->bill_number);
         }
 
         return DataTables::of($expenses)
