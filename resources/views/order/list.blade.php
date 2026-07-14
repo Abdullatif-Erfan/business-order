@@ -546,13 +546,14 @@
                             </div>
                             <div class="filter-group" style="min-width: 120px;">
                                 <div class="input-group">
-                                    <input type="text" class="form-control datepicker-input" id="start_date" placeholder="YYYY-MM-DD">
+                                    <input type="text" class="form-control datepicker-input" id="start_date" 
+                                    placeholder="{{__('common.start_date')}}">
                                     <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                 </div>
                             </div>
                             <div class="filter-group" style="min-width: 120px;">
                                 <div class="input-group">
-                                    <input type="text" class="form-control datepicker-input" id="end_date" placeholder="YYYY-MM-DD">
+                                    <input type="text" class="form-control datepicker-input" id="end_date"  placeholder="{{__('common.end_date')}}">
                                     <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                 </div>
                             </div>

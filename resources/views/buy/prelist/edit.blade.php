@@ -18,7 +18,21 @@
                 </div> 
             </div>
 
-            <div class="col-md-6 col-sm-6 col-xs-6">
+             <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="form-group">
+                    <select name="supplier_id" id="supplier_id" class="form-control select2" style="width:100%">
+                        <option value="">{{__('order.supplier_name')}}</option>
+                        @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}"
+                             {{ $supplier->id == $buyPreLists[0]->supplier_id ? 'selected': ''}}>
+                                {{ $supplier->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div> 
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="form-group">
                     <input class="form-control" id="name" name="name" value="{{ $buyPreLists[0]->name }}" type="text" required placeholder="{{__('common.item_name')}}" >
                     <span id="nameError2" class="text-danger"></span>

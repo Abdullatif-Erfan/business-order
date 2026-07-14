@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 use Milon\Barcode\DNS1D;
 
-use App\Models\Setting\Branch;
 use App\Models\Setting\Category;
+use App\Models\Setting\Account;
 
 use App\Models\Buy\BuyPreList;
 use Illuminate\Validation\Rule;
@@ -24,7 +24,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BuyPreListController extends Controller
 {
-    protected $branch_id, $isAdmin, $packageId;
+    protected $isAdmin, $packageId;
     public function __construct()
     {
         if (auth()->check()) {
@@ -39,8 +39,9 @@ class BuyPreListController extends Controller
      */
     public function index()
     {
+       $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
        $categories = Category::select('id','name')->get();
-        return view('buy.prelist.list', compact('categories'));    
+        return view('buy.prelist.list', compact('categories','suppliers'));    
     }
 
     /**
@@ -48,8 +49,8 @@ class BuyPreListController extends Controller
      */
     public function getData(Request $request)
     {
-        $buyPreLists = BuyPreList::with(['categoryRelation'])
-        ->select('id', 'name','category_id')
+        $buyPreLists = BuyPreList::with(['categoryRelation','supplier'])
+        ->select('id', 'name','category_id','supplier_id')
         ->orderBy('id', 'DESC');
     
         return DataTables::of($buyPreLists)
@@ -59,6 +60,9 @@ class BuyPreListController extends Controller
 
             ->addColumn('category', function($buyPreList) {
                 return $buyPreList->categoryRelation->name ?? '';
+            })
+            ->addColumn('supplier', function($buyPreList) {
+                return $buyPreList->supplier->name ?? '';
             })
             ->addColumn('edit', function($buyPreList) {
                 return '<i class="fas fa-pen-square editIcon" data-id="'.$buyPreList->id.'" style="font-size:20px;"></i>';
@@ -94,6 +98,7 @@ class BuyPreListController extends Controller
         BuyPreList::create([
             'name' => $validated['name'],
             'category_id' => $request->category_id,
+            'supplier_id' => $request->supplier_id,
         ]);
 
         return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
@@ -154,13 +159,11 @@ class BuyPreListController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
-            'branch_id' => 'required|exists:branches,id',
         ], $messages);
 
         // ✅ Save in DB
         BuyPreList::create([
             'name' => $validated['name'],
-            'branch_id' => $validated['branch_id'],
             'times' => $code,
             'image_path' => $image_path,
             'barcode_path' => $qrStoragePath
@@ -180,12 +183,10 @@ class BuyPreListController extends Controller
             'name.max' => __('validate.pre_list_name_max'),
             'name.min' => __('validate.pre_list_name_min'),
             'name.unique' => __('validate.pre_list_name_unique'),
-            'branch_id.exists' => __('validate.pre_list_branch_id_exists'),
         ];
     
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:3|unique:bought_item_pre_lists,name',
-            'branch_id' => 'required|exists:branches,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], $messages);
     
@@ -211,7 +212,6 @@ class BuyPreListController extends Controller
             } else {
                 // Safely get next code using lock to prevent race condition
                 $lastItem = DB::table('bought_item_pre_lists')
-                    ->where('branch_id', $validated['branch_id'])
                     ->where('is_prev_barcode', 0)
                     ->lockForUpdate()
                     ->orderBy('id', 'DESC')
@@ -266,7 +266,6 @@ class BuyPreListController extends Controller
             BuyPreList::create([
                 'name' => $validated['name'],
                 'code' => $code,
-                'branch_id' => $validated['branch_id'],
                 'is_prev_barcode' => $is_prev_barcode,
                 'times' => $times,
                 'image_path' => $image_path,
@@ -286,63 +285,65 @@ class BuyPreListController extends Controller
         }
     }
 
-protected function addLabelInsideSvg(string $svg, string $label, array $options = []): string
-{
-    // Log::debug('Starting SVG label addition');
-    
-    $defaultOptions = [
-        'font_size' => 16,
-        'font_family' => 'Arial',
-        'text_color' => '#000000',
-        'bottom_margin' => 10,
-        'text_y_offset' => 30
-    ];
-    $options = array_merge($defaultOptions, $options);
-
-    try {
-        // Log::debug('Loading SVG DOM');
-        $dom = new \DOMDocument();
-        $loadResult = $dom->loadXML($svg);
+    protected function addLabelInsideSvg(string $svg, string $label, array $options = []): string
+    {
+        // Log::debug('Starting SVG label addition');
         
-        if (!$loadResult) {
-            Log::error('Failed to parse SVG XML');
-            throw new \Exception('Invalid SVG content');
+        $defaultOptions = [
+            'font_size' => 16,
+            'font_family' => 'Arial',
+            'text_color' => '#000000',
+            'bottom_margin' => 10,
+            'text_y_offset' => 30
+        ];
+        $options = array_merge($defaultOptions, $options);
+
+        try {
+            // Log::debug('Loading SVG DOM');
+            $dom = new \DOMDocument();
+            $loadResult = $dom->loadXML($svg);
+            
+            if (!$loadResult) {
+                Log::error('Failed to parse SVG XML');
+                throw new \Exception('Invalid SVG content');
+            }
+            
+            $svgElement = $dom->getElementsByTagName('svg')[0];
+            if (!$svgElement) {
+                Log::error('No SVG element found in XML');
+                throw new \Exception('Invalid SVG structure');
+            }
+
+            $width = (int)$svgElement->getAttribute('width');
+            $height = (int)$svgElement->getAttribute('height');
+            // Log::debug("Original SVG dimensions: {$width}x{$height}");
+
+
+            $result = $dom->saveXML();
+            if (!$result) {
+                // Log::error('Failed to save modified SVG');
+                throw new \Exception('SVG generation failed');
+            }
+
+            // Log::debug('SVG modification completed successfully');
+            return $result;
+
+        } catch (\Exception $e) {
+            Log::error('SVG processing error: '.$e->getMessage());
+            throw $e;
         }
-        
-        $svgElement = $dom->getElementsByTagName('svg')[0];
-        if (!$svgElement) {
-            Log::error('No SVG element found in XML');
-            throw new \Exception('Invalid SVG structure');
-        }
-
-        $width = (int)$svgElement->getAttribute('width');
-        $height = (int)$svgElement->getAttribute('height');
-        // Log::debug("Original SVG dimensions: {$width}x{$height}");
-
-
-        $result = $dom->saveXML();
-        if (!$result) {
-            // Log::error('Failed to save modified SVG');
-            throw new \Exception('SVG generation failed');
-        }
-
-        // Log::debug('SVG modification completed successfully');
-        return $result;
-
-    } catch (\Exception $e) {
-        Log::error('SVG processing error: '.$e->getMessage());
-        throw $e;
     }
-}
 
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
+        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
         $categories = Category::select('id','name')->get();
         $buyPreLists = BuyPreList::where('id',$id)->get();
-        return view('buy.prelist.edit', compact('buyPreLists','categories'));
+
+        return view('buy.prelist.edit', compact('buyPreLists','categories','suppliers'));
     }
 
     /**
@@ -396,6 +397,7 @@ protected function addLabelInsideSvg(string $svg, string $label, array $options 
         // Update the data
         $prevData->name = $request->name;
         $prevData->category_id = $request->category_id ?? null;
+        $prevData->supplier_id = $request->supplier_id ?? null;
         $prevData->save();
     
         // Return success response

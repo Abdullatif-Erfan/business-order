@@ -10,6 +10,17 @@
 @endphp
 
 @section('content')
+<style>
+    @media (max-width: 780px) {
+        .my_nave li a{
+            font-size: 12px !important;
+        }
+        table th, table td {
+            font-size: 12px !important;
+        }
+    }
+    
+</style>
 <!-- main content -->
 <div class="main-panel">
     <div class="content">

@@ -13,7 +13,7 @@
                         <h3 style="margin-bottom: 15px">
                         {{__('buy.list_title')}} </h3>
                     
-                    <!-- insertion -->
+                      <!-- insertion -->
                       <div class="box-tools m-t-10"> <a class="text-dark collapsed" data-toggle="collapse" href="#add_form_collapse" aria-expanded="false">
                             <button type="button" class="btn btn-sm btn-primary" style="border-radius:0px;"> 
                                 <span class="fas fa-plus-square"></span>  &nbsp; {{__('common.add')}} </button>
@@ -26,7 +26,7 @@
                             <div class="form-body">
                                 <div class="row">
                                                     
-                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
                                         <div class="form-group">
                                            <select name="category_id" class="form-control select2" style="width:100%">
                                                 <option value="">{{__('buy.select_category')}}</option>
@@ -38,8 +38,21 @@
                                             </select>
                                         </div> 
                                     </div>
+
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                                        <div class="form-group">
+                                           <select name="supplier_id" id="supplier_id" class="form-control select2" style="width:100%">
+                                                <option value="">{{__('order.supplier_name')}}</option>
+                                                @foreach($suppliers as $supplier)
+                                                    <option value="{{ $supplier->id }}">
+                                                        {{ $supplier->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div> 
+                                    </div>
                                                     
-                                    <div class="col-md-4 col-sm-4 col-xs-6">
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
                                         <div class="form-group">
                                             <input class="form-control" id="name" name="name" type="text" required placeholder="{{__('common.item_name')}}" >
                                             <span id="nameError" class="text-danger"></span>
@@ -47,13 +60,11 @@
                                     </div>	
 
 
-                                    <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
+                                    <div class="col-md-3 col-sm-4 col-xs-12 center m-t-10">
                                         <button type="button" name="submit" class="btn btn-info btn-sm m-l-10" onclick="addNewRecord(1)"  >
                                           <span class="btn-label"> <i class="fa fa-save"></i> </span> {{__('buy.save_and_resume')}}
                                         </button>
-                                    </div>
 
-                                    <div class="col-md-2 col-sm-4 col-xs-12 center m-t-10">
                                         <button type="button" name="submit" class="btn btn-primary btn-sm m-l-10" onclick="addNewRecord(2)"  >
                                           <span class="btn-label"> <i class="fa fa-save"></i> </span> {{__('common.save')}}
                                         </button>
@@ -80,6 +91,7 @@
                                             <th>{{__('common.number')}}     </th>
                                             <th>{{__('buy.category')}}     </th>
                                             <th>{{__('common.item_name')}}  </th>
+                                            <th>{{__('order.supplier_name')}}  </th>
                                             <th>{{__('common.edit')}}       </th>
                                             <th>{{__('common.delete')}}     </th>
                                         </tr>
@@ -203,7 +215,6 @@ $('#updateSubmitBtn').on('click', function () {
     $('#loading2').show();
 
     // Clear previous error messages
-    $('#branchIdError2').text('');
     $('#nameError2').text('');
     $('#imageError2').text('');
 
@@ -293,6 +304,7 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'category', name: 'category'},
                 { data: 'name', name: 'name' },
+                { data: 'supplier', name: 'supplier'},
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
             ]

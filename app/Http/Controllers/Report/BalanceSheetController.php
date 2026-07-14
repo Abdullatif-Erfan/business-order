@@ -78,7 +78,7 @@ class BalanceSheetController extends Controller
 
     
         // Fetch account details for khazana only
-        if($account_type_id == 1)
+        if($account_type_id == 1 || $account_type_id == 6)
         {
             $accounts = DB::table('accounts')
             ->join('journals', function ($join) use ($currency_id) {
@@ -102,10 +102,18 @@ class BalanceSheetController extends Controller
             ])
             ->groupBy('accounts.id', 'accounts.name');
 
-            $loanAndTalab = DB::table('journals')
-            ->where('journals.currency_id', $currency_id)
-            ->whereIn('journals.account_type_id', [3, 4])
-            ->select([
+            // $loanAndTalab = DB::table('journals')
+            // ->where('journals.currency_id', $currency_id)
+            // ->whereIn('journals.account_type_id', [3, 4, 5])
+             $loanAndTalab = DB::table('accounts')
+                ->leftJoin('journals', function ($join) use ($currency_id) { 
+                    $join->on('accounts.id', '=', 'journals.account_id')
+                        ->where('journals.currency_id', $currency_id);
+                })
+                ->where(function($query) {
+                    $query->whereIn('accounts.account_type_id', [3, 4, 5]); // sum from customers, suppliers, participants
+                })
+                ->select([
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
@@ -215,7 +223,7 @@ class BalanceSheetController extends Controller
             // قرض
             ->addColumn('loan_recieved', function ($account) use ($account_type_id, $total_loans)  
             {
-                if($account_type_id == 1)
+                if($account_type_id == 1 || $account_type_id == 6)
                 {
                     return $total_loans ? number_format($total_loans,2) : null;
                 }

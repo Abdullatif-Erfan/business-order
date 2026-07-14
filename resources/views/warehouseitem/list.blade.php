@@ -60,7 +60,7 @@
 
                         <div class="card-body">
                             <div class="table-responsive" id="print_area" style="padding:5px;">
-                                <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation}}" />
+                                <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation ?? 0}}" />
                                 <span class="pull-left visible-print">{{__('common.print_date')}} : {{ $todaysDate }}</span>
                                 <table id="warehouseItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>

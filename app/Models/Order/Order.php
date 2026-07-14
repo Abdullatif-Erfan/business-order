@@ -29,7 +29,7 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'idate' => 'date',
+        // 'idate' => 'date',
         // 'amount' => 'decimal:2',
     ];
 
@@ -58,13 +58,13 @@ class Order extends Model
         return $this->belongsTo(Account::class, 'supplier_id','id');
     }
   
-    public function getFormattedAmountAttribute()
-    {
-        return number_format($this->amount, 2);
-    }
+    // public function getFormattedAmountAttribute()
+    // {
+    //     return number_format($this->amount, 2);
+    // }
 
-    public function getFormattedDateAttribute()
-    {
-        return $this->idate ? \Carbon\Carbon::parse($this->idate)->format('Y/m/d') : '-';
-    }
+    // public function getFormattedDateAttribute()
+    // {
+    //     return $this->idate ? \Carbon\Carbon::parse($this->idate)->format('Y/m/d') : '-';
+    // }
 }

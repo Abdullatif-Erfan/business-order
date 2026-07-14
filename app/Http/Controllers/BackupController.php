@@ -97,7 +97,7 @@ class BackupController extends Controller
 
         $type = 'full';
         $label = $request->label ?? 'بک اپ دیتابیس';
-        $dates = $datetime = Jalalian::now()->format('Y-m-d H:i:s');
+        $dates = $datetime = Carbon::now()->format('Y-m-d H:i:s');
         $times = time();
         try {
             // Get MySQL database configuration
@@ -225,7 +225,7 @@ class BackupController extends Controller
 
         $type = 'full';
         $label = $request->label ?? 'بک اپ دیتابیس';
-        $dates = $datetime = Jalalian::now()->format('Y-m-d H:i:s');
+        $dates = $datetime = Carbon::now()->format('Y-m-d H:i:s');
         $times = time();
 
         try {

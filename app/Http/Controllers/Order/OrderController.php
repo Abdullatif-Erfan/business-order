@@ -179,7 +179,7 @@ class OrderController extends Controller
                 return '<span class="badge badge-secondary">' . __('order.unknown') . '</span>';
             })
             ->addColumn('idate', function ($order) {
-                return $order->idate ? \Carbon\Carbon::parse($order->idate)->format('Y/m/d') : '-';
+                return $order->idate ?? '-';
             })
             ->addColumn('done_by', function ($order) {
                 return $order->done_by ?? '-';
@@ -294,6 +294,8 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        // return ['formData' => $request->all()];
+
         // Validate the request
         $validated = $request->validate([
             'buy_pre_list' => 'required|array|min:1',
@@ -308,13 +310,16 @@ class OrderController extends Controller
             'employee_id' => 'required|exists:accounts,id',
             'ord_num' => 'required|string|max:50',
             'state' => 'required|numeric',
-            'date' => 'required|date',
             'times' => 'required|integer',
         ]);
 
         DB::beginTransaction();
         try {
             // Combine the arrays into a single collection of items
+            // $idate = isset($validated['idate']) && !empty($validated['idate']) 
+            //     ? Carbon::parse($validated['idate'])->startOfDay() 
+            //     : now()->startOfDay();
+
             $items = collect($validated['buy_pre_list'])->map(function ($preListId, $index) use ($validated) {
                 return [
                     'pre_list_id' => $preListId,
@@ -336,7 +341,7 @@ class OrderController extends Controller
                     'amount' => $item['amount'],
                     'unit_id' => $item['unit_id'],
                     'iby' => auth()->user()->full_name ?? '',
-                    'idate' => $validated['date'],
+                    'idate' => $request->date,
                     'state' => $validated['state'], 
                     'times' => $validated['times'],
                 ]);
@@ -420,6 +425,7 @@ class OrderController extends Controller
      */
     public function update(Request $request, $ord_num)
     {
+        //  return ['formData' => $request->all()];
         // Validate the request - same as store
         $validated = $request->validate([
             'buy_pre_list' => 'required|array|min:1',
@@ -432,12 +438,14 @@ class OrderController extends Controller
             'supplier_id' => 'required|exists:accounts,id',
             'employee_id' => 'required|exists:accounts,id',
             'ord_num' => 'required|string|max:50',
-            'date' => 'required|date',
-            'state' => 'nullable|integer|in:1,2,3',
+            'state' => 'required',
         ]);
 
         DB::beginTransaction();
         try {
+            $idate = isset($validated['date']) && !empty($validated['date']) 
+            ? Carbon::parse($validated['date'])->startOfDay() 
+            : now()->startOfDay();
             // Delete existing items for this order
             Order::where('ord_num', $ord_num)->delete();
             
@@ -464,7 +472,7 @@ class OrderController extends Controller
                     'amount' => $item['amount'],
                     'unit_id' => $item['unit_id'],
                     'iby' => auth()->user()->full_name ?? '',
-                    'idate' => $validated['date'],
+                    'idate' => $request->date,
                     'state' => $validated['state'] ?? 1, // Use state from form or default to 1
                     'times' => time(), // Generate new times
                 ]);

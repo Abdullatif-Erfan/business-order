@@ -216,8 +216,8 @@ function fetchList() {
                     searchable: false,
                     render: function(data, type, row) {
                         // Check if invoice already generated
-                        var hasInvoice = row.has_invoice || false;
-                        if (hasInvoice) {
+                        var hasInvoice = parseInt(row.has_invoice) || 0;
+                        if (hasInvoice === 1) {
                             return '<span class="badge badge-success" title="{{ __("buy.invoice_generated") }}"><i class="fas fa-check"></i></span>';
                         }
                         return '<input type="checkbox" class="row-checkbox" value="' + data + '">';

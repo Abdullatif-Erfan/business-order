@@ -42,12 +42,10 @@ class WarehouseListController extends Controller
         $id = $request->query('id');
         $currencies = Currency::all();
         // $branches = Branch::all();
-        $orgbios = OrgBio::all();
+        $orgbios    = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
         $warehouse = Warehouse::select('id','name')->where('id',$id)->first();
         
-
-           
         // $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
         // ->where('warehouse_id', 1)
         // ->orderBy('id','DESC')
@@ -105,7 +103,15 @@ class WarehouseListController extends Controller
             ->addColumn('buy_tax_per', function($WarehouseItem) {
                 return $WarehouseItem->buy_tax_per ? "% " . $WarehouseItem->buy_tax_per : '';
             })
-            ->addColumn('available_total', function ($WarehouseItem) use ($tax_activation) {
+            
+            ->addColumn('buy_tax_price', function($WarehouseItem) {
+                return $WarehouseItem->buy_tax_price ? $WarehouseItem->buy_tax_price: ''; 
+            })
+            ->addColumn('buy_up_vat', function($WarehouseItem) {
+                return $WarehouseItem->buy_up_vat ? $WarehouseItem->buy_up_vat: ''; 
+            })
+            
+            ->addColumn('available_total', function ($WarehouseItem) {
                 // Use $tax_activation variable, not $this->$tax_activation
                 return  number_format($WarehouseItem->available_total ?? 0, 2);
             })
@@ -127,6 +133,8 @@ class WarehouseListController extends Controller
                 }
                 return $WarehouseItem->buy_up; 
             })
+
+
             
             ->addColumn('sell_up', function($WarehouseItem) {
                   if ($WarehouseItem->sell_tax_per && $WarehouseItem->sell_tax_per > 0) {
@@ -141,7 +149,7 @@ class WarehouseListController extends Controller
                             <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>
                         </a>';
             })
-            ->rawColumns(['view'])
+            ->rawColumns(['view','buy_tax_per'])
             ->make(true);
     }
 

@@ -195,13 +195,52 @@ class ChartOfAccount extends Controller
     }
 
     
+    // public function getTalabatAndLoansReport($currencyId = null)
+    // {
+    //     $currency_id = $currencyId ?? 1;
+        
+    //     $loanAndTalab = DB::table('journals')
+    //         ->where('journals.currency_id', $currency_id)
+    //         ->whereIn('journals.account_type_id', [3, 4, 5])
+    //         ->select([
+    //             DB::raw("SUM(CASE 
+    //                         WHEN journals.transaction_type = 1 
+    //                         AND journals.payment_type = 1 
+    //                         AND journals.is_cleared = 0 
+    //                         THEN journals.amount ELSE 0 END) as cache_recieved"),
+    //             DB::raw("SUM(CASE 
+    //                         WHEN journals.transaction_type = 2 
+    //                         AND journals.payment_type = 1 
+    //                         AND journals.is_cleared = 0 
+    //                         THEN journals.amount ELSE 0 END) as cache_paid"),
+    //             DB::raw("SUM(CASE 
+    //                         WHEN journals.transaction_type = 1 
+    //                         AND journals.payment_type = 2 
+    //                         AND journals.is_cleared = 0 
+    //                         THEN journals.amount ELSE 0 END) as loan_recieved"),
+    //             DB::raw("SUM(CASE 
+    //                         WHEN journals.transaction_type = 2 
+    //                         AND journals.payment_type = 2 
+    //                         AND journals.is_cleared = 0 
+    //                         THEN journals.amount ELSE 0 END) as loan_paid")
+    //         ])
+    //         ->first(); // Get a single row instead of a collection
+
+    //     return $loanAndTalab;
+    // }
+
     public function getTalabatAndLoansReport($currencyId = null)
     {
         $currency_id = $currencyId ?? 1;
         
-        $loanAndTalab = DB::table('journals')
-            ->where('journals.currency_id', $currency_id)
-            ->whereIn('journals.account_type_id', [3, 4])
+         $loanAndTalab = DB::table('accounts')
+            ->leftJoin('journals', function ($join) use ($currency_id) { 
+                $join->on('accounts.id', '=', 'journals.account_id')
+                    ->where('journals.currency_id', $currency_id);
+            })
+            ->where(function($query) {
+                $query->whereIn('accounts.account_type_id', [3, 4, 5]); // sum from customers, suppliers, participants
+            })
             ->select([
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 

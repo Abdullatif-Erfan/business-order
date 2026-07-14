@@ -25,7 +25,7 @@ Route::prefix('orders')->name('orders.')->group(function(){
     Route::delete('/destroy/{ord_num}', [OrderController::class, 'destroy'])->name('destroy')->middleware('access:order,delete_records');
     
     // Status Management
-    Route::patch('/{ord_num}/status', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
+    // Route::patch('/{ord_num}/status', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
     Route::post('/update-status/{ord_num}', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
     Route::get('/counts', [OrderController::class, 'getCounts'])->name('counts')->middleware('access:order,list');
 
