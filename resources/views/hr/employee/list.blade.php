@@ -39,9 +39,11 @@
                                         <tr>
                                             <th>{{__('common.number')}} </th>									
                                             <th>  {{__('common.name')}} </th>										
+                                            <th> {{__('hr.net_salary')}}  </th>		
+                                            <th> {{__('common.start_date')}}  </th>		
+                                            <th> {{__('settings.car')}}  </th>		
                                             <th> {{__('common.phone')}} </th>		
                                             <th> {{__('common.address')}}  </th>		
-                                            <th> {{__('hr.net_salary')}}  </th>		
                                             <th>{{__('common.currency')}}  </th>	
                                             <th>{{__('common.edit')}} </th>
                                             <th>{{__('common.delete')}}</th>
@@ -49,7 +51,11 @@
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="4">{{__('common.total')}}</td>
+                                            <td colspan="2">{{__('common.total')}}</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -65,12 +71,6 @@
         </div> <!-- /page-inner -->
     </div> <!-- /content -->
 </div> <!-- /main content -->
-
-
-<!-- For Persian Date Picker -->
-<script src="{{ asset('assets/datepicker/jalaali.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets/datepicker/jquery.Bootstrap-PersianDateTimePicker.js') }}" type="text/javascript"></script>
-
 
 <script>
 $(document).ready(function() {
@@ -105,12 +105,14 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 // { data: 'account_type', name: 'account_type'},
                 { data: 'name', name: 'name'},
+                { data: 'net_salary', name: 'net_salary' },
+                { data: 'emp_start_date', name: 'emp_start_date' },
+                { data: 'emp_car_name', name: 'emp_car_name' },
                 { data: 'phone', name: 'phone' },
                 { data: 'address', name: 'address' },
-                { data: 'net_salary', name: 'net_salary' },
                 { data: 'salaryCurrency', name: 'salaryCurrency' },
-                { data: 'edit', name: 'edit', searchable: false, orderable: false },
-                { data: 'delete', name: 'delete', searchable: false, orderable: false },
+                { data: 'edit', name: 'edit', searchable: false, orderable: false, className: 'hidden-print' },
+                { data: 'delete', name: 'delete', searchable: false, orderable: false, className: 'hidden-print' },
             ],
             drawCallback: function () {
                 var api = this.api();
@@ -140,7 +142,7 @@ function fetchList() {
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
-                $(api.column(4).footer()).html(sumColumn(4));
+                $(api.column(2).footer()).html(sumColumn(2));
             
             }
         });

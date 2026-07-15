@@ -7,13 +7,14 @@ use App\Models\Journal\Journal;
 use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
 use App\Models\User;
+use App\Models\Setting\Car;
 
 
 class Account extends Model
 {
     //
 
-    protected $fillable = ['account_type_id','name','phone','address','description','is_pre_select','percent','salary_currency','net_salary','loan_limit_option','loan_limit','user_account_id'];
+    protected $fillable = ['account_type_id','name','phone','address','description','is_pre_select','percent','salary_currency','net_salary','loan_limit_option','loan_limit','user_account_id','emp_car_id','emp_start_date'];
 
  
 
@@ -40,6 +41,11 @@ class Account extends Model
     public function salaryCurrency()
     {
         return $this->belongsTo(Currency::class, 'salary_currency','id');
+    }
+
+     public function car()
+    {
+        return $this->belongsTo(Car::class, 'emp_car_id');
     }
 
        //✅ Relationship with User (one-to-one)

@@ -19,10 +19,10 @@
 
 <!-- Add Modal -->
 <div class="modal fade" id="addAccountModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width:900px !important">
+        <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ __('common.add') }} </h5>
+                <h5 class="modal-title">{{ __('common.add') }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -41,10 +41,9 @@
     </div>
 </div>
 
-
 <!-- Update Modal -->
 <div class="modal fade" id="EditAccountModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width:900px !important">
+      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{ __('common.edit') }} </h5>
@@ -69,7 +68,7 @@
 
 <!-- Details Modal -->
 <div class="modal fade" id="DetailsAccountModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width:900px !important">
+     <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{ __('common.details') }} </h5>

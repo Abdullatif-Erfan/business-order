@@ -63,18 +63,27 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
-
-                    <div class="form-group">
-                       <label for="tax_activation">{{ __('settings.tax_activation') }}</label>
-                        <select class="form-control" name="tax_activation">
-                            <option value="0" {{ $orgBio->tax_activation == 0 ? 'selected' : '' }}>{{ __('settings.noactive') }}</option>
-                            <option value="1" {{ $orgBio->tax_activation == 1 ? 'selected' : '' }}>{{ __('settings.active') }}</option>
-                        </select>
-                    <div>
-                        
-
+                <div class="col-12 col-md-6">
+                    <div class="row">
+                        <div class="col-sm-6 col-md-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="tax_activation">{{ __('settings.tax_activation') }}</label>
+                                <select class="form-control" name="tax_activation">
+                                    <option value="0" {{ $orgBio->tax_activation == 0 ? 'selected' : '' }}>{{ __('settings.noactive') }}</option>
+                                    <option value="1" {{ $orgBio->tax_activation == 1 ? 'selected' : '' }}>{{ __('settings.active') }}</option>
+                                </select>
+                            </div> <!-- ✅ FIXED: Added closing div -->
+                        </div>
+                        <div class="col-sm-6 col-md-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="tax_per">{{ __('settings.tax_per') }}</label>
+                                <input type="number" class="form-control" name="tax_per" value="{{ $orgBio->tax_per }}">
+                                <span id="taxPercentageError" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
         </div>
     </div>
     

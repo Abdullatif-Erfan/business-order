@@ -8,7 +8,8 @@ use App\Http\Controllers\Buy\BoughtDetailsBasedItemController;
 // BuyPreList 
 Route::prefix('buyprelist')->group(function(){
     Route::get('/',[BuyPreListController::class, 'index'])->name('buyprelist.index')->middleware('access:buy,list');
-    Route::get('/data',[BuyPreListController::class, 'getData'])->name('buyprelist.data');
+    Route::get('/data',[BuyPreListController::class, 'getData'])->name('buyprelist.data'); 
+    Route::get('/create',[BuyPreListController::class, 'create'])->name('buyprelist.create'); 
     Route::get('/{id}',[BuyPreListController::class, 'show'])->name('buyprelist.show')->middleware('access:buy,create_records');
     Route::post('/store',[BuyPreListController::class, 'store'])->name('buyprelist.store')->middleware('access:buy,create_records');  
     Route::post('/update',[BuyPreListController::class, 'update'])->name('buyprelist.update')->middleware('access:buy,edit_records');

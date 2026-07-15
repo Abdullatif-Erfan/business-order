@@ -68,6 +68,27 @@
                                             </div>
 
 
+                                              <div class="form-group col-sm-4" id="emp_car_id" >
+                                                <label for="car">  {{__('settings.car')}} </label>
+                                                <select class="form-control" name="emp_car_id" required>
+                                                    <option value=""> --- {{__('settings.car_selection')}} --- </option>
+                                                    <!-- <option value=""> {{__('common.currency')}} </option> -->
+                                                    @foreach($cars as $car)
+                                                    <option value="{{ $car->id }}" {{$account->emp_car_id == $car->id ? 'selected': ''}}>{{ $car->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                             <div class="form-group col-sm-4">
+                                                <div class="filter-group" style="min-width: 120px;">
+                                                    <label for="car">  {{__('common.start_date')}} </label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control datepicker-input" name="emp_start_date"  placeholder="{{__('common.start_date')}}"  
+                                                        value="{{ $account->emp_start_date ?? ' ' }}">
+                                                        <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                             
                                         <div class="col-md-6 m-t-30 m-b-30">
@@ -96,6 +117,24 @@
     </div> <!-- /content -->
 </div> <!-- /main content -->
 
-
+<script>
+$(document).ready(function () {
+       // Initialize datepicker
+    $('.datepicker-input').datepicker({
+        format: 'yyyy-mm-dd', // Match your database format
+        autoclose: true,
+        todayHighlight: true,
+        clearBtn: true
+    });
+});
+$(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 @endsection
 

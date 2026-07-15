@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 use App\Models\Setting\Branch;
+use App\Models\Setting\Car;
 use App\Models\Setting\AccountType;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
@@ -94,7 +95,8 @@ class AccountController extends Controller
     {
         $accountTypes = AccountType::select('id','name')->where('is_disabled',0)->get();
         $currencies = Currency::all();
-        return view('settings.account.addForm', compact('accountTypes','currencies'));
+        $cars = Car::all();
+        return view('settings.account.addForm', compact('accountTypes','currencies','cars'));
     }
 
     /**
@@ -124,13 +126,23 @@ class AccountController extends Controller
             'salary_currency' => 'nullable|numeric',
             'percent' => 'nullable|numeric',
             'loan_limit' => 'nullable|numeric',
-            'loan_limit_option' => 'nullable|numeric'
+            'loan_limit_option' => 'nullable|numeric',
+            'emp_car_id' => 'nullable|numeric',
+            'emp_start_date' => 'nullable',
         ], $messages);
 
         DB::beginTransaction();
-        try {
+        try 
+        {
+            $data = $request->all();
+              // Only parse if value exists
+            if ($request->filled('emp_start_date')) {
+                $data['emp_start_date'] = Carbon::parse($request->emp_start_date)->format('Y-m-d');
+            } else {
+                $data['emp_start_date'] = null; 
+            }
             // Create Account
-            $account = Account::create($validated);
+            $account = Account::create($data);
 
             // Get default company_account_id
             $ownBanks = Account::where('account_type_id', 1)
@@ -249,13 +261,12 @@ class AccountController extends Controller
                 'year' => $year,
                 'month' => $month,
                 'day' => $day,
-                'inserted_short_date' => $short_date,
-                'inserted_full_date' => $full_date,
+                'idate' => $short_date,
                 'details' => $details,
                 'status' => 1,  
                 'times' => $times,
                 'is_single_record' => 1,
-                'belongsToMe' => $belongsToMe,
+                'belongsToMe' => $belongsToMe
             ]);
 
             // Log::info('Journal entry created successfully.');
@@ -267,7 +278,7 @@ class AccountController extends Controller
      */
     public function show($id)
     {
-        $account = Account::find($id);
+        $account = Account::with('car')->find($id);
 
         if (!$account) {
             return response()->json(['status' => 'failed', 'message' => __('common.not_found')], 404);
@@ -290,7 +301,6 @@ class AccountController extends Controller
         if ($default_account_id == $id) {
             $journals->where('belongsToMe', 1);
         }
-
         $journals = $journals->where('status', 1)->get();
 
         return view('settings.account.viewForm', compact('account', 'journals'));
@@ -303,6 +313,9 @@ class AccountController extends Controller
     public function edit($id)
     {
         $account = Account::find($id);
+        if ($account->emp_start_date) {
+          $account->emp_start_date = Carbon::parse($account->emp_start_date)->format('Y-m-d');
+         }
         $accountTypes = AccountType::select('id','name')->where('is_disabled',0)->get();
         $currencies = Currency::all();
 
@@ -324,12 +337,12 @@ class AccountController extends Controller
         }
 
         $journals = $journals->where('status', 1)->get();
-
+        $cars = Car::all();
         if (!$account) {
             return response()->json(['status' => 'failed','message' => __('common.not_found')], 404);
         }
 
-        return view('settings.account.editForm', compact('account', 'accountTypes','currencies','journals',));
+        return view('settings.account.editForm', compact('account', 'accountTypes','currencies','journals','cars'));
     }
 
     /**
@@ -363,7 +376,22 @@ class AccountController extends Controller
         try {
             // Find and update the account
             $account = Account::findOrFail($request->id);
-            $account->update($validated);
+
+             $data = $request->all();
+              // Only parse if value exists
+            if ($request->filled('emp_start_date')) {
+                $data['emp_start_date'] = Carbon::parse($request->emp_start_date)->format('Y-m-d');
+            } else {
+                $data['emp_start_date'] = null; 
+            }
+
+            if (!$account) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('validate.not_found'),
+                ], 400);
+            }
+            $account->update($data);
             
             // Get default company_account_id
             $ownBanks = Account::where('account_type_id', 1)

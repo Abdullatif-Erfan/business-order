@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Setting;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting\Category;
+use App\Models\Setting\Account;
 use App\Models\Buy\BoughtItemDetails;
 use App\Models\Warehouse\WarehouseItem;
 
@@ -17,42 +18,39 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+   
+     public function index(Request $request)
     {
-        // $categoryes = Category::latest()->paginate(10); // Adjust pagination size as needed
-        // return response()->json($categoryes);
-        if($request->ajax())
-        {
-            $category = Category::query()->orderBy('id', 'DESC');
-            return  DataTables::eloquent($category)
+        if ($request->ajax()) {
+            $category = Category::with('supplier')
+                ->select('id', 'name', 'supplier_id', 'created_at') // Optional: select specific columns
+                ->orderBy('id', 'DESC');
 
-            // ->addColumn('edit', function($category) {
-            //     return '<a href="'.route('category.edit', $category->id).'" data-id="'.$category->id.'">
-            //        <i class="fas fa-pen-square editCategory" style="font-size:20px;"></i>
-            //     </a>';
-            // })
-
-            // Add Index Column
-            ->addIndexColumn()
-
-            ->addColumn('edit', function($category) {
+            return DataTables::of($category) 
+                ->addIndexColumn()
+                ->addColumn('supplier_name', function($category) {
+                    return $category->supplier ? $category->supplier->name : '';
+                })
+                ->addColumn('edit', function($category) {
                 return '<i class="fas fa-pen-square editCategory" data-id="'.$category->id.'" style="font-size:20px;"></i>';
             })
             ->addColumn('delete', function($category) {
                 return '<i class="fas fa-trash-alt deleteCategory" data-id="'.$category->id.'" style="font-size:20px; color:red;"></i>';
             })
-            ->rawColumns(['edit','delete'])
+            ->rawColumns(['edit', 'delete'])
             ->make(true);
-            // dd($category); 
         }
 
-
+        // For non-AJAX requests, return the view
+        return view('setting.categories.index');
     }
+
 
     public function create()
     {
         $catgories = Category::all();
-        return view('settings.category.addForm',compact('catgories'));
+        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
+        return view('settings.category.addForm',compact('catgories','suppliers'));
     }
 
 
@@ -68,16 +66,19 @@ class CategoryController extends Controller
             'name.max' => __('validate.pre_list_name_max'),
             'name.min' => __('validate.pre_list_name_min'),
             'name.unique' => __('validate.pre_list_name_unique'),
+            'supplier_id.required' => __('validate.required'),
         ];
 
         // Validate the request
          $validated = $request->validate([
             'name' => 'required|string|max:255|min:2|unique:categories,name',
+            'supplier_id' => 'required|exists:accounts,id',
          ], $messages);
 
         // Create new category
         Category::create([
             'name' => $validated['name'],
+            'supplier_id' => $request->supplier_id,
         ]);
 
         // Return success response
@@ -90,9 +91,10 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {   
-        $category = Category::where('id',$id)->first(); 
+        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
+        $category  = Category::where('id',$id)->first(); 
         if($category) {
-             return view('settings.category.editForm',compact('category'));
+             return view('settings.category.editForm',compact('category','suppliers'));
          }
         return response()->json(['message' => __('common.not_found')],404);
     }
@@ -126,6 +128,7 @@ class CategoryController extends Controller
     
         // Update the category's name
         $category->name = $request->input('name');
+        $category->supplier_id = $request->input('supplier_id');
         $category->save();
     
         return response()->json(['status' => 'success', 'message' => __('common.updated_successfully')], 200);

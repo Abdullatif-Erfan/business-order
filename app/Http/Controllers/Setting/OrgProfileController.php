@@ -46,6 +46,7 @@ class OrgProfileController extends Controller
 
     public function store(Request $request)
     {
+
         $validated = $request->validate([
             'name'    => 'required|string|max:255|min:2|unique:org_bios,name',
             'address' => 'nullable|string|max:255',
@@ -54,6 +55,7 @@ class OrgProfileController extends Controller
             'logos'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'note_for_print' => 'nullable|string',
             'tax_activation' => 'required|min:0|max:1',
+            'tax_per' => 'required',
             'is_active' => 'boolean'
         ]);
 
@@ -107,6 +109,7 @@ class OrgProfileController extends Controller
             'logos' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'note_for_print' => 'nullable|string',
             'tax_activation' => 'nullable|integer|min:0|max:1',
+            'tax_per' => 'required',
         ], $messages);
     
         $orgBio = OrgBio::findOrFail($request->id);
@@ -116,6 +119,7 @@ class OrgProfileController extends Controller
         $orgBio->address = $request->address;
         $orgBio->note_for_print = $request->note_for_print;
         $orgBio->tax_activation = $request->tax_activation;
+        $orgBio->tax_per = $request->tax_per;
 
     
         // Handle file uploads

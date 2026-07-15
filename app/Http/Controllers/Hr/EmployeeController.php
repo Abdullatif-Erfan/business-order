@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 // use App\Models\Transaction\Journal;
 use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
+use App\Models\Setting\Car;
 use Yajra\DataTables\Facades\DataTables;
 
 class EmployeeController extends Controller
@@ -44,8 +45,9 @@ class EmployeeController extends Controller
     public function getData(Request $request)
     {
             $employee_account_type_id = 2;
-            $accounts = Account::with('salaryCurrency')
-            ->select('id', 'account_type_id', 'name', 'phone', 'address', 'description','salary_currency','net_salary')
+            $accounts = Account::with(['salaryCurrency','car'])
+            ->select('id', 'account_type_id', 'name', 'phone', 'address', 'description','salary_currency','net_salary','emp_car_id',
+            'emp_start_date')
             ->where('account_type_id',$employee_account_type_id)
             ->orderBy('id', 'DESC');
 
@@ -58,6 +60,12 @@ class EmployeeController extends Controller
 
                 ->addColumn('net_salary', function ($account) {
                     return $account->net_salary ? number_format($account->net_salary,2) : '';
+                })
+                ->addColumn('emp_car_name', function ($account) {
+                    return $account->car->name ? $account->car->name : '';
+                })
+                ->addColumn('emp_start_date', function ($account) {
+                    return $account->emp_start_date ? $account->emp_start_date : '';
                 })
 
                 ->addColumn('edit', function ($account) {
@@ -78,12 +86,13 @@ class EmployeeController extends Controller
     public function create()
     {
         $currencies = Currency::all();
-
-        return view('hr.employee.create', compact('currencies'));
+        $cars = Car::all();
+        return view('hr.employee.create', compact('currencies','cars'));
     }
 
     public function store(Request $request)
     {
+        // return ['data' => $request->all()];
         $messages = [
             'name.required' => __('validate.pre_list_name_required'),
             'name.max' => __('validate.pre_list_name_max'),
@@ -98,6 +107,8 @@ class EmployeeController extends Controller
             'address' => 'nullable|string|max:500',
             'net_salary'    => 'nullable|numeric',
             'salary_currency' => 'nullable|numeric',
+            'emp_car_id'    => 'nullable|numeric',
+            'emp_start_date' => 'required',
         ], $messages);
 
         try {
@@ -126,12 +137,13 @@ class EmployeeController extends Controller
       
         $currencies = Currency::all();
         $account = Account::findOrFail($id);
-
+        // $account = Account::with('car')->findOrFail($id);
+        $cars = Car::all();
         if (!$account) {
             return response()->json(['status' => 'failed','message' => __('common.not_found')], 404);
         }
 
-        return view('hr.employee.edit', compact('account','currencies'));
+        return view('hr.employee.edit', compact('account','currencies','cars'));
     }
 
     public function update(Request $request)
@@ -152,6 +164,8 @@ class EmployeeController extends Controller
         'address' => 'nullable|string|max:500',
         'net_salary' => 'nullable|numeric',
         'salary_currency' => 'nullable|numeric',
+        'emp_car_id'    => 'nullable|numeric',
+        'emp_start_date' => 'required',
     ], $messages);
 
     try {

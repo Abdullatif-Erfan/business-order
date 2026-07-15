@@ -3,23 +3,25 @@
         <span>Loading...</span>
         <i class="fa fa-spinner fa-spin"></i>
     </div>
-    <table id="categoryTable" class="table table-bordered table-striped table-hover datatable3">
-        <thead>
+    <table id="preListTable" class="table table-bordered table-striped table-hover datatable3">
+       <thead>
             <tr>
-                <th> {{__('common.number')}}</th>
-                <th> {{__('common.name')}}</th>
-                 <th>{{__('order.supplier_name')}}  </th>
-                <th> {{__('common.edit')}}</th>
-                <th> {{__('common.delete')}}</th>
+                <th>{{__('common.number')}}     </th>
+                <th>{{__('buy.category')}}     </th>
+                <th>{{__('common.item_name')}}  </th>
+                <th>{{__('common.edit')}}       </th>
+                <th>{{__('common.delete')}}     </th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+
+        </tbody>
     </table>
     <div id="pagination3" style="text-align: center;"></div>
 </div>
 
 <!-- Add Modal -->
-<div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="addPrelistModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -29,14 +31,15 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div id="categoryFormWrapper"></div>
-                <div id="loading_modal_category" style="display:none; text-align: center;">
+                <div id="preListFormWrapper"></div>
+                <div id="loading_modal_PreList" style="display:none; text-align: center;">
                     <i class="fa fa-spinner fa-spin"></i>  {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="submit" class="btn btn-primary btn-sm m-l-10" id="addPreListBtnAndResume"> {{__('buy.save_and_resume')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10 m-l-10" id="addPreListBtn"> {{__('common.save')}}</button>
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"> {{__('common.close')}}</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="addCategoryBtn"> {{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -44,7 +47,7 @@
 
 
 <!-- Update Modal -->
-<div class="modal fade" id="EditCategoryModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="EditPreListModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -54,14 +57,14 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div id="EditCategoryFormWrapper"></div>
-                <div id="loading_modal_category2" style="display:none; text-align: center;">
+                <div id="EditPreListFormWrapper"></div>
+                <div id="loading_modal_PreList2" style="display:none; text-align: center;">
                     <i class="fa fa-spinner fa-spin"></i>  {{__('common.loading')}}
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"> {{__('common.close')}}</button>
-                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditCategoryBtn"> {{__('common.save')}}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditPreListBtn"> {{__('common.save')}}</button>
             </div>
         </div>
     </div>
@@ -72,63 +75,62 @@
 <!-- ===================== Belongs to add ========================= -->
 <script type="text/javascript">
 
-    function showAddCategoryForm()
+    function showAddPreListForm()
     {
-        $('#addCategoryModal').modal('show');
-        $('#loading_modal_category').show();
+        $('#addPrelistModal').modal('show');
+        $('#loading_modal_PreList').show();
         $.ajax({
-                url: `/category/create`,
+                url: `/buyprelist/create`,
                 type: 'GET',
                 success: (result) => {
-                    $('#categoryFormWrapper').html(result);
-                    $('#loading_modal_category').hide();
+                    $('#preListFormWrapper').html(result);
+                    $('#loading_modal_PreList').hide();
 
                     // Initialize Select2 after the form has been injected
                     $(".select2").select2();
                 },
                 error: () => {
-                    $('#loading_modal_category').hide();
+                    $('#loading_modal_PreList').hide();
                     alert('اطلاعات یافت نشد');
                 }
         });
     }
 
-    $('#addCategoryBtn').on('click', function () {
+    $('#addPreListBtn').on('click', function () {
     // Serialize form data
-    var formData = $('#categoryForm').serialize();
+    var formData = $('#preListForm').serialize();
 
     // Show loading state
-    $('#loading_modal_category').show();
+    $('#loading_modal_PreList').show();
 
     // Clear previous error messages
-    $('#categoryNameError').text('');
+    $('#preListNameError').text('');
 
     // AJAX form submission
     $.ajax({
-        url: '/category/store', // The actual route for saving data
+        url: '/buyprelist/store', // The actual route for saving data
         type: 'POST',
         data: formData,
         success: (response) => {
-            $('#loading_modal_category').hide();
-
+              $('#loading_modal_PreList').hide();
+              $('#preListNameError').text('');
             if (response.status === 'success') {
-                // Call a function to refresh the warehouse list or update the UI
-                fetchCategoryList(); // Ensure this function exists in your code
-                $('#addCategoryModal').modal('hide');
+                fetchPreListItems(); // Ensure this function exists in your code
+                $('#addPrelistModal').modal('hide');
                 showNotification("{{ __('common.added_successfully') }}", 'success', 'top', 'right', 'withicon');
             } else {
                 showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
         },
         error: (xhr) => {
-            $('#loading_modal_category').hide();
+            $('#loading_modal_PreList').hide();
 
             // Handle validation errors
             if (xhr.status === 422) { // Laravel validation error status code
                 var errors = xhr.responseJSON.errors;
 
                 if (errors?.name) {
-                    $('#categoryNameError').text(errors.name[0]);
+                    $('#carNameError').text(errors.name[0]);
                 }
             } else {
                 // General error handling
@@ -137,71 +139,135 @@
         }
     });
   });
+
+
+  // =============================================
+// SAVE AND RESUME BUTTON - Keep Modal Open
+// =============================================
+$('#addPreListBtnAndResume').on('click', function (e) {
+    e.preventDefault(); // Prevent default form submission
+    
+    // Serialize form data
+    var formData = $('#preListForm').serialize();
+
+    // Show loading state
+    $('#loading_modal_PreList').show();
+
+    // Clear previous error messages
+    $('#preListNameError').text('');
+
+    // AJAX form submission
+    $.ajax({
+        url: '/buyprelist/store',
+        type: 'POST',
+        data: formData,
+        success: function (response) {
+            $('#loading_modal_PreList').hide();
+            $('#preListNameError').text('');
+            
+            if (response.status === 'success') {
+                //  Refresh the table
+                fetchPreListItems();
+                
+                //  Clear the name field only (keep modal open)
+                $('#preListForm input[name="name"]').val('');
+                // $('#preListForm select[name="category_id"]').val('').trigger('change');
+                
+                //  Focus on the name field for next entry
+                $('#preListForm input[name="name"]').focus();
+                
+                //  Show success message
+                showNotification("{{ __('common.added_successfully') }}", 'success', 'top', 'right', 'withicon');
+                
+                //  Reset any error messages
+                $('#preListNameError').text('');
+                
+            } else {
+                showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
+            }
+        },
+        error: function (xhr) {
+            $('#loading_modal_PreList').hide();
+
+            // Handle validation errors
+            if (xhr.status === 422) {
+                var errors = xhr.responseJSON.errors;
+                if (errors?.name) {
+                    $('#preListNameError').text(errors.name[0]);
+                }
+            } else {
+                showNotification("{{ __('common.add_failed') }}", 'danger', 'top', 'right', 'withicon');
+            }
+        }
+    });
+});
+
 </script>
+
 
 
 
 <!-- ===================== Belongs to Edit ========================= -->
 <script type="text/javascript">
     // Open Modal for Editing
-    $('table').on('click', '.editCategory', function () {
-        $('#EditCategoryModal').modal('show');
-        $('#loading_modal_category').show();
-        const unitId = $(this).data('id');
+    $('table').on('click', '.editIcon', function () {
+        $('#EditPreListModal').modal('show');
+        $('#loading_modal_PreList').show();
+        const id = $(this).data('id');
         $.ajax({
-            url: `/category/${unitId}`,
+             url: `/buyprelist/${id}`,
             type: 'GET',
             success: (result) => {
-                $('#EditCategoryFormWrapper').html(result);
-                $('#loading_modal_category2').hide();
+                $('#EditPreListFormWrapper').html(result);
+                $('#loading_modal_PreList2').hide();
 
                 // Initialize Select2 after the form has been injected
                 $(".select2").select2();
             },
             error: () => {
-                $('#loading_modal_category2').hide();
+                $('#loading_modal_PreList2').hide();
                 alert('اطلاعات یافت نشد');
             }
         });
     });
     
-    // submit edit form 
-    $('#EditCategoryBtn').on('click', function () {
+    // ======================= submit edit form  ========================
+    $('#EditPreListBtn').on('click', function () {
     // Serialize form data
-    var formData = $('#categoryEditForm').serialize();
+    var formData = $('#preListEditForm').serialize();
 
     // Show loading state
-    $('#loading_modal_category2').show();
+    $('#loading_modal_PreList2').show();
 
     // Clear previous error messages
-    $('#categoryNameError').text('');
+    $('#preListNameError2').text('');
 
     // AJAX form submission
     $.ajax({
-        url: '/category/update', // The actual route for saving data
-        type: 'PATCH',
+        url: '/buyprelist/update', 
+        type: 'POST',
         data: formData,
         success: (response) => {
-            $('#loading_modal_category2').hide();
+            $('#loading_modal_PreList2').hide();
 
             if (response.status === 'success') {
                 // Call a function to refresh the warehouse list or update the UI
-                fetchCategoryList(); // Ensure this function exists in your code
-                $('#EditCategoryModal').modal('hide');
+                fetchPreListItems(); // Ensure this function exists in your code
+                $('#EditPreListModal').modal('hide');
                 showNotification("{{ __('common.updated_successfully') }}", 'success', 'top', 'right', 'withicon');
             } else {
                 showNotification("{{ __('common.update_failed') }}", 'danger', 'top', 'right', 'withicon');
             }
         },
         error: (xhr) => {
-            $('#loading_modal_category2').hide();
+            $('#loading_modal_PreList2').hide();
 
             // Handle validation errors
             if (xhr.status === 422) { // Laravel validation error status code
                 var errors = xhr.responseJSON.errors;
 
                 if (errors?.name) {
-                    $('#unitNameError').text(errors.name[0]);
+                    $('#carNameError').text(errors.name[0]);
                 }
             } else {
                 // General error handling
@@ -218,13 +284,13 @@
 <!-- ===================== Belongs to Display and Delete ========================= -->
 <script type="text/javascript">
 // Fetch Warehouses List
-function fetchCategoryList() {
-    const categoryTable = $('#categoryTable');
+function fetchPreListItems() {
+    const preListTable = $('#preListTable');
 
     // Check if DataTable is already initialized
-    if (!$.fn.DataTable.isDataTable(categoryTable)) {
+    if (!$.fn.DataTable.isDataTable(preListTable)) {
         // Initialize DataTable if not already initialized
-        categoryTable.DataTable({
+        preListTable.DataTable({
             serverSide: true,
             processing: true,
             lengthMenu: [
@@ -232,33 +298,33 @@ function fetchCategoryList() {
                     [10, 25, 50, 100, 'همه']
                 ],
             ajax: {
-                url: '{{ route("category.list") }}',
+                url: '{{ route("buyprelist.data") }}',
             },
-            columns: [
+             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data: 'category', name: 'category'},
                 { data: 'name', name: 'name' },
-                { data: 'supplier_name', name: 'supplier_name'},
-                { data: 'edit', name: 'edit', searchable: false, orderable: false },
-                { data: 'delete', name: 'delete', searchable: false, orderable: false },
-           ]
+                { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
+                { data: 'delete', name: 'delete', orderable: false, searchable: false }
+            ]
         });
     } else {
         // If already initialized, reload the data
-        categoryTable.DataTable().ajax.reload();
+        preListTable.DataTable().ajax.reload();
     }
 }
 
 // Delete Warehouse
-$('table').on('click', '.deleteCategory', function () {
+$('table').on('click', '.deleteIcon', function () {
     const id = $(this).data('id');
         if (id && confirm("{{ __('common.delete_confirm') }}")) {
             $.ajax({
-                url: `/category/${id}`,
+                 url: `/buyprelist/destroy/${id}`,
                 type: 'DELETE',
                 data: { _token: '{{ csrf_token() }}' },
                 success: (response) => {
                     if(response.status === 'success') {
-                        fetchCategoryList();
+                        fetchPreListItems();
                         showNotification(response.message, 'success', 'top', 'right', 'withicon');
                     } else {
                        showNotification("{{ __('common.delete_failed') }}", 'danger', 'top', 'right', 'withicon');

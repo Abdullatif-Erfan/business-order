@@ -1,9 +1,9 @@
 <form id="accountForm">
    @csrf
-    <div class="col-xs-12">
+    <div class="container-fluid">
         <div class="row">
           
-           <div class="form-group col-sm-6">
+           <div class="form-group col-xs-6 col-sm-4 col-md-4">
                 <label for="account_type_id"> {{__('settings.account_type_selection')}} </label>
                 <select class="form-control"  name="account_type_id" required onchange="checkAccountType(this.value)">
                     <option value="">{{__('settings.account_type_selection')}}</option>
@@ -14,38 +14,38 @@
                 <span id="accountTypeIdError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-sm-6">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4">
                 <label for="name"> {{__('settings.account_name')}}  </label>
                 <input type="text" class="form-control" name="name" required >
                 <span id="accountNameError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-sm-6">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4">
                 <label for="phone"> {{__('settings.phone')}}  </label>
                 <input type="text" class="form-control" name="phone" >
                 <span id="phoneError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-sm-6">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4">
                 <label for="address"> {{__('settings.address')}}  </label>
                 <input type="text" class="form-control" name="address" >
                 <span id="addressError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-sm-6" id="percent" style="display:none;">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="percent" style="display:none;">
                 <label for="percent"> {{__('settings.percentage')}} </label>
                 <input type="number" class="form-control" name="percent" >
                 <span id="percentError" class="text-danger"></span>
             </div>
 
-            <!-- belongs to employee -->
-                <div class="form-group col-sm-6" id="net_salary" style="display:none;">
+            <!-- belongs to employee / drivers -->
+                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="net_salary" style="display:none;">
                     <label for="percent"> {{ __('settings.net_salary')}} </label>
                     <input type="number" class="form-control" name="net_salary" >
                     <span id="netSalaryError" class="text-danger"></span>
                 </div>
 
-                <div class="form-group col-sm-6" id="salary_currency" style="display:none;">
+                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="salary_currency" style="display:none;">
                     <label for="percent"> {{ __('common.currency')}}</label>
                     <select class="form-control" name="salary_currency">
                         <!-- <option value=""> {{ __('settings.paid_currency')}} </option> -->
@@ -54,17 +54,38 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="emp_car_id" style="display:none;">
+                    <label for="percent"> {{ __('settings.car')}}</label>
+                    <select class="form-control" name="emp_car_id">
+                        <option value=""> {{ __('settings.car_selection')}} </option>
+                        @foreach($cars as $car)
+                           <option value="{{ $car->id }}">{{ $car->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="emp_start_date" style="display:none;">
+                        <div class="filter-group" style="min-width: 120px;">
+                        <label for="start_date"> {{ __('common.start_date')}}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control datepicker-input" name="emp_start_date" 
+                              placeholder="{{__('common.start_date')}}">
+                            <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
+                    </div>
+                </div>
             <!-- /belongs to employee -->
 
 
             <!-- belongs to qarz limit for customers and suppliers -->
-                <div class="form-group col-sm-6" id="loan_limit" style="display:none;">
+                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="loan_limit" style="display:none;">
                     <label for="percent"> {{ __('settings.loan_limit')}} </label>
                     <input type="number" class="form-control" name="loan_limit" >
                     <span id="loanLimitError" class="text-danger"></span>
                 </div>
 
-                <div class="form-group col-sm-6" id="loan_limit_option" style="display:none;">
+                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="loan_limit_option" style="display:none;">
                     <label for="percent"> {{ __('settings.loan_limit_option')}}</label>
                     <select class="form-control" name="loan_limit_option">
                         <option value="0">{{ __('settings.no') }}</option>
@@ -75,7 +96,7 @@
             <!-- /belongs to qarz limit for customers and suppliers -->
 
 
-            <div class="form-group col-sm-6" id="is_pre_select" style="display:none;">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="is_pre_select" style="display:none;">
                 <label for="is_pre_select"> {{ __('settings.default_account') }}    </label>
                 <select class="form-control" name="is_pre_select" >
                     <option value="0">{{ __('settings.yes') }}</option>
@@ -138,6 +159,27 @@
     
 </form>
 
+<script>
+$(document).ready(function () {
+       // Initialize datepicker
+    $('.datepicker-input').datepicker({
+        format: 'yyyy-mm-dd', // Match your database format
+        autoclose: true,
+        todayHighlight: true,
+        clearBtn: true
+    });
+});
+
+
+$(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
 
 <script>
 function checkAccountType(account_type_id) {
@@ -152,7 +194,7 @@ function checkAccountType(account_type_id) {
     
     if (parseInt(account_type_id) === 1) {
         $('#is_pre_select').fadeIn(1).attr('required', true);
-        $('#percent, #net_salary, #salary_currency, #loan_limit, #loan_limit_option').fadeOut(1).removeAttr('required');
+        $('#percent, #net_salary, #salary_currency, #loan_limit, #loan_limit_option, #emp_start_date , #emp_car_id').fadeOut(1).removeAttr('required');
 
         // Show only the first option in the select dropdowns
         $('select[name="options[]"]').each(function () {
@@ -162,7 +204,7 @@ function checkAccountType(account_type_id) {
         });
     } 
     else if (parseInt(account_type_id) === 2) {
-        $('#net_salary, #salary_currency').fadeIn(1).attr('required', true);
+        $('#net_salary, #salary_currency, #emp_start_date , #emp_car_id').fadeIn(1).attr('required', true);
         $('#is_pre_select, #percent, #loan_limit, #loan_limit_option').fadeOut(1).removeAttr('required');
 
        // Reset the select options to show all options
@@ -176,7 +218,7 @@ function checkAccountType(account_type_id) {
     } 
     else if (parseInt(account_type_id) === 3 || parseInt(account_type_id) === 4) {
         $('#loan_limit, #loan_limit_option').fadeIn(1).attr('required', true);
-        $('#net_salary, #is_pre_select, #salary_currency, #percent')
+        $('#net_salary, #is_pre_select, #salary_currency, #percent, #emp_start_date , #emp_car_id')
             .fadeOut(1)
             .removeAttr('required');
 
@@ -190,7 +232,7 @@ function checkAccountType(account_type_id) {
     } 
     else if (parseInt(account_type_id) === 5) {
         $('#percent').fadeIn(1).attr('required', true);
-        $('#is_pre_select, #salary_currency, #net_salary, #loan_limit, #loan_limit_option')
+        $('#is_pre_select, #salary_currency, #net_salary, #loan_limit, #loan_limit_option, #emp_start_date , #emp_car_id')
             .fadeOut(1)
             .removeAttr('required');
 
@@ -204,7 +246,7 @@ function checkAccountType(account_type_id) {
             `);
         });
     } else if (parseInt(account_type_id) === 6) {
-        $('#percent, #net_salary, #salary_currency, #is_pre_select, #loan_limit, #loan_limit_option').fadeOut(1).removeAttr('required');
+        $('#percent, #net_salary, #salary_currency, #is_pre_select, #loan_limit, #loan_limit_option, #emp_start_date , #emp_car_id').fadeOut(1).removeAttr('required');
 
         // Show only the first option in the select dropdowns
         $('select[name="options[]"]').each(function () {

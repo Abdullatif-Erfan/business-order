@@ -84,5 +84,6 @@ return [
     'sales' => 'فروشات',
     'buy' => 'خرید',
     'current_document' => 'فایل فعلی',
+    'category' => 'کتگوری',
 
 ];

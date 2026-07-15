@@ -3,7 +3,6 @@
 namespace App\Models\Buy;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Setting\Branch;
 use App\Models\Setting\Category;
 use App\Models\Setting\Account;
 

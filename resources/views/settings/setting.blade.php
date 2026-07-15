@@ -20,6 +20,60 @@
         }
     }
     
+/* Responsive Modal */
+.modal-responsive {
+    max-width: 950px;
+    width: 95%;
+    margin: 1.75rem auto;
+}
+
+@media (max-width: 992px) {
+    .modal-responsive {
+        max-width: 98%;
+        width: 98%;
+        margin: 0.5rem auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-responsive {
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+    }
+    .modal-responsive .modal-content {
+        border-radius: 0;
+        min-height: 100vh;
+        border: none;
+    }
+    .modal-responsive .modal-header {
+        padding: 0.75rem 1rem;
+    }
+    .modal-responsive .modal-body {
+        padding: 0.75rem;
+    }
+    .modal-responsive .modal-footer {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .modal-responsive .modal-body .row > [class*="col-"] {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .modal-responsive .form-group {
+        margin-bottom: 0.5rem;
+    }
+    .modal-responsive .form-control {
+        font-size: 14px;
+        padding: 0.375rem 0.5rem;
+    }
+    .modal-responsive label {
+        font-size: 13px;
+        margin-bottom: 0.2rem;
+    }
+}
 </style>
 <!-- main content -->
 <div class="main-panel">
@@ -32,19 +86,31 @@
                             <!-- card-body -->
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
-                                <li class="active"><a data-toggle="tab"  href="#car">{{__('settings.car')}}</a></li>
-                                <li><a data-toggle="tab"  href="#category">{{__('settings.category')}}</a></li>
+                                <li class="active"><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>
+                                <li><a data-toggle="tab"  href="#car">{{__('settings.car')}}</a></li>
                                 <li><a data-toggle="tab"  href="#unit">{{__('settings.unit')}}</a></li>
+                                <li><a data-toggle="tab"  href="#category">{{__('settings.category')}}</a></li>
+                                <li><a data-toggle="tab"  href="#preListItems">{{__('settings.preListItems')}}</a></li>
                                 <li><a data-toggle="tab"  href="#currency"> {{__('settings.currency')}}</a></li>
-                                <li><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>
                                 <li><a data-toggle="tab"  href="#expense_type">  {{__('settings.expense_type')}}  </a></li>
                                 <li><a data-toggle="tab"  href="#company_profile">  {{__('settings.company_profile')}}   </a></li>
                             </ul>
 
                             <div class="tab-content">
 
+                               <!-- account -->
+                                <div id="account" class="tab-pane fade  in active">
+                                   <br> 
+                                   @if($permissions['settings'] || $isAdmin)
+									    @include('settings.account.add')
+                                    @endif
+                                    <br>  
+                                    @include('settings.account.list') 
+								</div>
+					        	<!-- /account -->
+
                                 <!-- car -->
-                                 <div id="car" class="tab-pane fade in active"> 
+                                 <div id="car" class="tab-pane fade"> 
                                        <br> 
                                        @if($permissions['settings'] || $isAdmin)
 									       @include('settings.car.add')
@@ -53,6 +119,17 @@
                                        @include('settings.car.list')      
 								</div>
 						        <!-- / car -->
+
+                                  <!-- unit -->
+                                <div id="unit" class="tab-pane fade"> 
+                                       <br> 
+                                       @if($permissions['settings'] || $isAdmin)
+									       @include('settings.unit.add')
+                                        @endif
+								       <br>  
+                                       @include('settings.unit.list')      
+								</div>
+						        <!-- / unit -->
 
                                 <!-- category -->
                                  <div id="category" class="tab-pane fade"> 
@@ -65,16 +142,18 @@
 								</div>
 						        <!-- / category -->
 
-                                <!-- unit -->
-                                <div id="unit" class="tab-pane fade"> 
+                                <!-- preListItems -->
+                                 <div id="preListItems" class="tab-pane fade"> 
                                        <br> 
                                        @if($permissions['settings'] || $isAdmin)
-									       @include('settings.unit.add')
+									       @include('settings.preListItems.add')
                                         @endif
 								       <br>  
-                                       @include('settings.unit.list')      
+                                       @include('settings.preListItems.list')      
 								</div>
-						        <!-- / unit -->
+						        <!-- / preListItems -->
+
+                              
                              
                               <!-- currency -->
                               <div id="currency" class="tab-pane fade">
@@ -87,16 +166,6 @@
 								</div>
 						       <!-- /currency -->
 
-                               <!-- account -->
-                                <div id="account" class="tab-pane fade">
-                                   <br> 
-                                   @if($permissions['settings'] || $isAdmin)
-									    @include('settings.account.add')
-                                    @endif
-                                    <br>  
-                                    @include('settings.account.list') 
-								</div>
-					        	<!-- /account -->
 
                                 <!-- expense_type -->
                                 <div id="expense_type" class="tab-pane fade"> 
@@ -135,6 +204,7 @@
 </div>
 <!-- / main content -->
 
+
 <script>
 
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
@@ -169,7 +239,7 @@ $(document).ready(function () {
     if (activeTab) {
         $('#myTab2 a[href="' + activeTab + '"]').tab('show');
     } else {
-        activeTab = '#car'; // Default to the first tab if none is stored
+        activeTab = '#account'; // Default to the first tab if none is stored
     }
 
     // Call the respective function on page load
@@ -200,6 +270,8 @@ $(document).ready(function () {
             fetchExpenseTypeList();
         } else if (tab === '#company_profile') {
             fetchProfileList();
+        } else if(tab === '#preListItems') {
+            fetchPreListItems();
         }
     }
 });
