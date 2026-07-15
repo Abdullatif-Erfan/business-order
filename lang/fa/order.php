@@ -21,6 +21,9 @@ return [
     'supplier_selection' => 'انتخاب تهیه کننده',
     'customer_selection' => 'انتخاب مشتریان',
     'customers' => 'مشتریان',
+    'customer' => 'مشتری',
+    'customer_selection' => 'انتخاب مشتری',
+
     
     'employee_name' => 'راننده / کارمند',
     'employee_selection' => 'انتخاب راننده',

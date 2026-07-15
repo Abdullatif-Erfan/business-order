@@ -16,6 +16,7 @@ class Order extends Model
         'category_id',
         'supplier_id',
         'employee_id',
+        'customer_id',
         'amount',
         'unit_id',
         'iby',
@@ -56,6 +57,10 @@ class Order extends Model
     public function supplierRelation()
     {
         return $this->belongsTo(Account::class, 'supplier_id','id');
+    }
+    public function customerRelation()
+    {
+        return $this->belongsTo(Account::class, 'customer_id','id');
     }
   
     // public function getFormattedAmountAttribute()

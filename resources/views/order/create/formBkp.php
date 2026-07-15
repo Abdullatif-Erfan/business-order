@@ -25,14 +25,15 @@
     }
 </style>
 
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="card">
+                    <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">{{ __('order.edit_order') }}
+                            <h4 class="card-title">{{ __('order.create_order') }}
                                 <span class="pull-left">
                                     <a href="{{ route('orders.index') }}">
                                         <button class="btn mybtn bg-default">{{ __('common.back') }}</button>
@@ -41,13 +42,10 @@
                             </h4>
                         </div>
 
-                        <form id="orderEditForm" action="{{ route('orders.update', $order->ord_num) }}" method="POST">
+                        <form id="orderForm" action="{{ route('orders.store') }}" method="POST">
                             @csrf
-                            @method('PUT')
 
-                            <input type="hidden" name="ord_num" value="{{ $order->ord_num }}">
-                            <input type="hidden" name="times" value="{{ $order->times }}">
-                            <input type="hidden" name="delete_items" id="delete_items" value="">
+                            <input type="hidden" name="times" value="{{ $times ?? 0 }}">
 
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -81,7 +79,7 @@
                                                             name="supplier_id" id="supplier_id" required>
                                                         <option value="">{{ __('order.supplier_selection') }}</option>
                                                         @foreach($suppliers as $supplier)
-                                                            <option value="{{ $supplier->id }}" {{ $order->supplier_id == $supplier->id ? 'selected' : '' }}>
+                                                            <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
                                                                 {{ $supplier->name }}
                                                             </option>
                                                         @endforeach
@@ -93,12 +91,12 @@
 
                                                 <!-- Employee/Driver -->
                                                 <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="employee_id">{{ __('order.employee_name') }} <span class="text-danger">*</span></label>
+                                                    <label for="employee_id">{{ __('order.employee_name') }}  <span class="text-danger">*</span></label>
                                                     <select class="form-control select2" style="width: 100%; background-color:#ddd;" 
                                                             name="employee_id" id="employee_id" required>
                                                         <option value="">{{ __('order.employee_selection') }}</option>
                                                         @foreach($employees as $employee)
-                                                            <option value="{{ $employee->id }}" {{ $order->employee_id == $employee->id ? 'selected' : '' }}>
+                                                            <option value="{{ $employee->id }}" {{ old('employee_id') == $employee->id ? 'selected' : '' }}>
                                                                 {{ $employee->name }}
                                                             </option>
                                                         @endforeach
@@ -108,34 +106,45 @@
                                                     @enderror
                                                 </div>
 
-                                                <!-- Date Picker -->
-                                                <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="date">{{ __('order.date') }} <span class="text-danger">*</span></label>
+                                                <!-- Date Picker - Using Reusable Component -->
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
+                                                    <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
                                                     <div class="input-group date" id="datepicker">
-                                                        <input type="text" class="form-control" name="date" id="date" 
-                                                            value="{{ $order->idate ? \Carbon\Carbon::parse($order->idate)->format('Y-m-d') : date('Y-m-d') }}" 
-                                                            placeholder="{{ __('common.date') }}">
+                                                        <input type="text" class="form-control" name="date" 
+                                                            value="{{ date('Y-m-d') }}" placeholder="Select date">
                                                         <div class="input-group-append">
-                                                            <span class="input-group-text datepicker-icon">
+                                                            <span class="input-group-text">
                                                                 <i class="fas fa-calendar-alt"></i>
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    @error('date')
+                                                </div>
+
+                                                <!-- Status -->
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
+                                                    <label for="state">{{ __('order.status') }}</label>
+                                                    <select class="form-control" name="state" id="state">
+                                                        <option value="0">{{ __('order.draft') }}</option>
+                                                        <option value="1">{{ __('order.new') }}</option>
+                                                        <option value="2">{{ __('order.cancelled') }}</option>
+                                                        <option value="3">{{ __('order.completed') }}</option>
+                                                    </select>
+                                                </div>
+
+                                                
+                                                <!-- Order Number -->
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
+                                                    <label for="ord_num">{{ __('order.order_number') }} <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="ord_num" id="ord_num" 
+                                                           value="{{ $orderNumber ?? old('ord_num') }}" 
+                                                           placeholder="{{ __('order.enter_order_number') }}" required readonly>
+                                                    @error('ord_num')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
                                                 </div>
 
-                                                <!-- Status -->
-                                                <div class="col-md-3 col-sm-4 col-xs-6">
-                                                    <label for="state">{{ __('order.status') }}</label>
-                                                    <select class="form-control" name="state" id="state">
-                                                        <option value="0" {{ $order->state == 0 ? 'selected' : '' }}>{{ __('order.draft') }}</option>
-                                                        <option value="1" {{ $order->state == 1 ? 'selected' : '' }}>{{ __('order.new') }}</option>
-                                                        <option value="2" {{ $order->state == 2 ? 'selected' : '' }}>{{ __('order.done') }}</option>
-                                                        <option value="3" {{ $order->state == 3 ? 'selected' : '' }}>{{ __('order.cancelled') }}</option>
-                                                    </select>
-                                                </div>
+                                                
+
                                             </div>
                                         </div>
 
@@ -144,64 +153,7 @@
                                         <!-- ========================================= -->
                                         <div class="col-md-12 m-t-20">
                                             <div class="row">
-                                                <div class="col-12">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered new" id="itemsTable">
-                                                            <thead>
-                                                                <tr style="background:#e9fffe">
-                                                                    <th style="width:40%">{{ __('wh.item_selection') }}</th>
-                                                                    <th style="width:20%">{{ __('common.amount') }}</th>
-                                                                    <th style="width:30%">{{ __('common.unit') }}</th>
-                                                                    <th style="width:10%">{{ __('common.add') }}</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="itemsBody">
-                                                                @foreach($orderItems as $index => $item)
-                                                                <tr class="item-row" data-id="{{ $item->id }}">
-                                                                    <td>
-                                                                        <select class="form-control select2 item-select" name="buy_pre_list[]" style="width: 100%;" required>
-                                                                            <option value="">{{ __('wh.item_selection') }}</option>
-                                                                            @foreach($preLists as $preList)
-                                                                                <option value="{{ $preList->id }}"
-                                                                                    data-category-id="{{ $preList->category_id ?? '' }}"
-                                                                                    data-pre-list-id="{{ $preList->id }}"
-                                                                                    {{ $item->pre_list_id == $preList->id ? 'selected' : '' }}>
-                                                                                    {{ $preList->name }}
-                                                                                </option>
-                                                                            @endforeach
-                                                                        </select>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input name="amount[]" class="form-control amount" type="number" step="0.01" 
-                                                                               value="{{ $item->amount }}" placeholder="{{ __('common.amount') }}" required>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input name="category_id[]" class="form-control pre-category-id" value="{{ $item->category_id ?? '' }}" type="hidden" readonly>
-                                                                        <input name="item_id[]" class="form-control item-id" type="hidden" value="{{ $item->id }}">
-                                                                        
-                                                                        <select class="form-control select2 unit-select" name="unit_id[]" style="width: 100%;" required>
-                                                                            <option value="">{{ __('order.unit_selection') }}</option>
-                                                                            @foreach($units as $unit)
-                                                                                <option value="{{ $unit->id }}" {{ $item->unit_id == $unit->id ? 'selected' : '' }}>
-                                                                                    {{ $unit->name }}
-                                                                                </option>
-                                                                            @endforeach
-                                                                        </select>
-                                                                    </td>
-                                                                    <td>
-                                                                        <button type="button" class="btn btn-info btn-sm addRow" style="padding: 2px 8px !important;" title="{{ __('common.add') }}">
-                                                                            <i class="fa fa-plus"></i>
-                                                                        </button>
-                                                                        <button type="button" class="btn btn-warning btn-sm removeRow" style="padding: 2px 8px !important;" title="{{ __('common.remove') }}">
-                                                                            <i class="fa fa-minus"></i>
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                                @endforeach
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
+                                                @include('order.create.dynamic_item_list')
                                             </div>
                                         </div>
 
@@ -214,7 +166,7 @@
                                             <div class="row">
                                                 <div class="col-3 col-xs-6">
                                                     <button type="submit" id="submit_button" class="form-control btn bg-blue">
-                                                        {{ __('common.edit') }}
+                                                        {{ __('common.save') }}
                                                     </button>
                                                 </div>
                                                 <div class="col-3 col-xs-6">
@@ -237,18 +189,16 @@
         </div>
     </div>
 </div>
-
 @push('scripts')
+
 <script>
 $(document).ready(function() {
    
+
     // =========================================
     // INITIALIZE SELECT2
     // =========================================
     $('.item-select, .unit-select').select2();
-
-    // Store the template row HTML
-    var templateRow = $('#itemsBody .item-row:first').clone();
 
     // =========================================
     // TOGGLE REQUIRED ATTRIBUTE
@@ -270,112 +220,156 @@ $(document).ready(function() {
         var selectedOption = $(this).find(':selected');
         var row = $(this).closest('tr');
         
+        // Get data from selected option
         var categoryId = selectedOption.data('category-id') || '';
         var preListId = selectedOption.data('pre-list-id') || '';
+        var unitId = selectedOption.data('unit-id') || '';
 
+        // Set values in the row
         row.find('.pre-category-id').val(categoryId);
         row.find('.pre-list-id').val(preListId);
+        
+        // Auto-select unit if available
+        if (unitId) {
+            row.find('.unit-select').val(unitId).trigger('change');
+        } else {
+            row.find('.unit-select').val('').trigger('change');
+        }
+    });
+
+    // =========================================
+    // CAPTURE UNIT SELECTION CHANGE
+    // =========================================
+    $(document).on('change', '.unit-select', function () {
+        var row = $(this).closest('tr');
+        var selectedUnitId = $(this).val();
+        console.log('Row:', row.index(), 'Unit selected:', selectedUnitId);
+    });
+
+    // =========================================
+    // VALIDATE AMOUNT
+    // =========================================
+    $(document).on('input', '.amount', function () {
+        var amount = parseFloat($(this).val()) || 0;
+        if (amount < 0) {
+            $(this).val(0);
+            showNotification('{{ __("common.amount_positive") }}', 'warning', 'top', 'right', 'withicon');
+        }
     });
 
     // =========================================
     // ADD NEW ROW
     // =========================================
-    $(document).on('click', '.addRow', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    $(document).on('click', '.addRow', function () {
+        var $lastRow = $('.item-row:last');
+        var $newRow = $lastRow.clone();
+        var rowCount = $('.item-row').length;
+
+        // Reset input values
+        $newRow.find('input[type="text"], input[type="number"], input[type="hidden"]').val('');
+        $newRow.find('.item-select, .unit-select').val('').trigger('change');
         
-        var $newRow = templateRow.clone();
-        
-        // Reset values
-        $newRow.find('input[type="text"], input[type="number"]').val('');
-        $newRow.find('.item-id').val('');
-        $newRow.find('select').each(function() {
-            $(this).val('').removeAttr('data-select2-id');
-            $(this).removeClass('select2-hidden-accessible');
-        });
+        // Remove select2 and reinitialize
         $newRow.find('.select2-container').remove();
-        $newRow.find('.removeRow').show();
+        $newRow.find('.item-select, .unit-select').removeClass('select2-hidden-accessible').show();
         
-        $('#itemsBody').append($newRow);
+        // Append new row
+        $lastRow.after($newRow);
+        
+        // Reinitialize select2 for new row
         $newRow.find('.item-select, .unit-select').select2();
+        
+        // Show remove button for all rows except first
+        if (rowCount > 0) {
+            $newRow.find('.removeRow').show();
+        }
+        
+        // Add required attributes
         toggleRequiredAttribute($newRow, true);
-        updateRemoveButtons();
     });
 
     // =========================================
     // REMOVE ROW
     // =========================================
-    $(document).on('click', '.removeRow', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        var rows = $('#itemsBody .item-row');
-        var row = $(this).closest('tr');
+    $(document).on('click', '.removeRow', function () {
+        var rows = $('.item-row');
         
         if (rows.length > 1) {
-            // Check if this is an existing item (has ID)
-            var itemId = row.find('.item-id').val();
-            if (itemId) {
-                // Mark for deletion
-                var deleteItems = $('#delete_items').val();
-                if (deleteItems) {
-                    $('#delete_items').val(deleteItems + ',' + itemId);
-                } else {
-                    $('#delete_items').val(itemId);
-                }
-            }
+            var row = $(this).closest('tr');
             
-            toggleRequiredAttribute(row, false);
-            row.remove();
-            updateRemoveButtons();
+            // Prevent deleting the first row
+            if (row.index() !== 0) {
+                toggleRequiredAttribute(row, false);
+                row.remove();
+                
+                // Hide remove button if only one row left
+                if ($('.item-row').length === 1) {
+                    $('.removeRow').hide();
+                }
+            } else {
+                showNotification('{{ __("common.at_least_one_row") }}', 'warning', 'top', 'right', 'withicon');
+            }
         } else {
-            showNotification('{{ __("common.at_least_one_row") }}', 'warning');
+            showNotification('{{ __("common.at_least_one_row") }}', 'warning', 'top', 'right', 'withicon');
         }
     });
 
     // =========================================
-    // UPDATE REMOVE BUTTONS
-    // =========================================
-    function updateRemoveButtons() {
-        var rows = $('#itemsBody .item-row');
-        if (rows.length === 1) {
-            rows.find('.removeRow').hide();
-        } else {
-            rows.find('.removeRow').show();
-        }
-    }
-
-    // =========================================
     // FORM SUBMISSION
     // =========================================
-    $('#orderEditForm').on('submit', function(e) {
+    $('#orderForm').on('submit', function(e) {
         e.preventDefault();
         
+        var items = [];
         var isValid = true;
         var errorMessages = [];
         
-        $('#itemsBody .item-row').each(function() {
+        $('.item-row').each(function(index) {
             var row = $(this);
             var preListId = row.find('.item-select').val();
             var amount = row.find('.amount').val();
             var unitId = row.find('.unit-select').val();
+            var categoryId = row.find('.pre-category-id').val();
             
+            // Validate item selection
             if (!preListId) {
                 isValid = false;
+                row.find('.item-select').css('border-color', 'red');
                 errorMessages.push('{{ __("wh.select_item") }}');
+            } else {
+                row.find('.item-select').css('border-color', '');
             }
+            
+            // Validate amount
             if (!amount || parseFloat(amount) <= 0) {
                 isValid = false;
+                row.find('.amount').css('border-color', 'red');
                 errorMessages.push('{{ __("wh.enter_valid_amount") }}');
+            } else {
+                row.find('.amount').css('border-color', '');
             }
+            
+            // Validate unit
             if (!unitId) {
                 isValid = false;
+                row.find('.unit-select').css('border-color', 'red');
                 errorMessages.push('{{ __("wh.select_unit") }}');
+            } else {
+                row.find('.unit-select').css('border-color', '');
+            }
+            
+            if (preListId && amount && parseFloat(amount) > 0 && unitId) {
+                items.push({
+                    pre_list_id: preListId,
+                    amount: parseFloat(amount),
+                    unit_id: unitId,
+                    category_id: categoryId
+                });
             }
         });
         
-        if (!isValid) {
-            showNotification(errorMessages.join('<br>'), 'danger');
+        if (!isValid || items.length === 0) {
+            showNotification(errorMessages.join('<br>'), 'danger', 'top', 'right', 'withicon');
             return;
         }
         
@@ -383,35 +377,46 @@ $(document).ready(function() {
         var originalText = $submitBtn.text();
         $submitBtn.prop('disabled', true).text('{{ __("common.saving") }}...');
         
+        // Get form data with items
+        var formData = $(this).serialize();
+        
         $.ajax({
             url: $(this).attr('action'),
             type: 'POST',
-            data: $(this).serialize(),
+            data: formData,
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
                 $submitBtn.prop('disabled', false).text(originalText);
                 if (response.status === 'success') {
-                    showNotification(response.message, 'success');
+                    showNotification(response.message || '{{ __("common.added_successfully") }}', 
+                                   'success', 'top', 'right', 'withicon');
+                    
                     setTimeout(function() {
                         window.location.href = '{{ route("orders.index") }}';
                     }, 1000);
                 } else {
-                    showNotification(response.message || '{{ __("common.error_occurred") }}', 'danger');
+                    showNotification(response.message || '{{ __("common.error_occurred") }}', 
+                                   'danger', 'top', 'right', 'withicon');
                 }
             },
             error: function(xhr) {
                 $submitBtn.prop('disabled', false).text(originalText);
+                
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     var errorMessages = [];
+                    
                     $.each(errors, function(key, messages) {
                         errorMessages.push(messages[0]);
                     });
-                    showNotification(errorMessages.join('<br>'), 'danger');
+                    
+                    showNotification(errorMessages.join('<br>'), 'danger', 'top', 'right', 'withicon');
+                } else if (xhr.status === 500) {
+                    showNotification('{{ __("common.server_error") }}', 'danger', 'top', 'right', 'withicon');
                 } else {
-                    showNotification('{{ __("common.error_occurred") }}', 'danger');
+                    showNotification('{{ __("common.error_occurred") }}', 'danger', 'top', 'right', 'withicon');
                 }
             }
         });
@@ -440,11 +445,22 @@ $(document).ready(function() {
     }
 
     // =========================================
+    // HANDLE CLOSE ERROR
+    // =========================================
+    $(document).on('click', '.close-error', function() {
+        $('#errorWrapper').fadeOut();
+    });
+
+    // =========================================
     // INITIAL SETUP
     // =========================================
-    updateRemoveButtons();
+    // Hide remove button for first row initially
+    if ($('.item-row').length === 1) {
+        $('.removeRow').hide();
+    }
 });
 </script>
+
 @endpush
 
 @endsection

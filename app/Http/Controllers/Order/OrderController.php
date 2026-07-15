@@ -267,15 +267,15 @@ class OrderController extends Controller
     {
         $preLists = BuyPreList::select('id', 'name','category_id')->orderBy('name')->get();
         $units = Unit::select('id', 'name')->orderBy('name')->get();
-        $employees = Account::select('id','name')->where('account_type_id',2)->get();
-        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
-        $orderNumber = Order::max('ord_num') + 1;
+        // $employees = Account::select('id','name')->where('account_type_id',2)->get();
+        // $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
+        $customers = Account::select('id','name')->where('account_type_id',3)->get();
+        // $orderNumber = Order::max('ord_num') + 1;
         $miladiDate = Carbon::now();
         $todaysDate = $miladiDate->format('Y-m-d');
         $times = time();
         
-        return view('order.create.form', compact('preLists', 'units','todaysDate','employees','suppliers',
-        'orderNumber','times'));
+        return view('order.create.form', compact('preLists', 'units','todaysDate','customers','times'));
     }
 
     
@@ -306,9 +306,9 @@ class OrderController extends Controller
             'unit_id.*' => 'required|exists:units,id',
             'category_id' => 'nullable|array',
             // 'category_id.*' => 'nullable|exists:categories,id',
-            'supplier_id' => 'required|exists:accounts,id',
-            'employee_id' => 'required|exists:accounts,id',
-            'ord_num' => 'required|string|max:50',
+            'customer_id' => 'required|exists:accounts,id',
+            // 'employee_id' => 'required|exists:accounts,id',
+            // 'ord_num' => 'required|string|max:50',
             'state' => 'required|numeric',
             'times' => 'required|integer',
         ]);
@@ -326,6 +326,7 @@ class OrderController extends Controller
                     'amount' => $validated['amount'][$index] ?? 0,
                     'unit_id' => $validated['unit_id'][$index] ?? null,
                     'category_id' => $validated['category_id'][$index] ?? null,
+                    'supplier_id' => $validated['supplier_id'][$index] ?? null,
                 ];
             })->filter(function ($item) {
                 return $item['pre_list_id'] && $item['amount'] > 0;
@@ -333,11 +334,11 @@ class OrderController extends Controller
 
             foreach ($items as $item) {
                 Order::create([
-                    'ord_num' => $validated['ord_num'],
+                    'ord_num' => NULL,
                     'pre_list_id' => $item['pre_list_id'],
                     'category_id' => $item['category_id'],
-                    'supplier_id' => $validated['supplier_id'],
-                    'employee_id' => $validated['employee_id'],
+                    'supplier_id' => $item['supplier_id'],
+                    'customer_id' => $validated['customer_id'],
                     'amount' => $item['amount'],
                     'unit_id' => $item['unit_id'],
                     'iby' => auth()->user()->full_name ?? '',

@@ -10,6 +10,7 @@ use App\Http\Controllers\Setting\AccountController;
 use App\Http\Controllers\Setting\IncomeTypeController;
 use App\Http\Controllers\Setting\ExpenseTypeController;
 use App\Http\Controllers\Setting\OrgProfileController;
+use App\Http\Controllers\Setting\CarController;
 
 
 Route::get('setting',[SettingController::class,'index'])->name('setting')->middleware('access:settings,list');
@@ -32,6 +33,16 @@ Route::prefix('units')->group(function(){
     Route::get('/{id}', [UnitController::class, 'show'])->name('units.show')->middleware('access:settings,edit_records');
     Route::patch('/update', [UnitController::class, 'update'])->name('units.update'); 
     Route::delete('/{id}', [UnitController::class, 'destroy'])->name('units.destroy')->middleware('access:settings,delete_records');
+});
+
+// car
+Route::prefix('cars')->group(function(){
+    Route::get('/', [CarController::class, 'index'])->name('cars.list');
+    Route::get('/create', [CarController::class, 'create'])->name('cars.create')->middleware('access:settings,create_records');
+    Route::post('/store', [CarController::class, 'store'])->name('cars.store');
+    Route::get('/{id}', [CarController::class, 'show'])->name('cars.show')->middleware('access:settings,edit_records');
+    Route::patch('/update', [CarController::class, 'update'])->name('cars.update'); 
+    Route::delete('/{id}', [CarController::class, 'destroy'])->name('cars.destroy')->middleware('access:settings,delete_records');
 });
 
 // Currency
