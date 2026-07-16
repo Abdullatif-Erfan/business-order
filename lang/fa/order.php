@@ -84,6 +84,9 @@ return [
     'update_status' => 'ویرایش وضعیت',
     'status_updated_successfully' => 'موفقانه ویرایش گردید',
     'list_title' => 'لیست سفارشات',
+    'edit_draft_order' => 'ویرایش سفارش', 
+    'select_category' => 'انتخاب کتگوری',
+    'update' => 'ویرایش',
 
     
 

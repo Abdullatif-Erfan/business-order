@@ -131,13 +131,13 @@
                     <div class="collapse" id="orders-section">
                         <ul class="nav nav-collapse">
                             <li>
-                                <a href="{{ route('orders.index') }}">
+                                <a href="{{ route('draftOrders.index') }}">
                                     <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                     <span class="sub-item">{{ __('menu.orders_title') }}</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('orders.create') }}">
+                                <a href="{{ route('draftOrders.create') }}">
                                     <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                     <span class="sub-item">{{ __('menu.create_order') }}</span>
                                 </a>
