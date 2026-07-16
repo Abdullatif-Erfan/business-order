@@ -15,10 +15,6 @@ class BuyPreList extends Model
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
     }
-    // public function supplier()
-    // {
-    //     return $this->hasMany(Account::class, 'supplier_id','id');
-    // }
     public function supplier()
     {
         return $this->belongsTo(Account::class, 'supplier_id','id');

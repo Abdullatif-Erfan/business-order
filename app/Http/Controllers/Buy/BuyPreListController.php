@@ -92,10 +92,12 @@ class BuyPreListController extends Controller
             'name' => 'required|string|max:255|min:2|unique:bought_item_pre_lists,name',
         ], $messages);
 
+        $supplier_id = Category::where('id', $request->category_id)->value('supplier_id') ?? 0;
+
         BuyPreList::create([
             'name' => $validated['name'],
             'category_id' => $request->category_id,
-            'supplier_id' => $request->supplier_id,
+            'supplier_id' => $supplier_id,
         ]);
 
         return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
@@ -161,16 +163,13 @@ class BuyPreListController extends Controller
         if (!$prevData) {
             return response()->json(['status' => 'error', 'message' => 'سطر مورد نظر پیدا نشد']);
         }
+
+        $supplier_id = Category::where('id', $request->category_id)->value('supplier_id') ?? 0;
     
-        if ($request->hasFile('image')) {
-            // Store the uploaded image
-            $image_path = $request->file('image')->store('item_images', 'public');
-            $prevData->image_path = $image_path; // Save the image path
-        }
         // Update the data
         $prevData->name = $request->name;
         $prevData->category_id = $request->category_id ?? null;
-        $prevData->supplier_id = $request->supplier_id ?? null;
+        $prevData->supplier_id = $supplier_id;
         $prevData->save();
     
         // Return success response

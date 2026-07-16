@@ -86,8 +86,8 @@
                             <!-- card-body -->
 
                             <ul class="nav my_nave nav-tabs" id="myTab2">
-                                <li class="active"><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>
-                                <li><a data-toggle="tab"  href="#car">{{__('settings.car')}}</a></li>
+                                <li class="active"><a data-toggle="tab"  href="#car">{{__('settings.car')}}</a></li>
+                                <li><a data-toggle="tab"  href="#account"> {{__('settings.account')}}  </a></li>
                                 <li><a data-toggle="tab"  href="#unit">{{__('settings.unit')}}</a></li>
                                 <li><a data-toggle="tab"  href="#category">{{__('settings.category')}}</a></li>
                                 <li><a data-toggle="tab"  href="#preListItems">{{__('settings.preListItems')}}</a></li>
@@ -97,9 +97,19 @@
                             </ul>
 
                             <div class="tab-content">
+                                <!-- car -->
+                                 <div id="car" class="tab-pane fade  in active"> 
+                                       <br> 
+                                       @if($permissions['settings'] || $isAdmin)
+									       @include('settings.car.add')
+                                        @endif
+								       <br>  
+                                       @include('settings.car.list')      
+								</div>
+						        <!-- / car -->
 
                                <!-- account -->
-                                <div id="account" class="tab-pane fade  in active">
+                                <div id="account" class="tab-pane fade">
                                    <br> 
                                    @if($permissions['settings'] || $isAdmin)
 									    @include('settings.account.add')
@@ -109,16 +119,7 @@
 								</div>
 					        	<!-- /account -->
 
-                                <!-- car -->
-                                 <div id="car" class="tab-pane fade"> 
-                                       <br> 
-                                       @if($permissions['settings'] || $isAdmin)
-									       @include('settings.car.add')
-                                        @endif
-								       <br>  
-                                       @include('settings.car.list')      
-								</div>
-						        <!-- / car -->
+                              
 
                                   <!-- unit -->
                                 <div id="unit" class="tab-pane fade"> 
@@ -239,7 +240,7 @@ $(document).ready(function () {
     if (activeTab) {
         $('#myTab2 a[href="' + activeTab + '"]').tab('show');
     } else {
-        activeTab = '#account'; // Default to the first tab if none is stored
+        activeTab = '#car'; // Default to the first tab if none is stored
     }
 
     // Call the respective function on page load
