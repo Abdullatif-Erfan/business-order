@@ -3,8 +3,6 @@
 namespace App\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Buy\BuyPreList;
-use App\Models\Setting\Unit;
 use App\Models\Setting\Category;
 use App\Models\Setting\Account;
 
@@ -12,64 +10,47 @@ class Order extends Model
 {
     protected $fillable = [
         "ord_num",
-        'pre_list_id',
-        'category_id',
         'supplier_id',
-        'employee_id',
-        'customer_id',
-        'amount',
-        'unit_id',
+        'category_id',
         'iby',
         'idate',
         'state',
-        'done_year',
-        'done_month',
-        'done_day',
-        'done_by',
+        'user_name',
         'times'
     ];
 
-    protected $casts = [
-        // 'idate' => 'date',
-        // 'amount' => 'decimal:2',
-    ];
+    protected static function boot()
+    {
+        parent::boot();
 
+        static::creating(function ($order) {
+            $order->ord_num = self::generateOrderNumber();
+        });
+    }
+
+    public static function generateOrderNumber()
+    {
+        $prefix = 'ORD-' . date('Y-m-');
+        $last = self::where('ord_num', 'LIKE', $prefix . '%')
+                    ->orderBy('ord_num', 'desc')
+                    ->first();
+        $lastNum = $last ? intval(substr($last->ord_num, -4)) : 0;
+        return $prefix . str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+    }
+  
     // Relationships
-    public function preListRelation()
-    {
-        return $this->belongsTo(BuyPreList::class, 'pre_list_id');
-    }
-
-    public function unitRelation()
-    {
-        return $this->belongsTo(Unit::class, 'unit_id');
-    }
-
+   
     public function categoryRelation()
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function employeeRelation()
-    {
-        return $this->belongsTo(Account::class, 'employee_id','id');
-    }
     public function supplierRelation()
     {
         return $this->belongsTo(Account::class, 'supplier_id','id');
     }
-    public function customerRelation()
+    public function items()
     {
-        return $this->belongsTo(Account::class, 'customer_id','id');
+        return $this->hasMany(OrderItem::class, 'order_id');
     }
-  
-    // public function getFormattedAmountAttribute()
-    // {
-    //     return number_format($this->amount, 2);
-    // }
-
-    // public function getFormattedDateAttribute()
-    // {
-    //     return $this->idate ? \Carbon\Carbon::parse($this->idate)->format('Y/m/d') : '-';
-    // }
 }

@@ -38,6 +38,12 @@ class DraftOrderController extends Controller
         $todaysDate = Carbon::now()->format('Y-m-d');
 
         return view('order.draft.list', compact('todaysDate', 'orgbios'));
+        // if ($tabIndex == 0) {
+        // return view('order.draft.list', compact('todaysDate', 'orgbios'));
+        // } else {
+        //     return view('order.list', compact('todaysDate', 'orgbios'));
+        // }
+
     }
 
     /**

@@ -94,10 +94,10 @@
         background: #4a6cf7;
         border-radius: 3px 3px 0 0;
     }
-     /* .filter-section .filter-group:first-child {
+     .filter-section .filter-group:first-child {
         flex: 0.5;
         min-width: 80px;
-    } */
+    }
     
     /* Filter Section - One Row */
     .filter-section {
@@ -280,10 +280,10 @@
             flex: 1;
             justify-content: flex-end;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0.5;
             min-width: 70px;
-        } */
+        }
         
        .button-wrapper {
           padding: 0px;
@@ -357,10 +357,10 @@
             min-width: calc(50% - 5px) !important;
             margin-bottom: 4px;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0 0 calc(50% - 5px) !important;
             min-width: calc(50% - 5px) !important;
-        } */
+        }
         .filter-section .filter-group .form-control,
         .filter-section .filter-group .input-group {
             height: 30px;
@@ -419,10 +419,10 @@
             flex: 0 0 calc(50% - 4px) !important;
             min-width: calc(50% - 4px) !important;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0 0 calc(50% - 4px) !important;
             min-width: calc(50% - 4px) !important;
-        } */
+        }
         .filter-section .filter-group .form-control,
         .filter-section .filter-group .input-group {
             height: 28px;
@@ -462,10 +462,10 @@
             flex: 0 0 calc(33.33% - 6px) !important;
             min-width: calc(33.33% - 6px) !important;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0 0 calc(33.33% - 6px) !important;
             min-width: calc(33.33% - 6px) !important;
-        } */
+        }
         .filter-section .filter-actions {
             flex: 0 0 100% !important;
             justify-content: flex-start;
@@ -475,6 +475,7 @@
 
 </style>
 
+
 <div class="main-panel">
     <div class="content">
         <div class="page-inner">
@@ -482,105 +483,51 @@
                 <div class="col-md-12">
                     <div class="col-md-12">
                         <span class="card-title">
-                            </i> {{ __('order.orders_title') }}
+                            {{ __('order.orders_title') }}
                         </span>
                     </div>
                     <div class="card" style="overflow: hidden; box-shadow: 0 2px 20px rgba(0,0,0,0.06);">
                         
                         <!-- ========================================= -->
-                        <!-- TABS, PRINT & ADD BUTTON - ONE LINE -->
+                        <!-- TABS -->
                         <!-- ========================================= -->
                         <div class="d-flex align-items-center justify-content-between no-print button-wrapper">
-                            <ul class="order-tabs no-print" style="border-bottom: none; padding: 0; margin: 0;">
-                               <li>
-                                    <a class="tab-link" data-tab="0" href="{{ route('draftOrders.index') }}">
+                            <ul class="nav my_nave nav-tabs order-tabs" id="orderTabs" style="border-bottom: none; padding: 0; margin: 0;">
+                                <li class="active">
+                                    <a class="tab-link" data-tab="draft" data-toggle="tab" href="#draftOrder">
                                         <i class="fas fa-file-alt hidden-xs"></i> {{ __('order.draft') }}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="tab-link active" data-tab="1" href="{{ route('orders.index') }}">
-                                        <i class="fas fa-clock  hidden-xs"></i> {{ __('order.order') }}
+                                    <a class="tab-link" data-tab="order" data-toggle="tab" href="#orderTab">
+                                        <i class="fas fa-clock hidden-xs"></i> {{ __('order.new') }}
                                     </a>
                                 </li>
                             </ul>
                             <div class="d-flex align-items-center gap-2" style="gap: 4px;">
-                                <a href="{{ route('orders.create') }}" class="btn btn-sm no-print" style="background: #3990e7; border: none; color: #fff; border-radius: 5px; padding: 4px 8px;">
-                                    <i class="fas fa-plus"></i> <span class="hidden-xs">{{ __('order.add_new_order') }}</span>
-                                </a>
                                 <button class="btn btn-sm no-print" onclick="print_page_with_image()" style="background: transparent; border: 1px solid #ddd; color: #636e72; border-radius: 5px; padding: 4px 6px;">
                                     <i class="fas fa-print"></i>
                                 </button>
-                                <!-- Responsive Filter Toggle Button - Visible only on XS -->
-                               <button type="button" class="responsive_button btn btn-sm  visible-xs"
-                                   id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
-                                   <i class="fas fa-filter"></i>
-                               </button>
+                                <a href="{{ route('orders.create') }}" class="btn btn-sm no-print" style="background: #3990e7; border: none; color: #fff; border-radius: 5px; padding: 4px 8px;">
+                                    <i class="fas fa-plus"></i> <span class="hidden-xs">{{ __('common.add') }}</span>
+                                </a>
                             </div>
                             <span class="pull-left visible-print">{{ __('common.print_date') }} : {{ $todaysDate }}</span>
                         </div>
-                        <!-- ========================================= -->
-                        <!-- FILTER SECTION - ONE ROW -->
-                        <!-- ========================================= -->
-                        <div class="filter-section no-print" id="searchWrapper">
-                            <div class="filter-group">
-                                <input type="text" id="ord_num" placeholder="{{ __('order.order_number') }}" class="form-control">
-                            </div>
-                            <div class="filter-group">
-                                <input type="text" id="supplier_name" placeholder="{{ __('order.supplier_name') }}" class="form-control">
-                            </div>
-                            <div class="filter-group">
-                                <input type="text" id="category_name" placeholder="{{ __('order.category') }}" class="form-control">
-                            </div>
-                            <div class="filter-group" style="min-width: 120px;">
-                                <div class="input-group">
-                                    <input type="text" class="form-control datepicker-input" id="start_date" 
-                                    placeholder="{{__('common.start_date')}}">
-                                    <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
-                                </div>
-                            </div>
-                            <div class="filter-group" style="min-width: 120px;">
-                                <div class="input-group">
-                                    <input type="text" class="form-control datepicker-input" id="end_date"  placeholder="{{__('common.end_date')}}">
-                                    <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
-                                </div>
-                            </div>
-                            <div class="filter-actions">
-                                <button class="btn btn-search" id="btn-filter"><i class="fas fa-search"></i></button>
-                                <button class="btn btn-reset" id="btn-reset" title="{{ __('common.reset') }}"><i class="fas fa-undo"></i></button>
-                            </div>
-                        </div>
 
                         <!-- ========================================= -->
-                        <!-- TABLE -->
+                        <!-- TAB CONTENT -->
                         <!-- ========================================= -->
-                         <div class="col-md-12 col-sm-12 col-xs-12">
-                         <div class="table-responsive" id="print_area2" style="padding:5px;">
-                            <span class="pull-left visible-print"> {{__('common.print_date')}} : {{ $todaysDate }}</span>
-                            <table id="orderTable" class="display responsive nowrap table table-bordered" width="100%">
-                                <thead>
-                                    <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
-                                            <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
-                                            </td>
-                                        </tr>
-                                        <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
-                                            <center> {{__('order.list_title')}}   </center>
-                                            </td>
-                                        </tr>
-                                    <tr>
-                                        <th style="width:5%">{{ __('common.number') }}</th>
-                                        <th style="width:10%">{{ __('order.order_number') }}</th>
-                                        <th style="width:15%">{{ __('order.supplier_name') }}</th>
-                                        <th style="width:10%">{{ __('order.category') }}</th>
-                                        <th style="width:10%">{{ __('order.status') }}</th>
-                                        <th style="width:10%">{{ __('common.date') }}</th>
-                                        <th style="width:10%">{{ __('common.user') }}</th>
-                                        <th style="width:10%" class="hidden-print">{{ __('order.actions') }}</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                           </div>
+                        <div class="tab-content" style="padding: 5px 10px;">
+                            <!-- Draft Order Tab -->
+                            <div id="draftOrder" class="tab-pane fade in active">
+                                @include('order.draft.table')
+                            </div>
+                            
+                            <!-- Order Tab -->
+                            <div id="orderTab" class="tab-pane fade">
+                                @include('order.order.table')
+                            </div>
                         </div>
 
                     </div>
@@ -594,7 +541,7 @@
 <!-- VIEW MODAL -->
 <!-- ========================================= -->
 <div class="modal fade" id="viewOrderModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+    <div class="modal-dialog" role="document" style="width:900px !important">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-eye"></i> {{ __('common.details') }}</h5>
@@ -616,36 +563,10 @@
 </div>
 
 <!-- ========================================= -->
-<!-- Edit MODAL -->
-<!-- ========================================= -->
-<div class="modal fade" id="editOrderModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-eye"></i> {{ __('common.edit') }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="EditFormWrapper"></div>
-                <div id="modalLoader" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- ========================================= -->
 <!-- STATE MODAL -->
 <!-- ========================================= -->
 <div class="modal fade" id="stateOrderModal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+    <div class="modal-dialog" role="document" style="width:500px !important">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-exchange-alt"></i> {{ __('order.update_status') }}</h5>
@@ -670,17 +591,51 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary btn-sm" id="saveStateBtn">{{ __('common.save') }}</button>
-                 &nbsp;
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
             </div>
         </div>
     </div>
 </div>
 
-
-
 @push('scripts')
-@include('order.scripts')
+<script>
+// Store active tab in localStorage
+$(document).ready(function() {
+    // Restore active tab from localStorage
+    var activeTab = localStorage.getItem('activeOrderTab');
+    if (activeTab) {
+        $('#orderTabs a[href="' + activeTab + '"]').tab('show');
+    }
+    
+    // Store active tab on click
+    $('#orderTabs a').on('click', function() {
+        localStorage.setItem('activeOrderTab', $(this).attr('href'));
+    });
+});
+</script>
+
+<script>
+$(document).ready(function () {
+       // Initialize datepicker
+    $('.datepicker-input').datepicker({
+        format: 'yyyy-mm-dd', // Match your database format
+        autoclose: true,
+        todayHighlight: true,
+        clearBtn: true
+    });
+});
+
+
+$(document).on('click', '.datepicker-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $input = $(this).closest('.input-group').find('input');
+    if ($input.length) {
+        $input.datepicker('show');
+    }
+});
+</script>
+
 @endpush
 
 @endsection

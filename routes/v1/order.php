@@ -25,7 +25,7 @@ Route::prefix('draftOrders')->name('draftOrders.')->group(function(){
     
     // Delete
     Route::delete('/destroy/{ord_num}', [DraftOrderController::class, 'destroy'])->name('destroy')->middleware('access:order,delete_records');
-    
+
 });
 
 // =========================================
@@ -41,18 +41,18 @@ Route::prefix('orders')->name('orders.')->group(function(){
     Route::post('/store', [OrderController::class, 'store'])->name('store')->middleware('access:order,create_records');
     
     // Read (Show)
-    Route::get('/show/{ord_num}', [OrderController::class, 'show'])->name('show')->middleware('access:order,list');
+    Route::get('/show/{order_id}', [OrderController::class, 'show'])->name('show')->middleware('access:order,list');
     
     // Edit/Update
-    Route::get('/edit/{ord_num}', [OrderController::class, 'edit'])->name('edit')->middleware('access:order,edit_records');
-    Route::put('/update/{ord_num}', [OrderController::class, 'update'])->name('update')->middleware('access:order,edit_records');
+    Route::get('/edit/{order_id}', [OrderController::class, 'edit'])->name('edit')->middleware('access:order,edit_records');
+    Route::put('/update/{id}', [OrderController::class, 'update'])->name('update')->middleware('access:order,edit_records');
+    Route::put('/update-all', [OrderController::class, 'updateAll'])->name('updateAll')->middleware('access:order,edit_records');
     
     // Delete
     Route::delete('/destroy/{ord_num}', [OrderController::class, 'destroy'])->name('destroy')->middleware('access:order,delete_records');
     
     // Status Management
-    // Route::patch('/{ord_num}/status', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
-    Route::post('/update-status/{ord_num}', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
+    Route::post('/update-status/{times}', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('access:order,edit_records');
     Route::get('/counts', [OrderController::class, 'getCounts'])->name('counts')->middleware('access:order,list');
 
     // AJAX Routes

@@ -94,10 +94,10 @@
         background: #4a6cf7;
         border-radius: 3px 3px 0 0;
     }
-     /* .filter-section .filter-group:first-child {
+     .filter-section .filter-group:first-child {
         flex: 0.5;
         min-width: 80px;
-    } */
+    }
     
     /* Filter Section - One Row */
     .filter-section {
@@ -280,10 +280,10 @@
             flex: 1;
             justify-content: flex-end;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0.5;
             min-width: 70px;
-        } */
+        }
         
        .button-wrapper {
           padding: 0px;
@@ -357,10 +357,10 @@
             min-width: calc(50% - 5px) !important;
             margin-bottom: 4px;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0 0 calc(50% - 5px) !important;
             min-width: calc(50% - 5px) !important;
-        } */
+        }
         .filter-section .filter-group .form-control,
         .filter-section .filter-group .input-group {
             height: 30px;
@@ -419,10 +419,10 @@
             flex: 0 0 calc(50% - 4px) !important;
             min-width: calc(50% - 4px) !important;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0 0 calc(50% - 4px) !important;
             min-width: calc(50% - 4px) !important;
-        } */
+        }
         .filter-section .filter-group .form-control,
         .filter-section .filter-group .input-group {
             height: 28px;
@@ -462,10 +462,10 @@
             flex: 0 0 calc(33.33% - 6px) !important;
             min-width: calc(33.33% - 6px) !important;
         }
-        /* .filter-section .filter-group:first-child {
+        .filter-section .filter-group:first-child {
             flex: 0 0 calc(33.33% - 6px) !important;
             min-width: calc(33.33% - 6px) !important;
-        } */
+        }
         .filter-section .filter-actions {
             flex: 0 0 100% !important;
             justify-content: flex-start;
@@ -529,6 +529,9 @@
                                 <input type="text" id="supplier_name" placeholder="{{ __('order.supplier_name') }}" class="form-control">
                             </div>
                             <div class="filter-group">
+                                <input type="text" id="employee_name" placeholder="{{ __('order.employee_name') }}" class="form-control">
+                            </div>
+                            <div class="filter-group">
                                 <input type="text" id="category_name" placeholder="{{ __('order.category') }}" class="form-control">
                             </div>
                             <div class="filter-group" style="min-width: 120px;">
@@ -554,7 +557,7 @@
                         <!-- TABLE -->
                         <!-- ========================================= -->
                          <div class="col-md-12 col-sm-12 col-xs-12">
-                         <div class="table-responsive" id="print_area2" style="padding:5px;">
+                         <div class="table-responsive" id="print_area" style="padding:5px;">
                             <span class="pull-left visible-print"> {{__('common.print_date')}} : {{ $todaysDate }}</span>
                             <table id="orderTable" class="display responsive nowrap table table-bordered" width="100%">
                                 <thead>
@@ -571,11 +574,15 @@
                                     <tr>
                                         <th style="width:5%">{{ __('common.number') }}</th>
                                         <th style="width:10%">{{ __('order.order_number') }}</th>
+                                        <th style="width:15%">{{ __('order.item') }}</th>
                                         <th style="width:15%">{{ __('order.supplier_name') }}</th>
+                                        <th style="width:15%">{{ __('order.employee_name') }}</th>
                                         <th style="width:10%">{{ __('order.category') }}</th>
+                                        <th style="width:10%">{{ __('order.amount') }}</th>
+                                        <th style="width:10%">{{ __('order.unit') }}</th>
                                         <th style="width:10%">{{ __('order.status') }}</th>
                                         <th style="width:10%">{{ __('common.date') }}</th>
-                                        <th style="width:10%">{{ __('common.user') }}</th>
+                                        <th style="width:10%" class="hidden-print">{{ __('order.done_by') }}</th>
                                         <th style="width:10%" class="hidden-print">{{ __('order.actions') }}</th>
                                     </tr>
                                 </thead>
@@ -594,7 +601,7 @@
 <!-- VIEW MODAL -->
 <!-- ========================================= -->
 <div class="modal fade" id="viewOrderModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+    <div class="modal-dialog" role="document" style="width:900px !important">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-eye"></i> {{ __('common.details') }}</h5>
@@ -616,36 +623,10 @@
 </div>
 
 <!-- ========================================= -->
-<!-- Edit MODAL -->
-<!-- ========================================= -->
-<div class="modal fade" id="editOrderModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-eye"></i> {{ __('common.edit') }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="EditFormWrapper"></div>
-                <div id="modalLoader" style="display:none; text-align: center;">
-                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- ========================================= -->
 <!-- STATE MODAL -->
 <!-- ========================================= -->
 <div class="modal fade" id="stateOrderModal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+    <div class="modal-dialog" role="document" style="width:500px !important">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-exchange-alt"></i> {{ __('order.update_status') }}</h5>

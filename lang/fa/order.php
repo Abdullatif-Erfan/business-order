@@ -83,10 +83,17 @@ return [
     'add_item' => 'افزودن آیتم',
     'update_status' => 'ویرایش وضعیت',
     'status_updated_successfully' => 'موفقانه ویرایش گردید',
-    'list_title' => 'لیست سفارشات',
+    'list_title' => 'لیست سفارشات برای خرید',
     'edit_draft_order' => 'ویرایش سفارش', 
     'select_category' => 'انتخاب کتگوری',
     'update' => 'ویرایش',
+    'add_new_draft_order' => 'سفارش جدید',
+    'add_new_order' => 'ایجاد لیست خرید',
+    'order' => 'لیست خرید (Order)',
+    'print' => 'چاپ',
+    'total_items' => 'تعداد اجناس',
+    'item_type' => 'نوع جنس',
+    
 
     
 

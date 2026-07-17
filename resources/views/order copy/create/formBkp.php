@@ -31,7 +31,7 @@
         <div class="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="card">
+                    <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
                             <h4 class="card-title">{{ __('order.create_order') }}
                                 <span class="pull-left">
@@ -72,9 +72,42 @@
                                         <!-- ========================================= -->
                                         <div class="col-md-12">
                                             <div class="row">
+                                                <!-- Supplier -->
+                                                <div class="col-md-3 col-sm-4 col-xs-6">
+                                                    <label for="supplier_id">{{ __('order.supplier_name') }} <span class="text-danger">*</span></label>
+                                                    <select class="form-control select2" style="width: 100%; background-color:#ddd;" 
+                                                            name="supplier_id" id="supplier_id" required>
+                                                        <option value="">{{ __('order.supplier_selection') }}</option>
+                                                        @foreach($suppliers as $supplier)
+                                                            <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                                                {{ $supplier->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('supplier_id')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Employee/Driver -->
+                                                <div class="col-md-3 col-sm-4 col-xs-6">
+                                                    <label for="employee_id">{{ __('order.employee_name') }}  <span class="text-danger">*</span></label>
+                                                    <select class="form-control select2" style="width: 100%; background-color:#ddd;" 
+                                                            name="employee_id" id="employee_id" required>
+                                                        <option value="">{{ __('order.employee_selection') }}</option>
+                                                        @foreach($employees as $employee)
+                                                            <option value="{{ $employee->id }}" {{ old('employee_id') == $employee->id ? 'selected' : '' }}>
+                                                                {{ $employee->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('employee_id')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
 
                                                 <!-- Date Picker - Using Reusable Component -->
-                                                <div class="col-md-6 col-sm-6 col-xs-6">
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
                                                     <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
                                                     <div class="input-group date" id="datepicker">
                                                         <input type="text" class="form-control" name="date" 
@@ -88,30 +121,38 @@
                                                 </div>
 
                                                 <!-- Status -->
-                                                <div class="col-md-6 col-sm-6 col-xs-6">
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
                                                     <label for="state">{{ __('order.status') }}</label>
-                                                    <select class="form-control" name="state" id="state" readonly>
+                                                    <select class="form-control" name="state" id="state">
+                                                        <option value="0">{{ __('order.draft') }}</option>
                                                         <option value="1">{{ __('order.new') }}</option>
-                                                        <!-- <option value="2">{{ __('order.cancelled') }}</option> -->
-                                                        <!-- <option value="3">{{ __('order.completed') }}</option> -->
+                                                        <option value="2">{{ __('order.cancelled') }}</option>
+                                                        <option value="3">{{ __('order.completed') }}</option>
                                                     </select>
                                                 </div>
+
+                                                
+                                                <!-- Order Number -->
+                                                <div class="col-md-2 col-sm-4 col-xs-6">
+                                                    <label for="ord_num">{{ __('order.order_number') }} <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="ord_num" id="ord_num" 
+                                                           value="{{ $orderNumber ?? old('ord_num') }}" 
+                                                           placeholder="{{ __('order.enter_order_number') }}" required readonly>
+                                                    @error('ord_num')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+
                                                 
 
                                             </div>
                                         </div>
 
-                                        <!-- <div class="col-md-12 m-t-10">
-                                            <button type="button" id="addItemBtn" class="btn btn-success btn-sm">
-                                                <i class="fa fa-plus"></i> {{ __('order.add_item') }}
-                                            </button>
-                                        </div> -->
-
                                         <!-- ========================================= -->
                                         <!-- SECOND ROW - Dynamic Items -->
                                         <!-- ========================================= -->
                                         <div class="col-md-12 m-t-20">
-                                            <div class="rows">
+                                            <div class="row">
                                                 @include('order.create.dynamic_item_list')
                                             </div>
                                         </div>
@@ -278,7 +319,6 @@ $(document).ready(function() {
     // =========================================
     $('#orderForm').on('submit', function(e) {
         e.preventDefault();
-        e.stopPropagation();
         
         var items = [];
         var isValid = true;
@@ -380,8 +420,6 @@ $(document).ready(function() {
                 }
             }
         });
-
-         return false;
     });
 
     // =========================================

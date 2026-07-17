@@ -31,6 +31,12 @@ return [
     'recieved'  => 'دریافت',
     'document'  => 'سند',
     'select'   => 'انتخاب',
+    'action'   => 'عملیات',
+    'records' => 'ریکارد',
+    'totally' => 'مجموعا',
+    'items' => 'اجناس',
+    'print' => 'چاپ',
+
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',
