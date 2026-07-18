@@ -18,6 +18,8 @@ use App\Models\Buy\BoughtItem;
 use App\Models\Order\Order;
 use App\Models\Order\OrderItem;
 use App\Models\Setting\Currency;
+use App\Models\Setting\Car;
+use App\Models\Setting\Category;
 use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Transaction\Journal;
 use App\Models\Setting\Warehouse;
@@ -162,8 +164,10 @@ class BoughtDetailsController extends Controller
     {
         // should be removed
         $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
-        // $preLists = BuyPreList::select('id','name')->get();
-        // $units = Unit::select('id','name')->get();
+        $cars = Car::select('id','name')->get();
+        $preLists = BuyPreList::select('id','name')->get();
+        $categories = Category::select('id','name')->get(); 
+        $units = Unit::select('id','name')->get();
 
         
         $currencies = Currency::select('id','name')->get();
@@ -173,7 +177,7 @@ class BoughtDetailsController extends Controller
     
         $todaysDate = Carbon::now()->format('Y-m-d');
         $newJournalCode =  Journal::max('code') + 1;
-        $tax = OrgBio::select('tax_activation')->first();
+        $tax = OrgBio::select('tax_per','tax_activation')->first();
         $times = time();
 
         $orders = Order::select(
@@ -199,7 +203,7 @@ class BoughtDetailsController extends Controller
 
         // return response()->json($orders);
 
-        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliers'));
+        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliers','preLists','units','categories','cars'));
     }
 
     /**
@@ -342,69 +346,96 @@ class BoughtDetailsController extends Controller
         return true;
     }    
 
+   /**
+ * Create warehouse items from bought items
+ */
     private function createWarehouseItems($request)
     {
         $date = Carbon::parse($request->todays_date);
-        $year = $date->year;   
-        $month = $date->month; 
-        $day = $date->day;   
+        $year = $date->year;
+        $month = $date->month;
+        $day = $date->day;
         
-        // Prepare bulk insert data
+        $default_warehouse_id = 1; // You can make this dynamic
+        $flag = $request->tax_activation == 1 ? true : false;
+        
         $warehouseItemsToInsert = [];
         
-        $default_warehouse_id = 1;
-        $flag = $request->tax_activation == 1 ? true : false;
-        $new_total = $flag ? $request->buy_up_vat *  $request->amount : $request->buy_up * $request->amount; 
-        // Insert new warehouse item
-        $warehouseItemsToInsert[] = [
-            'warehouse_id' => $default_warehouse_id,
-            'buy_pre_id' => $request->pre_list_id,
-            'name' => $request->item_name ?? '',
-            'in_amount' => $request->amount,
-            'out_amount' => 0.00,
-            'available_amount' => $request->amount,
-            'unit_id' => $request->unit_id,
-            'buy_up' => $request->buy_up,
-            'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
-            'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
-            'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
-            'total' => $new_total, // اگر مالیات فعال باشد توتل با مالیات ذخیره 
-            'available_total' => $new_total, // اگر مالیات فعال باشد توتل با مالیات ذخیره 
-            'sell_up' => $request->sell_up,
-            'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
-            'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
-            'sell_up_vat' =>  $flag ? $request->sell_up_vat : NULL,
-            'currency_id' => $request->currency_id,
-            'category_id' => $request->category_id,
-            'idate' => $request->todays_date ?? Carbon::now()->format('Y-m-d'),
-            'user_id' => auth()->user()->id ?? 0,
-            'year' => $year,
-            'month' => $month,
-            'day' => $day,
-            'times' => $request->times,
-            'is_cleared' => 0,
-        ];
-    
-        // Bulk insert new records
-        // if (!empty($warehouseItemsToInsert)) {
-        //     WarehouseItem::insert($warehouseItemsToInsert);
-        // }
-    
-        try {
-            WarehouseItem::insert($warehouseItemsToInsert);
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to insert warehouse items: ' . $e->getMessage());
+        // Loop through each item
+        foreach ($request->items as $item) {
+            // Calculate totals based on tax activation
+            // if ($flag) {
+            //     // With tax
+            //     $buyUpVat = isset($item['buy_up_vat']) ? $item['buy_up_vat'] : $item['buy_up'] * (1 + ($item['buy_tax_per'] / 100));
+            //     $total = $buyUpVat * $item['amount'];
+            //     $buyTaxPer = $item['buy_tax_per'] ?? 0;
+            //     $buyTaxPrice = $item['buy_tax_price'] ?? ($item['buy_up'] * $item['buy_tax_per'] / 100);
+            //     $sellTaxPer = $item['sell_tax_per'] ?? 0;
+            //     $sellTaxPrice = $item['sell_tax_price'] ?? ($item['sell_up'] * $item['sell_tax_per'] / 100);
+            // } else {
+                // Without tax
+                $buyUpVat = null;
+                $total = $item['buy_up'] * $item['amount'];
+                $buyTaxPer = null;
+                $buyTaxPrice = null;
+                $sellTaxPer = null;
+                $sellTaxPrice = null;
+            // }
+            
+            // Get item name from pre_list
+            // $preList = \App\Models\Buy\BuyPreList::find($item['pre_list_id']);
+            // $itemName = $preList ? $preList->name : '';
+            
+            $warehouseItemsToInsert[] = [
+                'warehouse_id' => $default_warehouse_id,
+                'buy_pre_id' => $item['pre_list_id'],
+                'name' =>  '',
+                'in_amount' => $item['amount'],
+                'out_amount' => 0.00,
+                'available_amount' => $item['amount'],
+                'unit_id' => $item['unit_id'],
+                'buy_up' => $item['buy_up'],
+                'buy_tax_per' => 0,
+                'buy_tax_price' => 0,
+                'buy_up_vat' => $buyUpVat,
+                'total' => $total,
+                'available_total' => $total,
+                'sell_up' => $item['sell_up'],
+                'sell_tax_per' => $sellTaxPer,
+                'sell_tax_price' => $sellTaxPrice,
+                'sell_up_vat' => null,
+                'currency_id' => $request->currency_id,
+                'category_id' => $item['category_id'] ?? null,
+                'car_id' => $request->car_id ?? null,
+                'supplier_id' => $request->supplier_account_id,
+                'idate' => $request->todays_date,
+                'user_id' => auth()->id() ?? 0,
+                'year' => $year,
+                'month' => $month,
+                'day' => $day,
+                'times' => $request->times,
+                'is_cleared' => 0,
+            ];
         }
-    
+        
+        // Bulk insert all warehouse items
+        if (!empty($warehouseItemsToInsert)) {
+            try {
+                WarehouseItem::insert($warehouseItemsToInsert);
+            } catch (\Exception $e) {
+                throw new \Exception('Failed to insert warehouse items: ' . $e->getMessage());
+            }
+        }
+        
         return true;
     }
-    
+        
 
     /**
     * final submit in creation form
     * in this function update bought_items based on billno and create journal reacord
     */
-     public function submit(Request $request)
+     public function submit_v1(Request $request)
     {
         return ['data' => $request->all()];
 
@@ -497,6 +528,143 @@ class BoughtDetailsController extends Controller
             return redirect()->route('boughtList.index');
         }
     }
+
+    public function submit(Request $request)
+    {
+        // return ['data' => $request->all()];
+        // Validate the request
+        $validated = $request->validate([
+            'supplier_account_id' => 'required|exists:accounts,id',
+            'from_account_id' => 'required|exists:accounts,id',
+            'todays_date' => 'required|date',
+            'billno' => 'required|numeric|unique:bought_items,billno',
+            'factor' => 'nullable|string|max:255',
+            'total_price' => 'required|numeric|min:0',
+            'cur_pay' => 'required|numeric|min:0',
+            'remained' => 'required|numeric|min:0',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:1000',
+            'journal_code' => 'nullable|string',
+            'tax_activation' => 'nullable|integer',
+            'times' => 'required|integer',
+            'items' => 'required|array|min:1',
+            'items.*.pre_list_id' => 'required|exists:bought_item_pre_lists,id',
+            'items.*.unit_id' => 'required|exists:units,id',
+            'items.*.amount' => 'required|numeric|min:0.01',
+            'items.*.buy_up' => 'required|numeric|min:0',
+            'items.*.profit_amount' => 'nullable|numeric|min:0',
+            'items.*.sell_up' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
+            'items.*.category_id' => 'required|exists:categories,id',
+            'car_id' => 'required|exists:cars,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Parse date
+            $date = Carbon::parse($validated['todays_date']);
+        
+            // Create BoughtItem (main record)
+            $boughtItem = BoughtItem::create([
+                'billno' => $validated['billno'],
+                'factor' => $validated['factor'] ?? null,
+                'journal_code' => $validated['journal_code'] ?? null,
+                'total' => $validated['total_price'],
+                'cur_pay' => $validated['cur_pay'],
+                'category_id' => $validated['category_id'] ?? 0,
+                'remained' => $validated['remained'],
+                'account_id' => $validated['from_account_id'],
+                'supplier_account_id' => $validated['supplier_account_id'],
+                'currency_id' => $validated['currency_id'],
+                'car_id' => $validated['car_id'],
+                'note' => $validated['note'] ?? null,
+                'idate' => $date->format('Y-m-d'),
+                'year' => $date->year,
+                'month' => $date->month,
+                'day' => $date->day,
+                'tax_activation' => $validated['tax_activation'] ?? 0,
+                'times' => $validated['times'],
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()->name ?? 'System',
+                'has_invoice' => 0,
+                'invoice_id' => null,
+            ]);
+
+            // Create BoughtItemDetails (items)
+            foreach ($validated['items'] as $item) {
+                BoughtItemDetails::create([
+                    'billno' => $validated['billno'],
+                    'bought_item_id' => $boughtItem->id,
+                    'supplier_account_id' => $validated['supplier_account_id'],
+                    'pre_list_id' => $item['pre_list_id'],
+                    'category_id' => $item['category_id'],
+                    'amount' => $item['amount'],
+                    'unit_id' => $item['unit_id'],
+                    'buy_up' => $item['buy_up'],
+                    'buy_tax_per' => 0, // Set default or get from settings
+                    'buy_tax_price' => 0,
+                    'buy_up_vat' => 0,
+                    'total' => $item['total'],
+                    'total_vat' => 0,
+                    'sell_up' => $item['sell_up'],
+                    'sell_tax_per' => 0, // Set default or get from settings
+                    'sell_tax_price' => 0,
+                    'sell_up_vat' => 0,
+                    'is_moved' => 0,
+                    'times' => $validated['times'],
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()->name ?? 'System',
+                ]);
+            }
+
+            // Create Journal entries if needed
+            $check = $this->handleJournalEntry($request);
+            if (!$check) {
+                DB::rollBack();
+                Session::put('notification', [
+                    'message' => __('common.add_failed'),
+                    'type' => 'danger',
+                ]);
+                return redirect()->route('boughtList.index');
+            }
+
+            
+            $this->createWarehouseItems($request);
+
+
+            // update Order state to progress
+            $categoryId = $validated['items'][0]['category_id'] ?? null;
+
+            if ($categoryId) {
+                Order::where('state', 1)
+                    ->where('category_id', $categoryId)
+                    ->where('bill_no', 0)
+                    ->update(['state' => 3, 'bill_no' => $validated['billno']]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'bought_item_id' => $boughtItem->id,
+                    'billno' => $boughtItem->billno,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Bought Item Creation Error: ' . $e->getMessage());
+            Log::error('Request Data: ', $request->all());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     
     private function deleteBoughtRecords($request)
     {

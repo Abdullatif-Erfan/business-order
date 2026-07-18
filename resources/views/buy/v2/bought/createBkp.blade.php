@@ -75,7 +75,7 @@
     }
     
     .table-scroll-wrapper .col-item { min-width: 150px; width: 20%; }
-    .table-scroll-wrapper .col-amount { min-width: 80px; width: 10%; }
+    .table-scroll-wrapper .col-amount { min-width: 80px; width: 12%; }
     .table-scroll-wrapper .col-buy-up { min-width: 80px; width: 12%; }
     .table-scroll-wrapper .col-profit { min-width: 80px; width: 12%; }
     .table-scroll-wrapper .col-sell-up { min-width: 80px; width: 12%; }
@@ -88,27 +88,6 @@
     }
     .summary-table .form-control {
         height: 34px;
-    }
-    
-    .add-row-btn {
-        width: 100%;
-        padding: 8px;
-        border: 2px dashed #ddd;
-        background: #fafafa;
-        color: #666;
-        font-weight: 500;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: all 0.3s ease;
-        text-align: center;
-    }
-    .add-row-btn:hover {
-        background: #f0f4ff;
-        border-color: #4a6cf7;
-        color: #4a6cf7;
-    }
-    .add-row-btn i {
-        margin-right: 8px;
     }
 </style>
 
@@ -125,11 +104,6 @@
                                         <button class="btn mybtn bg-default">{{__('common.back')}}</button>
                                     </a>
                                 </span>
-
-                                <small class="badge badge-info badge-sm"> <strong class="m-r-10"> {{__('buy.note')}}:</strong>
-                                  {{__('buy.note_text')}}
-                                 </small>
-
                             </h4>
                         </div>
 
@@ -138,7 +112,6 @@
                             <input type="hidden" name="times" value="{{ $times }}">
                             <input type="hidden" name="journal_code" value="{{ $newJournalCode }}">
                             <input type="hidden" name="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
-                            <input type="hidden" name="tax_per" value="{{ $tax->tax_per ?? 0 }}">
                             <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
                             
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
@@ -175,10 +148,10 @@
                                         </div>
 
                                         <div class="col-md-2 col-sm-4 col-xs-6">
-                                            <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>
-                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" required>
-                                                @foreach($cars as $car)
-                                                    <option value="{{ $car->id }}">{{ $car->name }}</option>
+                                            <label for="from_account_id">{{__('buy.company_account')}} <span class="danger">*</span></label>
+                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="from_account_id" required>
+                                                @foreach($ownBanks as $acc)
+                                                    <option value="{{ $acc->id }}">{{ $acc->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -225,27 +198,17 @@
                                                                     <th style="width:5%">#</th>
                                                                     <th style="width:20%">{{__('wh.item_selection')}}</th>
                                                                     <th style="width:10%">{{__('common.amount')}}</th>
-                                                                    <th style="width:10%">{{__('common.category')}}</th>
                                                                     <th style="width:10%">{{__('common.unit')}}</th>
                                                                     <th style="width:15%">{{__('buy.buy_up')}}</th>
-                                                                    <th style="width:12%">{{__('buy.profit')}}</th>
-                                                                    <th style="width:12%">{{__('sales.sold_up')}}</th>
-                                                                    <th style="width:15%">{{__('common.total')}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                                                    <th style="width:15%">{{__('sales.profit')}} </th>
+                                                                    <th style="width:15%">{{__('sales.sold_up')}}</th>
+                                                                    <th style="width:10%">{{__('common.total')}}</th>
                                                                     <th style="width:5%">{{__('common.action')}}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="itemsBody">
                                                                 <!-- Items will be loaded dynamically via JavaScript -->
                                                             </tbody>
-                                                            <tfoot>
-                                                                <tr>
-                                                                    <td colspan="10">
-                                                                        <button type="button" id="addNewItemBtn" class="add-row-btn">
-                                                                            <i class="fa fa-plus-circle"></i> {{__('buy.add_new_item')}}
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            </tfoot>
                                                         </table>
                                                     </div>
                                                 </div>
@@ -327,11 +290,8 @@
 
 <script>
 $(document).ready(function () {
-    // Store orders data and preLists
+    // Store orders data
     var ordersData = {!! json_encode($orders) !!};
-    var preListsData = {!! json_encode($preLists) !!};
-    var unitsData = {!! json_encode($units) !!};
-    var categoriesData = {!! json_encode($categories) !!};
     var currentItems = [];
 
     // =========================================
@@ -349,213 +309,34 @@ $(document).ready(function () {
     });
 
     // =========================================
-    // GENERATE ROW HTML
+    // SUPPLIER SELECT CHANGE - Load Items
     // =========================================
-    function generateRowHtml(item, index) {
-        var amount = parseFloat(item.amount) || 0;
-        var buyUp = (item.buy_up !== '' && item.buy_up !== undefined) ? parseFloat(item.buy_up) : '';
-        var profitAmount = (item.profit_amount !== '' && item.profit_amount !== undefined) ? parseFloat(item.profit_amount) : '';
-        var sellUp = (item.sell_up !== '' && item.sell_up !== undefined) ? parseFloat(item.sell_up) : '';
-        var total = (item.total !== '' && item.total !== undefined) ? parseFloat(item.total) : '';
-        var isNew = item.is_new !== undefined && item.is_new === true;
-        var isFromOrder = item.from_order !== undefined && item.from_order === true;
-        
-        var unitId = item.unit_id || '';
-        
-        var categoryDisplay = isFromOrder ? 
-            `<input type="text" class="form-control category-name-display" value="${item.category_name || ''}" readonly style="background:#f5f5f5;">
-            <input type="hidden" name="items[${index}][category_id]" class="category-id-hidden" value="${item.category_id || ''}">` :
-            `<select class="form-control select2 category-select" name="items[${index}][category_id]" style="width: 100%;" required>
-                <option value="">{{__('buy.select_category')}}</option>
-                ${categoriesData.map(function(category) {
-                    var selected = (item.category_id == category.id) ? 'selected' : '';
-                    return `<option value="${category.id}" ${selected}>${category.name}</option>`;
-                }).join('')}
-            </select>`;
-        
-        var unitDisplay = isFromOrder ? 
-            `<input type="text" class="form-control unit-name-display" value="${item.unit_name || ''}" readonly style="background:#f5f5f5;">
-            <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="${unitId}">` :
-            `<select class="form-control select2 unit-select" name="items[${index}][unit_id]" style="width: 100%;" required>
-                <option value="">{{__('order.unit_selection')}}</option>
-                ${unitsData.map(function(unit) {
-                    var selected = (item.unit_id == unit.id) ? 'selected' : '';
-                    return `<option value="${unit.id}" ${selected}>${unit.name}</option>`;
-                }).join('')}
-            </select>`;
-
-        return `
-            <tr class="item-row" data-index="${index}">
-                <td class="row-number">${index + 1}</td>
-                <td>
-                    <select class="form-control select2 item-select" name="items[${index}][pre_list_id]" style="width: 100%;" required>
-                        <option value="">{{__('wh.item_selection')}}</option>
-                        ${preListsData.map(function(preList) {
-                            var selected = (item.pre_list_id == preList.id) ? 'selected' : '';
-                            return `<option value="${preList.id}" ${selected}>${preList.name}</option>`;
-                        }).join('')}
-                    </select>
-                    <input type="hidden" name="items[${index}][order_id]" value="${item.order_id || ''}">
-                </td>
-                <td>
-                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="0.01" 
-                        value="${amount}" min="0" required>
-                </td>
-                <td>
-                    ${categoryDisplay}
-                </td>
-                <td>
-                    ${unitDisplay}
-                </td>
-                <td>
-                    <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="0.01" 
-                        value="${buyUp !== '' ? buyUp : ''}" min="0" required>
-                </td>
-                <td>
-                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="0.01" 
-                        value="${profitAmount !== '' ? profitAmount : ''}" placeholder="0.00">
-                </td>
-                <td>
-                    <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="0.01" 
-                        value="${sellUp !== '' ? sellUp : ''}" min="0" readonly>
-                </td>
-                <td>
-                    <input name="items[${index}][total]" class="form-control total" type="number" step="0.01" 
-                        value="${total !== '' ? total : ''}" min="0" readonly>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm remove-item" style="padding: 2px 8px !important;" title="{{__('common.remove')}}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    }
-
-    // =========================================
-    // APPEND ROW
-    // =========================================
-    function appendRow(item, index) {
-        var html = generateRowHtml(item, index);
-        var $newRow = $(html);
-        
-        $('#itemsBody').append($newRow);
-        $newRow.find('.select2').select2();
-        
-        // When item-select changes, update category and unit
-        $newRow.find('.item-select').on('change', function() {
-            var selectedOption = $(this).find(':selected');
-            var categoryId = selectedOption.data('category-id') || '';
-            var unitId = selectedOption.data('unit-id') || '';
-            var preListId = selectedOption.val();
-            
-            var row = $(this).closest('tr');
-            
-            var categorySelect = row.find('.category-select');
-            if (categorySelect.length && categoryId) {
-                categorySelect.val(categoryId).trigger('change');
-            }
-            
-            var categoryHidden = row.find('.category-id-hidden');
-            if (categoryHidden.length && categoryId) {
-                categoryHidden.val(categoryId);
-            }
-            
-            var unitSelect = row.find('.unit-select');
-            if (unitSelect.length && unitId) {
-                unitSelect.val(unitId).trigger('change');
-            }
-            
-            var unitHidden = row.find('.unit-id-hidden');
-            if (unitHidden.length && unitId) {
-                unitHidden.val(unitId);
-            }
-            
-            var index = row.data('index');
-            if (currentItems[index]) {
-                currentItems[index].pre_list_id = preListId;
-                currentItems[index].category_id = categoryId;
-                currentItems[index].unit_id = unitId;
-            }
-        });
-        
-        updateRowNumbers();
-        updateTotalPrice();
-        
-        var scrollWrapper = $('.table-responsive-scroll');
-        if (scrollWrapper.length) {
-            setTimeout(function() {
-                scrollWrapper.scrollTop(scrollWrapper[0].scrollHeight);
-            }, 50);
-        }
-    }
-
-    // =========================================
-    // REMOVE ROW
-    // =========================================
-    function removeRow(row) {
-        var index = row.data('index');
-        
-        if (confirm('{{__("common.delete_confirm")}}')) {
-            currentItems.splice(index, 1);
-            row.remove();
-            updateRowNumbers();
-            updateTotalPrice();
-            
-            if (currentItems.length === 0) {
-                showEmptyState();
-            }
-        }
-    }
-
-    // =========================================
-    // UPDATE ROW NUMBERS
-    // =========================================
-    function updateRowNumbers() {
-        $('#itemsBody .item-row').each(function(index) {
-            $(this).find('.row-number').text(index + 1);
-            $(this).data('index', index);
-            
-            $(this).find('[name]').each(function() {
-                var name = $(this).attr('name');
-                if (name && name.includes('[')) {
-                    var newName = name.replace(/items\[\d+\]/, 'items[' + index + ']');
-                    $(this).attr('name', newName);
-                }
-            });
-        });
-    }
-
-    // =========================================
-    // SHOW EMPTY STATE
-    // =========================================
-    function showEmptyState() {
-        $('#itemsBody').html(`
-            <tr>
-                <td colspan="9" class="text-center text-muted">
-                    <i class="fa fa-info-circle"></i> {{__('buy.no_items_found')}}
-                </td>
-            </tr>
-        `);
-        updateTotalPrice();
-    }
+    $('#supplier_account_id').on('change', function() {
+        var supplierId = $(this).val();
+        loadItemsForSupplier(supplierId);
+    });
 
     // =========================================
     // LOAD ITEMS FOR SELECTED SUPPLIER
     // =========================================
     function loadItemsForSupplier(supplierId) {
         if (!supplierId) {
-            currentItems = [];
-            showEmptyState();
+            $('#itemsBody').html('<tr><td colspan="9" class="text-center text-muted">{{__("buy.select_supplier_first")}}</td></tr>');
             return;
         }
 
+        // Find orders for this supplier
         var supplierOrders = ordersData.filter(function(order) {
             return order.supplier_id == supplierId;
         });
 
-        var allItems = [];
+        if (supplierOrders.length === 0) {
+            $('#itemsBody').html('<tr><td colspan="9" class="text-center text-muted">{{__("buy.no_items_for_supplier")}}</td></tr>');
+            return;
+        }
 
+        // Extract all items from orders
+        var allItems = [];
         supplierOrders.forEach(function(order) {
             order.items.forEach(function(item) {
                 allItems.push({
@@ -566,80 +347,89 @@ $(document).ready(function () {
                     unit_id: item.unit_id,
                     unit_name: item.unit.name || 'Unknown',
                     amount: parseFloat(item.amount) || 0,
-                    category_id: item.category_id || order.category_id || '',
-                    category_name: order.category_relation ? order.category_relation.name : 'Unknown',
-                    buy_up: '',
-                    profit_amount: '',
-                    sell_up: '',
-                    total: '',
-                    from_order: true,
-                    is_new: false
+                    category_id: item.category_id,
+                    category_name: order.category_relation ? order.category_relation.name : 'Unknown'
                 });
             });
         });
 
         currentItems = allItems;
-        $('#itemsBody').empty();
-        
-        if (currentItems.length === 0) {
-            showEmptyState();
-        } else {
-            currentItems.forEach(function(item, index) {
-                appendRow(item, index);
-            });
+        renderItems(allItems);
+    }
+
+    // =========================================
+    // RENDER ITEMS IN TABLE
+    // =========================================
+    function renderItems(items) {
+        if (!items || items.length === 0) {
+            $('#itemsBody').html('<tr><td colspan="9" class="text-center text-muted">{{__("buy.no_items_found")}}</td></tr>');
+            return;
         }
-        
+
+        var html = '';
+        items.forEach(function(item, index) {
+            var amount = parseFloat(item.amount) || 0;
+            html += `
+                <tr class="item-row" data-index="${index}" data-pre-list-id="${item.pre_list_id}" data-unit-id="${item.unit_id}">
+                    <td>${index + 1}</td>
+                    <td>
+                        <strong>${item.pre_list_name}</strong>
+                        <input type="hidden" name="items[${index}][pre_list_id]" value="${item.pre_list_id}">
+                        <input type="hidden" name="items[${index}][order_id]" value="${item.order_id || ''}">
+                        <input type="hidden" name="items[${index}][category_id]" value="${item.category_id || ''}">
+                        <input type="hidden" name="items[${index}][unit_id]" value="${item.unit_id}">
+                    </td>
+                    <td>
+                        <input name="items[${index}][amount]" class="form-control amount" type="number" step="0.01" 
+                            value="${amount}" min="0" required>
+                    </td>
+                    <td>
+                        <span class="unit-name-display">${item.unit_name}</span>
+                    </td>
+                    <td>
+                        <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="0.01" 
+                            value="0" min="0" required>
+                    </td>
+                    <td>
+                        <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="0.01" 
+                            value="0" placeholder="0.00">
+                    </td>
+                    <td>
+                        <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="0.01" 
+                            value="0" min="0" readonly>
+                    </td>
+                    <td>
+                        <input name="items[${index}][total]" class="form-control total" type="number" step="0.01" 
+                            value="0" min="0" readonly>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm remove-item" style="padding: 2px 8px !important;" title="{{__('common.remove')}}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        $('#itemsBody').html(html);
         updateTotalPrice();
     }
 
     // =========================================
-    // ADD NEW ITEM
+    // RECALCULATE ROW
     // =========================================
-    function addNewItem() {
-        var newItem = {
-            pre_list_id: '',
-            pre_list_name: '',
-            unit_id: '',
-            unit_name: '',
-            amount: 0,
-            buy_up: '',
-            profit_amount: '',
-            sell_up: '',
-            total: '',
-            from_order: false,
-            is_new: true
-        };
+    function recalculateRow(row) {
+        var amount = parseFloat(row.find('.amount').val()) || 0;
+        var buyUp = parseFloat(row.find('.buy-up').val()) || 0;
+        var profit = parseFloat(row.find('.profit-amount').val()) || 0;
 
-        currentItems.push(newItem);
-        var index = currentItems.length - 1;
-        appendRow(newItem, index);
-    }
-
-    // =========================================
-    // RECALCULATE ROW - FIXED
-    // =========================================
-    function recalculateRow(row) 
-    {
-        var amount  = parseFloat(row.find('.amount').val()) || 0;
-        var buyUp   = parseFloat(row.find('.buy-up').val()) || 0;
-        var profit  = parseFloat(row.find('.profit-amount').val()) || 0;
-
-        // Sell price
+        // Calculate sell_up = buy_up + profit
         var sellUp = buyUp + profit;
         row.find('.sell-up').val(sellUp.toFixed(2));
 
-        // Purchase total (profit does NOT affect total)
-        var total = amount * buyUp;
+        // Calculate total = amount * sell_up
+        var total = amount * sellUp;
         row.find('.total').val(total.toFixed(2));
-
-        var index = row.data('index');
-        if (currentItems[index]) {
-            currentItems[index].amount = amount;
-            currentItems[index].buy_up = buyUp;
-            currentItems[index].profit_amount = profit;
-            currentItems[index].sell_up = sellUp;
-            currentItems[index].total = total;
-        }
 
         updateTotalPrice();
     }
@@ -655,6 +445,7 @@ $(document).ready(function () {
         });
         $('#total_price').val(totalPrice.toFixed(2));
         
+        // Update remained
         var curPay = parseFloat($('#cur_pay').val()) || 0;
         var remained = totalPrice - curPay;
         $('#remained').val(remained.toFixed(2));
@@ -674,22 +465,8 @@ $(document).ready(function () {
     // EVENT HANDLERS
     // =========================================
 
-    // Supplier select change
-    $('#supplier_account_id').on('change', function() {
-        var supplierId = $(this).val();
-        loadItemsForSupplier(supplierId);
-    });
-
-    // Add new item button
-    $('#addNewItemBtn').on('click', function() {
-        addNewItem();
-    });
-
-    // =========================================
-    // RECALCULATE ON INPUT - FIXED
-    // =========================================
-    // Use both 'input' and 'change' events to ensure all changes are captured
-    $(document).on('input change', '.amount, .buy-up, .profit-amount', function() {
+    // Recalculate on amount, buy_up, or profit_percent change
+    $(document).on('input', '.amount, .buy-up, .profit-amount', function() {
         var row = $(this).closest('tr');
         recalculateRow(row);
     });
@@ -697,7 +474,12 @@ $(document).ready(function () {
     // Remove item
     $(document).on('click', '.remove-item', function() {
         var row = $(this).closest('tr');
-        removeRow(row);
+        var index = row.data('index');
+        
+        if (confirm('{{__("common.delete_confirm")}}')) {
+            currentItems.splice(index, 1);
+            renderItems(currentItems);
+        }
     });
 
     // =========================================
@@ -711,20 +493,11 @@ $(document).ready(function () {
 
         $('.item-row').each(function() {
             var row = $(this);
-            var preListId = row.find('.item-select').val();
             var amount = row.find('.amount').val();
             var buyUp = row.find('.buy-up').val();
-            var unitId = row.find('.unit-select').val() || row.find('.unit-id-hidden').val();
-            var categoryId = row.find('.category-select').val() || row.find('.category-id-hidden').val();
+            var profitAmount = row.find('.profit-amount').val();
 
-            if (!preListId) {
-                isValid = false;
-                row.find('.item-select').css('border-color', 'red');
-                errorMessages.push('{{__("wh.select_item")}}');
-            } else {
-                row.find('.item-select').css('border-color', '');
-            }
-
+            // Validate amount
             if (!amount || parseFloat(amount) <= 0) {
                 isValid = false;
                 row.find('.amount').css('border-color', 'red');
@@ -733,6 +506,7 @@ $(document).ready(function () {
                 row.find('.amount').css('border-color', '');
             }
 
+            // Validate buy_up
             if (!buyUp || parseFloat(buyUp) <= 0) {
                 isValid = false;
                 row.find('.buy-up').css('border-color', 'red');
@@ -741,14 +515,13 @@ $(document).ready(function () {
                 row.find('.buy-up').css('border-color', '');
             }
 
-            if (!unitId) {
+            // Validate profit_amount - optional, can be 0 or positive
+            if (profitAmount && parseFloat(profitAmount) < 0) {
                 isValid = false;
-                errorMessages.push('{{__("wh.select_unit")}}');
-            }
-
-            if (!categoryId) {
-                isValid = false;
-                errorMessages.push('{{__("wh.select_category")}}');
+                row.find('.profit-amount').css('border-color', 'red');
+                errorMessages.push('{{__("buy.enter_valid_profit")}}');
+            } else {
+                row.find('.profit-amount').css('border-color', '');
             }
         });
 
@@ -761,6 +534,7 @@ $(document).ready(function () {
         var originalText = $submitBtn.val();
         $submitBtn.prop('disabled', true).val('{{__("common.saving")}}...');
 
+        // Prepare form data
         var formData = $(this).serialize();
 
         $.ajax({

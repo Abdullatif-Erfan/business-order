@@ -21,7 +21,7 @@ return [
     'create_title' => 'فورم خریداری',
     'update_title' => 'ویرایش فورم خریداری',
     'note' => 'نوت',
-    'note_text' => 'دریک بل نمبر صرف خرید یک مشتری را ثبت نمایید',
+    'note_text' => 'جنس جدید باید از کتگوری لیست خرید باشد',
     'seller_selection' => 'انتخاب فروشنده',
     'company_account' => ' حساب شرکت',
     'confirmed' => 'تایید است',
@@ -89,6 +89,7 @@ return [
     'msg2' => ' را ثبت نمایید',
     'msg3' => 'در کالم کاهش این تعداد',
     'msg4' => ' را ثبت نمایید ',
+    'profit' => 'فیات مفاد',
     
 
     // need translation for other languages
@@ -179,10 +180,10 @@ return [
     'no_items_for_supplier' => 'جنس موجود نیست برای خرید',
     'enter_valid_buy_up' => 'لطفا قیمت خرید را بنویسید',
     'enter_valid_profit' => 'لطفا قیمت خرید را درست بنویسید',
-    'enter' => '',
-    'enter' => '',
-    'enter' => '',
-    'enter' => '',
+    'add_item_from_orders_note' => 'ثبت جنس جدید',
+    'add_new_item' => 'ثبت جنس جدید',
+    'select_category' => 'انتخاب کتگوری',
+    'car' => 'انتخاب موتر',
     'enter' => '',
     'enter' => '',
     'enter' => '',

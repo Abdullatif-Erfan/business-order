@@ -10,6 +10,7 @@ class Order extends Model
 {
     protected $fillable = [
         "ord_num",
+        "bill_no",
         'supplier_id',
         'category_id',
         'iby',

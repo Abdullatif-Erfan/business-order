@@ -36,7 +36,7 @@ return [
     'totally' => 'مجموعا',
     'items' => 'اجناس',
     'print' => 'چاپ',
-
+    'car' => 'موتر',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',

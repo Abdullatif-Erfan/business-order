@@ -13,6 +13,7 @@ use App\Models\Setting\Currency;
 use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Unit;
+use App\Models\Setting\Car;
 use App\Models\Buy\BuyPreList;
 use App\Models\Setting\Warehouse;
 use App\Models\Warehouse\WarehouseItem;
@@ -69,7 +70,7 @@ class WarehouseListController extends Controller
         $warehouse_id = 1;
         $tax_activation = $request->input('tax_activation', 0); // Get from request or default 0
         
-        $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
+        $WarehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation','carRelation'])
             ->where('warehouse_id', $warehouse_id)
             ->orderBy('id', 'DESC')
             ->orderBy('buy_pre_id', 'DESC');
@@ -77,6 +78,12 @@ class WarehouseListController extends Controller
         if ($request->input('item_name')) {
             $WarehouseItems->whereHas('preListRelation', function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%{$request->input('item_name')}%");
+            });
+        }
+
+        if ($request->input('car_name')) {
+            $WarehouseItems->whereHas('carRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%{$request->input('car_name')}%");
             });
         }
         
@@ -96,6 +103,9 @@ class WarehouseListController extends Controller
             ->addIndexColumn()
             ->addColumn('prelist', function ($WarehouseItem) {
                 return optional($WarehouseItem->preListRelation)->name ?? '';
+            })
+            ->addColumn('carName', function ($WarehouseItem) {
+                return optional($WarehouseItem->carRelation)->name ?? '';
             })
             ->addColumn('unit', function ($WarehouseItem) {
                 return optional($WarehouseItem->unitRelation)->name ?? '';

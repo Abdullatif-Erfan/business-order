@@ -46,12 +46,13 @@ $(document).ready(function() {
     });
 
     // Enter key search
-    $('#item_name, #start_date, #end_date').on('keypress', function(e) {
+    $('#car_name, #item_name, #start_date, #end_date').on('keypress', function(e) {
         if (e.which === 13) {
             e.preventDefault();
             $('#btn-filter').click();
         }
     });
+
 });
 
 function fetchList() {
@@ -63,6 +64,7 @@ function fetchList() {
     // =============================================
     var columns = [
         { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+        { data: 'carName', name: 'carName' },
         { data: 'prelist', name: 'prelist' },
         { data: 'in_amount', name: 'in_amount' },
         { data: 'out_amount', name: 'out_amount' }, 
@@ -102,6 +104,7 @@ function fetchList() {
             ajax: {
                 url: '{{ route("warehousesList.data") }}',
                 data: function(d) {
+                    d.car_name = $('#car_name').val();
                     d.tax_activation = $('#tax_activation').val();
                     d.item_name = $('#item_name').val();
                     d.start_date = $('#start_date').val();
@@ -120,6 +123,24 @@ function fetchList() {
             },
             columns: columns,
             order: [[1, 'desc']],
+
+             drawCallback: function () {
+                var api = this.api();
+
+                function sumColumn(index) {
+                    return api
+                        .column(index, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            return numA + numB;
+                        }, 0)
+                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+
+                $(api.column(8).footer()).html(sumColumn(8));
+            },
             
         });
     } else {

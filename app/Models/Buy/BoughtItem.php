@@ -5,12 +5,14 @@ namespace App\Models\Buy;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
+use App\Models\Setting\Car;
+
 
 
 class BoughtItem extends Model
 {
     protected $table = 'bought_items';
-    protected $fillable = ['billno','factor','journal_code', 'total', 'cur_pay', 'remained', 'account_id','tax_activation','supplier_account_id','currency_id', 'note', 'idate', 'year', 'month', 'day','times', 'has_invoice', 'invoice_id',
+    protected $fillable = ['billno','factor','journal_code','car_id', 'total', 'cur_pay', 'remained', 'account_id','tax_activation','supplier_account_id','currency_id', 'note', 'idate', 'year', 'month', 'day','times', 'has_invoice', 'invoice_id',
     'user_id','user_name'];
 
     // Define relationships
@@ -32,5 +34,9 @@ class BoughtItem extends Model
     public function invoice()
     {
         return $this->belongsTo(BuyInvoice::class, 'invoice_id');
+    }
+    public function car()
+    {
+        return $this->belongsTo(Car::class, 'car_id');
     }
 }

@@ -26,7 +26,12 @@
                         <div class="filter-section no-print" id="searchWrapper">
                             <div class="col-md-12 col-sm-12 col-xs-12 pr-10 pl-10">
                                 <div class="row">
-                                    <div class="col-md-4 col-sm-6 col-xs-6">
+
+                                   <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <input type="text" id="car_name" placeholder="{{__('common.car')}}" class="form-control">
+                                    </div>
+
+                                    <div class="col-md-2 col-sm-6 col-xs-6">
                                         <input type="text" id="item_name" placeholder="{{__('common.item_name')}}" class="form-control">
                                     </div>
 
@@ -66,24 +71,25 @@
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                              @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="13">
+                                             <td colspan="14">
                                              @else
-                                             <td colspan="10">
+                                             <td colspan="11">
                                              @endif 
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                              @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="13">
+                                             <td colspan="14">
                                              @else
-                                             <td colspan="10">
+                                             <td colspan="11">
                                              @endif 
                                             <center> {{__('wh.existing_list')}}  {{ $warehouse->name ?? '' }}  </center>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th> {{__('common.number')}} &nbsp; </th>
+                                            <th> {{__('common.car')}} </th>
                                             <th> {{__('common.name')}} </th>
                                             <th> {{__('common.in')}} </th>
                                             <th> {{__('common.out')}} </th>
@@ -102,7 +108,7 @@
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
-                                            <td colspan="3">{{__('common.total')}}</td>
+                                            <td colspan="4">{{__('common.total')}}</td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
