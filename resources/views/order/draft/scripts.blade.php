@@ -29,6 +29,7 @@ $(document).ready(function() {
                 d.customer_name = $('#customer_name').val();
                 d.start_date = $('#start_date').val();
                 d.end_date = $('#end_date').val();
+                d.state = $('#state').val();
             },
             error: function(xhr, status, error) {
                 console.log('DataTable Error:', error);

@@ -169,7 +169,7 @@ $(document).ready(function () {
             html += `
                 <tr>
                     <td colspan="6" class="text-center text-muted">
-                        <i class="fas fa-plus-circle"></i> {{ __('order.add_items_from_below') }}
+                        <i class="fas fa-info-circle"></i> {{ __('order.item_doesnot_exist') }}
                     </td>
                 </tr>
             `;

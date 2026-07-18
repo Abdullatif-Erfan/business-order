@@ -159,12 +159,12 @@
                         </a>
                         <div class="collapse" id="buy-section">
                             <ul class="nav nav-collapse">
-                                <li>
+                                <!-- <li>
                                     <a href="{{ route('buyprelist.index') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">{{ __('menu.buy_pre_list') }}</span>
                                     </a>
-                                </li>
+                                </li> -->
                                 <li>
                                     <a href="{{ route('boughtList.create') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>

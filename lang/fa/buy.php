@@ -89,6 +89,7 @@ return [
     'msg2' => ' را ثبت نمایید',
     'msg3' => 'در کالم کاهش این تعداد',
     'msg4' => ' را ثبت نمایید ',
+    
 
     // need translation for other languages
     'delete_uncompleted_buy' => 'حذف بل های ناقص',
@@ -175,5 +176,22 @@ return [
     'return_number' => 'نمبر برگشتی',
     'return_details' => 'جزییات اجناس برگشتی',
     'tax_amount' => 'مبلغ مالیات',
+    'no_items_for_supplier' => 'جنس موجود نیست برای خرید',
+    'enter_valid_buy_up' => 'لطفا قیمت خرید را بنویسید',
+    'enter_valid_profit' => 'لطفا قیمت خرید را درست بنویسید',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+    'enter' => '',
+
 
 ];

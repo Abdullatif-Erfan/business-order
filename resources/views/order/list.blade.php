@@ -544,6 +544,17 @@
                                     <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                 </div>
                             </div>
+
+                            <div class="filter-group">
+                                <select class="form-control" name="state" id="state">
+                                    <option value="">{{ __('order.status') }}</option>
+                                    <option value="1">{{ __('order.new') }}</option>
+                                    <option value="2">{{ __('order.pending') }}</option>
+                                    <option value="3">{{ __('order.completed') }}</option>
+                                    <option value="4">{{ __('order.cancelled') }}</option>
+                                </select>
+                            </div>
+
                             <div class="filter-actions">
                                 <button class="btn btn-search" id="btn-filter"><i class="fas fa-search"></i></button>
                                 <button class="btn btn-reset" id="btn-reset" title="{{ __('common.reset') }}"><i class="fas fa-undo"></i></button>

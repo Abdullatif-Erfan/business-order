@@ -39,6 +39,7 @@ class OrderController extends Controller
     {
         $orgbios = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d'); 
+               
         // return view('order.list', compact('todaysDate', 'orgbios'));
         return view('order.list', compact('todaysDate', 'orgbios'));
     }
@@ -111,17 +112,8 @@ class OrderController extends Controller
                 return $order->categoryRelation ? $order->categoryRelation->name : '-';
             })
             ->addColumn('state', function ($order) {
-                if ($order->state == 0) {
-                    return '<span class="badge badge-draft newState" data-id="' . $order->id . '" data-state="0" style="cursor:pointer;">' . __('order.draft') . '</span>';
-                } elseif ($order->state == 1) {
-                    return '<span class="badge badge-new newState" data-id="' . $order->id . '" data-state="1" style="cursor:pointer;">' . __('order.new') . '</span>';
-                } elseif ($order->state == 2) {
-                    return '<span class="badge badge-cancelled newState" data-id="' . $order->id . '" data-state="2" style="cursor:pointer;">' . __('order.cancelled') . '</span>';
-                } elseif ($order->state == 3) {
-                    return '<span class="badge badge-completed newState" data-id="' . $order->id . '" data-state="3" style="cursor:pointer;">' . __('order.completed') . '</span>';
-                }
-                return '<span class="badge badge-secondary">' . __('order.unknown') . '</span>';
-            })
+                 return $this->getStatusBadge($order->state);
+            })  
             ->addColumn('idate', function ($order) {
                 return $order->idate ?? '-';
             })
@@ -129,13 +121,28 @@ class OrderController extends Controller
                 return $order->user_name ?? '-';
             })
             ->addColumn('action', function ($order) {
-                return '
-                    <div class="action-icons">
-                        <i class="fas fa-eye viewOrder" data-id="' . $order->id . '" title="' . __('common.view') . '"></i>
-                        <i class="fas fa-pen-square editOrder" data-id="' . $order->id . '" title="' . __('common.edit') . '"></i>
-                        <i class="fas fa-trash-alt deleteOrder" data-id="' . $order->id . '" title="' . __('common.delete') . '"></i>
-                    </div>
-                ';
+
+              // stop edit and delete when state is not 1:(new)   
+                if($order->state == 1) 
+                {
+                        return '
+                        <div class="action-icons">
+                            <i class="fas fa-eye viewOrder" data-id="' . $order->id . '" title="' . __('common.view') . '"></i>
+                            <i class="fas fa-pen-square editOrder" data-id="' . $order->id . '" title="' . __('common.edit') . '"></i>
+                            <i class="fas fa-trash-alt deleteOrder" data-id="' . $order->id . '" title="' . __('common.delete') . '"></i>
+                        </div>
+                    ';
+                } 
+                else 
+                {
+                        return '
+                        <div class="action-icons">
+                            <i class="fas fa-eye viewOrder" data-id="' . $order->id . '" title="' . __('common.view') . '"></i>
+                            <i class="fas fa-pen-square" style="color:#ddd"  title="' . __('common.edit') . '"></i>
+                            <i class="fas fa-trash-alt" style="color:#ddd"  title="' . __('common.delete') . '"></i>
+                        </div>
+                    ';
+                }
             })
             ->filterColumn('supplier_name', function ($query, $keyword) {
                 $query->whereHas('supplierRelation', function ($q) use ($keyword) {
@@ -152,6 +159,18 @@ class OrderController extends Controller
     }
 
   
+    private function getStatusBadge($state)
+    {
+        $badges = [
+            1 => '<span class="badge badge-primary">' . __('order.new') . '</span>',
+            2 => '<span class="badge badge-warning">' . __('order.pending') . '</span>',
+            3 => '<span class="badge badge-success">' . __('order.completed') . '</span>',
+            4 => '<span class="badge badge-danger">' . __('order.cancelled') . '</span>'
+        ];
+
+        return $badges[$state] ?? '<span class="badge badge-secondary">' . __('order.unknown') . '</span>';
+    }
+
    public function getCounts(Request $request)
     {
         $query = Order::query();
@@ -345,7 +364,7 @@ class OrderController extends Controller
         'preListRelation.categoryRelation:id,name', // Load category through preListRelation
         'unitRelation:id,name',
     ])
-    ->where('draft_orders.state', 1)
+    ->where('draft_orders.state', 1) // get just new draft orders
     ->get();
 
     // Group by category_id, then by pre_list_id and unit_id
@@ -491,6 +510,10 @@ class OrderController extends Controller
                     'items_count' => $order->items()->count()
                 ];
             }
+
+            // update DraftOrder state to progress
+            DraftOrder::where('state', 1)->update(['state' => 2]);
+            
 
             return response()->json([
                 'status' => 'success',

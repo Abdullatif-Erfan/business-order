@@ -10,7 +10,7 @@
                 @endif
                 <h2 style="margin: 5px 0 5px 0; font-size: 24px; font-weight: bold; color: #000;">{{ __('order.order_details') }}</h2>
                 <p style="margin: 0; font-size: 14px; color: #333;">
-                    {{ __('common.print_date') }}: {{ now()->format('Y/m/d H:i') }}
+                    {{ __('common.print_date') }}: {{ now()->format('Y-m-d H:i') }}
                 </p>
             </div>
 
@@ -68,7 +68,7 @@
                                      {{ __('order.created_at') }}
                                 </td>
                                 <td style="padding: 8px 12px; border: 1px solid #e9ecef;">
-                                     {{ $order->created_at ? $order->created_at->format('Y/m/d H:i') : '-' }}
+                                     {{ $order->created_at ? $order->created_at->format('Y-m-d H:i') : '-' }}
                                 </td>
                                 <td style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: 600;">
                                     {{ __('common.user') }}
@@ -173,7 +173,7 @@
                                         @endforeach
                                         
                                         <!-- Grand Total Row -->
-                                        <tr style="background: #f8f9fa; border-top: 3px double #667eea; font-weight: 600;">
+                                        <tr style="background: #f8f9fa;  font-weight: 600;">
                                             <td colspan="2" style="padding: 12px 8px; text-align: left; font-size: 15px;">
                                                 <i class="fas fa-calculator" style="color: #667eea;"></i> {{ __('order.total_items') }}
                                             </td>
@@ -201,7 +201,7 @@
                 <!-- ========================================= -->
                 <div class="card-footer no-print" style="background: #f8f9fa; border-top: 1px solid #eee; padding: 12px 20px; text-align: center; border-radius: 0 0 10px 10px;">
                     <span style="font-size: 12px; color: #999;">
-                        {{ __('common.print_date') }}: {{ now()->format('Y/m/d H:i') }}
+                        {{ __('common.print_date') }}: {{ now()->format('Y-m-d H:i') }}
                     </span>
                 </div>
             </div>

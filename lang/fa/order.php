@@ -93,6 +93,7 @@ return [
     'print' => 'چاپ',
     'total_items' => 'تعداد اجناس',
     'item_type' => 'نوع جنس',
+    'item_doesnot_exist' => ' سفارشات جدید موجود نیست',
     
 
     

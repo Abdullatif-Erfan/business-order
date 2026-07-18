@@ -144,17 +144,28 @@ class DraftOrderController extends Controller
                 return '';
             })
              ->addColumn('action', function ($order) {
-                    static $displayedEditIcon = [];        
-                    $edit = '<i class="fas fa-edit" style="color: #ddd; margin: 0 5px;"></i>'; // Initialize
-                    if (!in_array($order->dord_num, $displayedEditIcon)) {
-                        $displayedEditIcon[] = $order->dord_num;
-                        $edit = '<a href="' . route('draftOrders.edit', $order->dord_num) . '">
-                                    <i class="fas fa-edit" style="color: #007bff; margin: 0 5px;"></i>
-                                </a>';
+                    static $displayedEditIcon = [];     
+                    // stop edit and delete when state is not 1:(new)   
+                    if($order->state == 1) {
+                         $edit = '<i class="fas fa-edit" style="color: #ddd; margin: 0 5px;"></i>'; // Initialize
+                        if (!in_array($order->dord_num, $displayedEditIcon)) {
+                            $displayedEditIcon[] = $order->dord_num;
+                            $edit = '<a href="' . route('draftOrders.edit', $order->dord_num) . '">
+                                        <i class="fas fa-edit" style="color: #007bff; margin: 0 5px;"></i>
+                                    </a>';
+                        }
+                        $delete = '<i class="fas fa-trash-alt deleteOrder" data-id="' . $order->id . '" title="' . __('common.delete') . '" style="cursor:pointer; color: #dc3545; margin: 0 5px;"></i>';
+                    } 
+                    else 
+                    {
+                         $edit = '<i class="fas fa-edit" style="color: #ddd; margin: 0 5px;"></i>'; // Initialize
+                        if (!in_array($order->dord_num, $displayedEditIcon)) {
+                            $displayedEditIcon[] = $order->dord_num;
+                            $edit = '<i class="fas fa-edit" style="color: #ddd; margin: 0 5px;"></i>';
+                        }
+                        $delete = '<i class="fas fa-trash-alt" title="' . __('common.delete') . '" style="cursor:pointer; color: #ddd; margin: 0 5px;"></i>';
                     }
-                    
-                    $delete = '<i class="fas fa-trash-alt deleteOrder" data-id="' . $order->id . '" title="' . __('common.delete') . '" style="cursor:pointer; color: #dc3545; margin: 0 5px;"></i>';
-                    
+                   
                     return '<div class="action-icons">' . $edit . ' ' . $delete . '</div>';
             })
             ->filterColumn('item_name', function ($query, $keyword) {
@@ -177,7 +188,6 @@ class DraftOrderController extends Controller
     private function getStatusBadge($state)
     {
         $badges = [
-            0 => '<span class="badge badge-secondary">' . __('order.draft') . '</span>',
             1 => '<span class="badge badge-primary">' . __('order.new') . '</span>',
             2 => '<span class="badge badge-warning">' . __('order.pending') . '</span>',
             3 => '<span class="badge badge-success">' . __('order.completed') . '</span>',

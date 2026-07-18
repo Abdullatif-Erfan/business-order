@@ -15,6 +15,8 @@ use App\Models\Buy\BuyInvoice;
 use App\Models\Buy\BuyInvoiceItem;
 use App\Models\Buy\BuyInvoicePayment;
 use App\Models\Buy\BoughtItem;
+use App\Models\Order\Order;
+use App\Models\Order\OrderItem;
 use App\Models\Setting\Currency;
 use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Transaction\Journal;
@@ -130,8 +132,9 @@ class BoughtDetailsController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * Belongs to V1
      */
-    public function create()
+    public function create_v1()
     {
         // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
         $currencies = Currency::select('id','name')->get();
@@ -150,6 +153,53 @@ class BoughtDetailsController extends Controller
 
         // return response()->json($preLists);
         return view('buy.bought.create',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
+    }
+
+    /**
+     * Create Belongs to V2
+     */
+    public function create()
+    {
+        // should be removed
+        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+        // $preLists = BuyPreList::select('id','name')->get();
+        // $units = Unit::select('id','name')->get();
+
+        
+        $currencies = Currency::select('id','name')->get();
+        $warehouses = Warehouse::select('id','name')->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        $billno =  BoughtItem::max('billno') + 1;
+    
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $newJournalCode =  Journal::max('code') + 1;
+        $tax = OrgBio::select('tax_activation')->first();
+        $times = time();
+
+        $orders = Order::select(
+            'id',
+            'ord_num',
+            'supplier_id',
+            'category_id',
+            'idate',
+            'state',
+            'user_name',
+            'times'
+        )
+        ->with([
+            'supplierRelation:id,name',
+            'categoryRelation:id,name',
+            'items:id,order_id,pre_list_id,unit_id,amount,category_id',
+            'items.preList:id,name',      // Load pre_list name
+            'items.unit:id,name'          // Load unit name
+        ])
+        ->where('orders.state', 1)
+        ->orderBy('id', 'DESC')
+        ->get();
+
+        // return response()->json($orders);
+
+        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliers'));
     }
 
     /**
@@ -356,7 +406,7 @@ class BoughtDetailsController extends Controller
     */
      public function submit(Request $request)
     {
-        // return ['data' => $request->all()];
+        return ['data' => $request->all()];
 
         $validated = $request->validate([
             'billno'          => 'required|numeric',

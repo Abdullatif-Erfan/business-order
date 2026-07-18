@@ -6,7 +6,6 @@ $(document).ready(function() {
     // =========================================
     // CURRENT STATE - Default: New (1)
     // =========================================
-    var currentState = {{ $state ?? 1 }};
     var csrfToken = '{{ csrf_token() }}';
 
     // =========================================
@@ -29,7 +28,7 @@ $(document).ready(function() {
                 d.ord_num = $('#ord_num').val();
                 d.supplier_name = $('#supplier_name').val();
                 d.category_name = $('#category_name').val();
-                d.state = currentState;
+                d.state = $('#state').val();
                 d.start_date = $('#start_date').val();
                 d.end_date = $('#end_date').val();
             },
@@ -155,15 +154,15 @@ $(document).ready(function() {
     // =========================================
     // STATE MODAL - Open
     // =========================================
-    $(document).on('click', '.newState', function() {
-        var ord_num = $(this).data('ord-num');
-        var state = $(this).data('state');
+    // $(document).on('click', '.newState', function() {
+    //     var ord_num = $(this).data('ord-num');
+    //     var state = $(this).data('state');
         
-        $('#state_ord_num').val(ord_num);
-        $('#state_status').val(state);
+    //     $('#state_ord_num').val(ord_num);
+    //     $('#state_status').val(state);
         
-        $('#stateOrderModal').modal('show');
-    });
+    //     $('#stateOrderModal').modal('show');
+    // });
 
     // =========================================
     // STATE MODAL - Save

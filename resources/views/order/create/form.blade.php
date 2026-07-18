@@ -122,6 +122,7 @@
                                         <!-- SUBMIT BUTTONS -->
                                         <!-- ========================================= -->
                                         <div class="col-md-8 col-sm-8 col-xs-12 m-t-20">
+                                            @if(count($groupedItems) > 0) 
                                             <div class="row">
                                                 <div class="col-3 col-xs-6">
                                                     <button type="submit" id="submit_button" class="form-control btn bg-blue">
@@ -136,6 +137,7 @@
                                                     </a>
                                                 </div>
                                             </div>
+                                            @endif
                                         </div>
 
                                     </div>
