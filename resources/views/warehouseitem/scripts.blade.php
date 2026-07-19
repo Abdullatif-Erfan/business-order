@@ -110,6 +110,7 @@ function fetchList() {
                     d.item_name = $('#item_name').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
+                    d.availability_options = $('#availability_options').val();
                 },
                 complete: function () {
                     $('#warehouseItemTable_processing').hide();

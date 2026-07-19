@@ -91,6 +91,11 @@ class WarehouseListController extends Controller
             $WarehouseItems->where('currency_id', $request->input('currency_id'));
         }
 
+         if($request->input('availability_options') && $request->input('availability_options') == 1) {
+            $WarehouseItems->where('available_amount','>', $request->input('availability_options'));
+        }
+        
+
         if ($request->start_date && $request->end_date) {
                 $WarehouseItems->whereBetween('idate', [$request->start_date, $request->end_date]);
             } elseif ($request->start_date) {

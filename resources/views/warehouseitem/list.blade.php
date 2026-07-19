@@ -43,7 +43,7 @@
                                             </div>
                                         </div>
 							     	</div>
-                                     <div class="col-md-3 col-sm-6 col-xs-6">
+                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <div class="filter-group" style="min-width: 120px;">
                                             <div class="input-group">
                                                 <input type="text" class="form-control datepicker-input" id="end_date" placeholder="{{__('common.end_date')}}">
@@ -52,8 +52,18 @@
                                         </div>
 							     	</div>
 
-
                                     <div class="col-md-2 col-sm-6 col-xs-6">
+                                        <div class="filter-group">
+                                            <select class="form-control" name="availability_options" id="availability_options">
+                                                <!-- <option value=""> {{ __('wh.options') }}</option> -->
+                                                <option value="1">{{ __('wh.available_items') }}</option>
+                                                <option value="2">{{ __('wh.all') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-1 col-sm-6 col-xs-6">
                                         <button class="btn mybtn search_btn form-control" id="btn-filter">
                                             <i class="fa fa-search"></i>
                                         </button>
