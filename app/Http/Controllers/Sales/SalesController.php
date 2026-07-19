@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Setting\Currency;
 use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
+use App\Models\Setting\Car;
 use App\Models\Setting\Unit;
 use App\Models\Transaction\Journal;
 use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
 use App\Models\Warehouse\SalesDetails;
+use App\Models\Order\DraftOrder;
 
 use App\Models\SalesInvoice\SalesInvoice;
 use App\Models\SalesInvoice\SalesInvoiceItem;
@@ -118,7 +120,7 @@ class SalesController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create_v1()
     {
         $todaysDate = Carbon::now()->format('Y-m-d');
         // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
@@ -164,11 +166,347 @@ class SalesController extends Controller
         // return response()->json(['data' => $warehouseItems]);
         return view('sales.create.form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
     }
+    public function create_v2_backup()
+    {
+        $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        $currencies = Currency::select('id', 'name')->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+        $tax = OrgBio::select('tax_activation')->first();
+        $units = Unit::select('id', 'name')->get();
+        $cars = Car::select('id', 'name')->get(); // later should be filtered based on driver
+        
+        // Get warehouse items with available stock > 0
+        $warehouseItems = DB::table('warehouse_items')
+            ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+            ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+            ->where('warehouse_items.available_amount', '>', 0)
+            ->select(
+                'warehouse_items.id',
+                'warehouse_items.unit_id',
+                DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                'warehouse_items.available_amount',
+                'units.name as unit_name',
+                'warehouse_items.warehouse_id',
+                'bought_item_pre_lists.name as item_name',
+                'bought_item_pre_lists.id as pre_list_id',
+                'bought_item_pre_lists.category_id as category_id'
+            )
+            ->get();
+
+        // Get draft orders with state = 2 (in progress) and only those with available stock
+        $draftOrders = DraftOrder::select(
+            'id',
+            'dord_num',
+            'customer_id',
+            'category_id',
+            'pre_list_id',
+            'unit_id',
+            'amount',
+            'idate',
+            'iby',
+            'user_name',
+            'state',
+            'times'
+        )
+        ->with([
+            'customerRelation:id,name',
+            'preListRelation:id,name,category_id',
+            'unitRelation:id,name',
+        ])
+        ->where('draft_orders.state', 2)
+        ->orderBy('id', 'DESC')
+        ->get();
+
+        // Filter draft orders: only keep items that exist in warehouse with available_amount > 0
+        $availablePreListIds = $warehouseItems->pluck('pre_list_id')->toArray();
+        $filteredDraftOrders = $draftOrders->filter(function ($order) use ($availablePreListIds) {
+            return in_array($order->pre_list_id, $availablePreListIds);
+        });
+
+        $billno = WarehouseSales::max('billno') + 1;
+        $times = time();
+        $journal_code = 1;
+
+        return view('sales.v2.create.create', compact(
+            'customers',
+            'units',
+            'currencies',
+            'ownBanks',
+            'tax',
+            'warehouseItems',
+            'draftOrders',
+            'filteredDraftOrders',
+            'billno',
+            'times',
+            'journal_code',
+            'cars'
+        ));
+    }
+
+    public function create()
+    {
+        $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        $currencies = Currency::select('id', 'name')->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+        $tax = OrgBio::select('tax_activation')->first();
+        $units = Unit::select('id', 'name')->get();
+        $cars = Car::select('id', 'name')->get();
+        
+        // Get warehouse items with available stock > 0
+        $warehouseItems = DB::table('warehouse_items')
+            ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+            ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+            ->where('warehouse_items.available_amount', '>', 0)
+            ->select(
+                'warehouse_items.id as warehouse_item_id',
+                'warehouse_items.unit_id as warehouse_unit_id',
+                'units.name as warehouse_unit_name',
+                DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                'warehouse_items.available_amount',
+                'warehouse_items.warehouse_id',
+                'bought_item_pre_lists.name as item_name',
+                'bought_item_pre_lists.id as pre_list_id',
+                'bought_item_pre_lists.category_id as category_id'
+            )
+            ->get();
+
+        // Get draft orders with state = 2
+        $draftOrders = DraftOrder::select(
+            'id',
+            'dord_num',
+            'customer_id',
+            'category_id',
+            'pre_list_id',
+            'unit_id',
+            'amount',
+            'idate',
+            'iby',
+            'user_name',
+            'state',
+            'times'
+        )
+        ->with([
+            'customerRelation:id,name',
+            'preListRelation:id,name,category_id',
+            'unitRelation:id,name',
+        ])
+        ->where('draft_orders.state', 2)
+        ->orderBy('id', 'DESC')
+        ->get();
+
+        // Get customer IDs that have orders (state=2)
+        $customerIdsWithOrders = $draftOrders->pluck('customer_id')->unique()->toArray();
+
+        // Combine: Match by pre_list_id AND unit_id
+        $combinedItems = collect();
+        
+        foreach ($draftOrders as $order) {
+            $warehouseItem = $warehouseItems->first(function ($item) use ($order) {
+                return $item->pre_list_id == $order->pre_list_id 
+                    && $item->warehouse_unit_id == $order->unit_id;
+            });
+            
+            if ($warehouseItem) {
+                $combinedItems->push((object) [
+                    'dord_num' => $order->dord_num,
+                    'customer_id' => $order->customer_id,
+                    'customer_name' => $order->customerRelation->name ?? 'Unknown',
+                    'category_id' => $order->category_id,
+                    'pre_list_id' => $order->pre_list_id,
+                    'pre_list_name' => $order->preListRelation->name ?? 'Unknown',
+                    'unit_id' => $order->unit_id,
+                    'unit_name' => $order->unitRelation->name ?? 'Unknown',
+                    'amount' => $order->amount,
+                    'idate' => $order->idate,
+                    'state' => $order->state,
+                    'times' => $order->times,
+                    'warehouse_item_id' => $warehouseItem->warehouse_item_id,
+                    'sell_up' => $warehouseItem->sell_up,
+                    'available_amount' => $warehouseItem->available_amount,
+                    'warehouse_unit_id' => $warehouseItem->warehouse_unit_id,
+                    'warehouse_unit_name' => $warehouseItem->warehouse_unit_name,
+                    'item_name' => $warehouseItem->item_name,
+                    'has_order' => true,
+                ]);
+            }
+        }
+
+        // Prepare customers with order status
+        $customersWithStatus = $customers->map(function ($customer) use ($customerIdsWithOrders, $combinedItems) {
+            $hasOrder = in_array($customer->id, $customerIdsWithOrders);
+            $hasAvailableItems = $combinedItems->where('customer_id', $customer->id)->isNotEmpty();
+            
+            return (object) [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'has_order' => $hasOrder,
+                'has_available_items' => $hasAvailableItems,
+                'items' => $hasAvailableItems ? $combinedItems->where('customer_id', $customer->id)->values() : collect()
+            ];
+        });
+
+        $billno = WarehouseSales::max('billno') + 1;
+        $times = time();
+        $journal_code = 1;
+
+        // return ['data' => $customersWithStatus, 'items' => $combinedItems];
+        return ['warehouseItems' => $warehouseItems];
+        return view('sales.v2.create.create', compact(
+            'customers',
+            'units',
+            'currencies',
+            'ownBanks',
+            'tax',
+            'warehouseItems',
+            'combinedItems',
+            'customersWithStatus',
+            'billno',
+            'times',
+            'journal_code',
+            'cars'
+        ));
+    }
+            
+            
+    public function store(Request $request)
+    {
+        // return response()->json($request->all());
+
+        $validated = $request->validate([
+            'customer_account_id' => 'required|exists:accounts,id',
+            'account_id' => 'required|exists:accounts,id',
+            'car_id' => 'required|exists:cars,id',
+            'todays_date' => 'required',
+            'billno' => 'required|numeric|unique:warehouse_sales,billno',
+            'factor' => 'nullable|string|max:255',
+            'total_price' => 'required|numeric|min:0',
+            'cur_pay' => 'required|numeric|min:0',
+            'remained' => 'required|numeric|min:0',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:1000',
+            'times' => 'required|integer',
+            'items' => 'required|array|min:1',
+            'items.*.pre_list_id' => 'required|exists:bought_item_pre_lists,id',
+            'items.*.unit_id' => 'required|exists:units,id',
+            'items.*.amount' => 'required|numeric|min:0.01',
+            'items.*.sell_up' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
+            'items.*.warehouse_item_id' => 'required|exists:warehouse_items,id',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $date = Carbon::parse($validated['todays_date']);
+            
+            // Create WarehouseSales
+            $warehouseSale = WarehouseSales::create([
+                'billno' => $validated['billno'],
+                'factor' => $validated['factor'] ?? null,
+                'account_id' => $validated['account_id'],
+                'customer_account_id' => $validated['customer_account_id'],
+                'car_id' => $validated['car_id'],
+                'total' => $validated['total_price'],
+                'cur_pay' => $validated['cur_pay'],
+                'remained' => $validated['remained'],
+                'currency_id' => $validated['currency_id'],
+                'tax_activation' => 0,
+                'note' => $validated['note'] ?? null,
+                'idate' => $date->format('Y-m-d'),
+                'year' => $date->year,
+                'month' => $date->month,
+                'day' => $date->day,
+                'times' => $validated['times'],
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()->name ?? 'System',
+                'has_invoice' => 0,
+                'invoice_id' => null,
+                'is_cleared' => 0,
+            ]);
+
+            // Create Sales Details and update warehouse
+            foreach ($validated['items'] as $index => $item) {
+                // Get warehouse item details for additional fields
+                $warehouseItem = WarehouseItem::with(['preListRelation', 'unitRelation'])
+                    ->where('id', $item['warehouse_item_id'])
+                    ->first();
+
+                if (!$warehouseItem) {
+                    throw new \Exception("Warehouse item not found: {$item['warehouse_item_id']}");
+                }
+
+                // Calculate profit (sell_up - buy_up)
+                $buyUp = $warehouseItem->buy_up ?? 0;
+                $sellUp = $item['sell_up'] ?? 0;
+                $profit = $sellUp - $buyUp;
+
+                // Determine tax values
+                $sellTaxPer = $warehouseItem->sell_tax_per ?? 0;
+                $sellTaxPrice = $warehouseItem->sell_tax_price ?? 0;
+                $sellUpNoTax = $warehouseItem->sell_up_no_tax ?? $sellUp;
+
+                // Create sales detail with all fields
+                SalesDetails::create([
+                    'billno' => $validated['billno'],
+                    'warehouse_id' => $warehouseItem->warehouse_id ?? null,
+                    'warehouse_sales_id' => $warehouseSale->id,
+                    'pre_list_id' => $item['pre_list_id'],
+                    'category_id' => $item['category_id'] ?? $warehouseItem->category_id ?? null,
+                    'unit_id' => $item['unit_id'],
+                    'amount' => $item['amount'],
+                    'buy_up' => $buyUp,
+                    'sell_up' => $sellUp,
+                    'sell_up_no_tax' => $sellUpNoTax,
+                    'sell_tax_per' => $sellTaxPer,
+                    'sell_tax_price' => $sellTaxPrice,
+                    'profit' => $profit,
+                    'total' => $item['total'],
+                    'is_returned' => 0,
+                    'todays_date' => $date->format('Y-m-d'),
+                ]);
+
+                // Decrease warehouse items with proper tracking
+                $this->decreaseWarehouseItemAfterStore($warehouseItem, $item['amount']);
+            }
+
+            // Update draft order state to completed (3) for this customer
+            if (!empty($validated['customer_account_id'])) {
+                DraftOrder::where('customer_id', $validated['customer_account_id'])
+                    ->where('state', 2)
+                    ->update(['state' => 3]);
+            }
+
+            // Handle journal entry
+            $this->handleJournalEntry($request);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'sale_id' => $warehouseSale->id,
+                    'billno' => $warehouseSale->billno,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Sales Creation Error: ' . $e->getMessage());
+            Log::error('Request Data: ', $request->all());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     /**
      * Store a newly created resource in storage.
     */
-    public function store(Request $request)
+    public function store_v1(Request $request)
     {
         $validator = Validator::make($request->all(), $this->validationRules(), $this->validationMessages());
 
@@ -435,6 +773,44 @@ class SalesController extends Controller
         SalesDetails::insert($data);
     }
 
+    /**
+     * Decrease warehouse item with proper tracking
+     */
+    private function decreaseWarehouseItemAfterStore($warehouseItem, $soldAmount)
+    {
+        if ($soldAmount <= 0) {
+            return;
+        }
+
+        // Lock for update to prevent race conditions
+        $item = WarehouseItem::where('id', $warehouseItem->id)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$item) {
+            throw new \Exception("Warehouse item not found: {$warehouseItem->id}");
+        }
+
+        if ($item->available_amount < $soldAmount) {
+            throw new \Exception(
+                "Insufficient stock for item {$item->id}. Available: {$item->available_amount}, Requested: {$soldAmount}"
+            );
+        }
+
+        // Update warehouse item
+        $item->out_amount += $soldAmount;
+        $item->available_amount -= $soldAmount;
+
+        // Determine which price to use for valuation
+        if (intval($item->buy_tax_per) > 0) {
+            $valuationPrice = $item->buy_up_vat ?? $item->buy_up;
+        } else {
+            $valuationPrice = $item->buy_up;
+        }
+
+        $item->available_total = round($item->available_amount * $valuationPrice, 2);
+        $item->save();
+    }
     /**
      * Decrease the amount of items in stock by sold amount
      */

@@ -43,6 +43,7 @@ return [
     'transferable_items' => 'جنس قابل انتقال',
     'move_to_wh' => 'انتقال به گدام',
     'greater_amount_msg' => 'مقدار وارد شده نباید بیشتر از مقدار موجود باشد!',
+    'select_available_item' => 'انتخاب جنس',
 
     // wastage
     'wastage_create_title' => 'فورم ثبت ضایعات اجناس و تاریخ گذشته',

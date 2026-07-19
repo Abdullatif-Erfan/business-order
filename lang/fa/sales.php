@@ -32,6 +32,11 @@ return [
     'print_page_title' => ' جزییات فورم فروشات',
     'sign_and_stamp' => 'مهر و امضا',
     'print_bill' => ' چاپ  بل',
+    'max' => 'حداکثر',
+    'add_new_item' => 'ایجاد آیتم جدید',
+    'no_available_items' => 'آیتم موجود نیست',
+    'cannot_exceed_availability' => 'بالاتر از موجودی انتخاب نمی توانید',
+
 
     // sales details
     'sales_details_title' => ' جزییات فورم فروشات',
@@ -53,4 +58,13 @@ return [
     'buy_type' => 'نوع خرید',
     'new_rate' => 'نرخ جدید',
     'calculate_total' => 'محاسبه قیمت نهایی',
+
+    'no_stock' => 'بدون موجودی',
+    'no_available_stock_for_customer' => 'این مشتری سفارش دارد اما موجودی انبار تمام شده است',
+    'no_orders_for_customer_add_new' => 'این مشتری سفارشی ندارد، میتوانید آیتم جدید اضافه کنید',
+    'select_customer' => 'لطفا مشتری را انتخاب کنید',
+    'no_available_items' => 'آیتم موجودی برای این مشتری یافت نشد',
+    'add_new_item' => 'افزودن آیتم جدید',
+    'select_available_item' => 'انتخاب آیتم موجود',
+    
 ];

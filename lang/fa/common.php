@@ -37,6 +37,8 @@ return [
     'items' => 'اجناس',
     'print' => 'چاپ',
     'car' => 'موتر',
+    'availability' => 'موجودی',
+    'select_item' => 'جنس انتخاب نمایید',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',
