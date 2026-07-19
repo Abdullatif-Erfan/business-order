@@ -66,5 +66,7 @@ return [
     'no_available_items' => 'آیتم موجودی برای این مشتری یافت نشد',
     'add_new_item' => 'افزودن آیتم جدید',
     'select_available_item' => 'انتخاب آیتم موجود',
+    'select_valid_warehouse_item' => 'اجناس را درست انتخاب نمایید',
+    'no_warehouse_items_available' => 'این جنس در لیست اجناس موجود وجود ندارد',
     
 ];

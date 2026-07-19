@@ -201,9 +201,25 @@ class BoughtDetailsController extends Controller
         ->orderBy('id', 'DESC')
         ->get();
 
+           // گروپ ساختن سپلایر با آیتم هایکه سفارش داده شده است و باید علامت تیک مارک نشان داده شود
+          // Get supplier IDs that have orders (state = 1)
+            $supplierIdsWithOrders = $orders->pluck('supplier_id')->unique()->toArray();
+
+            // Add has_order flag to suppliers
+            $suppliersWithStatus = $suppliers->map(function ($supplier) use ($supplierIdsWithOrders) {
+                $hasOrder = in_array($supplier->id, $supplierIdsWithOrders);
+                
+                return (object) [
+                    'id' => $supplier->id,
+                    'name' => $supplier->name,
+                    'has_order' => $hasOrder,
+                ];
+            });
+
+
         // return response()->json($orders);
 
-        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliers','preLists','units','categories','cars'));
+        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
     }
 
     /**

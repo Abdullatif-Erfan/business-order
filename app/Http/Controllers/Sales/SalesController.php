@@ -333,8 +333,8 @@ class SalesController extends Controller
 
         // Prepare customers with order status
         $customersWithStatus = $customers->map(function ($customer) use ($customerIdsWithOrders, $combinedItems) {
-            $hasOrder = in_array($customer->id, $customerIdsWithOrders);
-            $hasAvailableItems = $combinedItems->where('customer_id', $customer->id)->isNotEmpty();
+        $hasOrder = in_array($customer->id, $customerIdsWithOrders);
+        $hasAvailableItems = $combinedItems->where('customer_id', $customer->id)->isNotEmpty();
             
             return (object) [
                 'id' => $customer->id,
@@ -350,7 +350,7 @@ class SalesController extends Controller
         $journal_code = 1;
 
         // return ['data' => $customersWithStatus, 'items' => $combinedItems];
-        return ['warehouseItems' => $warehouseItems];
+        // return ['warehouseItems' => $warehouseItems];
         return view('sales.v2.create.create', compact(
             'customers',
             'units',

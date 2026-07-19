@@ -165,14 +165,20 @@
                                             <label for="supplier_account_id">{{__('order.supplier_selection')}} <span class="danger">*</span></label>
                                             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="supplier_account_id" id="supplier_account_id" required>
                                                 <option value="">{{__('order.supplier_name')}}</option>
-                                                @foreach($suppliers as $supplier)
-                                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                                @foreach($suppliersWithStatus as $supplier)
+                                                    <option value="{{ $supplier->id }}">
+                                                        {{ $supplier->name }}
+                                                        @if($supplier->has_order)
+                                                            ✅ 
+                                                        @endif
+                                                    </option>
                                                 @endforeach
                                             </select>
                                             @error('supplier_account_id')
                                                 <span style='color:red'>{{ $message }}</span>
                                             @enderror
                                         </div>
+
 
                                         <div class="col-md-2 col-sm-4 col-xs-6">
                                             <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>

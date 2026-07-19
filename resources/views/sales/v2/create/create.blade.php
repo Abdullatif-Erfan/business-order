@@ -664,6 +664,16 @@ $(document).ready(function () {
     // GENERATE NEW ROW HTML
     // =========================================
     function generateNewRowHtml(index) {
+          // Check if warehouseItemsData has items
+        if (!warehouseItemsData || warehouseItemsData.length === 0) {
+            return `
+                <tr class="item-row" data-index="${index}">
+                    <td colspan="8" class="text-center text-danger">
+                        {{__('sales.no_warehouse_items_available')}}
+                    </td>
+                </tr>
+            `;
+        }
         var optionsHtml = warehouseItemsData.map(function(item) {
             return `<option value="${item.warehouse_item_id}" 
                 data-pre-list-id="${item.pre_list_id}"
@@ -671,7 +681,8 @@ $(document).ready(function () {
                 data-unit-name="${item.warehouse_unit_name}"
                 data-available-amount="${item.available_amount}"
                 data-sell-up="${item.sell_up}"
-                data-item-name="${item.item_name}">
+                data-item-name="${item.item_name}"
+                data-category-id="${item.category_id || ''}">
                 ${item.item_name} (${item.available_amount} ${item.warehouse_unit_name})
             </option>`;
         }).join('');
@@ -717,12 +728,18 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // APPEND NEW ROW
+    // APPEND NEW ROW (With dropdown)
     // =========================================
-    function appendNewRow(index) {
+    function appendNewRow(index) 
+    {
         var html = generateNewRowHtml(index);
         var $newRow = $(html);
         $('#itemsBody').append($newRow);
+        
+        // Check if there are warehouse items
+        if (!warehouseItemsData || warehouseItemsData.length === 0) {
+            return;
+        }
         
         $newRow.find('.warehouse-item-select').select2();
         
@@ -741,14 +758,23 @@ $(document).ready(function () {
             var availableAmount = selectedOption.data('available-amount') || 0;
             var sellUp = selectedOption.data('sell-up') || '';
             var itemName = selectedOption.data('item-name') || '';
+            var categoryId = selectedOption.data('category-id') || '';
             
             var row = $(this).closest('tr');
             var index = row.data('index');
             
+            // Set ALL hidden fields
             row.find('.pre-list-id-hidden').val(preListId);
             row.find('.unit-id-hidden').val(unitId);
             row.find('.unit-name-display').val(unitName);
+            row.find('.warehouse-item-id-hidden').val(warehouseItemId);
             
+            // Also set category if needed
+            if (categoryId) {
+                row.find('.category-id-hidden').val(categoryId);
+            }
+            
+            // Update display fields
             row.find('.amount').attr('max', availableAmount);
             row.find('.sell-up').val(sellUp);
             
@@ -764,6 +790,7 @@ $(document).ready(function () {
                 badge.text(availableAmount + ' {{__("common.available")}}');
             }
             
+            // Update currentItems
             if (currentItems[index]) {
                 currentItems[index].pre_list_id = preListId;
                 currentItems[index].unit_id = unitId;
@@ -772,8 +799,10 @@ $(document).ready(function () {
                 currentItems[index].sell_up = sellUp;
                 currentItems[index].item_name = itemName;
                 currentItems[index].unit_name = unitName;
+                currentItems[index].category_id = categoryId;
             }
             
+            // Trigger recalculation
             recalculateRow(row);
         });
         
@@ -827,7 +856,8 @@ $(document).ready(function () {
         var isValid = true;
         var errorMessages = [];
 
-        $('.item-row').each(function() {
+         $('.item-row').each(function() 
+         {
             var row = $(this);
             var preListId = row.find('.pre-list-id-hidden').val();
             var amount = row.find('.amount').val();
@@ -836,6 +866,11 @@ $(document).ready(function () {
             var warehouseItemId = row.find('.warehouse-item-id-hidden').val();
             var availableAmount = parseFloat(row.find('.amount').attr('max')) || 0;
             var enteredAmount = parseFloat(amount) || 0;
+
+            // Skip validation for empty rows (new item not selected yet)
+            if (!preListId && !warehouseItemId) {
+                return;
+            }
 
             if (!preListId) {
                 isValid = false;
@@ -867,10 +902,10 @@ $(document).ready(function () {
                 errorMessages.push('{{__("wh.select_unit")}}');
             }
 
-            if (!warehouseItemId) {
-                isValid = false;
-                errorMessages.push('{{__("sales.select_valid_warehouse_item")}}');
-            }
+            // if (!warehouseItemId) {
+            //     isValid = false;
+            //     errorMessages.push('{{__("sales.select_valid_warehouse_item")}}');
+            // }
         });
 
         if (!isValid) {

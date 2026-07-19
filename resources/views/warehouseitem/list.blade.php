@@ -71,18 +71,18 @@
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                              @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="14">
+                                             <td colspan="15">
                                              @else
-                                             <td colspan="11">
+                                             <td colspan="12">
                                              @endif 
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
                                              @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="14">
+                                             <td colspan="15">
                                              @else
-                                             <td colspan="11">
+                                             <td colspan="12">
                                              @endif 
                                             <center> {{__('wh.existing_list')}}  {{ $warehouse->name ?? '' }}  </center>
                                             </td>
@@ -102,6 +102,7 @@
                                             <th> {{__('buy.buy_up_vat') ?? ''}} </th>
                                             @endif 
                                             <th> {{__('common.available_total')}} </th> 
+                                            <th> {{__('common.total')}} </th> 
                                             <th> {{__('buy.sell_up')}} </th> 
                                             <th> {{__('common.date')}} </th>
                                         </tr>
@@ -118,6 +119,7 @@
                                             <td></td>
                                             <td></td>
                                             @endif 
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>

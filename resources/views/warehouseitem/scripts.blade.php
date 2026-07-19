@@ -85,6 +85,7 @@ function fetchList() {
     // Add remaining columns
     columns.push(
         { data: 'available_total', name: 'available_total' },
+        { data: 'total', name: 'total' },
         { data: 'sell_up', name: 'sell_up' },
         { data: 'idate', name: 'idate', orderable: false, searchable: false }
     );
@@ -140,6 +141,7 @@ function fetchList() {
                 }
 
                 $(api.column(8).footer()).html(sumColumn(8));
+                $(api.column(9).footer()).html(sumColumn(9));
             },
             
         });

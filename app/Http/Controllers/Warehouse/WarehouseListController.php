@@ -145,6 +145,10 @@ class WarehouseListController extends Controller
             })
 
 
+            ->addColumn('total', function($WarehouseItem) {
+                return number_format($WarehouseItem->total,2); 
+            })
+
             
             ->addColumn('sell_up', function($WarehouseItem) {
                   if ($WarehouseItem->sell_tax_per && $WarehouseItem->sell_tax_per > 0) {
