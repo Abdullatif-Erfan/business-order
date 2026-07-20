@@ -9,7 +9,7 @@ use App\Models\Setting\Account;
 class BuyPreList extends Model
 {
     protected $table = 'bought_item_pre_lists';
-    protected $fillable=['name','category_id','supplier_id'];
+    protected $fillable=['name','category_id','supplier_id','unit_id','unit_name'];
 
     public function categoryRelation()
     {

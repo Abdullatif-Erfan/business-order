@@ -23,6 +23,28 @@
     .form-control {
         padding-right: 3px !important;
     }
+    
+    .add-row-btn {
+        width: 100%;
+        padding: 8px;
+        border: 2px dashed #ddd;
+        background: #fafafa;
+        color: #666;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-align: center;
+        border: 2px dashed #169054;
+    }
+    .add-row-btn:hover {
+        background: #f0f4ff;
+        border-color: #4a6cf7;
+        color: #4a6cf7;
+    }
+    .add-row-btn i {
+        margin-right: 8px;
+    }
 </style>
 
 
@@ -159,12 +181,11 @@
         </div>
     </div>
 </div>
+
 @push('scripts')
 
 <script>
 $(document).ready(function() {
-   
-
     // =========================================
     // INITIALIZE SELECT2
     // =========================================
@@ -190,16 +211,13 @@ $(document).ready(function() {
         var selectedOption = $(this).find(':selected');
         var row = $(this).closest('tr');
         
-        // Get data from selected option
         var categoryId = selectedOption.data('category-id') || '';
         var preListId = selectedOption.data('pre-list-id') || '';
         var unitId = selectedOption.data('unit-id') || '';
 
-        // Set values in the row
         row.find('.pre-category-id').val(categoryId);
         row.find('.pre-list-id').val(preListId);
         
-        // Auto-select unit if available
         if (unitId) {
             row.find('.unit-select').val(unitId).trigger('change');
         } else {
@@ -228,61 +246,15 @@ $(document).ready(function() {
     });
 
     // =========================================
-    // ADD NEW ROW
+    // UPDATE REMOVE BUTTONS
     // =========================================
-    $(document).on('click', '.addRow', function () {
-        var $lastRow = $('.item-row:last');
-        var $newRow = $lastRow.clone();
-        var rowCount = $('.item-row').length;
-
-        // Reset input values
-        $newRow.find('input[type="text"], input[type="number"], input[type="hidden"]').val('');
-        $newRow.find('.item-select, .unit-select').val('').trigger('change');
-        
-        // Remove select2 and reinitialize
-        $newRow.find('.select2-container').remove();
-        $newRow.find('.item-select, .unit-select').removeClass('select2-hidden-accessible').show();
-        
-        // Append new row
-        $lastRow.after($newRow);
-        
-        // Reinitialize select2 for new row
-        $newRow.find('.item-select, .unit-select').select2();
-        
-        // Show remove button for all rows except first
-        if (rowCount > 0) {
-            $newRow.find('.removeRow').show();
-        }
-        
-        // Add required attributes
-        toggleRequiredAttribute($newRow, true);
-    });
-
-    // =========================================
-    // REMOVE ROW
-    // =========================================
-    $(document).on('click', '.removeRow', function () {
+    function updateRemoveButtons() {
         var rows = $('.item-row');
-        
-        if (rows.length > 1) {
-            var row = $(this).closest('tr');
-            
-            // Prevent deleting the first row
-            if (row.index() !== 0) {
-                toggleRequiredAttribute(row, false);
-                row.remove();
-                
-                // Hide remove button if only one row left
-                if ($('.item-row').length === 1) {
-                    $('.removeRow').hide();
-                }
-            } else {
-                showNotification('{{ __("common.at_least_one_row") }}', 'warning', 'top', 'right', 'withicon');
-            }
-        } else {
-            showNotification('{{ __("common.at_least_one_row") }}', 'warning', 'top', 'right', 'withicon');
+        rows.find('.removeRow').show();
+        if (rows.length === 1) {
+            rows.find('.removeRow').hide();
         }
-    });
+    }
 
     // =========================================
     // FORM SUBMISSION
@@ -347,7 +319,6 @@ $(document).ready(function() {
         var originalText = $submitBtn.text();
         $submitBtn.prop('disabled', true).text('{{ __("common.saving") }}...');
         
-        // Get form data with items
         var formData = $(this).serialize();
         
         $.ajax({
@@ -424,10 +395,7 @@ $(document).ready(function() {
     // =========================================
     // INITIAL SETUP
     // =========================================
-    // Hide remove button for first row initially
-    if ($('.item-row').length === 1) {
-        $('.removeRow').hide();
-    }
+    updateRemoveButtons();
 });
 </script>
 

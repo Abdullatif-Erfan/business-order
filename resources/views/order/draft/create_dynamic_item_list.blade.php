@@ -1,11 +1,11 @@
 <div class="table-responsive">
-    <table class="display responsive nowrap table table-bordered"  id="itemsTable">
+    <table class="display responsive nowrap table table-bordered" id="itemsTable">
         <thead>
             <tr style="background:#e9fffe">
                 <th style="width:40%">{{__('wh.item_selection')}}</th>
                 <th style="width:20%">{{__('common.amount')}}</th>
                 <th style="width:30%">{{__('common.unit')}}</th>
-                <th style="width:10%">{{__('common.add')}}</th>
+                <th style="width:10%">{{__('common.action')}}</th>
             </tr>
         </thead>
         <tbody id="itemsBody">
@@ -24,7 +24,7 @@
                     </select>
                 </td>
                 <td>
-                    <input name="amount[]" class="form-control amount" type="number" step="0.01" 
+                    <input name="amount[]" class="form-control amount" type="number" step="any" 
                            placeholder="{{__('common.amount')}}" required>
                 </td>
                 <td>
@@ -41,15 +41,21 @@
                     </select>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-info btn-sm addRow" style="padding: 2px 8px !important;" title="{{ __('common.add') }}">
-                        <i class="fa fa-plus"></i>
-                    </button>
-                    <button type="button" class="btn btn-warning btn-sm removeRow" style="padding: 2px 8px !important; display: none;" title="{{ __('common.remove') }}">
-                        <i class="fa fa-minus"></i>
+                    <button type="button" class="btn btn-danger btn-sm removeRow" style="padding: 2px 8px !important; display: none;" title="{{ __('common.remove') }}">
+                        <i class="fa fa-trash"></i>
                     </button>
                 </td>
             </tr>
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4">
+                    <button type="button" id="addNewRowBtn" class="add-row-btn">
+                        <i class="fa fa-plus-circle"></i> {{ __('common.add_new_row') }}
+                    </button>
+                </td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 
@@ -98,10 +104,9 @@ $(document).ready(function () {
     });
 
     // =========================================
-    // ADD NEW ROW - UNBIND AND REBIND TO PREVENT DUPLICATES
+    // ADD NEW ROW - Using the footer button
     // =========================================
-    // Remove any existing click handlers and add new one
-    $('.addRow').off('click').on('click', function (e) {
+    $('#addNewRowBtn').on('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
         
@@ -147,6 +152,7 @@ $(document).ready(function () {
         if (rows.length > 1) {
             var row = $(this).closest('tr');
             
+            // Prevent deleting the first row
             if (row.index() !== 0) {
                 // Destroy select2
                 row.find('.item-select, .unit-select').each(function() {
@@ -160,7 +166,7 @@ $(document).ready(function () {
                 row.remove();
                 updateRemoveButtons();
             } else {
-                showNotification('{{ __("common.at_least_one_row") }}', 'warning', 'top', 'right', 'withicon');
+                showNotification('{{ __("common.cant_delete_first_row") }}', 'warning', 'top', 'right', 'withicon');
             }
         } else {
             showNotification('{{ __("common.at_least_one_row") }}', 'warning', 'top', 'right', 'withicon');
@@ -173,6 +179,7 @@ $(document).ready(function () {
     function updateRemoveButtons() {
         var rows = $('#itemsBody .item-row');
         
+        // Hide remove button on first row if only one row exists
         if (rows.length === 1) {
             rows.find('.removeRow').hide();
         } else {

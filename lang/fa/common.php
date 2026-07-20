@@ -24,6 +24,7 @@ return [
     'factor'    => 'فاکتور',
     'code'      => 'کد',
     'unit'      => 'واحد',
+    'default_unit' => 'واحد پیش فرض',
     'price'     => 'قیمت',
     'unit_price'      => 'قیمت فی واحد',
     'total_price'     => 'قیمت مجموعی',
@@ -39,6 +40,7 @@ return [
     'car' => 'موتر',
     'availability' => 'موجودی',
     'select_item' => 'جنس انتخاب نمایید',
+    'add_new_row' => 'ایجاد جنس جدید',
 
     // toast message
     'added_successfully' => 'موفقانه علاوه گردید',
@@ -58,6 +60,7 @@ return [
     'try_again' => 'خطای سرور، دوباره امتحان کنید',
     'are_you_sure' => 'آیا مطمین هستید ؟',
     'back' => 'برگشت به لیست',
+    'amount_positive' => 'مقدار باید مثبت باشد',
 
     'currency' => 'واحد پولی',
     'date'      => 'تاریخ',

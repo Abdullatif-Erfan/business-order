@@ -9,6 +9,7 @@
                 <th>{{__('common.number')}}     </th>
                 <th>{{__('buy.category')}}     </th>
                 <th>{{__('common.item_name')}}  </th>
+                <th>{{__('common.default_unit')}}  </th>
                 <th>{{__('common.edit')}}       </th>
                 <th>{{__('common.delete')}}     </th>
             </tr>
@@ -22,7 +23,7 @@
 
 <!-- Add Modal -->
 <div class="modal fade" id="addPrelistModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+   <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{__('common.add')}} </h5>
@@ -48,7 +49,7 @@
 
 <!-- Update Modal -->
 <div class="modal fade" id="EditPreListModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">  {{__('common.edit')}} </h5>
@@ -304,6 +305,7 @@ function fetchPreListItems() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'category', name: 'category'},
                 { data: 'name', name: 'name' },
+                { data: 'unit_name', name: 'unit_name' },
                 { data: 'edit', name: 'edit', orderable: false, searchable: false }, 
                 { data: 'delete', name: 'delete', orderable: false, searchable: false }
             ]

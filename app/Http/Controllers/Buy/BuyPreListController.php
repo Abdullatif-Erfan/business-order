@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Milon\Barcode\DNS1D;
 
 use App\Models\Setting\Category;
+use App\Models\Setting\Unit;
 use App\Models\Setting\Account;
 
 use App\Models\Buy\BuyPreList;
@@ -24,7 +25,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BuyPreListController extends Controller
 {
-    protected $isAdmin, $packageId;
+    protected $isAdmin;
     public function __construct()
     {
         if (auth()->check()) {
@@ -41,7 +42,7 @@ class BuyPreListController extends Controller
     {
        $suppliers = Account::select('id','name')->where('account_type_id',4)->get();
        $categories = Category::select('id','name')->get();
-        return view('buy.prelist.list', compact('categories','suppliers'));    
+       return view('buy.prelist.list', compact('categories','suppliers'));    
     }
 
     /**
@@ -50,7 +51,7 @@ class BuyPreListController extends Controller
     public function getData(Request $request)
     {
         $buyPreLists = BuyPreList::with(['categoryRelation'])
-        ->select('id', 'name','category_id','supplier_id')
+        ->select('id', 'name','category_id','supplier_id','unit_name')
         ->orderBy('id', 'DESC');
     
         return DataTables::of($buyPreLists)
@@ -83,31 +84,47 @@ class BuyPreListController extends Controller
             'name.max' => __('validate.pre_list_name_max'),
             'name.min' => __('validate.pre_list_name_min'),
             'name.unique' => __('validate.pre_list_name_unique'),
+            'category_id.required' => __('validate.category_required'),
+            'category_id.exists' => __('validate.category_exists'),
+            'unit_id.exists' => __('validate.unit_exists'),
         ];
-
-        $times = time();
-
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|min:2|unique:bought_item_pre_lists,name',
+            'category_id' => 'required|exists:categories,id',
+            'unit_id' => 'nullable|exists:units,id',
         ], $messages);
 
-        $supplier_id = Category::where('id', $request->category_id)->value('supplier_id') ?? 0;
+        // Get supplier_id from category
+        $supplierId = Category::where('id', $request->category_id)->value('supplier_id') ?? 0;
+        
+        // Get unit_name if unit_id is provided
+        $unitName = '';
+        $unitId = $request->unit_id ?? 0;
+        if ($unitId) {
+            $unitName = Unit::where('id', $unitId)->value('name') ?? '';
+        }
 
         BuyPreList::create([
             'name' => $validated['name'],
-            'category_id' => $request->category_id,
-            'supplier_id' => $supplier_id,
+            'category_id' => $validated['category_id'],
+            'supplier_id' => $supplierId,
+            'unit_id' => $unitId,
+            'unit_name' => $unitName,
+            // 'created_at' => now(), // Optional: Laravel handles this automatically
         ]);
 
-        return response()->json(['status' => 'success', 'message' => __('common.added_successfully')]);
+        return response()->json([
+            'status' => 'success',
+            'message' => __('common.added_successfully')
+        ]);
     }
 
     public function create() {
         $categories = Category::select('id','name')->get();
         $buyPreLists = BuyPreList::get();
-
-        return view('settings.preListItems.addForm', compact('buyPreLists','categories'));
+        $units = Unit::select('id','name')->get();
+        return view('settings.preListItems.addForm', compact('buyPreLists','categories','units'));
     }
 
     /**
@@ -117,8 +134,8 @@ class BuyPreListController extends Controller
     {
         $categories = Category::select('id','name')->get();
         $buyPreLists = BuyPreList::where('id',$id)->get();
-
-        return view('settings.preListItems.editForm', compact('buyPreLists','categories'));
+        $units = Unit::select('id','name')->get();
+        return view('settings.preListItems.editForm', compact('buyPreLists','categories','units'));
     }
 
     /**
@@ -159,6 +176,12 @@ class BuyPreListController extends Controller
         // Find the record to update
         $prevData = BuyPreList::find($request->id);
     
+        $unitName = '';
+        $unitId = $request->unit_id ?? 0;
+        if ($unitId) {
+            $unitName = Unit::where('id', $unitId)->value('name') ?? '';
+        }
+
         // Check if record exists
         if (!$prevData) {
             return response()->json(['status' => 'error', 'message' => 'سطر مورد نظر پیدا نشد']);
@@ -170,6 +193,8 @@ class BuyPreListController extends Controller
         $prevData->name = $request->name;
         $prevData->category_id = $request->category_id ?? null;
         $prevData->supplier_id = $supplier_id;
+        $prevData->unit_id = $unitId;
+        $prevData->unit_name = $unitName;
         $prevData->save();
     
         // Return success response

@@ -13,7 +13,7 @@ use App\Models\Buy\BuyPreList;
 use App\Models\Buy\BoughtItem;
 use App\Models\Setting\Currency;
 use App\Models\Order\OrderItem;
-
+use Carbon\Carbon;
 use App\Models\Transaction\Journal;
 use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Setting\Warehouse;
@@ -45,7 +45,7 @@ class SalesByItemController extends Controller
     {    
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
 
         return view('sales.item_list',compact('currencies','todaysDate','orgbios'));
     }

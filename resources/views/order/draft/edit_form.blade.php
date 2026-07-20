@@ -23,6 +23,28 @@
     .form-control {
         padding-right: 3px !important;
     }
+    
+    .add-row-btn {
+        width: 100%;
+        padding: 8px;
+        border: 2px dashed #ddd;
+        background: #fafafa;
+        color: #666;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-align: center;
+        border: 2px dashed #169054;
+    }
+    .add-row-btn:hover {
+        background: #f0f4ff;
+        border-color: #4a6cf7;
+        color: #4a6cf7;
+    }
+    .add-row-btn i {
+        margin-right: 8px;
+    }
 </style>
 
 <div class="main-panel">
@@ -131,7 +153,7 @@
                                                                     <th style="width:15%">{{ __('common.category') }}</th>
                                                                     <th style="width:20%">{{ __('common.amount') }}</th>
                                                                     <th style="width:15%">{{ __('common.unit') }}</th>
-                                                                    <th style="width:10%">{{ __('common.add') }}</th>
+                                                                    <th style="width:10%">{{ __('common.action') }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="itemsBody">
@@ -161,7 +183,7 @@
                                                                         </select>
                                                                     </td>
                                                                     <td>
-                                                                        <input name="items[{{ $index }}][amount]" class="form-control amount" type="number" step="0.01" 
+                                                                        <input name="items[{{ $index }}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
                                                                                value="{{ $item->amount }}" placeholder="{{ __('common.amount') }}" required>
                                                                     </td>
                                                                     <td>
@@ -176,24 +198,27 @@
                                                                         </select>
                                                                     </td>
                                                                     <td>
-                                                                        <button type="button" class="btn btn-info btn-sm addRow" style="padding: 2px 8px !important;" title="{{ __('common.add') }}">
-                                                                            <i class="fa fa-plus"></i>
-                                                                        </button>
-                                                                        <button type="button" class="btn btn-warning btn-sm removeRow" style="padding: 2px 8px !important;" title="{{ __('common.remove') }}">
-                                                                            <i class="fa fa-minus"></i>
+                                                                        <button type="button" class="btn btn-danger btn-sm removeRow" style="padding: 2px 8px !important; display: none;" title="{{ __('common.remove') }}">
+                                                                            <i class="fa fa-trash"></i>
                                                                         </button>
                                                                     </td>
                                                                 </tr>
                                                                 @endforeach
                                                             </tbody>
+                                                            <tfoot>
+                                                                <tr>
+                                                                    <td colspan="6">
+                                                                        <button type="button" id="addNewRowBtn" class="add-row-btn">
+                                                                            <i class="fa fa-plus-circle"></i> {{ __('common.add_new_row') }}
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
                                                         </table>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
-                                       
-
 
                                         <!-- ========================================= -->
                                         <!-- SUBMIT BUTTONS -->
@@ -274,14 +299,39 @@ $(document).ready(function() {
     });
 
     // =========================================
-    // ADD NEW ROW
+    // STORE TEMPLATE ROW
     // =========================================
-    $(document).on('click', '.addRow', function (e) {
+    var templateRow = $('#itemsBody .item-row:first').clone();
+
+    // =========================================
+    // UPDATE REMOVE BUTTONS
+    // =========================================
+    function updateRemoveButtons() {
+        var rows = $('#itemsBody .item-row');
+        if (rows.length === 1) {
+            rows.find('.removeRow').hide();
+        } else {
+            rows.find('.removeRow').show();
+        }
+    }
+
+    // =========================================
+    // UPDATE SERIAL NUMBERS
+    // =========================================
+    function updateSerialNumbers() {
+        $('#itemsBody .item-row').each(function(index) {
+            $(this).find('td:first').text(index + 1);
+        });
+    }
+
+    // =========================================
+    // ADD NEW ROW - Using the footer button
+    // =========================================
+    $('#addNewRowBtn').on('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
         
-        var $lastRow = $('#itemsBody .item-row:last');
-        var $newRow = $lastRow.clone();
+        var $newRow = templateRow.clone();
         var rowCount = $('#itemsBody .item-row').length;
         
         // Reset values
@@ -346,27 +396,6 @@ $(document).ready(function() {
             showNotification('{{ __("common.at_least_one_row") }}', 'warning');
         }
     });
-
-    // =========================================
-    // UPDATE SERIAL NUMBERS
-    // =========================================
-    function updateSerialNumbers() {
-        $('#itemsBody .item-row').each(function(index) {
-            $(this).find('td:first').text(index + 1);
-        });
-    }
-
-    // =========================================
-    // UPDATE REMOVE BUTTONS
-    // =========================================
-    function updateRemoveButtons() {
-        var rows = $('#itemsBody .item-row');
-        if (rows.length === 1) {
-            rows.find('.removeRow').hide();
-        } else {
-            rows.find('.removeRow').show();
-        }
-    }
 
     // =========================================
     // VALIDATE AMOUNT

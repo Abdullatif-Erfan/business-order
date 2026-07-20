@@ -92,7 +92,7 @@ class WarehouseListController extends Controller
         }
 
          if($request->input('availability_options') && $request->input('availability_options') == 1) {
-            $WarehouseItems->where('available_amount','>', $request->input('availability_options'));
+            $WarehouseItems->where('available_amount','>', 0);
         }
         
 
