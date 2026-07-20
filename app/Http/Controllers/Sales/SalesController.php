@@ -345,6 +345,19 @@ class SalesController extends Controller
             ];
         });
 
+        // Sort customers: 
+        // 1. First by has_order (true first)
+        // 2. Then by has_available_items (true first)
+        // 3. Then by item_count (higher first)
+        // 4. Then by name alphabetically
+        $customersWithStatus = $customersWithStatus->sortByDesc(function ($customer) {
+            return [
+                $customer->has_order ? 1 : 0,
+                $customer->has_available_items ? 1 : 0,
+            ];
+        })->values();
+
+
         $billno = WarehouseSales::max('billno') + 1;
         $times = time();
         $journal_code = 1;

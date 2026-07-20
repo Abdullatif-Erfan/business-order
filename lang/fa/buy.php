@@ -184,7 +184,7 @@ return [
     'add_new_item' => 'ثبت جنس جدید',
     'select_category' => 'انتخاب کتگوری',
     'car' => 'انتخاب موتر',
-    'enter' => '',
+    'transfer_to_car' => 'انتقال به موتر',
     'enter' => '',
     'enter' => '',
     'enter' => '',

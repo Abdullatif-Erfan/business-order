@@ -468,7 +468,7 @@ $(document).ready(function () {
         // Availability badge
         var badgeClass = availableAmount > 10 ? 'availability-high' : (availableAmount > 5 ? 'availability-medium' : 'availability-low');
         var availabilityBadge = availableAmount > 0 
-            ? `<span class="availability-badge ${badgeClass}"> ${availableAmount} {{__('common.available')}}</span>`
+            ? `<span class="availability-badge ${badgeClass}"> ${availableAmount}</span>`
             : `<span class="availability-badge availability-low">{{__('common.out_of_stock')}}</span>`;
 
         return `
@@ -481,7 +481,7 @@ $(document).ready(function () {
                     <input type="hidden" name="items[${index}][order_id]" value="${item.dord_num || ''}">
                 </td>
                 <td>
-                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="0.5" 
+                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
                         value="${amount}" min="0" max="${availableAmount}" required>
                     <small class="text-muted" style="display:block;font-size:9px;">{{__('sales.max')}}: ${availableAmount}</small>
                 </td>
@@ -490,12 +490,12 @@ $(document).ready(function () {
                     <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="${unitId}">
                 </td>
                 <td>
-                    <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="0.01" 
-                        value="${sellUp !== '' ? sellUp : ''}" min="0" readonly>
+                    <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="any"  
+                        value="${sellUp !== '' ? sellUp : ''}" min="0.1" readonly>
                 </td>
                 <td>
-                    <input name="items[${index}][total]" class="form-control total" type="number" step="0.01" 
-                        value="${total}" min="0" readonly>
+                    <input name="items[${index}][total]" class="form-control total" type="number" step="any" 
+                        value="${total}" min="0.1" readonly>
                 </td>
                 <td>${availabilityBadge}</td>
                 <td>
@@ -699,7 +699,7 @@ $(document).ready(function () {
                     <input type="hidden" name="items[${index}][order_id]" value="">
                 </td>
                 <td>
-                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="0.5" 
+                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
                         value="0" min="0" required>
                     <small class="text-muted max-label" style="display:block;font-size:9px;">{{__('sales.max')}}: 0</small>
                 </td>

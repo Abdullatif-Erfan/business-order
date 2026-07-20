@@ -162,13 +162,15 @@ class WarehouseListController extends Controller
                 return $WarehouseItem->sell_up; 
             })
 
-
-            ->addColumn('view', function ($WarehouseItem) {
-                return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print">
-                            <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>
-                        </a>';
+             ->addColumn('transfer', function ($WarehouseItem) {
+                return '<i class="fas fa-exchange-alt transferItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;color:blue; cursor:pointer"></i>';
             })
-            ->rawColumns(['view','buy_tax_per'])
+            // ->addColumn('view', function ($WarehouseItem) {
+            //     return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print">
+            //                 <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>
+            //             </a>';
+            // })
+            ->rawColumns(['view','buy_tax_per','transfer'])
             ->make(true);
     }
 
@@ -186,7 +188,7 @@ class WarehouseListController extends Controller
         $orgbios = OrgBio::all();
         $currencies = Currency::all();
         $units = Unit::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         $warehouseItems = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])
         ->where('id', $id)->get();
         $warehouse = Warehouse::select('name')->where('id',$warehouseItems->first()->warehouse_id)->first();
@@ -201,33 +203,17 @@ class WarehouseListController extends Controller
      */
     public function getWarehouseItemForTransfer(string $id)
     {
-        $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation'])
+        $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation','carRelation'])
         ->where('id', $id)->first();
-        $warehouses = Warehouse::select('id','name')->get();
         $units = Unit::all();
+        $cars = Car::all();
         // return response()->json(['data' => $warehouseItems]);
         // return response()->json(['data' => $warehouse]);
-        return view('warehouseitem.modalTransfer',compact('warehouseItems','warehouses','units'));
+        return view('warehouseitem.modalTransfer',compact('warehouseItems','cars','units'));
 
     }
 
-    /**
-     * Get Warehouse Item for Conversion in the modal
-     */
-    public function getWarehouseItemForConversion(string $id)
-    {
-        $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation','currencyRelation'])
-        ->where('id', $id)->first();
-
-        $warehouses = Warehouse::select('id','name')->get();
-        $default_currency = Currency::select('id','name','symbols')->where('is_base','=','yes')->first();
-        $units = Unit::all();
-        // return response()->json(['data' => $warehouseItems]);
-        // return response()->json(['data' => $warehouse]);
-        return view('warehouseitem.modalConversion',compact('warehouseItems','warehouses','units','default_currency'));
-
-    }
-
+ 
     /**
      *  Transfer from Warehouse to Warehouse
      */
@@ -235,248 +221,126 @@ class WarehouseListController extends Controller
     { 
         $validated = $request->validate([
             'id' => 'required|exists:warehouse_items,id',
-            'source_warehouse_id' => 'required|min:1',
-            'distination_warehouse_id' => 'required|numeric|min:1',
-            'amount' => 'nullable|numeric|min:1',
-            'unit_id' => 'required'
+            'source_warehouse_id' => 'required|numeric|min:1',
+            'car_id' => 'required|numeric|min:1|exists:cars,id',
+            'amount' => 'required|numeric|min:0.01',
+            'unit_id' => 'required|exists:units,id',
+            'item_name' => 'nullable|string|max:255',
         ]);
 
         DB::beginTransaction();
         try 
         {
-            // **Source Warehouse**
-            $sourceWareHouseItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
+            // **Source Car (Current Item)**
+            $sourceItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
             
             // Check if amount is greater than available amount
-            if ($validated['amount'] > $sourceWareHouseItem->available_amount) {
-                throw new \Exception('Amount exceeds available stock.');
+            if ($validated['amount'] > $sourceItem->available_amount) {
+                throw new \Exception('Amount exceeds available stock. Available: ' . $sourceItem->available_amount);
             }
 
-            // Reduce stock from source warehouse
-            $sourceWareHouseItem->available_amount -= $validated['amount'];
-            $sourceWareHouseItem->out_amount += $validated['amount'];
-            $sourceWareHouseItem->available_total -= ($validated['amount'] * $sourceWareHouseItem->avg_up);
-            $sourceWareHouseItem->save();
+            // **Reduce stock from source item**
+            $sourceItem->available_amount -= $validated['amount'];
+            $sourceItem->in_amount -= $validated['amount'];
+            // $sourceItem->out_amount += $validated['amount'];
+            
+            // Calculate available total based on buy_up
+            $valuationPrice = $sourceItem->buy_up;
+            if (intval($sourceItem->buy_tax_per) > 0) {
+                $valuationPrice = $sourceItem->buy_up_vat ?? $sourceItem->buy_up;
+            }
+            $sourceItem->available_total = round($sourceItem->available_amount * $valuationPrice, 2);
+            $sourceItem->total = round($sourceItem->in_amount * $valuationPrice, 2);
+            $sourceItem->save();
 
-            // **Destination Warehouse**
-            $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
-                ->where('warehouse_id', $validated['distination_warehouse_id'])
-                
+            // **Destination Car**
+            // Check if item already exists in destination car with same buy_pre_id and unit_id
+            $destinationItem = WarehouseItem::where('buy_pre_id', $sourceItem->buy_pre_id)
+                ->where('car_id', $validated['car_id'])
                 ->where('unit_id', $validated['unit_id'])
                 ->first();
 
-
-
-            if (!$distWareHouseItem) 
+            if (!$destinationItem) 
             {
-                // \Log::info('Create New Record in Warehouse during transfer');
-                // Create new record in destination warehouse
-                $distWareHouseItem = new WarehouseItem();
-                $distWareHouseItem->name = $validated['item_name'] ?? '';
-                $distWareHouseItem->warehouse_id = $validated['distination_warehouse_id'];
-                $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
-                $distWareHouseItem->name = $sourceWareHouseItem->name;
-                $distWareHouseItem->unit_id = $sourceWareHouseItem->unit_id;
-                $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up;
-                $distWareHouseItem->available_amount = $validated['amount'];
-                $distWareHouseItem->in_amount = $validated['amount'];
-                $distWareHouseItem->out_amount = 0;
-                $distWareHouseItem->wastage_amount = 0;
-                $distWareHouseItem->wastage_total = 0;
-                $distWareHouseItem->avg_up = $sourceWareHouseItem->avg_up;
-                $distWareHouseItem->sell_up = $sourceWareHouseItem->sell_up;
-                $distWareHouseItem->total = $validated['amount'] * $sourceWareHouseItem->bought_up;
-                $distWareHouseItem->available_total = $validated['amount'] * $sourceWareHouseItem->avg_up;
-                $distWareHouseItem->currency_id = $sourceWareHouseItem->currency_id;
-                $distWareHouseItem->notification_amount = $sourceWareHouseItem->currency_id;
-                $distWareHouseItem->inserted_by =  auth()->user()->full_name ?? '';
-                $distWareHouseItem->expire_date =  $sourceWareHouseItem->expire_date;
-                $distWareHouseItem->inserted_short_date =  $sourceWareHouseItem->inserted_short_date;
-                $distWareHouseItem->year =  $sourceWareHouseItem->year;
-                $distWareHouseItem->month =  $sourceWareHouseItem->month;
-                $distWareHouseItem->day =  $sourceWareHouseItem->day;
-                $distWareHouseItem->is_cleared = 0;
-                $distWareHouseItem->save();
-
+                // Create new record in destination car
+                $destinationItem = new WarehouseItem();
+                $destinationItem->warehouse_id = $validated['source_warehouse_id'];
+                $destinationItem->billno = $sourceItem->billno ?? null;
+                $destinationItem->buy_pre_id = $sourceItem->buy_pre_id;
+                $destinationItem->name = $sourceItem->name;
+                $destinationItem->unit_id = $sourceItem->unit_id;
+                $destinationItem->car_id = $validated['car_id'];
+                $destinationItem->supplier_id = $sourceItem->supplier_id ?? null;
+                $destinationItem->buy_up = $sourceItem->buy_up;
+                $destinationItem->buy_tax_per = $sourceItem->buy_tax_per;
+                $destinationItem->buy_tax_price = $sourceItem->buy_tax_price;
+                $destinationItem->buy_up_vat = $sourceItem->buy_up_vat;
+                $destinationItem->sell_up = $sourceItem->sell_up;
+                $destinationItem->sell_tax_per = $sourceItem->sell_tax_per;
+                $destinationItem->sell_tax_price = $sourceItem->sell_tax_price;
+                $destinationItem->sell_up_vat = $sourceItem->sell_up_vat;
+                $destinationItem->currency_id = $sourceItem->currency_id;
+                $destinationItem->category_id = $sourceItem->category_id;
+                $destinationItem->in_amount = $validated['amount'];
+                $destinationItem->out_amount = 0;
+                $destinationItem->available_amount = $validated['amount'];
+                
+                // Calculate totals
+                $destinationItem->total = $validated['amount'] * $valuationPrice;
+                $destinationItem->available_total = round($validated['amount'] * $valuationPrice, 2);
+                
+                $destinationItem->user_id = auth()->id();
+                $destinationItem->idate = now()->format('Y-m-d');
+                $destinationItem->year = now()->year;
+                $destinationItem->month = now()->month;
+                $destinationItem->day = now()->day;
+                $destinationItem->is_cleared = 0;
+                $destinationItem->save();
             } 
             else 
             {
-                // \Log::info('Increase stock in destination warehouse');
-                $total_available_amount = $distWareHouseItem->available_amount + $validated['amount'];
-                $distWareHouseItem->available_amount = $total_available_amount;
-                $distWareHouseItem->in_amount += $validated['amount'];
-                $distWareHouseItem->available_total = ($total_available_amount * $distWareHouseItem->avg_up);
-                $distWareHouseItem->save();
+                // Increase stock in destination car
+                $destinationItem->available_amount += $validated['amount'];
+                $destinationItem->in_amount += $validated['amount'];
+                
+                // Recalculate available_total
+                $destValuationPrice = $destinationItem->buy_up;
+                if (intval($destinationItem->buy_tax_per) > 0) {
+                    $destValuationPrice = $destinationItem->buy_up_vat ?? $destinationItem->buy_up;
+                }
+                $destinationItem->available_total = round($destinationItem->available_amount * $destValuationPrice, 2);
+                $destinationItem->total = round($destinationItem->in_amount * $valuationPrice, 2);
+                $destinationItem->save();
             }
 
             DB::commit();
 
-            Session::put('notification', [
+            return response()->json([
+                'status' => 'success',
                 'message' => __('common.moved_successfully'),
-                'type' => 'success',
+                'data' => [
+                    'source_item_id' => $sourceItem->id,
+                    'destination_item_id' => $destinationItem->id,
+                ]
             ]);
-
-            return redirect()->route('warehousesList.details', $validated['id']);
 
         } 
         catch (\Exception $e) 
         {
             DB::rollBack();
-            \Log::error('Error in updateTransfer', ['error' => $e->getMessage()]);
-
-            Session::put('notification', [
-                'message' => __('common.move_failed') . $e->getMessage(),
-                'type' => 'danger',
+            \Log::error('Error in updateTransfer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->route('warehousesList.details', $validated['id']);
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.move_failed') . ': ' . $e->getMessage()
+            ], 500);
         }
     }
 
     
-    /**
-    *  Convert Item based on unit_id
-    */
-    public function updateConversion(Request $request)
-    { 
-        // return response()->json(['data' => $request->all()]);
-        // die();
-
-        $validated = $request->validate([
-            'id' => 'required|exists:warehouse_items,id',
-            'source_warehouse_id' => 'required|min:1',
-            'convertable_amount' => 'required|numeric|min:1',
-            'options' => 'required|numeric|min:1',
-            'new_unit_id' => 'required|numeric|min:1',
-            'converted_amount' => 'required|numeric|min:1',
-        ]);
-
-        DB::beginTransaction();
-        try 
-        {
-            /**
-             * مقدار اجناس انتخاب شده باید از مقدار قبلی اش کم شود
-             * مقدار اجناس با واحد جدید اگر قبلا وجود داشت آپدیت شود مقدارش و اگر نداشت جدیدا ثبت شود
-             */
-            // **Source Warehouse**
-            $sourceWareHouseItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
-            
-            // Check if convertable_amount is greater than stock available_amount
-            if ($validated['convertable_amount'] > $sourceWareHouseItem->available_amount) {
-                throw new \Exception('Amount exceeds available stock.');
-            }
-
-            // Reduce stock from source warehouse
-            $sourceWareHouseItem->available_amount -= $validated['convertable_amount'];
-            $sourceWareHouseItem->out_amount += $validated['convertable_amount'];
-            $sourceWareHouseItem->available_total -= ($validated['convertable_amount'] * $sourceWareHouseItem->avg_up);
-            $sourceWareHouseItem->save();
-
-            // **Destination unit_id**
-            $distWareHouseItem = WarehouseItem::where('buy_pre_id', $sourceWareHouseItem->buy_pre_id)
-                ->where('warehouse_id', $validated['source_warehouse_id'])
-                ->where('unit_id', $validated['new_unit_id'])
-                
-                ->first();
-
-            if (!$distWareHouseItem) // اگر ریکارد قبلی وجود نداشته باشد باید ثبت شود.
-            {
-                // \Log::info('Create New Record in Warehouse during conversion');
-                // Create new record in destination warehouse
-                // options:1 => to lower, 2: to greater;
-                $avg_up = $request->avg_up;
-                // if($validated['options'] == 1) // change from greater to lower
-                // {
-                //     $avg_up = (($validated['convertable_amount'] * $sourceWareHouseItem->avg_up) /  $validated['converted_amount']);
-                // }
-                // else if($validated['options'] == 2) // change from lower to greater
-                // {
-                //     $avg_up  =  (($validated['convertable_amount'] / $validated['converted_amount']) * $sourceWareHouseItem->avg_up);
-                // }
-                $distWareHouseItem = new WarehouseItem();
-                $distWareHouseItem->name = $validated['item_name'] ?? '';
-                $distWareHouseItem->warehouse_id = $validated['source_warehouse_id'];
-                $distWareHouseItem->buy_pre_id = $sourceWareHouseItem->buy_pre_id;
-                $distWareHouseItem->name = $sourceWareHouseItem->name;
-                $distWareHouseItem->unit_id = $validated['new_unit_id'];
-                // $distWareHouseItem->bought_up = $sourceWareHouseItem->bought_up * $validated['convertable_amount'];
-                $distWareHouseItem->bought_up = $avg_up; // وقتیکه واحد تغیر کند نرخ آخر خرید نباید از واحد قبلی انتقال کند
-                $distWareHouseItem->available_amount = $validated['converted_amount'];
-                $distWareHouseItem->in_amount = $validated['converted_amount'];
-                $distWareHouseItem->out_amount = 0;
-                $distWareHouseItem->wastage_amount = 0;
-                $distWareHouseItem->wastage_total = 0;
-                $distWareHouseItem->avg_up = $avg_up; 
-                $distWareHouseItem->sell_up = 0;
-                $distWareHouseItem->total = ($sourceWareHouseItem->total + ($validated['converted_amount'] * $avg_up));
-                $distWareHouseItem->available_total = $validated['converted_amount'] * $avg_up;
-                $distWareHouseItem->currency_id = $sourceWareHouseItem->currency_id;
-                $distWareHouseItem->notification_amount = $sourceWareHouseItem->currency_id;
-                $distWareHouseItem->inserted_by =  auth()->user()->full_name ?? '';
-                $distWareHouseItem->expire_date =  $sourceWareHouseItem->expire_date;
-                $distWareHouseItem->inserted_short_date =  $sourceWareHouseItem->inserted_short_date;
-                $distWareHouseItem->year =  $sourceWareHouseItem->year;
-                $distWareHouseItem->month =  $sourceWareHouseItem->month;
-                $distWareHouseItem->day =  $sourceWareHouseItem->day;
-                $distWareHouseItem->is_cleared = 0;
-                $distWareHouseItem->save();
-            } 
-            else // باید مقدارش آپدیت شود
-            {
-                // \Log::info('Increase stock in destination warehouse');
-                // if($validated['options'] == 1) // change to lower
-                // {
-                //     // 1: 
-                //     // 25 * 8 = ttl 200 , avg1 = 25
-                //     // 2:
-                //     // 30 * 8 = 6 = ttl 240, avg2 ? 
-                //     // avg2 = 200 + 240 / 16 = 27.5
-
-                //     // 8 unit, 200 ttl1, avg1 = 25
-                //     // 8 unit, ? ttl2,   
-                //     // avg2 = ttl1 + ttl2 / 16;
-
-                //     // $recent_avg_up = (($validated['convertable_amount'] * $distWareHouseItem->avg_up) /  $validated['converted_amount']);
-                //     // $recent_total = $validated['converted_amount'] * $recent_avg_up;
-                //     // $avg_up = (($distWareHouseItem->available_total +  $recent_total) / ($distWareHouseItem->available_amount + $validated['converted_amount']));
-                //     $avg_up  = $distWareHouseItem->avg_up;
-                // }
-                // else // change from lower to greater
-                // {
-                //     $avg_up  = $distWareHouseItem->avg_up;
-                // }
-
-                $avg_up = $request->avg_up;
-                $total_available_amount = $distWareHouseItem->available_amount + $validated['converted_amount'];
-                $distWareHouseItem->available_amount = $total_available_amount;
-                $distWareHouseItem->in_amount += $validated['converted_amount'];
-                $distWareHouseItem->available_total = ($total_available_amount * $avg_up);
-                $distWareHouseItem->save();
-            }
-
-            DB::commit();
-
-            Session::put('notification', [
-                'message' => __('common.moved_successfully'),
-                'type' => 'success',
-            ]);
-            
-            return redirect()->route('warehousesList.details', $validated['id']);
-
-        } 
-        catch (\Exception $e) 
-        {
-            DB::rollBack();
-            \Log::error('Error in updateConversion', ['error' => $e->getMessage()]);
-
-            Session::put('notification', [
-                'message' => __('common.move_failed') . $e->getMessage(),
-                'type' => 'danger',
-            ]);
-
-            return redirect()->route('warehousesList.details', $validated['id']);
-        }
-    }
 
 
     /**
@@ -490,7 +354,7 @@ class WarehouseListController extends Controller
         $warehouses = Warehouse::select('id','name')->get();
         $preLists = BuyPreList::select('id','name','code')->get();
 
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
 
         $times = time();
@@ -581,7 +445,7 @@ class WarehouseListController extends Controller
          * 3: If it doesn't exist, insert a new item
          */
     
-        $short_date = $request->todays_date ?? Jalalian::now()->format('Y-m-d');
+        $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
         [$year, $month, $day] = explode('-', $short_date);
         $insertedBy = auth()->user()->full_name ?? '';
     
@@ -775,7 +639,7 @@ class WarehouseListController extends Controller
         $currencies = Currency::all();
         // $branches = Branch::all();
         $orgbios = OrgBio::all();
-        $todaysDate = Jalalian::now()->format('Y-m-d');
+        $todaysDate = Carbon::now()->format('Y-m-d');
         
         // $WarehouseItem = WarehouseItem::with(['currencyRelation','unitRelation','preListRelation'])->where('warehouse_id',$id)->get();
         // return response()->json(['data' => $warehouse]);

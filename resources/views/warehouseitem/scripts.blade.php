@@ -87,7 +87,8 @@ function fetchList() {
         { data: 'available_total', name: 'available_total' },
         { data: 'total', name: 'total' },
         { data: 'sell_up', name: 'sell_up' },
-        { data: 'idate', name: 'idate', orderable: false, searchable: false }
+        { data: 'idate', name: 'idate', orderable: false, searchable: false },
+        { data: 'transfer', name: 'transfer', orderable:false, searchable:false}
     );
 
     // =============================================
@@ -150,4 +151,99 @@ function fetchList() {
         table.DataTable().ajax.reload(null, false);
     }
 }
+
+// transferItems
+$(document).on('click', '.transferItems', function() {
+    var $this = $(this);
+    var id = $this.data('id');
+    $('#editModal').modal('show');
+    $('#loading').show();
+    $.ajax({
+        url: `/warehousesList/getWarehouseItemForTransfer/${id}`,
+        type: 'GET',
+        success: (result) => {
+            $('#ModalContent').html(result);
+            $('#loading').hide();
+
+            // Initialize Select2 after the form has been injected
+            $(".select2").select2();
+        },
+        error: () => {
+            $('#loading').hide();
+            alert('اطلاعات یافت نشد');
+        }
+    });
+});
+
+
+
+$(document).ready(function() {
+    $('#submitTransfer').on('click', function(e) {
+        e.preventDefault();
+        
+        var $btn = $(this);
+        var originalText = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> {{__("common.loading")}}...');
+        
+        var formData = {
+            id: $('input[name="id"]').val(),
+            source_warehouse_id: $('input[name="source_warehouse_id"]').val(),
+            car_id: $('#car_id').val(),
+            amount: $('#amount').val(),
+            unit_id: $('input[name="unit_id"]').val(),
+            item_name: $('#item_name').val(),
+            _token: '{{ csrf_token() }}'
+        };
+        
+        // Validate
+        if (!formData.car_id) {
+            alert('{{__("buy.select_car")}}');
+            $btn.prop('disabled', false).html(originalText);
+            return;
+        }
+        
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+            alert('{{__("wh.enter_valid_amount")}}');
+            $btn.prop('disabled', false).html(originalText);
+            return;
+        }
+        
+        $.ajax({
+            url: '{{ route("warehousesList.updateTransfer") }}',
+            type: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                $btn.prop('disabled', false).html(originalText);
+                if (response.status === 'success') {
+                    showNotification(response.message, 'success');
+                     $('#editModal').modal('hide');
+                     $('#loading').hide();
+                      fetchList();
+                    // Reload page or redirect
+                    // setTimeout(function() {
+                    //     window.location.href = '{{ route("warehousesList.details", $warehouseItems->id ?? 0) }}';
+                    // }, 1500);
+                } else {
+                    showNotification(response.message, 'danger');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html(originalText);
+                if (xhr.status === 422) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorMessages = [];
+                    $.each(errors, function(key, messages) {
+                        errorMessages.push(messages[0]);
+                    });
+                    alert(errorMessages.join('\n'));
+                } else {
+                    showNotification('{{__("common.error_occurred")}}', 'danger');
+                }
+            }
+        });
+    });
+});
 </script>
