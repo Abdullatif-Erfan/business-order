@@ -247,7 +247,7 @@ class DraftOrderController extends Controller
     public function create()
     {
         $autoNum = DraftOrder::max('dord_num') + 1;
-        $preLists = BuyPreList::select('id', 'name', 'category_id')->orderBy('name')->get();
+        $preLists = BuyPreList::select('id', 'name', 'category_id','unit_id','unit_name')->orderBy('name')->get();
         $units = Unit::select('id', 'name')->orderBy('name')->get();
         $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
         $todaysDate = Carbon::now()->format('Y-m-d');
@@ -364,7 +364,7 @@ class DraftOrderController extends Controller
         $draftOrder = $draftOrders->first();
         $orderItems = $draftOrders; // All items for this order
 
-        $preLists = BuyPreList::select('id', 'name', 'category_id')->orderBy('name')->get();
+        $preLists = BuyPreList::select('id', 'name', 'category_id','unit_id','unit_name')->orderBy('name')->get();
         $units = Unit::select('id', 'name')->orderBy('name')->get();
         $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
         $categories = Category::select('id', 'name')->orderBy('name')->get();

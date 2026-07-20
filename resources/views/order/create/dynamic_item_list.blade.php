@@ -40,7 +40,7 @@
                             <input type="hidden2" name="items[{{ $rowIndex }}][supplier_id]" class="pre-supplier-id" value="{{ $item['supplier_id'] }}">
                         </td>
                         <td>
-                            <input name="items[{{ $rowIndex }}][amount]" class="form-control amount" type="number" step="0.01" 
+                            <input name="items[{{ $rowIndex }}][amount]" class="form-control amount" type="number" step="any" min="0.1"
                                    value="{{ $item['amount'] }}" placeholder="{{ __('common.amount') }}" required>
                         </td>
                         <td>
@@ -141,7 +141,7 @@ $(document).ready(function () {
                              <input type="hidden" name="items[${rowIndex}][supplier_id]" class="pre-supplier-id" value="${item.supplier_id || ''}">
                         </td>
                         <td>
-                            <input name="items[${rowIndex}][amount]" class="form-control amount" type="number" step="0.01" 
+                            <input name="items[${rowIndex}][amount]" class="form-control amount" type="number" step="any"  min="0.1"
                                    value="${item.amount || ''}" placeholder="{{ __('common.amount') }}" required>
                         </td>
                         <td>

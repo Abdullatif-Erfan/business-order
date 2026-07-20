@@ -128,34 +128,17 @@ class BoughtDetailsController extends Controller
                         </a>';
             })
 
-            ->rawColumns(['billno', 'view'])
+            ->addColumn('setprofit', function ($boughtItem) {
+                return '<i class="fas fa-money-bill setProfit" 
+                            data-id="' . $boughtItem->billno . '" 
+                            style="font-size:20px; color: #0d8dc1">
+                            </i>';
+            })
+
+            ->rawColumns(['billno', 'view','setprofit'])
             ->make(true);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * Belongs to V1
-     */
-    public function create_v1()
-    {
-        // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
-        $currencies = Currency::select('id','name')->get();
-        $warehouses = Warehouse::select('id','name')->get();
-        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
-        $billno =  BoughtItem::max('billno') + 1;
-    
-        $preLists = BuyPreList::select('id','name')->get();
-        $todaysDate = Carbon::now()->format('Y-m-d');
-        $units = Unit::select('id','name')->get();
-        $newJournalCode =  Journal::max('code') + 1;
-        $tax = OrgBio::select('tax_activation')->first();
-
-        $times = time();
-
-        // return response()->json($preLists);
-        return view('buy.bought.create',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
-    }
 
     /**
      * Create Belongs to V2
@@ -165,7 +148,7 @@ class BoughtDetailsController extends Controller
         // should be removed
         $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
         $cars = Car::select('id','name')->get();
-        $preLists = BuyPreList::select('id','name')->get();
+        $preLists = BuyPreList::select('id','name','unit_id','category_id','unit_name')->get();
         $categories = Category::select('id','name')->get(); 
         $units = Unit::select('id','name')->get();
 
@@ -216,64 +199,107 @@ class BoughtDetailsController extends Controller
                 ];
             });
 
+            // Sort suppliers: those with orders first, then by name
+         $suppliersWithStatus = $suppliersWithStatus->sortByDesc('has_order')->values();
 
         // return response()->json($orders);
 
         return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
     }
-
-    /**
-     * Store a newly created resource in storage.
-    */
-    public function store(Request $request)
+    
+    public function getToUpdateProfit(string $billno)
     {
-        // return response()->json(['data' => $request->all()]); 
+        $boughtItemDetails = BoughtItemDetails::with([
+            'preListRelation:id,name', 
+            'unitRelation:id,name'
+        ])
+        ->where('billno', $billno)
+        ->get();
 
-        // $insertedData = BoughtItemDetails::where('times','1739588540')->get();
-        // return view('buy.bought.curlist',compact('insertedData'));
+        // Check if data exists
+        if ($boughtItemDetails->isEmpty()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No items found for this bill'
+            ], 404);
+        }
 
-        $this->validateRequest($request);
+        return view('buy.bought.setProfitModalContent', compact('boughtItemDetails'));
+    }
 
-        $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
-        $date = Carbon::parse($short_date);
-        $time = $request->times ?? '00:00:00';
-        $full_date = $date->format('Y-m-d') . ' ' . $time;
-        $times = $request->times; 
-        
+     public function updateProfit(Request $request)
+    {
+        $validated = $request->validate([
+            'billno' => 'required|exists:bought_item_details,billno',
+            'times' => 'nullable|integer',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:bought_item_details,id',
+            'items.*.profit' => 'nullable|numeric|min:0',
+            'items.*.sell_up' => 'nullable|numeric|min:0',
+            'items.*.pre_list_id' => 'nullable|exists:bought_item_pre_lists,id',
+            'items.*.unit_id' => 'nullable|exists:units,id',
+            'items.*.buy_up' => 'nullable|numeric|min:0',
+        ]);
 
-        // Start the transaction
         DB::beginTransaction();
-   
         try {
+            foreach ($validated['items'] as $itemData) {
+                // Update BoughtItemDetails
+                $boughtItemDetail = BoughtItemDetails::find($itemData['id']);
+                
+                if (!$boughtItemDetail) {
+                    continue;
+                }
+                
+                // Get values from request
+                $profit = isset($itemData['profit']) && $itemData['profit'] !== '' ? $itemData['profit'] : null;
+                $sellUp = isset($itemData['sell_up']) && $itemData['sell_up'] !== '' ? $itemData['sell_up'] : null;
+                
+                // If sell_up is not provided, calculate it
+                if ($sellUp === null && $profit !== null) {
+                    $sellUp = $boughtItemDetail->buy_up + $profit;
+                }
+                
+                // Update bought_item_details
+                $boughtItemDetail->update([
+                    'expected_profit' => $profit,
+                    'sell_up' => $sellUp,
+                ]);
+                
+                // Update WarehouseItem sell_up
+                // Find warehouse item by pre_list_id, unit_id, and times
+                $warehouseItem = WarehouseItem::where('buy_pre_id', $boughtItemDetail->pre_list_id)
+                    ->where('billno', $boughtItemDetail->billno)
+                    ->where('unit_id', $boughtItemDetail->unit_id)
+                    ->where('times', $validated['times'] ?? $boughtItemDetail->times)
+                    ->first();
+                
+                if ($warehouseItem) {
+                    // Update only the sell_up in warehouse_items
+                    $warehouseItem->update([
+                        'sell_up' => $sellUp,
+                    ]);
+                }
+            }
 
-        // 1: insert in to bought_items table
-        $BoughtItemId = $this->createOrUpdateBoughtItem($request, $short_date, $times);
+            DB::commit();
 
-        // 2: insert in to bought_item_details table
-        $this->storeBoughtItemDetails($request, $BoughtItemId,  $times);
-
-        // 3: insert or update warehouse_items
-        $this->createWarehouseItems($request);
-
-        DB::commit();
-
-        // 4: fetch inserted data from bought_item_details
-        $insertedData = BoughtItemDetails::with(['preListRelation','unitRelation'])->where('times',$times)->get();
-             
-        //  return response()->json(['insertedData' => $insertedData]); 
-           return view('buy.bought.curlist',compact('insertedData'));
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.updated_successfully')
+            ]);
 
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
             DB::rollBack();
-            // Optionally, log the error for debugging
-            \Log::error('Error storing BoughtDetailsController', ['error' => $e]);
-
-            return response()->json(['status' => 'failed'], 404);
-        }        
+            \Log::error('Profit Update Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
     }
-    
-   
+
     private function createOrUpdateBoughtItem($request, $short_date, $times)
     {
         $date = Carbon::parse($request->todays_date);
@@ -405,7 +431,7 @@ class BoughtDetailsController extends Controller
             $warehouseItemsToInsert[] = [
                 'warehouse_id' => $default_warehouse_id,
                 'buy_pre_id' => $item['pre_list_id'],
-                'name' =>  '',
+                'billno' =>  $request->billno,
                 'in_amount' => $item['amount'],
                 'out_amount' => 0.00,
                 'available_amount' => $item['amount'],
@@ -447,104 +473,6 @@ class BoughtDetailsController extends Controller
     }
         
 
-    /**
-    * final submit in creation form
-    * in this function update bought_items based on billno and create journal reacord
-    */
-     public function submit_v1(Request $request)
-    {
-        return ['data' => $request->all()];
-
-        $validated = $request->validate([
-            'billno'          => 'required|numeric',
-            'total_price'     => 'required', 
-            'cur_pay'         => 'required',
-            'remained'        => 'required',
-        ]);
-
-        DB::beginTransaction(); // transaction start
-
-        try {
-            // Get sum of total and total_vat
-            // $boughtItemDetails = BoughtItemDetails::where('billno', $validated['billno'])
-            //     ->selectRaw('SUM(total) as total_sum, SUM(total_vat) as total_sum_vat')
-            //     ->get();
-            $BoughtItem = BoughtItem::where('billno', $validated['billno'])->first();
-
-            if (!$BoughtItem) {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' => __('common.record_not_found'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('boughtList.index');
-            }
-
-             $curPay = (float) $request->cur_pay;
-             $totalPrice = (float) $request->total_price;
-
-            if ($curPay > $totalPrice) {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' => __('buy.over_pay'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('boughtList.edit', ['times' => $request->times]);
-            }
-
-            // Update BoughtItem record
-             $updateData = [
-                'journal_code' => $request->journal_code,
-                'total' => $totalPrice,  
-                'cur_pay' => $curPay,
-                'remained' => $request->remained,
-                'note' => $request->note ?? '',
-                'times' => $request->times,
-            ];
-            
-            $BoughtItem->update($updateData);
-
-            // Log::info('Start inserting into Journal');
-            // Insert into journal
-            $check = $this->handleJournalEntry($request);
-            if (!$check) {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' => __('common.add_failed'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('boughtList.index');
-            }
-
-            DB::commit(); // Commit transaction
-
-            // Flash success message
-            Session::put('notification', [
-                'message' => __('common.added_successfully'),
-                'type' => 'success',
-            ]);
-
-            return redirect()->route('boughtList.index');
-
-        } catch (\Exception $e) {
-            DB::rollBack(); // Rollback on error
-
-            // Log the error
-            \Log::error('Error occurred during the transaction', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // Flash error message
-            Session::put('notification', [
-                'message' => __('common.add_failed') . ': ' . $e->getMessage(),
-                'type' => 'danger',
-            ]);
-
-            return redirect()->route('boughtList.index');
-        }
-    }
-
     public function submit(Request $request)
     {
         // return ['data' => $request->all()];
@@ -568,7 +496,7 @@ class BoughtDetailsController extends Controller
             'items.*.unit_id' => 'required|exists:units,id',
             'items.*.amount' => 'required|numeric|min:0.01',
             'items.*.buy_up' => 'required|numeric|min:0',
-            'items.*.profit_amount' => 'nullable|numeric|min:0',
+            'items.*.profit_amount' => 'nullable|numeric',
             'items.*.sell_up' => 'required|numeric|min:0',
             'items.*.total' => 'required|numeric|min:0',
             'items.*.category_id' => 'required|exists:categories,id',
@@ -601,7 +529,7 @@ class BoughtDetailsController extends Controller
                 'tax_activation' => $validated['tax_activation'] ?? 0,
                 'times' => $validated['times'],
                 'user_id' => auth()->id(),
-                'user_name' => auth()->user()->name ?? 'System',
+                'user_name' => auth()->user()->full_name ?? 'System',
                 'has_invoice' => 0,
                 'invoice_id' => null,
             ]);
@@ -614,22 +542,23 @@ class BoughtDetailsController extends Controller
                     'supplier_account_id' => $validated['supplier_account_id'],
                     'pre_list_id' => $item['pre_list_id'],
                     'category_id' => $item['category_id'],
-                    'amount' => $item['amount'],
+                    'amount'  => $item['amount'],
                     'unit_id' => $item['unit_id'],
-                    'buy_up' => $item['buy_up'],
-                    'buy_tax_per' => 0, // Set default or get from settings
+                    'buy_up'  => $item['buy_up'],
+                    'buy_tax_per'   => 0, // Set default or get from settings
                     'buy_tax_price' => 0,
-                    'buy_up_vat' => 0,
-                    'total' => $item['total'],
+                    'buy_up_vat'    => 0,
+                    'total'         =>   $item['total'],
+                    'expected_profit' => $item['profit_amount'],
                     'total_vat' => 0,
-                    'sell_up' => $item['sell_up'],
+                    'sell_up'   => $item['sell_up'],
                     'sell_tax_per' => 0, // Set default or get from settings
                     'sell_tax_price' => 0,
                     'sell_up_vat' => 0,
                     'is_moved' => 0,
                     'times' => $validated['times'],
                     'user_id' => auth()->id(),
-                    'user_name' => auth()->user()->name ?? 'System',
+                    'user_name' => auth()->user()->full_name ?? 'System',
                 ]);
             }
 

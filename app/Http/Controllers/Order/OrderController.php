@@ -345,7 +345,7 @@ class OrderController extends Controller
     //     return response()->json($formattedData);
         // ============================= 2 ================================
     
-    $preLists = BuyPreList::select('id', 'name', 'category_id','supplier_id')->orderBy('name')->get();
+    $preLists = BuyPreList::select('id', 'name', 'category_id','supplier_id','unit_id','unit_name')->orderBy('name')->get();
     $units = Unit::select('id', 'name')->orderBy('name')->get();
     $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
     $categories = Category::select('id', 'name')->orderBy('name')->get();

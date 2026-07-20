@@ -45,6 +45,12 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/deleteSingleItem/{id}',[BoughtDetailsController::class,'deleteSingleItem'])
            ->name('boughtList.deleteSingleItem')->middleware('access:buy,delete_records');
     Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
+    
+    // Profit routes - Add these
+    Route::get('/getToUpdateProfit/{billno}',[BoughtDetailsController::class,'getToUpdateProfit'])->name('boughtList.getToUpdateProfit')->middleware('access:buy,edit_records');
+    Route::post('/updateProfit', [BoughtDetailsController::class, 'updateProfit'])->name('updateProfit');
+    
+
 
     // Invoice routes
     Route::get('/invoices', [BoughtDetailsController::class, 'invoiceList'])->name('boughtList.invoices')->middleware('access:buy,list');;

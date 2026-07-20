@@ -418,7 +418,7 @@ class SalesController extends Controller
                 'day' => $date->day,
                 'times' => $validated['times'],
                 'user_id' => auth()->id(),
-                'user_name' => auth()->user()->name ?? 'System',
+                'user_name' => auth()->user()->full_name ?? 'System',
                 'has_invoice' => 0,
                 'invoice_id' => null,
                 'is_cleared' => 0,

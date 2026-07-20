@@ -169,7 +169,7 @@
                                                     <option value="{{ $supplier->id }}">
                                                         {{ $supplier->name }}
                                                         @if($supplier->has_order)
-                                                            ✅ 
+                                                            ✅
                                                         @endif
                                                     </option>
                                                 @endforeach
@@ -367,25 +367,29 @@ $(document).ready(function () {
         var isFromOrder = item.from_order !== undefined && item.from_order === true;
         
         var unitId = item.unit_id || '';
+        var categoryId = item.category_id || '';
+        var preListId = item.pre_list_id || '';
         
+        // Category display - for from_order items, show readonly text
         var categoryDisplay = isFromOrder ? 
             `<input type="text" class="form-control category-name-display" value="${item.category_name || ''}" readonly style="background:#f5f5f5;">
-            <input type="hidden" name="items[${index}][category_id]" class="category-id-hidden" value="${item.category_id || ''}">` :
-            `<select class="form-control select2 category-select" name="items[${index}][category_id]" style="width: 100%;" required>
+            <input type="hidden" name="items[${index}][category_id]" class="category-id-hidden" value="${categoryId}">` :
+            `<select class="form-control select2 category-select" name="items[${index}][category_id]" style="width: 100%;">
                 <option value="">{{__('buy.select_category')}}</option>
                 ${categoriesData.map(function(category) {
-                    var selected = (item.category_id == category.id) ? 'selected' : '';
+                    var selected = (categoryId == category.id) ? 'selected' : '';
                     return `<option value="${category.id}" ${selected}>${category.name}</option>`;
                 }).join('')}
             </select>`;
         
+        // Unit display - for from_order items, show readonly text
         var unitDisplay = isFromOrder ? 
             `<input type="text" class="form-control unit-name-display" value="${item.unit_name || ''}" readonly style="background:#f5f5f5;">
             <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="${unitId}">` :
-            `<select class="form-control select2 unit-select" name="items[${index}][unit_id]" style="width: 100%;" required>
+            `<select class="form-control select2 unit-select" name="items[${index}][unit_id]" style="width: 100%;">
                 <option value="">{{__('order.unit_selection')}}</option>
                 ${unitsData.map(function(unit) {
-                    var selected = (item.unit_id == unit.id) ? 'selected' : '';
+                    var selected = (unitId == unit.id) ? 'selected' : '';
                     return `<option value="${unit.id}" ${selected}>${unit.name}</option>`;
                 }).join('')}
             </select>`;
@@ -397,15 +401,18 @@ $(document).ready(function () {
                     <select class="form-control select2 item-select" name="items[${index}][pre_list_id]" style="width: 100%;" required>
                         <option value="">{{__('wh.item_selection')}}</option>
                         ${preListsData.map(function(preList) {
-                            var selected = (item.pre_list_id == preList.id) ? 'selected' : '';
-                            return `<option value="${preList.id}" ${selected}>${preList.name}</option>`;
+                            var selected = (preListId == preList.id) ? 'selected' : '';
+                            return `<option value="${preList.id}" 
+                                data-category-id="${preList.category_id || ''}"
+                                data-unit-id="${preList.unit_id || ''}"
+                                ${selected}>${preList.name}</option>`;
                         }).join('')}
                     </select>
                     <input type="hidden" name="items[${index}][order_id]" value="${item.order_id || ''}">
                 </td>
                 <td>
-                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="0.01" 
-                        value="${amount}" min="0" required>
+                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
+                        value="${amount}" required>
                 </td>
                 <td>
                     ${categoryDisplay}
@@ -414,20 +421,20 @@ $(document).ready(function () {
                     ${unitDisplay}
                 </td>
                 <td>
-                    <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="0.01" 
-                        value="${buyUp !== '' ? buyUp : ''}" min="0" required>
+                    <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="any" min="0" 
+                        value="${buyUp !== '' ? buyUp : ''}" required>
                 </td>
                 <td>
-                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="0.01" 
+                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="any" 
                         value="${profitAmount !== '' ? profitAmount : ''}" placeholder="0.00">
                 </td>
                 <td>
-                    <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="0.01" 
-                        value="${sellUp !== '' ? sellUp : ''}" min="0" readonly>
+                    <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="any" min="0" 
+                        value="${sellUp !== '' ? sellUp : ''}" readonly>
                 </td>
                 <td>
-                    <input name="items[${index}][total]" class="form-control total" type="number" step="0.01" 
-                        value="${total !== '' ? total : ''}" min="0" readonly>
+                    <input name="items[${index}][total]" class="form-control total" type="number" step="any" min="0" 
+                        value="${total !== '' ? total : ''}" readonly>
                 </td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm remove-item" style="padding: 2px 8px !important;" title="{{__('common.remove')}}">
@@ -457,21 +464,25 @@ $(document).ready(function () {
             
             var row = $(this).closest('tr');
             
+            // Update category select if it exists (for new items)
             var categorySelect = row.find('.category-select');
             if (categorySelect.length && categoryId) {
                 categorySelect.val(categoryId).trigger('change');
             }
             
+            // Update category hidden if it exists (for from-order items)
             var categoryHidden = row.find('.category-id-hidden');
             if (categoryHidden.length && categoryId) {
                 categoryHidden.val(categoryId);
             }
             
+            // Auto-select unit
             var unitSelect = row.find('.unit-select');
             if (unitSelect.length && unitId) {
                 unitSelect.val(unitId).trigger('change');
             }
             
+            // Update unit hidden
             var unitHidden = row.find('.unit-id-hidden');
             if (unitHidden.length && unitId) {
                 unitHidden.val(unitId);
@@ -494,6 +505,36 @@ $(document).ready(function () {
                 scrollWrapper.scrollTop(scrollWrapper[0].scrollHeight);
             }, 50);
         }
+        
+        // Auto-select category and unit for existing data
+        setTimeout(function() {
+            var row = $newRow;
+            var selectedOption = row.find('.item-select').find(':selected');
+            var categoryId = selectedOption.data('category-id') || '';
+            var unitId = selectedOption.data('unit-id') || '';
+            
+            if (categoryId) {
+                var categorySelect = row.find('.category-select');
+                if (categorySelect.length) {
+                    categorySelect.val(categoryId).trigger('change');
+                }
+                var categoryHidden = row.find('.category-id-hidden');
+                if (categoryHidden.length) {
+                    categoryHidden.val(categoryId);
+                }
+            }
+            
+            if (unitId) {
+                var unitSelect = row.find('.unit-select');
+                if (unitSelect.length) {
+                    unitSelect.val(unitId).trigger('change');
+                }
+                var unitHidden = row.find('.unit-id-hidden');
+                if (unitHidden.length) {
+                    unitHidden.val(unitId);
+                }
+            }
+        }, 100);
     }
 
     // =========================================
@@ -538,7 +579,7 @@ $(document).ready(function () {
     function showEmptyState() {
         $('#itemsBody').html(`
             <tr>
-                <td colspan="9" class="text-center text-muted">
+                <td colspan="10" class="text-center text-muted">
                     <i class="fa fa-info-circle"></i> {{__('buy.no_items_found')}}
                 </td>
             </tr>
@@ -612,6 +653,8 @@ $(document).ready(function () {
             profit_amount: '',
             sell_up: '',
             total: '',
+            category_id: '',
+            category_name: '',
             from_order: false,
             is_new: true
         };
@@ -622,7 +665,7 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // RECALCULATE ROW - FIXED
+    // RECALCULATE ROW
     // =========================================
     function recalculateRow(row) 
     {
@@ -630,7 +673,7 @@ $(document).ready(function () {
         var buyUp   = parseFloat(row.find('.buy-up').val()) || 0;
         var profit  = parseFloat(row.find('.profit-amount').val()) || 0;
 
-        // Sell price
+        // Sell price = buyUp + profit (profit can be 0 or empty)
         var sellUp = buyUp + profit;
         row.find('.sell-up').val(sellUp.toFixed(2));
 
@@ -677,6 +720,26 @@ $(document).ready(function () {
     };
 
     // =========================================
+    // AMOUNT ARROW KEY BEHAVIOR
+    // Increase by 1 on arrow up, decrease by 1 on arrow down
+    // =========================================
+    $(document).on('keydown', '.amount', function(e) {
+        var key = e.key || e.keyCode;
+        
+        if (key === 'ArrowUp' || key === 38) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            $(this).val(currentVal + 1).trigger('input');
+        } else if (key === 'ArrowDown' || key === 40) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            var newVal = currentVal - 1;
+            if (newVal < 0) newVal = 0;
+            $(this).val(newVal).trigger('input');
+        }
+    });
+
+    // =========================================
     // EVENT HANDLERS
     // =========================================
 
@@ -691,10 +754,7 @@ $(document).ready(function () {
         addNewItem();
     });
 
-    // =========================================
-    // RECALCULATE ON INPUT - FIXED
-    // =========================================
-    // Use both 'input' and 'change' events to ensure all changes are captured
+    // Recalculate on input change
     $(document).on('input change', '.amount, .buy-up, .profit-amount', function() {
         var row = $(this).closest('tr');
         recalculateRow(row);

@@ -166,6 +166,7 @@
                                                                             @foreach($preLists as $preList)
                                                                                 <option value="{{ $preList->id }}"
                                                                                     data-category-id="{{ $preList->category_id ?? '' }}"
+                                                                                    data-unit-id="{{ $preList->unit_id ?? '' }}"
                                                                                     {{ $item->pre_list_id == $preList->id ? 'selected' : '' }}>
                                                                                     {{ $preList->name }}
                                                                                 </option>
@@ -183,7 +184,7 @@
                                                                         </select>
                                                                     </td>
                                                                     <td>
-                                                                        <input name="items[{{ $index }}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
+                                                                        <input name="items[{{ $index }}][amount]" class="form-control amount" type="number" step="any" 
                                                                                value="{{ $item->amount }}" placeholder="{{ __('common.amount') }}" required>
                                                                     </td>
                                                                     <td>
@@ -272,6 +273,20 @@ $(document).ready(function() {
     });
 
     // =========================================
+    // AUTO-SELECT UNIT ON PAGE LOAD
+    // For existing rows with pre-selected items
+    // =========================================
+    $('.item-row').each(function() {
+        var row = $(this);
+        var selectedOption = row.find('.item-select').find(':selected');
+        var unitId = selectedOption.data('unit-id') || '';
+        
+        if (unitId) {
+            row.find('.unit-select').val(unitId).trigger('change');
+        }
+    });
+
+    // =========================================
     // TOGGLE REQUIRED ATTRIBUTE
     // =========================================
     function toggleRequiredAttribute(row, isVisible) {
@@ -292,9 +307,14 @@ $(document).ready(function() {
         var row = $(this).closest('tr');
         
         var categoryId = selectedOption.data('category-id') || '';
+        var unitId = selectedOption.data('unit-id') || '';
         
         if (categoryId) {
             row.find('.category-select').val(categoryId).trigger('change');
+        }
+        
+        if (unitId) {
+            row.find('.unit-select').val(unitId).trigger('change');
         }
     });
 
@@ -405,6 +425,27 @@ $(document).ready(function() {
         if (amount < 0) {
             $(this).val(0);
             showNotification('{{ __("common.amount_positive") }}', 'warning');
+        }
+    });
+
+    // =========================================
+    // AMOUNT ARROW KEY BEHAVIOR
+    // Increase by 1 on arrow up, decrease by 1 on arrow down
+    // =========================================
+    $(document).on('keydown', '.amount', function(e) {
+        var key = e.key || e.keyCode;
+        
+        // Arrow Up (38) or Arrow Down (40)
+        if (key === 'ArrowUp' || key === 38) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            $(this).val(currentVal + 1).trigger('input');
+        } else if (key === 'ArrowDown' || key === 40) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            var newVal = currentVal - 1;
+            if (newVal < 0) newVal = 0;
+            $(this).val(newVal).trigger('input');
         }
     });
 

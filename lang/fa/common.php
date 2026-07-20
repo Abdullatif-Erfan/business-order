@@ -96,5 +96,6 @@ return [
     'buy' => 'خرید',
     'current_document' => 'فایل فعلی',
     'category' => 'کتگوری',
+    'profit' => 'مفاد',
 
 ];

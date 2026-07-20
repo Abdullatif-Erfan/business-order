@@ -24,10 +24,9 @@
                     </select>
                 </td>
                 <td>
-                    <input name="amount[]" class="form-control amount" type="number" step="any" 
-                           placeholder="{{__('common.amount')}}" required>
+                    <input name="amount[]" class="form-control amount" type="number" step="any" placeholder="{{__('common.amount')}}" required>
                 </td>
-                <td>
+                <td> 
                     <input name="category_id[]" class="form-control pre-category-id" type="hidden" readonly>
                     <input name="pre_list_id[]" class="form-control pre-list-id" type="hidden" readonly>
                     
@@ -64,9 +63,25 @@ $(document).ready(function () {
     // Store the template row HTML
     var templateRow = $('#itemsBody .item-row:first').clone();
     
-    // Initialize select2 on existing rows
+    // =========================================
+    // INITIALIZE SELECT2
+    // =========================================
     $('.item-select, .unit-select').select2({
         dropdownParent: $('.table-responsive')
+    });
+
+    // =========================================
+    // AUTO-SELECT UNIT ON PAGE LOAD
+    // For existing rows with pre-selected items
+    // =========================================
+    $('.item-row').each(function() {
+        var row = $(this);
+        var selectedOption = row.find('.item-select').find(':selected');
+        var unitId = selectedOption.data('unit-id') || '';
+        
+        if (unitId) {
+            row.find('.unit-select').val(unitId).trigger('change');
+        }
     });
 
     // =========================================
@@ -195,6 +210,27 @@ $(document).ready(function () {
         if (amount < 0) {
             $(this).val(0);
             showNotification('{{ __("common.amount_positive") }}', 'warning', 'top', 'right', 'withicon');
+        }
+    });
+
+    // =========================================
+    // AMOUNT ARROW KEY BEHAVIOR
+    // Increase by 1 on arrow up, decrease by 1 on arrow down
+    // =========================================
+    $(document).on('keydown', '.amount', function(e) {
+        var key = e.key || e.keyCode;
+        
+        // Arrow Up (38) or Arrow Down (40)
+        if (key === 'ArrowUp' || key === 38) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            $(this).val(currentVal + 1).trigger('input');
+        } else if (key === 'ArrowDown' || key === 40) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            var newVal = currentVal - 1;
+            if (newVal < 0) newVal = 0;
+            $(this).val(newVal).trigger('input');
         }
     });
 

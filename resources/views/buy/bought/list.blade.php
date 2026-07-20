@@ -88,13 +88,13 @@
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
+                                            <td colspan="9">
                                                 <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" 
                                                 style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="10">
+                                            <td colspan="9">
                                                 <center> {{__('buy.buy_title')}} </center>
                                             </td>
                                         </tr>
@@ -110,7 +110,8 @@
                                             <th> {{__('buy.loan')}} </th>
                                             <th>  {{__('common.currency')}} </th>
                                             <th> {{__('common.date')}} </th>
-                                            <th> {{__('common.details')}} </th>
+                                            <th class="hidden-print"> {{__('common.profit')}} </th>
+                                            <th class="hidden-print"> {{__('common.details')}} </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -122,7 +123,8 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td></td>
+                                            <td class="hidden-print"></td>
+                                            <td class="hidden-print"></td>
                                         </tr>
                                     </tfoot> 
                                 </table>
@@ -134,6 +136,33 @@
         </div>
     </div>
 </div>
+
+
+
+<!-- Update Profit and Sell_up Modal -->
+<div class="modal fade" id="EditRecordsModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{ __('common.edit') }} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="EditAccountFormWrapper"></div>
+                <div id="loading_modal" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+                <button type="submit" class="btn btn-success btn-sm m-r-10" id="EditAccountBtn">{{ __('common.save') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
 $(document).on('click', '.datepicker-icon', function(e) {
@@ -231,9 +260,11 @@ function fetchList() {
                 { data: 'remained', name: 'remained' },
                 { data: 'currencyRelation', name: 'currencyRelation' },
                 { data: 'idate', name: 'idate' },
-                { data: 'view', name: 'view', orderable: false, searchable: false }
+                { data: 'setprofit', name: 'setprofit', orderable: false, searchable: false, class: 'hidden-print' },
+                { data: 'view', name: 'view', orderable: false, searchable: false, class: 'hidden-print' }
             ],
-            drawCallback: function () {
+            drawCallback: function () 
+            {
                 var api = this.api();
 
                 function fmod(a, b) {
@@ -307,6 +338,30 @@ $('#generateInvoiceBtn').on('click', function() {
         });
     }
 });
+
+
+// Set Profit
+   $('table').on('click', '.setProfit', function () {
+        $('#EditRecordsModal').modal('show');
+        $('#loading_modal').show();
+        const billno = $(this).data('id');
+        $.ajax({
+            url: `/boughtList/getToUpdateProfit/${billno}`,
+            type: 'GET',
+            success: (result) => {
+                $('#EditAccountFormWrapper').html(result);
+                $('#loading_modal').hide();
+
+                // Initialize Select2 after the form has been injected
+                $(".select2").select2();
+            },
+            error: () => {
+                $('#loading_modal').hide();
+                alert('اطلاعات یافت نشد');
+            }
+        });
+});
+
 
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {

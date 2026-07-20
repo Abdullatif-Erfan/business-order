@@ -172,7 +172,7 @@
                                                                         </select>
                                                                     </td>
                                                                     <td>
-                                                                        <input name="amount[]" class="form-control amount" type="number" step="0.01" 
+                                                                        <input name="amount[]" class="form-control amount" type="number" step="any" min="0.1"   
                                                                                value="{{ $item->amount }}" placeholder="{{ __('common.amount') }}" required>
                                                                     </td>
                                                                     <td>
