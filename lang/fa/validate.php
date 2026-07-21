@@ -265,8 +265,10 @@ return [
 
     "account_not_found" => "حساب بانکی یافت نگردید",
     "currency_not_found_converter" => "لطفا نرخ روز را برای این دو کرنسی ثبت نمایید",
-    "salary_payment" => "پرداخت معاش ",
-    "salary_recieve" => "دریافت معاش ",
+    "salary_payment" => "معاش نقد پرداخت شد",
+    "salary_recieve" => "معاش نقد دریافت شد",
+    "salary_talab" => "طلب معاشات",
+    "salary_loan" => "قرض معاشات",
     "select_default_account" => "لطفا یکی از حساب های شرکت را پیش فرض انتخاب نمایید ",
     "clear" => "تصفیه",
     "talab" => "طلب",

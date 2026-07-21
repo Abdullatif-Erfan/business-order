@@ -23,6 +23,7 @@
                                 <input type="hidden" name="id" value="{{ $salary->id }}">
                                 <input type="hidden" name="from_account_id" value="{{ $ownBanks->first()->id ?? 0 }}">
                                 <input type="hidden" name="from_account_name" value="{{ $ownBanks->first()->name ?? '' }}">
+                                
                                               
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
@@ -84,7 +85,7 @@
                                                 <select class="form-control select2" name="to_account_id" id="to_account_id" required>
                                                     <option value="">{{ __('hr.emp_selection') }}</option>
                                                     @foreach($employees as $emp)
-                                                        <option value="{{ $emp->id }}" {{ old('to_account_id', $salary->account_id) == $emp->id ? 'selected' : '' }}>
+                                                        <option value="{{ $emp->id }}" {{ $salary->account_id == $emp->id ? 'selected' : '' }}>
                                                             {{ $emp->name }}
                                                         </option>
                                                     @endforeach
@@ -93,6 +94,19 @@
                                             </div>
                                         </div>
 
+                                        
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group form-floating-label">
+                                                <label for=""> {{__('hr.payment_type')}} </label>
+                                                <select class="form-control select2" name="payment_type" required>
+                                                    <!-- <option value=""> {{__('hr.payment_type')}}</option> -->
+                                                    <!-- <option value="1" {{$salary->options === 1 ? 'selected': ''}}>{{__('hr.cache')}}</option> -->
+                                                    <option value="2" {{$salary->options === 2 ? 'selected': ''}}>{{__('hr.save_in_talabat')}}</option>
+                                                </select>
+                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+                                        
                                         <!-- Row 2: Amount -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
@@ -120,7 +134,7 @@
                                         </div>
 
                                         <!-- Row 3: Details -->
-                                        <div class="col-md-6 col-sm-12 col-xs-12">
+                                        <div class="col-md-4 col-sm-12 col-xs-12">
                                             <div class="form-group">
                                                 <label for="details">{{ __('common.details') }}</label>
                                                 <input class="form-control" id="details" name="details" type="text" 
@@ -131,7 +145,7 @@
                                         </div>
 
                                         <!-- Row 3: Bank Account (Display Only) -->
-                                        <div class="col-md-6 col-sm-12 col-xs-12">
+                                        <div class="col-md-4 col-sm-12 col-xs-12">
                                             <div class="form-group">
                                                 <label for="from_account_display">{{ __('journal.payer_account') }}</label>
                                                 <input class="form-control" id="from_account_display" type="text" readonly

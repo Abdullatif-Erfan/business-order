@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Models\Setting\Account;
 use App\Models\Setting\Currency;
 use App\Models\Transaction\Journal;
-use App\Models\Setting\ExpenseType;
 use App\Models\Setting\OrgBio;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -29,11 +28,11 @@ class SalaryReportController extends Controller
 
     public function index()
     {
+        $accounts   = Account::where('account_type_id',2)->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $employees = Account::select('id','name')->where('account_type_id',2)->get();
-        $months = $this->getTranslatedMonthName();
-        return view('hr.report.list',compact('employees','currencies','orgbios','months'));
+
+        return view('hr.report.list',compact('accounts','currencies','orgbios'));
     }
 
     public function getTranslatedMonthName()
@@ -95,10 +94,181 @@ class SalaryReportController extends Controller
         return $months;
     }
 
+    public function getData(Request $request)
+    {
+        /**
+         * ================================== Journal Status ========================
+         * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+         * 
+         * ================================== Transaction Types ====================
+         * transaction_type: 1: recieved (دریافت)      2: paid (پرداخت)
+         * payment_type:     1: cache (نقد)            2: loan (قرض/طلب)
+         * 
+         * ================================== Balance Logic ========================
+         * For Employee Accounts (account_type_id = 2):
+         * 
+         * Receivable (طلب) = Loan Paid + Cache Paid     → Makes balance POSITIVE (+)
+         * Payable (قرض)    = Cache Received + Loan Received → Makes balance NEGATIVE (-)
+         * 
+         * Balance = Receivable - Payable
+         * 
+         * Positive Balance = Company owes employee (طلبات)
+         * Negative Balance = Employee owes company (قرض)
+         */
+        
+        $currency_id = $request->currency_id ?? 0;
+        $account_id = $request->account_id ?? 0;
+
+
+        $journals = Journal::with(['accountRelation:id,name'])
+            ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
+                    'payment_type', 'options', 'option_label', 'currency_id', 'details', 
+                    'idate', 'status', 'times', 'is_single_record', 'user_name')
+            ->where('account_type_id', 2)  // Enforce just employees
+            ->where('currency_id', $request->currency_id) 
+            ->orderBy('id', 'ASC');
+
+        // Apply optional filters
+        if ($request->start_date && $request->end_date) {
+            $journals->whereBetween('idate', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $journals->whereDate('idate', '=', $request->start_date);
+        } elseif ($request->end_date) {
+            $journals->whereDate('idate', '<=', $request->end_date);
+        }
+        if ($request->code_number) {
+            $journals->where('code', 'LIKE', "%{$request->code_number}%");
+        }
+        if ($request->bill_number) {
+            $journals->where('bill_no', 'LIKE', "%{$request->bill_number}%");
+        }
+
+        if ($request->filled('account_id')) {
+            $journals->where('journals.account_id', $request->account_id);
+        }
+
+        // Initialize running balance for employee
+        $runningBalance = 0;
+
+        return DataTables::of($journals)
+            ->addIndexColumn()
+            
+            // Account Name
+            ->addColumn('accountRelation', function ($journal) {
+                return $journal->accountRelation ? $journal->accountRelation->name : '';
+            })
+            
+            /**
+             * CACHE RECEIVED (دریافت نقد)
+             * transaction_type = 1 (Received), payment_type = 1 (Cash)
+             * When employee receives cash from company
+             */
+            ->addColumn('cacheRecieved', function ($journal) {
+                return ($journal->transaction_type == 1 && $journal->payment_type == 1) 
+                    ? number_format($journal->amount, 2) 
+                    : null;
+            })
+            
+            /**
+             * CACHE PAID (پرداخت نقد)
+             * transaction_type = 2 (Paid), payment_type = 1 (Cash)
+             * When employee pays cash to company
+             */
+            ->addColumn('cachePaid', function ($journal) {
+                return ($journal->transaction_type == 2 && $journal->payment_type == 1) 
+                    ? number_format($journal->amount, 2) 
+                    : null;
+            })
+            
+            /**
+             * LOAN RECEIVED (قرض)
+             * transaction_type = 1 (Received), payment_type = 2 (Loan)
+             * When employee takes loan from company
+             */
+            ->addColumn('loanRecieved', function ($journal) {
+                return ($journal->transaction_type == 1 && $journal->payment_type == 2) 
+                    ? number_format($journal->amount, 2) 
+                    : null;
+            })
+            
+            /**
+             * LOAN PAID (طلب)
+             * transaction_type = 2 (Paid), payment_type = 2 (Loan)
+             * When employee pays back loan to company
+             */
+            ->addColumn('loanPaid', function ($journal) {
+                return ($journal->transaction_type == 2 && $journal->payment_type == 2) 
+                    ? number_format($journal->amount, 2) 
+                    : null;
+            })
+                
+            /**
+             * USER NAME (نام کاربر)
+             */
+            ->addColumn('full_name', function ($journal) {
+                return $journal->user_name ?? '';
+            })
+            
+            /**
+             * RUNNING BALANCE (بیلانس)
+             * 
+             * For Employee Accounts:
+             * - Receivable (طلب) = Loan Paid + Cache Paid → Makes balance POSITIVE (+)
+             * - Payable (قرض)    = Cache Received + Loan Received → Makes balance NEGATIVE (-)
+             * 
+             * Balance = Receivable - Payable
+             * 
+             * Positive Balance = Company owes employee (طلبات)
+             * Negative Balance = Employee owes company (قرض)
+             */
+            ->addColumn('balance', function ($journal) use (&$runningBalance) {
+                // دریافت نقد - Cash Received
+                $cacheRecieved = ($journal->transaction_type == 1 && $journal->payment_type == 1) 
+                    ? $journal->amount : 0;
+                
+                // پرداخت نقد - Cash Paid
+                $cachePaid = ($journal->transaction_type == 2 && $journal->payment_type == 1) 
+                    ? $journal->amount : 0;
+                
+                // قرض - Loan Received (Employee takes loan)
+                $loanRecieved = ($journal->transaction_type == 1 && $journal->payment_type == 2) 
+                    ? $journal->amount : 0;
+                
+                // طلب - Loan Paid (Employee pays back loan)
+                $loanPaid = ($journal->transaction_type == 2 && $journal->payment_type == 2) 
+                    ? $journal->amount : 0;
+
+                // Receivable = Loan Paid + Cache Paid (Company owes employee)
+                $receivable = $loanPaid + $cachePaid;
+                
+                // Payable = Cache Received + Loan Received (Employee owes company)
+                $payable = $cacheRecieved + $loanRecieved;
+
+                // Balance change = Receivable - Payable
+                $balanceChange = $receivable - $payable;
+                
+                // Update running balance
+                $runningBalance += $balanceChange;
+                
+                return number_format($runningBalance, 2);
+            })
+            
+            /**
+             * ROW CLASS (کلاس ردیف)
+             * Highlight clearance rows (status = 11)
+             */
+            ->setRowClass(function ($journal) {
+                return $journal->status == 11 ? 'clearance-row' : '';
+            })
+            
+            // ->rawColumns()
+            ->make(true);
+    }
+
     /**
      * Show the expense data
      */
-    public function getData(Request $request)
+    public function getDataV1(Request $request)
     {
         /**
          * status: 1: old income, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other

@@ -20,13 +20,13 @@
                 <span id="accountNameError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-xs-6 col-sm-4 col-md-4">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="phone" style="display:none;">
                 <label for="phone"> {{__('settings.phone')}}  </label>
                 <input type="text" class="form-control" name="phone" >
                 <span id="phoneError" class="text-danger"></span>
             </div>
 
-            <div class="form-group col-xs-6 col-sm-4 col-md-4">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="address" style="display:none;">
                 <label for="address"> {{__('settings.address')}}  </label>
                 <input type="text" class="form-control" name="address" >
                 <span id="addressError" class="text-danger"></span>
@@ -190,71 +190,96 @@ function checkAccountType(account_type_id) {
      * 4: تهیه کنندگان
      * 5: سهم داران
      * 6: صرافی و بانک
+     * 7: موتر
      */
     
+    // Hide all conditional fields first
+    $('#is_pre_select, #percent, #net_salary, #salary_currency, #loan_limit, #loan_limit_option, #emp_start_date, #emp_car_id, #phone, #address').hide().removeAttr('required');
+    
     if (parseInt(account_type_id) === 1) {
-        $('#is_pre_select').fadeIn(1).attr('required', true);
-        $('#percent, #net_salary, #salary_currency, #loan_limit, #loan_limit_option, #emp_start_date , #emp_car_id').fadeOut(1).removeAttr('required');
+        // Company account
+        $('#is_pre_select, #address, #phone').show().attr('required', true);
+        $('#percent, #net_salary, #salary_currency, #loan_limit, #loan_limit_option, #emp_start_date, #emp_car_id').hide().removeAttr('required');
 
-        // Show only the first option in the select dropdowns
+        // Show only increase cache option
         $('select[name="options[]"]').each(function () {
             $(this).html(`
-                <option value="1"> {{__('settings.increase_cache')}} </option>
+                <option value="1">{{__('settings.increase_cache')}}</option>
             `);
         });
     } 
     else if (parseInt(account_type_id) === 2) {
-        $('#net_salary, #salary_currency, #emp_start_date , #emp_car_id').fadeIn(1).attr('required', true);
-        $('#is_pre_select, #percent, #loan_limit, #loan_limit_option').fadeOut(1).removeAttr('required');
+        // Employee / Driver
+        $('#net_salary, #salary_currency, #emp_start_date, #emp_car_id, #address, #phone').show().attr('required', true);
+        $('#is_pre_select, #percent, #loan_limit, #loan_limit_option').hide().removeAttr('required');
 
-       // Reset the select options to show all options
-       $('select[name="options[]"]').each(function () {
+        $('select[name="options[]"]').each(function () {
             $(this).html(`
-                <option value=""> {{ __('settings.option_selection') }} </option>
-                <option value="2"> {{__('settings.save_in_talabat')}} </option>
-                <option value="3"> {{__('settings.save_in_qarza')}} </option>
+                <option value="">{{__('settings.option_selection')}}</option>
+                <option value="2">{{__('settings.save_in_talabat')}}</option>
+                <option value="3">{{__('settings.save_in_qarza')}}</option>
             `);
         });
     } 
     else if (parseInt(account_type_id) === 3 || parseInt(account_type_id) === 4) {
-        $('#loan_limit, #loan_limit_option').fadeIn(1).attr('required', true);
-        $('#net_salary, #is_pre_select, #salary_currency, #percent, #emp_start_date , #emp_car_id')
-            .fadeOut(1)
+        // Customer or Supplier
+        $('#loan_limit, #loan_limit_option, #address, #phone').show().attr('required', true);
+        $('#net_salary, #is_pre_select, #salary_currency, #percent, #emp_start_date, #emp_car_id')
+            .hide()
             .removeAttr('required');
 
         $('select[name="options[]"]').each(function () {
             $(this).html(`
-                <option value=""> {{ __('settings.option_selection') }} </option>
-                <option value="2"> {{__('settings.save_in_talabat')}} </option>
-                <option value="3"> {{__('settings.save_in_qarza')}} </option>
+                <option value="">{{__('settings.option_selection')}}</option>
+                <option value="2">{{__('settings.save_in_talabat')}}</option>
+                <option value="3">{{__('settings.save_in_qarza')}}</option>
             `);
         });
     } 
     else if (parseInt(account_type_id) === 5) {
-        $('#percent').fadeIn(1).attr('required', true);
-        $('#is_pre_select, #salary_currency, #net_salary, #loan_limit, #loan_limit_option, #emp_start_date , #emp_car_id')
-            .fadeOut(1)
+        // Shareholder
+        $('#percent, #address, #phone').show().attr('required', true);
+        $('#is_pre_select, #salary_currency, #net_salary, #loan_limit, #loan_limit_option, #emp_start_date, #emp_car_id')
+            .hide()
             .removeAttr('required');
 
-        // Reset the select options to show all options
         $('select[name="options[]"]').each(function () {
             $(this).html(`
-                <option value=""> {{ __('settings.option_selection') }} </option>
-                <option value="1"> {{__('settings.increase_cache')}}</option>
-                <option value="2"> {{__('settings.save_in_talabat')}} </option>
-                <option value="3"> {{__('settings.save_in_qarza')}} </option>
-            `);
-        });
-    } else if (parseInt(account_type_id) === 6) {
-        $('#percent, #net_salary, #salary_currency, #is_pre_select, #loan_limit, #loan_limit_option, #emp_start_date , #emp_car_id').fadeOut(1).removeAttr('required');
-
-        // Show only the first option in the select dropdowns
-        $('select[name="options[]"]').each(function () {
-            $(this).html(`
-                <option value="1"> {{__('settings.increase_cache')}}</option>
+                <option value="">{{__('settings.option_selection')}}</option>
+                <option value="1">{{__('settings.increase_cache')}}</option>
+                <option value="2">{{__('settings.save_in_talabat')}}</option>
+                <option value="3">{{__('settings.save_in_qarza')}}</option>
             `);
         });
     } 
+    else if (parseInt(account_type_id) === 6) {
+        // Exchange / Bank
+        $('#address, #phone').show().attr('required', true);
+        $('#percent, #net_salary, #salary_currency, #is_pre_select, #loan_limit, #loan_limit_option, #emp_start_date, #emp_car_id')
+            .hide()
+            .removeAttr('required');
+
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="1">{{__('settings.increase_cache')}}</option>
+            `);
+        });
+    } 
+    else if (parseInt(account_type_id) === 7) {
+        // Car
+        $('#emp_car_id').show().attr('required', true);
+        $('#percent, #net_salary, #salary_currency, #is_pre_select, #loan_limit, #loan_limit_option, #emp_start_date, #address, #phone')
+            .hide()
+            .removeAttr('required');
+
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="">{{__('settings.option_selection')}}</option>
+                <option value="2">{{__('settings.save_in_talabat')}}</option>
+                <option value="3">{{__('settings.save_in_qarza')}}</option>
+            `);
+        });
+    }
 }
 
 </script>

@@ -82,7 +82,7 @@ return [
     "company_net_income" => "مفاد خالص شرکت",
     "participants" => "سهم داران",
     "company_net_profit" => "مفاد خالص شرکت",
-    "" => "",
-    "" => "",
+    "cars" => "موترها",
+    "employee_report" => "گزارش کارمندان",
     "" => "",
 ];

@@ -4,7 +4,7 @@
     <div class="container-fluid">
         <div class="row">
           
-           <div class="form-group  col-xs-6 col-sm-4 col-md-4">
+           <div class="form-group col-xs-6 col-sm-4 col-md-4">
                 <label for="account_type_id"> {{__('settings.account_type_selection')}}  </label>
                 @if($account->accountType->is_disabled == 1)
                 <select class="form-control" name="account_type_id" required>
@@ -12,43 +12,43 @@
                 </select>
                 @else
                 <select class="form-control" name="account_type_id" onchange="checkAccountTypeEdit(this.value)" required>
-                    <option value="{{ $account->account_type_id }}">{{ $account->accountType->name }}</option>
                     <option value="">{{__('settings.account_type_selection')}}</option>
                     @foreach($accountTypes as $accountType)
-                    <option value="{{ $accountType->id }}">{{ $accountType->name }}</option>
+                    <option value="{{ $accountType->id }}" {{ $account->account_type_id == $accountType->id ? 'selected' : '' }}>
+                        {{ $accountType->name }}
+                    </option>
                     @endforeach
                 </select>
                 @endif
                 <span id="accountTypeIdError" class="text-danger"></span>
             </div>
 
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4">
                 <label for="name">{{__('settings.account_name')}}</label>
                 <input type="text" class="form-control" name="name" value="{{ $account->name }}" required>
                 <span id="accountNameError" class="text-danger"></span>
             </div>
 
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="phone_edit">
                 <label for="phone">{{__('settings.phone')}}</label>
                 <input type="text" class="form-control" name="phone" value="{{ $account->phone }}">
                 <span id="phoneError" class="text-danger"></span>
             </div>
 
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="address_edit">
                 <label for="address">{{__('settings.address')}}</label>
                 <input type="text" class="form-control" name="address" value="{{ $account->address }}">
                 <span id="addressError" class="text-danger"></span>
             </div>
 
             <!-- belongs to employee -->
-            @if($account->account_type_id == 2)
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4" id="net_salary2">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="net_salary_edit" style="{{ $account->account_type_id == 2 ? '' : 'display:none;' }}">
                 <label for="net_salary">{{ __('settings.net_salary')}}</label>
                 <input type="number" class="form-control" name="net_salary" value="{{ $account->net_salary }}">
                 <span id="netSalaryError" class="text-danger"></span>
             </div>
 
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4" id="salary_currency2">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="salary_currency_edit" style="{{ $account->account_type_id == 2 ? '' : 'display:none;' }}">
                 <label for="salary_currency">{{ __('settings.paid_currency')}}</label>
                 <select class="form-control" name="salary_currency">
                     <option value="">{{ __('settings.paid_currency')}}</option>
@@ -59,37 +59,36 @@
                 </select>
             </div>
 
-            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="emp_car_id2" style="display:none;">
-                    <label for="percent"> {{ __('settings.car')}}</label>
-                    <select class="form-control" name="emp_car_id">
-                        <option value=""> {{ __('settings.car_selection')}} </option>
-                        @foreach($cars as $car)
-                           <option value="{{ $car->id }}" {{$car->id == $account->emp_car_id ? 'selected': ''}}>{{ $car->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="emp_car_id_edit" style="{{ $account->account_type_id == 2 || $account->account_type_id == 7 ? '' : 'display:none;' }}">
+                <label for="emp_car_id"> {{ __('settings.car')}}</label>
+                <select class="form-control" name="emp_car_id">
+                    <option value=""> {{ __('settings.car_selection')}} </option>
+                    @foreach($cars as $car)
+                       <option value="{{ $car->id }}" {{ $car->id == $account->emp_car_id ? 'selected': '' }}>{{ $car->name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-                <div class="form-group col-xs-6 col-sm-4 col-md-4" id="emp_start_date2" style="display:none;">
-                        <div class="filter-group" style="min-width: 120px;">
-                        <label for="start_date"> {{ __('common.start_date')}}</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control datepicker-input" value="{{ $account->emp_start_date ?? '' }}" name="emp_start_date" 
-                              placeholder="{{__('common.start_date')}}">
-                            <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
-                        </div>
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="emp_start_date_edit" style="{{ $account->account_type_id == 2 ? '' : 'display:none;' }}">
+                <div class="filter-group" style="min-width: 120px;">
+                    <label for="start_date"> {{ __('common.start_date')}}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control datepicker-input" value="{{ $account->emp_start_date ?? '' }}" name="emp_start_date" 
+                          placeholder="{{__('common.start_date')}}">
+                        <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                     </div>
                 </div>
-            @endif
+            </div>
             <!-- /belongs to employee -->
 
             <!-- belongs to qarz limit for customers and suppliers -->
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4" id="loan_limit2" style="{{ ($account->account_type_id == 3 || $account->account_type_id == 4) ? '' : 'display:none;' }}">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="loan_limit_edit" style="{{ ($account->account_type_id == 3 || $account->account_type_id == 4) ? '' : 'display:none;' }}">
                 <label for="loan_limit">{{ __('settings.loan_limit')}}</label>
                 <input type="number" class="form-control" name="loan_limit" value="{{ $account->loan_limit ?? '' }}">
                 <span id="loanLimitError" class="text-danger"></span>
             </div>
 
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4" id="loan_limit_option2" style="{{ ($account->account_type_id == 3 || $account->account_type_id == 4) ? '' : 'display:none;' }}">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="loan_limit_option_edit" style="{{ ($account->account_type_id == 3 || $account->account_type_id == 4) ? '' : 'display:none;' }}">
                 <label for="loan_limit_option">{{ __('settings.loan_limit_option')}}</label>
                 <select class="form-control" name="loan_limit_option">
                     <option value="1" {{ ($account->loan_limit_option ?? '') == '1' ? 'selected' : '' }}>{{ __('settings.yes') }}</option>
@@ -99,23 +98,19 @@
             </div>
             <!-- /belongs to qarz limit for customers and suppliers -->
 
-            @if($account->account_type_id == 5)
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4" id="percent2">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="percent_edit" style="{{ $account->account_type_id == 5 ? '' : 'display:none;' }}">
                 <label for="percent">{{__('settings.percentage')}}</label>
                 <input type="number" class="form-control" name="percent" value="{{ $account->percent }}">
                 <span id="percentError" class="text-danger"></span>
             </div>
-            @endif
             
-            @if($account->account_type_id == 1)
-            <div class="form-group  col-xs-6 col-sm-4 col-md-4" id="is_pre_select2">
+            <div class="form-group col-xs-6 col-sm-4 col-md-4" id="is_pre_select_edit" style="{{ $account->account_type_id == 1 ? '' : 'display:none;' }}">
                 <label for="is_pre_select">{{ __('settings.default_account') }}</label>
                 <select class="form-control" name="is_pre_select">
                     <option value="0" {{ $account->is_pre_select == 0 ? 'selected' : '' }}>{{ __('settings.yes') }}</option>
                     <option value="1" {{ $account->is_pre_select == 1 ? 'selected' : '' }}>{{ __('settings.no') }}</option>
                 </select>
             </div>
-            @endif
 
             <div class="col-12">
               <hr />
@@ -219,13 +214,11 @@
     </div>
 </form>
 
-
-
 <script>
 $(document).ready(function () {
-       // Initialize datepicker
+    // Initialize datepicker
     $('.datepicker-input').datepicker({
-        format: 'yyyy-mm-dd', // Match your database format
+        format: 'yyyy-mm-dd',
         autoclose: true,
         todayHighlight: true,
         clearBtn: true
@@ -233,10 +226,11 @@ $(document).ready(function () {
 
     // Run checkAccountTypeEdit on page load with the selected value
     var selectedAccountType = $('select[name="account_type_id"]').val();
-    checkAccountTypeEdit(selectedAccountType);
+    if (selectedAccountType) {
+        checkAccountTypeEdit(selectedAccountType);
+    }
 });
 
-// Fix: Changed .datepicker2 to .datepicker
 $(document).on('click', '.datepicker-icon', function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -254,18 +248,18 @@ function checkAccountTypeEdit(account_type_id) {
      * 4: فروشندگان (Suppliers/Vendors)
      * 5: سهم داران (Shareholders)
      * 6: صرافی و بانک (Exchange & Bank)
+     * 7: موتر (Car)
      */
     account_type_id = parseInt(account_type_id);
     
-    // Hide all optional fields first
-    $('#is_pre_select2, #percent2, #net_salary2, #salary_currency2, #loan_limit2, #loan_limit_option2, #emp_start_date2 , #emp_car_id2').hide().removeAttr('required');
+    // First hide all conditional fields
+    $('#is_pre_select_edit, #percent_edit, #net_salary_edit, #salary_currency_edit, #loan_limit_edit, #loan_limit_option_edit, #emp_start_date_edit, #emp_car_id_edit').hide().removeAttr('required');
     
-    if (account_type_id === 1) 
-    {
+    if (account_type_id === 1) {
         // Company Account
-        $('#is_pre_select2').show().attr('required', true);
+        $('#is_pre_select_edit, #phone_edit, #address_edit').show().attr('required', true);
         
-        // Show only the first option in the select dropdowns
+        // Show only increase cache option
         $('select[name="options[]"]').each(function () {
             $(this).html(`
                 <option value="1">{{__('settings.increase_cache')}}</option>
@@ -274,9 +268,9 @@ function checkAccountTypeEdit(account_type_id) {
     } 
     else if (account_type_id === 2) {
         // Employee Account
-        $('#net_salary2, #salary_currency2, #emp_start_date2 , #emp_car_id2').show().attr('required', true);
+        $('#net_salary_edit, #salary_currency_edit, #emp_start_date_edit, #emp_car_id_edit, #phone_edit, #address_edit').show().attr('required', true);
         
-        // Reset the select options to show all options
+        // Show save in talabat and qarza options
         $('select[name="options[]"]').each(function () {
             $(this).html(`
                 <option value="">{{ __('settings.option_selection') }}</option>
@@ -287,8 +281,8 @@ function checkAccountTypeEdit(account_type_id) {
     } 
     else if (account_type_id === 3 || account_type_id === 4) {
         // Customer or Supplier Account
-        $('#loan_limit2, #loan_limit_option2').show().attr('required', true);
-        
+        $('#loan_limit_edit, #loan_limit_option_edit, #phone_edit, #address_edit').show().attr('required', true);
+        // Show save in talabat and qarza options
         $('select[name="options[]"]').each(function () {
             $(this).html(`
                 <option value="">{{ __('settings.option_selection') }}</option>
@@ -299,9 +293,9 @@ function checkAccountTypeEdit(account_type_id) {
     } 
     else if (account_type_id === 5) {
         // Shareholder Account
-        $('#percent2').show().attr('required', true);
+        $('#percent_edit,#phone_edit, #address_edit').show().attr('required', true);
         
-        // Reset the select options to show all options
+        // Show all options
         $('select[name="options[]"]').each(function () {
             $(this).html(`
                 <option value="">{{ __('settings.option_selection') }}</option>
@@ -313,10 +307,26 @@ function checkAccountTypeEdit(account_type_id) {
     } 
     else if (account_type_id === 6) {
         // Exchange & Bank Account
-        // Show only the first option in the select dropdowns
+        // Show only increase cache option
+        $('#phone_edit, #address_edit').show().attr('required', true);
         $('select[name="options[]"]').each(function () {
             $(this).html(`
                 <option value="1">{{__('settings.increase_cache')}}</option>
+            `);
+        });
+    } 
+    else if (account_type_id === 7) {
+        // Car Account
+        $('#emp_car_id_edit').show().attr('required', true);
+        
+        $('#phone_edit, #address_edit').hide().removeAttr('required');
+
+        // Show save in talabat and qarza options
+        $('select[name="options[]"]').each(function () {
+            $(this).html(`
+                <option value="">{{ __('settings.option_selection') }}</option>
+                <option value="2">{{__('settings.save_in_talabat')}}</option>
+                <option value="3">{{__('settings.save_in_qarza')}}</option>
             `);
         });
     }

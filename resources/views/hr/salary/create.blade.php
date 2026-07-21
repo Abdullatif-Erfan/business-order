@@ -87,9 +87,21 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group form-floating-label">
+                                            <label for=""> {{__('hr.payment_type')}} </label>
+                                                <select class="form-control select2" name="payment_type" required>
+                                                    <!-- <option value=""> {{__('hr.payment_type')}}</option> -->
+                                                    <!-- <option value="1">{{__('hr.cache')}}</option> -->
+                                                    <option value="2">{{__('hr.save_in_talabat')}}</option>
+                                                </select>
+                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
                                          <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
-                                            <label for=""> {{__('hr.payable_amount')}} </label>
+                                                <label for=""> {{__('hr.payable_amount')}} </label>
                                                 <input class="form-control" id="amount" name="amount" type="number" step="0.01" required placeholder="{{__('hr.payable_amount')}}">
                                                 @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div> 

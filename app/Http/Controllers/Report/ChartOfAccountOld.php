@@ -279,7 +279,7 @@ class ChartOfAccount extends Controller
                             THEN journals.amount ELSE 0 END) as loan_paid")
             ])
             ->first(); // Get a single row instead of a collection
-            
+
         return $loanAndTalab;
     }
     

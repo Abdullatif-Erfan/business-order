@@ -219,16 +219,32 @@ class SalaryController extends Controller
      */
     public function store(Request $request)
     {
+        /**
+         * ================================== Journal Roles ========================
+         * status:           1: old journal,  2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+         * 
+         * transaction_type: 1: recieved      2:paid = 
+         * payment_type:     1: cache,        2: loan
+         * options:          1: cache2cache,  2:loan2loan, 3:cache2loan, 4:loan2cache
+         * 
+         * Recieved Loan = قرض گرفتن = t1p2
+         * Paid Loan = طلب = t2p2
+         * Cache Recieved = دریافت نقد = t1p1
+         * Cache Paid = پرداخت نقد = t2p1
+         * 
+         */
+
         // Validation
         $validated = $request->validate([
             'from_account_id' => 'required|exists:accounts,id',
             'to_account_id' => 'required|exists:accounts,id',
             'amount' => 'required|numeric|min:0.01',
             'currency_id' => 'required|exists:currencies,id',
+            'payment_type' => 'required|numeric',
             'year' => 'required|numeric',
             'month' => 'required|numeric',
             'details' => 'nullable|string|max:255',
-            'todays_date' => 'required|date',
+            'todays_date' => 'required',
         ]);
 
         $todaysDate = $request->todays_date;
@@ -247,32 +263,69 @@ class SalaryController extends Controller
         DB::beginTransaction();
 
         try {
-            // ✅ FIXED: Journal 1 - Company account (Paid from bank)
+            
             $journal1 = new Journal();
+            $journal2 = new Journal();
+
+            if(!empty($validated['payment_type']) && (int)$validated['payment_type'] === 1) {
+                /**
+                 * خزانه نقد پرداخت میکند
+                 * کارمند نقد دریافت میکند
+                 */
+                $journal1->details = $validated['details'] ?? __('validate.salary_payment');
+                $journal1->transaction_type = 2; // Paid
+                $journal1->payment_type = 1; // Cash
+                $journal1->option_label = __('validate.salary_payment');
+
+                // دریافت نقد کارمند
+                $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
+                $journal2->transaction_type = 1; // Received
+                $journal2->payment_type = 1; // Cash
+                $journal2->option_label = __('validate.salary_recieve');
+
+
+            } 
+            else  
+            { 
+                /**
+                 * خزانه قرضدار ثبت شود
+                 * کارمند طلب ثبت شود
+                 */
+                $journal1->details = $validated['details'] ?? __('validate.salary_loan');
+                $journal1->transaction_type = 1; // Received
+                $journal1->payment_type = 2; // Loan
+                $journal1->option_label = __('validate.salary_payment');
+
+                //  کارمند طلب ثبت شود
+                $journal2->details = $validated['details'] ?? __('validate.salary_talab');
+                $journal2->transaction_type = 2; // Paid
+                $journal2->payment_type = 2; // Loan
+                $journal2->option_label = __('validate.salary_recieve');
+               
+            }
+            //  Journal 1 - Company account (Paid from bank)
             $journal1->bill_no = 0;
             $journal1->code = $newJournalCode;
             $journal1->idate = $todaysDate;
-            $journal1->user_name = auth()->user()->full_name ?? ''; // ✅ FIXED: Using $journal1
-            $journal1->user_id = auth()->id() ?? 0; // ✅ FIXED: Using $journal1
+            $journal1->user_name = auth()->user()->full_name ?? ''; 
+            $journal1->user_id = auth()->id() ?? 0; 
             $journal1->year = $year;
             $journal1->month = $month;
             $journal1->day = $day;
             $journal1->status = 5;
             $journal1->times = $times;
             $journal1->is_single_record = 1;
-            $journal1->dynamic_type = null; // Null for company side (not shown in salary list)
+            $journal1->dynamic_type = 0;
+            $journal1->options = $validated['payment_type'];
             $journal1->account_id = $validated['from_account_id'];
             $journal1->amount = $validated['amount'];
             $journal1->account_type_id = $company_account_type_id;
             $journal1->currency_id = $validated['currency_id'];
-            $journal1->details = $validated['details'] ?? __('validate.salary_payment');
-            $journal1->transaction_type = 2; // Paid
-            $journal1->payment_type = 1; // Cash
-            $journal1->option_label = __('validate.salary_payment');
+            
             $journal1->save();
 
-            // ✅ Journal 2 - Employee account (Received salary)
-            $journal2 = new Journal();
+            //  Journal 2 - Employee account (Received salary)
+            
             $journal2->bill_no = 0;
             $journal2->code = $newJournalCode;
             $journal2->idate = $todaysDate;
@@ -285,14 +338,11 @@ class SalaryController extends Controller
             $journal2->times = $times;
             $journal2->is_single_record = 1;
             $journal2->dynamic_type = 1; // For employee (shown in salary list)
+            $journal2->options = $validated['payment_type'];
             $journal2->account_id = $validated['to_account_id'];
             $journal2->amount = $validated['amount'];
             $journal2->account_type_id = $customer_account_type_id;
             $journal2->currency_id = $validated['currency_id'];
-            $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
-            $journal2->transaction_type = 1; // Received
-            $journal2->payment_type = 1; // Cash
-            $journal2->option_label = __('validate.salary_recieve');
             $journal2->save();
 
             DB::commit();
@@ -368,6 +418,7 @@ class SalaryController extends Controller
                 'to_account_id' => 'required|exists:accounts,id',
                 'amount' => 'required|numeric|min:0.01',
                 'currency_id' => 'required|exists:currencies,id',
+                'payment_type' => 'required|numeric',
                 'year' => 'required|numeric',
                 'month' => 'required|numeric',
                 'details' => 'nullable|string|max:255',
@@ -376,6 +427,52 @@ class SalaryController extends Controller
 
             // Get the salary entry (employee side)
             $journal1 = Journal::findOrFail($request->id);
+            $journal2 = Journal::where('code', $journal1->code)
+                ->where('times', $journal1->times)
+                ->where('dynamic_type', 0)
+                ->firstOrFail();
+
+            // Check if journal2 exists
+            if (!$journal2) {
+                throw new \Exception('Associated journal entry not found for code: ' . $journal1->code . ' and times: ' . $journal1->times);
+            }
+
+            if(!empty($validated['payment_type']) && (int)$validated['payment_type'] === 1) {
+                /**
+                 * خزانه نقد پرداخت میکند
+                 * کارمند نقد دریافت میکند
+                 */
+                $journal1->details = $validated['details'] ?? __('validate.salary_payment');
+                $journal1->transaction_type = 2; // Paid
+                $journal1->payment_type = 1; // Cash
+                $journal1->option_label = __('validate.salary_payment');
+
+                // دریافت نقد کارمند
+                $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
+                $journal2->transaction_type = 1; // Received
+                $journal2->payment_type = 1; // Cash
+                $journal2->option_label = __('validate.salary_recieve');
+
+
+            } 
+            else if(!empty($validated['payment_type']) && (int)$validated['payment_type'] === 2) 
+            { 
+                /**
+                 * خزانه قرضدار ثبت شود
+                 * کارمند طلب ثبت شود
+                 */
+                $journal1->details = $validated['details'] ?? __('validate.salary_loan');
+                $journal1->transaction_type = 2; // Paid
+                $journal1->payment_type = 2; // Loan
+                $journal1->option_label = __('validate.salary_payment');
+
+                //  کارمند طلب ثبت شود
+                $journal2->details = $validated['details'] ?? __('validate.salary_talab');
+                $journal2->transaction_type = 1; // Received
+                $journal2->payment_type = 2; // Loan
+                $journal2->option_label = __('validate.salary_recieve');
+               
+            }
 
             $todaysDate = $request->todays_date;
             $dateParts = explode('-', $todaysDate);
@@ -385,40 +482,31 @@ class SalaryController extends Controller
             $short_date = $year . '-' . $month . '-' . $day;
 
             // Update employee journal entry
-            $journal1->update([
-                'account_id' => $validated['to_account_id'],
-                'idate' => $short_date,
-                'user_name' => auth()->user()->full_name ?? '',
-                'user_id' => auth()->id() ?? 0,
-                'year' => $year,
-                'month' => $month,
-                'day' => $day,
-                'amount' => $validated['amount'],
-                'currency_id' => $validated['currency_id'],
-                'details' => $validated['details'] ?? $journal1->details,
-            ]);
+            $journal1->options = $validated['payment_type'];
+            $journal1->account_id = $validated['to_account_id'];
+            $journal1->amount = $validated['amount'];
+            $journal1->currency_id = $validated['currency_id'];
+            $journal1->idate = $todaysDate;
+            $journal1->year = $year;
+            $journal1->month = $month;
+            $journal1->day = $day;
+            $journal1->user_name = auth()->user()->full_name ?? '';
+            $journal1->user_id = auth()->id() ?? 0;
+            $journal1->save();
 
             // Update company journal entry (same code, same times)
-            $journal2 = Journal::where('code', $journal1->code)
-                ->where('times', $journal1->times)
-                ->whereNull('dynamic_type')
-                ->first();
-
-            if ($journal2) {
-                $journal2->update([
-                    'account_id' => $validated['from_account_id'],
-                    'idate' => $short_date,
-                    'user_name' => auth()->user()->full_name ?? '',
-                    'user_id' => auth()->id() ?? 0,
-                    'year' => $year,
-                    'month' => $month,
-                    'day' => $day,
-                    'amount' => $validated['amount'],
-                    'currency_id' => $validated['currency_id'],
-                    'details' => $validated['details'] ?? $journal2->details,
-                ]);
-            }
-
+            $journal2->options = $validated['payment_type'];
+            $journal2->account_id = $validated['from_account_id'];
+            $journal2->amount = $validated['amount'];
+            $journal2->currency_id = $validated['currency_id'];
+            $journal2->idate = $todaysDate;
+            $journal2->year = $year;
+            $journal2->month = $month;
+            $journal2->day = $day;
+            $journal2->user_name = auth()->user()->full_name ?? '';
+            $journal2->user_id = auth()->id() ?? 0;
+            $journal2->save();
+           
             DB::commit();
 
             Session::put('notification', [
@@ -438,6 +526,8 @@ class SalaryController extends Controller
             return back()->withInput();
         }
     }
+
+  
 
     /**
      * Remove the specified resource from storage.
