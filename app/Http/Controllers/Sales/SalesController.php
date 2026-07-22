@@ -17,6 +17,7 @@ use App\Models\Setting\Unit;
 use App\Models\Transaction\Journal;
 use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
+use App\Models\Warehouse\SalesBillPayment;
 use App\Models\Warehouse\SalesDetails;
 use App\Models\Order\DraftOrder;
 
@@ -101,21 +102,266 @@ class SalesController extends Controller
                     : 0;
             })
             ->addColumn('total', fn($s) => number_format($s->total, 2))
-            // ->addColumn('total_discount', fn($s) => number_format($s->total_discount, 2))
-            // ->addColumn('payable', fn($s) => number_format($s->payable, 2))
             ->addColumn('cur_pay', fn($s) => number_format($s->cur_pay, 2))
             ->addColumn('remained', fn($s) => number_format($s->remained, 2))
-            ->addColumn('view', function ($soldItem) {
-                return '<a href="/sales/details/'.$soldItem->billno.'">
-                    <i class="fas fa-eye viewItems" style="font-size:20px;"></i>
-                </a>';
+            // ->addColumn('view', function ($soldItem) {
+            //     return '<a href="/sales/details/'.$soldItem->billno.'">
+            //         <i class="fas fa-eye viewItems" style="font-size:20px;"></i>
+            //     </a>';
+            // })
+           ->addColumn('action', function ($soldItem) {
+                return '
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm dropdown-toggle"
+                        type="button"  data-toggle="dropdown">
+                    </button>
+
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" target="_blank" href="' . route('sales.bill', $soldItem->billno) . '">' . __('sales.sales_bill') . '</a>
+                        <a class="dropdown-item billPayment" href="#" data-id="'.$soldItem->billno.'" data-id2="'.$soldItem->has_invoice.'" >' . __('sales.bill_payment') . '</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Return</a>
+                        <a class="dropdown-item itemList" href="#" data-id="'.$soldItem->billno.'">' . __('sales.item_lists') . '</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" target="_blank" href="' . route('sales.details', $soldItem->billno) . '">' . __('common.details') . '</a>
+                    </div>
+                </div>';
             })
-            ->rawColumns(['billno','view'])
+            
+
+            ->rawColumns(['billno','action'])
             ->make(true);
         
 
     }
 
+
+    public function bill(string $billno)
+    {
+        $orgbios = OrgBio::all();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $warehouseSales = WarehouseSales::with(['currencyRelation','accountRelation'])->where('billno',$billno)->get();
+        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
+
+        $saved_with_tax = $salesDetails->contains(function($item) {
+            return $item->sell_tax_per > 0;
+        }) ? true : false;
+
+        $customer_account_id = $warehouseSales->first()->customer_account_id ?? 0;
+        $currency_id = $warehouseSales->first()->currency_id ?? 1;
+        $times = $warehouseSales->first()->times ?? 1;
+
+        // get Bill Payments
+
+        $salesBillPayments = SalesBillPayment::where('billno',$billno)->get();
+
+        // get previous balances
+        $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id,  $times);
+        // return ['customer_balance' => $customer_balance];
+        
+        return view('sales.bill.list',compact('warehouseSales','salesDetails','orgbios','todaysDate','customer_balance',
+        'saved_with_tax','salesBillPayments'));
+    }
+
+    public function billPayment(string $billno)
+    {
+        $soldItems = DB::table('warehouse_sales')
+            ->join('accounts', 'accounts.id', '=', 'warehouse_sales.customer_account_id')
+            ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
+            ->select(
+                'warehouse_sales.id',
+                'billno',
+                'factor',
+                'accounts.id as customer_account_id',
+                'accounts.name as customer_name',
+                'total',
+                'cur_pay',
+                'remained',
+                'currencies.id as currency_id',
+                'currencies.name as currency_name',
+                'idate',
+                'user_name',
+                'warehouse_sales.invoice_id',
+                'warehouse_sales.has_invoice'
+            )
+            ->where('warehouse_sales.billno', $billno)
+            ->first();
+
+        if (!$soldItems) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sale not found'
+            ], 404);
+        }
+
+        // Get own banks (company accounts)
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+
+        return view('sales.bill.payment', compact('soldItems', 'ownBanks'));
+    }
+
+
+    public function storePayment(Request $request)
+    {
+        // return response()->json($request->all());
+
+        $validated = $request->validate([
+            'billno' => 'required|exists:warehouse_sales,billno',
+            'warehouse_sales_id' => 'required|exists:warehouse_sales,id',
+            'payment_amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'account_id' => 'required|exists:accounts,id',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:500',
+            'current_remained' => 'required|numeric|min:0',
+            'customer_account_id' => 'required|exists:accounts,id',
+        ]);
+
+        // Check if payment amount exceeds remained
+        if ($validated['payment_amount'] > $validated['current_remained']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('sales.payment_cannot_exceed_remained')
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Find the sale
+            $sale = WarehouseSales::find($validated['warehouse_sales_id']);
+            
+            if (!$sale) {
+                throw new \Exception('Sale not found');
+            }
+
+            // Calculate new values
+            $newCurPay = $sale->cur_pay + $validated['payment_amount'];
+            $newRemained = $sale->remained - $validated['payment_amount'];
+
+            $company_account_type_id = Account::where('id', $request->account_id)->value('account_type_id');
+            $customer_account_type_id = Account::where('id', $request->customer_account_id)->value('account_type_id');
+
+            // Generate journal code
+            $journalCode = Journal::max('code') + 1;
+            $date = Carbon::parse($validated['payment_date']);
+            $year = $date->year;
+            $month = $date->month;
+            $day = $date->day;
+            $times = time();
+
+             /**
+             * خزانه نقد دریافت میکند
+             * مشتری نقد پرداخت میکند
+             */
+            
+            // خزانه نقد دریافت میکند
+            // Create journal entry for payment
+            $journal = new Journal();
+            $journal->code = $journalCode;
+            $journal->bill_no = $validated['billno'];
+            $journal->account_type_id = $company_account_type_id;
+            $journal->account_id = $validated['account_id'];
+            $journal->amount = $validated['payment_amount'];
+            $journal->currency_id = $validated['currency_id'];
+            $journal->details =  __('sales.payment_for_bill').' SALES_'.$validated['billno'];  
+            $journal->transaction_type = 1; // Recieved
+            $journal->payment_type = 1; // Cash
+            $journal->option_label = __('validate.salary_payment');
+            $journal->status = 8; // Sales
+            $journal->idate = $validated['payment_date'];
+            $journal->year = $year;
+            $journal->month = $month;
+            $journal->day = $day;
+            $journal->user_id = auth()->id();
+            $journal->user_name = auth()->user()->full_name ?? '';
+            $journal->times = $times;
+            $journal->is_cleared = 0;
+            $journal->save();
+
+            // Create customer journal entry
+            // پرداخت نقد مشتری
+            $customerJournal = new Journal();
+            $customerJournal->code = $journalCode;
+            $customerJournal->bill_no = $validated['billno'];
+            $customerJournal->account_type_id = $customer_account_type_id;
+            $customerJournal->account_id = $validated['customer_account_id'];
+            $customerJournal->amount = $validated['payment_amount'];
+            $customerJournal->currency_id = $validated['currency_id'];
+            $customerJournal->details = __('sales.recieved_of_bill').' SALES_'.$validated['billno'];
+            $customerJournal->transaction_type = 2; // Paid
+            $customerJournal->payment_type = 1; // Cash
+            $customerJournal->status = 8; // Sales
+            $customerJournal->idate = $validated['payment_date'];
+            $customerJournal->year = $year;
+            $customerJournal->month = $month;
+            $customerJournal->day = $day;
+            $customerJournal->user_id = auth()->id();
+            $customerJournal->user_name = auth()->user()->full_name ?? ' ';
+            $customerJournal->times = $times;
+            $customerJournal->is_cleared = 0;
+            $customerJournal->save();
+
+            // =========================================
+            // STORE PAYMENT IN SALES_BILL_PAYMENTS TABLE
+            // =========================================
+            $salePayment = SalesBillPayment::create([
+                'warehouse_sales_id' => $sale->id,
+                'billno' => $validated['billno'],
+                'customer_account_id' => $validated['customer_account_id'],
+                'account_id' => $validated['account_id'],
+                'currency_id' => $validated['currency_id'],
+                'amount' => $validated['payment_amount'],
+                'remaining_after_payment' => $newRemained,
+                'payment_date' => $validated['payment_date'],
+                'note' => $validated['note'] ?? null,
+                'journal_code' => $journalCode,
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()->full_name ?? 'System',
+                'times' => $times,
+            ]);
+
+            // Update sale
+            $sale->cur_pay = $newCurPay;
+            $sale->remained = $newRemained;
+            $sale->save();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'sale_id' => $sale->id,
+                    // 'payment_id' => $salePayment->id,
+                    // 'new_remained' => $newRemained,
+                    // 'new_cur_pay' => $newCurPay,
+                    // 'journal_code' => $journalCode,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Payment Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function return(string $billno)
+    {
+      
+    }
+    public function getListOfItemsToShowInModal(string $billno)
+    {
+        $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
+        $saved_with_tax = $salesDetails->contains(function($item) {
+            return $item->sell_tax_per > 0;
+        }) ? true : false;
+        return view('sales.item_list_in_modal',compact('salesDetails','saved_with_tax'));
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -516,64 +762,7 @@ class SalesController extends Controller
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-    */
-    public function store_v1(Request $request)
-    {
-        $validator = Validator::make($request->all(), $this->validationRules(), $this->validationMessages());
-
-        if ($validator->fails()) {
-            return redirect()->route('sales.create')
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Create warehouse_sales
-            $warehouseSalesId = $this->createWarehouseSales($request);
-            if (!$warehouseSalesId) {
-                throw new \Exception('Failed to create warehouse sales');
-            }
-
-            // Create sales_details
-            $this->createSalesDetails($request, $warehouseSalesId);
-
-            // Decrease from warehouse_items
-            $this->decreaseWarehouseItemFromSoldAmount($request);
-
-            // Handle journal entry - NO TRANSACTION INSIDE
-            $this->handleJournalEntry($request);
-
-            DB::commit();
-            
-            Session::put('notification', [
-                'message' => __('common.added_successfully'),
-                'type' => 'success',
-            ]);
-            
-            return redirect()->route('sales.create');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Error storing SalesController', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            Session::put('notification', [
-                'message' => $e->getMessage() ?: __('common.add_failed'),
-                'type' => 'danger',
-            ]);
-            
-            return redirect()->route('sales.create')->withInput();
-        }
-    }
-   
-
-    
+  
     /**
      * Validation rules
      */
@@ -1054,8 +1243,6 @@ class SalesController extends Controller
             ])
             ->where('currency_id', $currency_id)
             ->where('account_id', $customer_account_id)
-            
-            // ->where('journals.times', '<=', $times)
             ->first();
 
             // balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 

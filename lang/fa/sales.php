@@ -68,5 +68,14 @@ return [
     'select_available_item' => 'انتخاب آیتم موجود',
     'select_valid_warehouse_item' => 'اجناس را درست انتخاب نمایید',
     'no_warehouse_items_available' => 'این جنس در لیست اجناس موجود وجود ندارد',
+    'item_lists' => 'لیست اجناس',
+    'sales_bill' => 'بل فروش',
+    'bill_payment' => 'پرداختی بل',
+    'max_payment' => 'حداکثر پرداخت',
+    'payment_amount' => 'مبلغ پرداخت',
+    'enter_valid_payment_amount' => 'مبلغ درست وارد نمایید',
+    'payment_cannot_exceed_remained' => 'مبلغ پرداخت بیشتر از مبلغ باقیات نباشد',
+    'payment_for_bill' => ' پرداخت نقد فروشات ',
+    'recieved_of_bill' => ' دریافت نقد فروشات ',
     
 ];

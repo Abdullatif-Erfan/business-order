@@ -321,11 +321,9 @@ class SalaryController extends Controller
             $journal1->amount = $validated['amount'];
             $journal1->account_type_id = $company_account_type_id;
             $journal1->currency_id = $validated['currency_id'];
-            
             $journal1->save();
 
             //  Journal 2 - Employee account (Received salary)
-            
             $journal2->bill_no = 0;
             $journal2->code = $newJournalCode;
             $journal2->idate = $todaysDate;

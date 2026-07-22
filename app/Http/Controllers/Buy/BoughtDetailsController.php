@@ -431,7 +431,7 @@ class BoughtDetailsController extends Controller
             $warehouseItemsToInsert[] = [
                 'warehouse_id' => $default_warehouse_id,
                 'buy_pre_id' => $item['pre_list_id'],
-                'billno' =>  $request->billno,
+                'billno' =>  $request->billno, 
                 'in_amount' => $item['amount'],
                 'out_amount' => 0.00,
                 'available_amount' => $item['amount'],

@@ -1,8 +1,6 @@
 @extends('layouts.app')
 @section('content')
 
-
-
 <!-- main content -->
 <div class="main-panel">
     <div class="content">
@@ -86,12 +84,12 @@
                                 <table id="salesTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="11">
+                                            <td colspan="10">
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="11">
+                                            <td colspan="10">
                                             <center> {{__('sales.list_title')}}   </center>
                                             </td>
                                         </tr>
@@ -102,7 +100,7 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.bill')}}  </th>
                                             <th> {{__('sales.customer')}} </th>
-                                            <th> {{__('buy.factor')}} </th>
+                                            <!-- <th> {{__('buy.factor')}} </th> -->
                                             <th> {{__('sales.total_price')}}</th>
                                             <th> {{__('buy.cur_pay')}}  </th>
                                             <th> {{__('buy.remained')}}  </th>
@@ -120,7 +118,6 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td></td>
                                         </tr>
                                     </tfoot>   
                                 </table>
@@ -132,6 +129,53 @@
         </div> <!-- /page-inner -->
     </div> <!-- /content -->
 </div> <!-- /main content -->
+
+<!-- Show List of items in modal -->
+<div class="modal fade" id="itemListModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{ __('common.item_list') }} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="itemListModalContent"></div>
+                <div id="itemListModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Show Bill Payment -->
+<div class="modal fade" id="billPaymentModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{ __('sales.bill_payment') }} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="billPaymentModalContent"></div>
+                <div id="billPaymentModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success btn-sm m-l-5" id="paymentBill" data-dismiss="modal">{{ __('common.save_and_submit') }}</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @include('sales.scripts')
 @endsection

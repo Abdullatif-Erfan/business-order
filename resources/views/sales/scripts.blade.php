@@ -1,5 +1,15 @@
 <script>
-// In sales.scripts.blade.php
+$(document).ready(function () {
+       // Initialize datepicker
+    $('.datepicker-input').datepicker({
+        format: 'yyyy-mm-dd', // Match your database format
+        autoclose: true,
+        todayHighlight: true,
+        clearBtn: true
+    });
+});
+
+
 $(document).on('click', '.datepicker-icon', function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -8,7 +18,8 @@ $(document).on('click', '.datepicker-icon', function(e) {
         $input.datepicker('show');
     }
 });
-
+</script>
+<script>
 function showNotification(message, type = 'info', from = 'top', align = 'right', style = 'withicon') {
     var content = {};
     content.message = '<span style="font-size:16px;">' + message + '</span>';
@@ -101,13 +112,12 @@ function fetchList() {
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_name', name: 'customer_name' },
-                { data: 'factor', name: 'factor' },
                 { data: 'total', name: 'total' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
                 { data: 'currency_name', name: 'currency_name' },
                 { data: 'idate', name: 'idate' },
-                { data: 'view', name: 'view', orderable: false, searchable: false }
+                { data: 'action', name: 'action', orderable: false, searchable: false }
             ],
             drawCallback: function () {
                 var api = this.api();
@@ -126,9 +136,9 @@ function fetchList() {
 
                 // Column indices: 0:checkbox, 1:DT_RowIndex, 2:billno, 3:customer_name, 4:factor
                 // 5:total, 6:cur_pay, 7:remained, 8:currency_name, 9:idate, 10:view
-                $(api.column(5).footer()).html(sumColumn(5)); // total
-                $(api.column(6).footer()).html(sumColumn(6)); // cur_pay
-                $(api.column(7).footer()).html(sumColumn(7)); // remained
+                $(api.column(4).footer()).html(sumColumn(4)); // total
+                $(api.column(5).footer()).html(sumColumn(5)); // cur_pay
+                $(api.column(6).footer()).html(sumColumn(6)); // remained
             }
         });
     } else {
@@ -169,6 +179,55 @@ $('#generateInvoiceBtn').on('click', function() {
             }
         });
     }
+});
+
+
+// Show Items in modal
+   $('table').on('click', '.itemList', function () {
+        $('#itemListModal').modal('show');
+        $('#itemListModalLoader').show();
+        const billno = $(this).data('id');
+        $.ajax({
+            url: `/sales/getListOfItemsToShowInModal/${billno}`,
+            type: 'GET',
+            success: (result) => {
+                $('#itemListModalContent').html(result);
+                $('#itemListModalLoader').hide();
+            },
+            error: () => {
+                $('#itemListModalLoader').hide();
+                alert('اطلاعات یافت نشد');
+            }
+        });
+});
+
+// Sales Bill
+$('table').on('click', '.billPayment', function () {
+    var billno = $(this).data('id');
+    var hasInvoice = $(this).data('id2');
+    
+    // Check if invoice exists 
+    if (hasInvoice == 1) {
+        showNotification('از این فروش انوایس ایجاد گردیده است و پرداخت از طریق بل صورت نمیگیرد', 'danger');
+        return; // Exit the function
+    }
+    
+    $('#billPaymentModal').modal('show');
+    $('#billPaymentModalLoader').show();
+    $('#billPaymentModalContent').html('');
+    
+    $.ajax({
+        url: `/sales/billPayment/${billno}`,
+        type: 'GET',
+        success: function(result) {
+            $('#billPaymentModalContent').html(result);
+            $('#billPaymentModalLoader').hide();
+        },
+        error: function() {
+            $('#billPaymentModalLoader').hide();
+            alert('اطلاعات یافت نشد');
+        }
+    });
 });
 
 </script>

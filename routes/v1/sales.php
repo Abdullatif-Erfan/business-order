@@ -12,7 +12,6 @@ use App\Http\Controllers\Sales\SalesByItemController;
     Route::get('/createWithOtherCurrency',[SalesController::class,'createWithOtherCurrency'])->name('sales.createWithOtherCurrency')->middleware('access:sales,create_records');
     Route::post('/store',[SalesController::class,'store'])->name('sales.store');
     Route::post('/storeWithOtherCurrency',[SalesController::class,'storeWithOtherCurrency'])->name('sales.storeWithOtherCurrency');
-    Route::get('/details/{billno}',[SalesController::class,'details'])->name('sales.details');
     Route::get('/edit/{billno}',[SalesController::class,'edit'])->name('sales.edit')->middleware('access:sales,edit_records');
     Route::get('/getSingleRecordForEdit/{id}',[SalesController::class,'getSingleRecordForEdit'])->name('sales.getSingleRecordForEdit');
     Route::post('/updateSalesAndWarehouseItems',[SalesController::class, 'updateSalesAndWarehouseItems'])->name('sales.updateSalesAndWarehouseItems');
@@ -20,6 +19,14 @@ use App\Http\Controllers\Sales\SalesByItemController;
     Route::post('/deleteSingleItem/{id}',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
     //  Route::post('/deleteSingleItem',[SalesController::class,'deleteSingleItem'])->name('sales.deleteSingleItem')->middleware('access:sales,delete_records');
     Route::get('/destroy/{times}',[SalesController::class,'destroy'])->name('sales.destroy')->middleware('access:sales,delete_records');
+    
+    // Action Buttons
+    Route::get('/getListOfItemsToShowInModal/{billno}',[SalesController::class,'getListOfItemsToShowInModal'])->name('sales.getListOfItemsToShowInModal')->middleware('access:sales,list');
+    Route::get('/bill/{billno}',[SalesController::class,'bill'])->name('sales.bill')->middleware('access:sales,list');
+    Route::get('/billPayment/{billno}',[SalesController::class,'billPayment'])->name('sales.billPayment')->middleware('access:sales,create_records');
+    Route::post('/storePayment', [SalesController::class, 'storePayment'])->name('sales.storePayment');
+    Route::get('/return/{billno}',[SalesController::class,'return'])->name('sales.return')->middleware('access:sales,edit_records');
+    Route::get('/details/{billno}',[SalesController::class,'details'])->name('sales.details');
     
     // Invoice routes
     Route::get('/invoices', [SalesController::class, 'invoiceList'])->name('sales.invoices')->middleware('access:sales,list');

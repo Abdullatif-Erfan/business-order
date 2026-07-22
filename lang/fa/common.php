@@ -9,6 +9,7 @@ return [
     'saving' => 'درحال ثبت',
     'confirm' => 'تایید',
     'save_and_print' => 'ثبت و پرنت',
+    'save_and_submit' => 'تایید و ثبت',
     'number' => 'نمبر',
     'amount' => 'مقدار',
     'name'   => 'نام',
@@ -70,6 +71,7 @@ return [
     'end_date' => 'تاریخ ختم',
     'print_date' => 'تاریخ چاپ',
     'expired_date' => 'تاریخ انقضا',
+    'sales_date' => 'تاریخ فروش',
     'total' => 'مجموع',
     'available_total' => 'مجموع موجود',
     'total_price' => 'قیمت مجموعی',
@@ -98,5 +100,11 @@ return [
     'current_document' => 'فایل فعلی',
     'category' => 'کتگوری',
     'profit' => 'مفاد',
+    "item_list" => "لیست اجناس خریده شده",
+    'error_occurred' => 'مشکل رخ داد',
+    'total_payment' => 'مبلغ پرداخت',
+    'journal_code' => 'کد ژورنال',
+    'note' => 'تفصیلات',
+    'bill_payments' => 'پرداخت های این بل',
 
 ];
