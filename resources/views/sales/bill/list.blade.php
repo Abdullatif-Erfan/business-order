@@ -22,7 +22,7 @@
   
   // Total due including previous balance
   $totalDue = $netCustomerBalance + $currentRemained;
-
+  $paymentsTotal = 0;
     // $prevAndCurBalance = $customer_balance->loans - $customer_balance->talabat;
     // $prevBaqi = $warehouseSales->first()->remained - $prevAndCurBalance;
     // $finalBalance =   $prevAndCurBalance + $prevBaqi; 
@@ -78,7 +78,7 @@
                                         </tr>
                                         <tr>
                                             <td> {{__('common.sales_date')}}‌ : {{ $warehouseSales->first()->idate ?? '' }}</td>
-                                            <td> {{__('common.bill')}}‌ : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}
+                                            <td> {{__('sales.billno')}}‌ : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}
                                                 <br />
                                                  {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}
                                             </td>
@@ -88,6 +88,8 @@
                                             <td> {{__('common.user')}}‌ : {{ $warehouseSales->first()->user_name ?? '' }}</td>
                                         </tr>
                                     </table>
+
+                                    
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
                                     <div class="table-responsive">
                                         <table class="table table-bordered new" style="width:100%">
@@ -128,7 +130,7 @@
                                                          <div class="col-md-12 m-t-20">
                                                               <br>
                                                              <strong>
-                                                                 <h3>{{__('sales.sign_and_stamp')}} ---------------------</h3>
+                                                                 <h3>{{__('sales.stamp')}} ---------------------</h3>
                                                              </strong>
                                                          </div>
                                                     </td>
@@ -140,7 +142,7 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="{{ $total_cols }}" class="price-section">  {{__('buy.cur_pay')}}  </td>
+                                                    <td colspan="{{ $total_cols }}" class="price-section">  {{__('buy.cur_pay_yet')}}  </td>
                                                     <td  class="price-section">
                                                         {{ number_format($warehouseSales->first()->cur_pay,2) }}
                                                          {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -167,7 +169,7 @@
                                             
                                                 <!-- بیلانس فعلی -->
                                                 <tr>
-                                                    <td colspan="{{ $total_cols }}" class="price-section">  {{__('buy.cur_balance')}}  </td>
+                                                    <td colspan="{{ $total_cols }}" class="price-section">  {{__('buy.balance')}}  </td>
                                                     <td  class="price-section">
                                                        {{ number_format($netCustomerBalance, 2) }}
                                                          {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}
@@ -179,7 +181,7 @@
                                     </div>
 
 
-                                    <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
+                                    <p style="margin-bottom:20px; padding-bottom:20px;"></p>
                                     <div class="table-responsive">
                                         <table class="table table-bordered new" style="width:100%">
                                               <thead>
@@ -188,29 +190,49 @@
                                                 </tr>
                                                 <tr>
                                                     <th>  {{__('common.number')}}   </th>
-                                                    <th>  {{__('common.bill')}}      </th>
+                                                    <th>  {{__('sales.billno')}}      </th>
                                                     <th>  {{__('common.total_payment')}} </th>
                                                     <th>  {{__('common.date')}}</th>
-                                                    <th>  {{__('common.journal_code')}}</th>
+                                                    <th class="hidden-print">  {{__('common.journal_code')}}</th>
                                                     <th>  {{__('common.note')}}</th>
                                                     <th>  {{__('common.user')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                @foreach($salesBillPayments as $key => $pay)
+                                               @php 
+                                                 $paymentsTotal += $pay->amount;
+                                               @endphp
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ 'SALES_'.$pay->billno ?? ' '}}</td>
                                                     <td>{{ number_format($pay->amount,2)  }}</td>
                                                     <td>{{ $pay->payment_date }}</td>
-                                                    <td>{{ $pay->journal_code }}</td>
+                                                    <td class="hidden-print">{{ $pay->journal_code }}</td>
                                                     <td>{{ $pay->note }} </td>
                                                     <td>{{ $pay->user_name }} </td>
                                                 </tr>
                                                 @endforeach
                                             </tbody>
+                                            <tfoot>
+                                                <tr style="background-color:#eee;">
+                                                    <td colspan="2">{{__('common.total')}}</td>
+                                                    <td>{{ number_format($paymentsTotal, 2) }}</td>
+                                                    <td></td>
+                                                    <td  class="hidden-print"></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
+
+                                      <div class="col-md-12 m-t-20">
+                                            <br>
+                                            <strong>
+                                                <h3>{{__('sales.sign_and_stamp')}} ---------------------</h3>
+                                            </strong>
+                                        </div>
 
                                     </div>
 

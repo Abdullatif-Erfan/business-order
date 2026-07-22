@@ -103,8 +103,12 @@ function fetchList() {
                     searchable: false,
                     render: function(data, type, row) {
                         var hasInvoice = parseInt(row.has_invoice) || 0;
+                        var remained = parseInt(row.remained) || 0;
                         if (hasInvoice === 1) {
                             return '<span class="badge badge-success" title="{{ __("buy.invoice_generated") }}"><i class="fas fa-check"></i></span>';
+                        } 
+                        if(remained <= 0) {
+                            return '<span class="badge" title="{{ __("buy.invoice_generated") }}"><i class="fas fa-check"></i></span>';
                         }
                         return '<input type="checkbox" class="row-checkbox" value="' + data + '">';
                     }
@@ -117,7 +121,7 @@ function fetchList() {
                 { data: 'remained', name: 'remained' },
                 { data: 'currency_name', name: 'currency_name' },
                 { data: 'idate', name: 'idate' },
-                { data: 'action', name: 'action', orderable: false, searchable: false }
+                { data: 'action', name: 'action', orderable: false, searchable: false, className:"hidden-print" }
             ],
             drawCallback: function () {
                 var api = this.api();
@@ -205,10 +209,16 @@ $('#generateInvoiceBtn').on('click', function() {
 $('table').on('click', '.billPayment', function () {
     var billno = $(this).data('id');
     var hasInvoice = $(this).data('id2');
+    var remained = $(this).data('id3');
     
     // Check if invoice exists 
     if (hasInvoice == 1) {
         showNotification('از این فروش انوایس ایجاد گردیده است و پرداخت از طریق بل صورت نمیگیرد', 'danger');
+        return; // Exit the function
+    }
+
+    if (remained <= 0) {
+        showNotification('پرداخت تکمیل گردیده است', 'success');
         return; // Exit the function
     }
     

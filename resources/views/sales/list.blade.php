@@ -106,7 +106,7 @@
                                             <th> {{__('buy.remained')}}  </th>
                                             <th> {{__('common.currency')}} </th>
                                             <th> {{__('common.date')}}  </th>
-                                            <th> {{__('common.details')}}  </th>
+                                            <th class="hidden-print"> {{__('common.options')}}  </th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -117,7 +117,7 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td></td>
+                                            <td class="hidden-print"></td>
                                         </tr>
                                     </tfoot>   
                                 </table>

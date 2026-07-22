@@ -125,10 +125,10 @@
 
                         <form id="salesForm" action="{{ route('sales.store') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="times" value="{{ $times }}">
-                            <input type="hidden" name="code" value="{{ $journal_code }}">
-                            <input type="hidden" name="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
-                            <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
+                            <input type="hidden"  name="times" value="{{ $times }}">
+                            <input type="hidden" name="code"  value="{{ $journal_code }}">
+                            <input type="hidden"  name="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
+                            <input type="hidden"  name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
                             
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -260,7 +260,7 @@
                                                         </td>
                                                         <td style="width:10%"><strong>{{__('buy.cur_pay')}}</strong></td>
                                                         <td style="width:15%">
-                                                            <input type="number" name="cur_pay" id="cur_pay" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="0.01" required>
+                                                            <input type="number" name="cur_pay" id="cur_pay" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="any" required>
                                                         </td>
                                                         <td style="width:10%"><strong>{{__('buy.remained')}}</strong></td>
                                                         <td style="width:15%">
@@ -334,10 +334,10 @@ $(document).ready(function () {
     // =========================================
     // DEBUG - Log data
     // =========================================
-    console.log('=== SALES FORM DEBUG ===');
-    console.log('combinedItemsData:', combinedItemsData);
-    console.log('combinedItemsData length:', combinedItemsData.length);
-    console.log('customersWithStatusData:', customersWithStatusData);
+    // console.log('=== SALES FORM DEBUG ===');
+    // console.log('combinedItemsData:', combinedItemsData);
+    // console.log('combinedItemsData length:', combinedItemsData.length);
+    // console.log('customersWithStatusData:', customersWithStatusData);
 
     // =========================================
     // INITIALIZE SELECT2
@@ -364,19 +364,19 @@ $(document).ready(function () {
         var hasItems = parseInt(selectedOption.data('has-items')) === 1;
         var hasOrder = parseInt(selectedOption.data('has-order')) === 1;
         
-        console.log('=== CUSTOMER SELECTED ===');
-        console.log('Customer ID:', customerId);
-        console.log('Has items:', hasItems);
-        console.log('Has order:', hasOrder);
-        console.log('Selected option data:', selectedOption.data());
+        // console.log('=== CUSTOMER SELECTED ===');
+        // console.log('Customer ID:', customerId);
+        // console.log('Has items:', hasItems);
+        // console.log('Has order:', hasOrder);
+        // console.log('Selected option data:', selectedOption.data());
         
         loadItemsForCustomer(customerId, hasItems, hasOrder);
     });
 
     function loadItemsForCustomer(customerId, hasItems, hasOrder) 
     {
-        console.log('Loading items for customer:', customerId);
-        console.log('combinedItemsData:', combinedItemsData);
+        // console.log('Loading items for customer:', customerId);
+        // console.log('combinedItemsData:', combinedItemsData);
         
         if (!customerId) {
             currentItems = [];
@@ -453,6 +453,7 @@ $(document).ready(function () {
         updateTotalPrice();
     }
 
+    
     // =========================================
     // GENERATE ROW HTML
     // =========================================
@@ -481,8 +482,8 @@ $(document).ready(function () {
                     <input type="hidden" name="items[${index}][order_id]" value="${item.dord_num || ''}">
                 </td>
                 <td>
-                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
-                        value="${amount}" min="0" max="${availableAmount}" required>
+                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" 
+                        value="${amount || 1}" min="0.0" max="${availableAmount}" required>
                     <small class="text-muted" style="display:block;font-size:9px;">{{__('sales.max')}}: ${availableAmount}</small>
                 </td>
                 <td>
@@ -524,7 +525,7 @@ $(document).ready(function () {
     // RECALCULATE ROW
     // =========================================
     function recalculateRow(row) {
-        var amount = parseFloat(row.find('.amount').val()) || 0;
+        var amount = parseFloat(row.find('.amount').val()) || 1;
         var sellUp = parseFloat(row.find('.sell-up').val()) || 0;
 
         var total = amount * sellUp;
@@ -633,6 +634,42 @@ $(document).ready(function () {
         recalculateRow(row);
     });
 
+
+    // =========================================
+    // AMOUNT ARROW KEY BEHAVIOR - ADD THIS HERE
+    // Increase by 1 on arrow up, decrease by 1 on arrow down
+    // =========================================
+    $(document).on('keydown', '.amount', function(e) {
+        var key = e.key || e.keyCode;
+        
+        // Arrow Up (38) or Arrow Down (40)
+        if (key === 'ArrowUp' || key === 38) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            var maxVal = parseFloat($(this).attr('max')) || Infinity;
+            var newVal = currentVal + 1;
+            
+            // Check if new value exceeds max
+            if (newVal > maxVal && maxVal !== Infinity) {
+                newVal = maxVal;
+            }
+            $(this).val(newVal).trigger('input');
+            
+        } else if (key === 'ArrowDown' || key === 40) {
+            e.preventDefault();
+            var currentVal = parseFloat($(this).val()) || 0;
+            var minVal = parseFloat($(this).attr('min')) || 0;
+            var newVal = currentVal - 1;
+            
+            // Check if new value is below min
+            if (newVal < minVal) {
+                newVal = minVal;
+            }
+            $(this).val(newVal).trigger('input');
+        }
+    });
+
+
     // =========================================
     // EVENT HANDLERS
     // =========================================
@@ -700,7 +737,7 @@ $(document).ready(function () {
                 </td>
                 <td>
                     <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
-                        value="0" min="0" required>
+                        value="1" min="0" required>
                     <small class="text-muted max-label" style="display:block;font-size:9px;">{{__('sales.max')}}: 0</small>
                 </td>
                 <td>

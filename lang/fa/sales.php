@@ -31,6 +31,7 @@ return [
     'atleast_select_one_item' => 'حداقل یک آیتم باید انتخاب شود',
     'print_page_title' => ' جزییات فورم فروشات',
     'sign_and_stamp' => 'مهر و امضا',
+    'stamp' => 'مهر ',
     'print_bill' => ' چاپ  بل',
     'max' => 'حداکثر',
     'add_new_item' => 'ایجاد آیتم جدید',
@@ -77,5 +78,6 @@ return [
     'payment_cannot_exceed_remained' => 'مبلغ پرداخت بیشتر از مبلغ باقیات نباشد',
     'payment_for_bill' => ' پرداخت نقد فروشات ',
     'recieved_of_bill' => ' دریافت نقد فروشات ',
+    'billno' => 'بل نمبر فروش',
     
 ];

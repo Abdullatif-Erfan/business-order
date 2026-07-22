@@ -118,7 +118,7 @@ class SalesController extends Controller
 
                     <div class="dropdown-menu">
                         <a class="dropdown-item" target="_blank" href="' . route('sales.bill', $soldItem->billno) . '">' . __('sales.sales_bill') . '</a>
-                        <a class="dropdown-item billPayment" href="#" data-id="'.$soldItem->billno.'" data-id2="'.$soldItem->has_invoice.'" >' . __('sales.bill_payment') . '</a>
+                        <a class="dropdown-item billPayment" href="#" data-id="'.$soldItem->billno.'" data-id2="'.$soldItem->has_invoice.'" data-id3="'.$soldItem->remained.'" >' . __('sales.bill_payment') . '</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#">Return</a>
                         <a class="dropdown-item itemList" href="#" data-id="'.$soldItem->billno.'">' . __('sales.item_lists') . '</a>
@@ -366,52 +366,7 @@ class SalesController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create_v1()
-    {
-        $todaysDate = Carbon::now()->format('Y-m-d');
-        // $warehouseItems = WarehouseItem::with(['preListRelation'])->where('available_amount','>',0)->get();
-       $warehouseItems = DB::table('warehouse_items')
-        ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
-        ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
-        ->where('warehouse_items.available_amount', '>', 0)
-        ->select(
-            'warehouse_items.id',
-            'warehouse_items.unit_id',
-            DB::raw("CASE 
-                WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 
-                THEN warehouse_items.buy_up_vat 
-                ELSE warehouse_items.buy_up 
-            END as buy_up"),
-            DB::raw("CASE 
-                WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 
-                THEN warehouse_items.sell_up_vat 
-                ELSE warehouse_items.sell_up 
-            END as sell_up"),
-            'warehouse_items.buy_tax_per',
-            'warehouse_items.sell_up as sell_up_no_tax',
-            'warehouse_items.sell_tax_per',
-            'warehouse_items.sell_tax_price',
-            'warehouse_items.available_amount',
-            'units.name as unit_name',
-            'warehouse_items.warehouse_id',
-            'bought_item_pre_lists.name as item_name',
-            'bought_item_pre_lists.id as pre_list_id',
-            'bought_item_pre_lists.category_id as category_id'
-        )
-        ->get();
-    
-        $customers = Account::select('id','name')->where('account_type_id',3)->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
-
-        $currencies = Currency::all();
-        $billno =  WarehouseSales::max('billno') + 1;
-        $journal_code = Journal::max('code') + 1;
-        $times = time();
-        
-
-        // return response()->json(['data' => $warehouseItems]);
-        return view('sales.create.form',compact('todaysDate','warehouseItems','customers','ownBanks','billno','currencies','journal_code','times'));
-    }
+   
     public function create_v2_backup()
     {
         $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
@@ -471,7 +426,7 @@ class SalesController extends Controller
 
         $billno = WarehouseSales::max('billno') + 1;
         $times = time();
-        $journal_code = 1;
+        
 
         return view('sales.v2.create.create', compact(
             'customers',
@@ -606,7 +561,8 @@ class SalesController extends Controller
 
         $billno = WarehouseSales::max('billno') + 1;
         $times = time();
-        $journal_code = 1;
+        $journal_code = Journal::max('code') + 1;
+       
 
         // return ['data' => $customersWithStatus, 'items' => $combinedItems];
         // return ['warehouseItems' => $warehouseItems];
@@ -738,6 +694,29 @@ class SalesController extends Controller
             // Handle journal entry
             $this->handleJournalEntry($request);
 
+
+            // =========================================
+            // STORE PAYMENT IN SALES_BILL_PAYMENTS TABLE
+            // =========================================
+            if($validated['cur_pay'] > 0 && $validated['cur_pay'] <= $validated['total_price']) 
+            {
+                $salePayment = SalesBillPayment::create([
+                    'warehouse_sales_id' => $warehouseSale->id,
+                    'billno' => $validated['billno'],
+                    'customer_account_id' =>  $validated['customer_account_id'],
+                    'account_id' => $validated['account_id'],
+                    'currency_id' => $validated['currency_id'],
+                    'amount' => $validated['cur_pay'],
+                    'remaining_after_payment' =>  $validated['remained'],
+                    'payment_date' => $date->format('Y-m-d'),
+                    'note' => 'پرداخت نقد فروش',
+                    'journal_code' => $request->code,
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()->full_name ?? 'System',
+                    'times' => $validated['times'],
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([
@@ -794,7 +773,7 @@ class SalesController extends Controller
             'total_price' => 'required|numeric|min:0',
             'cur_pay' => 'required|numeric|min:0',
             'remained' => 'required|numeric|min:0',
-            'from_account_id' => 'required|integer|exists:accounts,id',
+            'account_id' => 'required|integer|exists:accounts,id',
             'currency_id' => 'required|integer|exists:currencies,id',
             'note' => 'nullable|string|max:500',
         ];
@@ -870,9 +849,9 @@ class SalesController extends Controller
             'remained.numeric' => __('validate.remained_numeric'),
             'remained.min' => __('validate.remained_min'),
         
-            'from_account_id.required' => __('validate.from_account_id_required'),
-            'from_account_id.integer' => __('validate.from_account_id_integer'),
-            'from_account_id.exists' => __('validate.from_account_id_exists'),
+            'account_id.required' => __('validate.account_id_required'),
+            'account_id.integer' => __('validate.account_id_integer'),
+            'account_id.exists' => __('validate.account_id_exists'),
         
             'currency_id.required' => __('validate.currency_id_required'),
             'currency_id.integer' => __('validate.currency_id_integer'),
@@ -906,7 +885,7 @@ class SalesController extends Controller
             $warehouseSales = WarehouseSales::create([
                 'billno' => $request->billno,
                 'factor' => $request->factor,
-                'account_id' => $request->from_account_id,
+                'account_id' => $request->account_id,
                 'customer_account_id' => $request->customer_account_id,
                 'total' => $request->total_price,
                 'cur_pay' => $request->cur_pay,
@@ -1066,6 +1045,8 @@ class SalesController extends Controller
      */
     private function handleJournalEntry($request)
     {       
+        // \Log::info('Request Data:', $request->all());
+
         $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
         $date = Carbon::parse($short_date);
         $day = $date->day;
@@ -1087,12 +1068,13 @@ class SalesController extends Controller
              * خزانه باید طلب ثبت گردد =  paid Loan 
              * مشتری باید قرضدار ثبت گردد = Recieved Loan 
              */
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
+
+            if(floatval($request->cur_pay) == 0 && floatval($request->remained) == floatval($request->total_price))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
                 $details =   __('validate.sales_talab_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total_price, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $request->account_id,  $request->total_price, $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
                 $details = __('validate.sales_loan_bill').' SALES_'.$request->billno;
@@ -1102,12 +1084,12 @@ class SalesController extends Controller
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
-            else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
+            else if(floatval($request->remained) > 0 && floatval($request->cur_pay) > 0) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $request->account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
                 $details =  __('validate.sales_loan_bill').' SALES_'.$request->billno;
@@ -1118,18 +1100,18 @@ class SalesController extends Controller
                 // ثبت طلب خزانه = Paid Loan = t2p2
                 $details =  __('validate.sales_talab_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel,  $request->from_account_id, $request->remained,
+                $this->createJournalEntry($request, $optionLabel,  $request->account_id, $request->remained,
                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
 
             // قرضدار نمانده است و مکمل پرداخت کرده است
             // تنها در حساب خزانه اضافه شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
+            else if(floatval($request->remained) == 0 && floatval($request->cur_pay) == floatval($request->total_price)) 
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
                 $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay,
+                $this->createJournalEntry($request, $optionLabel, $request->account_id, $request->cur_pay,
                 $ttype = "1", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
             }
         
@@ -1416,7 +1398,7 @@ class SalesController extends Controller
             'customer_account_id' => 'required|exists:accounts,id',
             'currency_id'         => 'required|exists:currencies,id',
             'total_price'         => 'required|numeric|min:0',
-            'from_account_id'     => 'required|exists:accounts,id',
+            'account_id'          => 'required|exists:accounts,id',
             'cur_pay'             => 'required|numeric|min:0',
             'remained'            => 'required|numeric|min:0',
             'note'                => 'nullable|string|max:500',
@@ -1428,7 +1410,6 @@ class SalesController extends Controller
         try {
             // Find the warehouse sale record
             $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->firstOrFail();
-    
            
             // Update warehouse sale details
             $warehouseSales->update([
@@ -1438,7 +1419,7 @@ class SalesController extends Controller
                 'note'           => $validated['note'],
                 'factor'         => $validated['factor'],
             ]);
-    
+
             // Retrieve old journal records
             $oldJournals = Journal::where('times', $request->times)->where('status', 8)->get();
     
@@ -1464,6 +1445,14 @@ class SalesController extends Controller
                         ]);
                 }
             }
+            
+            $salePayment = SalesBillPayment::where('billno', $validated['billno'])
+                ->where('times', $warehouseSales->times)
+                ->update([
+                    'amount' => $validated['cur_pay'],
+                    'remaining_after_payment' => $validated['remained'],
+                ]);
+
     
             // Commit transaction
             DB::commit();
@@ -1778,6 +1767,7 @@ class SalesController extends Controller
         return view('sales.invoice.invoice_details', compact('invoice','orgbios','customers','ownBanks','newJournalCode','times','currencies'));
     }
 
+    // Add Invoice Payments
     public function addPayment(Request $request)
     {
         try 

@@ -102,9 +102,10 @@ return [
     'profit' => 'مفاد',
     "item_list" => "لیست اجناس خریده شده",
     'error_occurred' => 'مشکل رخ داد',
-    'total_payment' => 'مبلغ پرداخت',
+    'total_payment' => 'مبلغ پرداخت شده',
     'journal_code' => 'کد ژورنال',
     'note' => 'تفصیلات',
     'bill_payments' => 'پرداخت های این بل',
+    'options' => 'گزینه ها',
 
 ];
