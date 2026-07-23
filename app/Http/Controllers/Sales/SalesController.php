@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 use App\Models\Setting\Car;
 use App\Models\Setting\Unit;
+use App\Models\Buy\BoughtItem;
 use App\Models\Transaction\Journal;
 use App\Models\Warehouse\WarehouseSales;
 use App\Models\Warehouse\WarehouseItem;
@@ -106,7 +107,7 @@ class SalesController extends Controller
             // })
            ->addColumn('action', function ($soldItem) {
                 return '
-                <div class="dropdown">
+                <div class="dropdown dropend">
                     <button class="btn btn-primary btn-sm dropdown-toggle"
                         type="button"  data-toggle="dropdown">
                     </button>
@@ -440,6 +441,7 @@ class SalesController extends Controller
         ));
     }
 
+    // SHOW CREATE FORM
     public function create()
     {
         $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
@@ -578,7 +580,7 @@ class SalesController extends Controller
         ));
     }
             
-            
+    // STORE NEW SALES      
     public function store(Request $request)
     {
         // return response()->json($request->all());
@@ -609,7 +611,9 @@ class SalesController extends Controller
         DB::beginTransaction();
         try {
             $date = Carbon::parse($validated['todays_date']);
-            
+            $user_id = auth()->id();
+            $user_name = auth()->user()->full_name ?? 'System';
+
             // Create WarehouseSales
             $warehouseSale = WarehouseSales::create([
                 'billno' => $validated['billno'],
@@ -628,12 +632,20 @@ class SalesController extends Controller
                 'month' => $date->month,
                 'day' => $date->day,
                 'times' => $validated['times'],
-                'user_id' => auth()->id(),
-                'user_name' => auth()->user()->full_name ?? 'System',
+                'user_id' => $user_id,
+                'user_name' => $user_name,
                 'has_invoice' => 0,
                 'invoice_id' => null,
                 'is_cleared' => 0,
             ]);
+
+            // update bought_items by last car_id set editable to false, af
+            BoughtItem::where('car_id', $validated['car_id'])
+                ->where('isEditable', 0)
+                ->where('user_id', $user_id)
+                ->orderBy('id', 'DESC')
+                ->limit(1)
+                ->update(['isEditable' => 1]);
 
             // Create Sales Details and update warehouse
             foreach ($validated['items'] as $index => $item) {
@@ -707,8 +719,8 @@ class SalesController extends Controller
                     'payment_date' => $date->format('Y-m-d'),
                     'note' => 'پرداخت نقد فروش',
                     'journal_code' => $request->code,
-                    'user_id' => auth()->id(),
-                    'user_name' => auth()->user()->full_name ?? 'System',
+                    'user_id' => $user_id,
+                    'user_name' => $user_name,
                     'times' => $validated['times'],
                 ]);
             }
@@ -720,7 +732,7 @@ class SalesController extends Controller
                 'message' => __('common.added_successfully'),
                 'data' => [
                     'sale_id' => $warehouseSale->id,
-                    'billno' => $warehouseSale->billno,
+                    'billno'  => $warehouseSale->billno,
                 ]
             ]);
 

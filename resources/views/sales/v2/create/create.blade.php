@@ -967,9 +967,14 @@ $(document).ready(function () {
                 $submitBtn.prop('disabled', false).val(originalText);
                 if (response.status === 'success') {
                     showNotification(response.message || '{{__("common.added_successfully")}}', 'success');
+                    var billno = response.data.billno || response.billno || $('#billno').val();
                     setTimeout(function() {
+                    if (billno) {
+                        window.location.href = '/sales/bill/' + billno;
+                    } else {
                         window.location.href = '{{ route("sales.index") }}';
-                    }, 1500);
+                    }
+                }, 1500);
                 } else {
                     showNotification(response.message || '{{__("common.error_occurred")}}', 'danger');
                 }

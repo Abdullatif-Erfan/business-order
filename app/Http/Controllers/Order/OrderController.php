@@ -14,6 +14,7 @@ use App\Models\Setting\Currency;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Setting\Category;
 use App\Models\Setting\OrgBio;
+use App\Models\Setting\Car;
 use App\Models\Buy\BuyPreList;
 use App\Models\Setting\Unit;
 use Carbon\Carbon;
@@ -350,7 +351,10 @@ class OrderController extends Controller
     $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
     $categories = Category::select('id', 'name')->orderBy('name')->get();
     $todaysDate = Carbon::now()->format('Y-m-d');
+    $cars = Car::get();
     $times = time();
+
+
 
     // Get draft orders with state = 1
     $draftOrders = DraftOrder::select(
@@ -398,7 +402,8 @@ class OrderController extends Controller
         'categories', 
         'todaysDate', 
         'times',
-        'groupedItems'
+        'groupedItems',
+        'cars'
     ));
 
         // return response()->json($groupedItems);

@@ -29,6 +29,8 @@ class User extends Authenticatable
         'password',
         'roleId',
         'isAdmin',
+        'car_ids',
+        'customer_ids',
         'isDeleted',
         'isHidden',
         'photo',
@@ -37,6 +39,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'access_metrics' => 'array',
+        'car_ids' => 'array',
+        'customer_ids' => 'array',
     ];
 
     /**

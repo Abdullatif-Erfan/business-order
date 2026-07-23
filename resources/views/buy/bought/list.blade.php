@@ -353,7 +353,18 @@ $('#generateInvoiceBtn').on('click', function() {
    $('table').on('click', '.setProfit', function () {
         $('#EditRecordsModal').modal('show');
         $('#loading_modal').show();
-        const billno = $(this).data('id');
+        var billno = $(this).data('id');
+        var isEditable = $(this).data('id2');
+
+          // Check if invoice exists 
+        if (isEditable == 1) {
+            // showNotification('اجناس بعد از فروش قابل ویرایش نمیباشد', 'danger');
+            // return; // Exit the function
+            $('#EditAccountBtn').fadeOut(100);
+        } else {
+            $('#EditAccountBtn').fadeIn(100);
+        }
+
         $.ajax({
             url: `/boughtList/getToUpdateProfit/${billno}`,
             type: 'GET',

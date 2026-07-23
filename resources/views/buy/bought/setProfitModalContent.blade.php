@@ -3,10 +3,12 @@
         @csrf
         <input type="hidden" name="billno" value="{{ $boughtItemDetails->first()->billno ?? '' }}">
         <input type="hidden" name="times" value="{{ $boughtItemDetails->first()->times ?? '' }}">
+        <input type="hidden" name="boughtItemIsEditable" value="{{ $boughtItemIsEditable ?? 0 }}">
+
 
         
         <div class="table-responsive">
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered">
                 <thead>
                     <tr style="background: #e9fffe;">
                         <th style="width:5%">#</th>
@@ -43,6 +45,7 @@
                                    class="form-control profit-input" 
                                    name="items[{{ $index }}][profit]" 
                                    value="{{ $item->expected_profit ?? '' }}" 
+                                   readonly
                                    placeholder="{{__('common.profit')}}">
                         </td>
                         <td>

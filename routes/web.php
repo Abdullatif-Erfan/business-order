@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('user')->group(function(){
         Route::get('/',[UserController::class, 'index'])->name('user.index')->middleware('access:users,list');
         Route::get('/data',[UserController::class, 'getData'])->name('user.data');
+         Route::get('/{id}', [UserController::class, 'show'])->name('show')->middleware('access:users,list');
         Route::get('/create',[UserController::class, 'create'])->name('user.create')->middleware('access:users,create_records');
         Route::get('/edit/{id}',[UserController::class, 'edit'])->name('user.edit')->middleware('access:users,edit_records');
         Route::post('/store',[UserController::class, 'store'])->name('user.store');

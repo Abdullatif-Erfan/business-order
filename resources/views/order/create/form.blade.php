@@ -73,8 +73,21 @@
                                         <div class="col-md-12">
                                             <div class="row">
 
+                                                <div class="col-md-4 col-sm-6 col-xs-6">
+                                                    <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>
+                                                    <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" id="car_id" required>
+                                                        <!-- <option value="">{{__('sales.select_car')}}</option> -->
+                                                        @foreach($cars as $car)
+                                                            <option value="{{ $car->id }}">{{ $car->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('car_id')
+                                                        <span style='color:red'>{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+
                                                 <!-- Date Picker - Using Reusable Component -->
-                                                <div class="col-md-6 col-sm-6 col-xs-6">
+                                                <div class="col-md-4 col-sm-6 col-xs-6">
                                                     <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
                                                     <div class="input-group date" id="datepicker">
                                                         <input type="text" class="form-control" name="date" 
@@ -88,7 +101,7 @@
                                                 </div>
 
                                                 <!-- Status -->
-                                                <div class="col-md-6 col-sm-6 col-xs-6">
+                                                <div class="col-md-4 col-sm-6 col-xs-6">
                                                     <label for="state">{{ __('order.status') }}</label>
                                                     <select class="form-control" name="state" id="state" readonly>
                                                         <option value="1">{{ __('order.new') }}</option>

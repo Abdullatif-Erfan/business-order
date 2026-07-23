@@ -273,7 +273,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                     </button>
                                             
                                     <!-- edit button -->
-                                   @if($boughtItems->isNotEmpty() && $boughtItems->first()->is_cleared == 0)
+                                   @if($boughtItems->first()->isEditable == 0)
                                         <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}" class="hidden-print">
                                             <button class="btn btn-primary btn-sm m-r-10">
                                                 <i class="fas fa-pen"></i> {{__('common.edit')}}

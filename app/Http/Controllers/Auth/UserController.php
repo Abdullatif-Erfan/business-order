@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Models\Setting\Account;
+use App\Models\Setting\Car;
 use App\Models\User; 
 use App\Models\Auth\Role; 
 use App\Models\Setting\OrgBio;
@@ -65,56 +66,67 @@ class UserController extends Controller
 
     public function getData(Request $request)
     {
-          if($this->isAdmin)
-          {
-              $users = User::with(['roleRelationName'])->where('isHidden',0)->orderBy('created_at','DESC');
-          }
-          else 
-          {
-             $users = User::with(['roleRelationName'])->where('users.account_id',$this->accountId)->where('isHidden',0)->orderBy('created_at','DESC');
-          }
-           
-            
-            return DataTables::of($users)
-            
+        if ($this->isAdmin) {
+            $users = User::with(['roleRelationName', 'account'])
+                ->where('isHidden', 0)
+                ->orderBy('created_at', 'DESC');
+        } else {
+            $users = User::with(['roleRelationName', 'account'])
+                ->where('account_id', $this->accountId)
+                ->where('isHidden', 0)
+                ->orderBy('created_at', 'DESC');
+        }
+        
+        return DataTables::of($users)
             ->addIndexColumn()
-           
             ->addColumn('photo', function ($user) {
                 $imagePath = !empty($user->photo) && file_exists(storage_path('app/public/' . $user->photo))
                     ? asset('storage/' . $user->photo)
                     : asset('storage/user_photos/no_image.png');
-            
-                return '<img src="' . $imagePath . '" alt="image" class="avatar-img rounded" style="width:30px;margin:2px 0px;">';
+                
+                return '<img src="' . $imagePath . '" alt="image" class="avatar-img rounded" style="width:35px; height:35px; object-fit:cover; border-radius:50%;">';
             })
-
-
             ->addColumn('link', function ($user) {
-                return $user->account_id && $user->account_id > 0 ? '<i class="fas fa-check-circle success"></>' : 
-                '<i class="fas fa-times default"></>';
+                return $user->account_id && $user->account_id > 0 
+                    ? '<span class="badge badge-success"><i class="fas fa-check-circle"></i> ' . __('user.has_account') . '</span>' 
+                    : '<span class="badge badge-secondary"><i class="fas fa-times-circle"></i> ' . __('user.no_account') . '</span>';
             })
-
             ->addColumn('priviledge', function ($user) {
-                return $user->isAdmin ? __('common.admin') : $user->roleRelationName->role;
+                if ($user->isAdmin) {
+                    return '<span class="badge badge-danger">' . __('common.admin') . '</span>';
+                }
+                return '<span class="badge badge-info">' . ($user->roleRelationName->role ?? __('user.no_role')) . '</span>';
             })
-
             ->addColumn('relogin', function ($user) {
-                return $this->isAdmin ? '<a href="login/relogin/'.$user->id.'" class="hidden-print"><i class="fas fa-retweet" 
-                data-id="' . $user->id . '" style="font-size:20px;"></i></a>' : ''; 
+                return $this->isAdmin 
+                    ? '<a href="login/relogin/' . $user->id . '" class="hidden-print" title="' . __('user.relogin') . '">
+                        <i class="fas fa-retweet" style="font-size:18px; color:#17a2b8;"></i>
+                    </a>' 
+                    : ''; 
+            })
+             ->addColumn('view', function ($user) {
+                return '<i class="fas fa-eye viewUser" 
+                            data-id="' . $user->id . '" 
+                            style="font-size:20px; color: #0d8dc1">
+                            </i>';
             })
 
             ->addColumn('edit', function ($user) {
-                return '<a href="user/edit/'.$user->id.'" class="hidden-print"><i class="fas fa-pen" 
-                data-id="' . $user->id . '" style="font-size:20px;"></i></a>'; 
+                return '<a href="user/edit/' . $user->id . '" class="hidden-print" title="' . __('common.edit') . '">
+                        <i class="fas fa-pen" style="font-size:18px; color:#007bff;"></i>
+                    </a>'; 
             })
-
             ->addColumn('delete', function ($user) {
-                return $this->isAdmin ? '<a href="user/delete/'.$user->id.'" onclick="doConfirm()" class="hidden-print"><i class="fa fa-trash" 
-                data-id="' . $user->id . '" style="font-size:20px; color:red"></i></a>': ''; 
+                return $this->isAdmin 
+                    ? '<a href="user/delete/' . $user->id . '" onclick="return doConfirm();" class="hidden-print" title="' . __('common.delete') . '">
+                        <i class="fa fa-trash" style="font-size:18px; color:#dc3545;"></i>
+                    </a>' 
+                    : ''; 
             })
-            ->rawColumns(['photo','relogin','edit','delete','link'])
+            ->rawColumns(['photo', 'relogin', 'edit','view', 'delete', 'link', 'priviledge'])
             ->make(true);
-
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -129,18 +141,22 @@ class UserController extends Controller
         $roles = Role::all();
         $orgbios = OrgBio::all();
         $isAdmin = $this->isAdmin ?? 0;
-        // get list of customers and employess or drivers
-        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [2, 3])->get(); 
-        return view('management.users.create',compact('roles','orgbios','isAdmin','accounts'));
+        // get list of employess
+        $accounts = Account::select('id', 'name')->where('account_type_id',2)->get();
+
+        // get list of customers 
+        $customers  = Account::select('id', 'name')->where('account_type_id',3)->get(); 
+        $cars = Car::select('id','name')->get();
+        return view('management.users.create',compact('roles','orgbios','isAdmin','accounts','customers','cars'));
     }
 
     /**
     * Store a newly created resource in storage.
     */
 
-    public function store(Request $request)
+     public function store(Request $request)
     {
-        // Validate the request
+        // Validate the request with conditional rules
         $validated = $request->validate([
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name',
@@ -148,31 +164,37 @@ class UserController extends Controller
             'password' => 'required|string|min:5|max:20|confirmed',
             'roleId' => 'required|exists:roles,roleId',
             'isAdmin' => 'required|boolean',
-            'account_id' => 'nullable|exists:accounts,id', 
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'account_id' => $request->isAdmin == 0 ? 'required|exists:accounts,id' : 'nullable|exists:accounts,id',
+            'car_ids' => $request->isAdmin == 0 ? 'required|array|min:1' : 'nullable|array',
+            'car_ids.*' => 'exists:cars,id',
+            'customer_ids' => $request->isAdmin == 0 ? 'required|array|min:1' : 'nullable|array',
+            'customer_ids.*' => 'exists:accounts,id',
         ]);
 
         try {
             DB::beginTransaction();
 
             // Create user
-            $user = new User();
-            $user->full_name = $validated['full_name'];
-            $user->user_name = $validated['user_name'];
-            $user->email = $validated['email'] ?? null;
-            $user->password = Hash::make($validated['password']);
-            $user->roleId = $validated['roleId'];
-            $user->isAdmin = $validated['isAdmin'];
-            $user->account_id = $validated['account_id'] ?? null;
-            $user->createdBy = auth()->id();
+            $user = User::create([
+                'full_name' => $validated['full_name'],
+                'user_name' => $validated['user_name'],
+                'email' => $validated['email'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'roleId' => $validated['roleId'],
+                'isAdmin' => $validated['isAdmin'],
+                'account_id' => $validated['account_id'] ?? null,
+                'car_ids' => $validated['car_ids'] ?? [],
+                'customer_ids' => $validated['customer_ids'] ?? [],
+                'createdBy' => auth()->id(),
+            ]);
 
             // Handle photo upload
             if ($request->hasFile('photo')) {
                 $photoPath = $request->file('photo')->store('user_photos', 'public');
                 $user->photo = $photoPath;
+                $user->save();
             }
-
-            $user->save();
 
             // Update account with user reference
             if (!empty($validated['account_id'])) {
@@ -182,21 +204,19 @@ class UserController extends Controller
 
             DB::commit();
 
-            Session::put('notification', [
+            return redirect()->route('user.index')->with('notification', [
                 'message' => __('common.added_successfully'), 
                 'type' => 'success'
             ]);
-            return redirect()->route('user.index');
 
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error creating user: ' . $e->getMessage());
 
-            Session::put('notification', [
+            return redirect()->back()->withInput()->with('notification', [
                 'message' => __('common.add_failed') . ': ' . $e->getMessage(), 
                 'type' => 'danger'
             ]);
-            return redirect()->route('user.index')->withInput();
         }
     }
 
@@ -205,7 +225,25 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = User::with(['account', 'roleRelationName'])->findOrFail($id);
+        $orgbios = OrgBio::all();
+        
+        // Load assigned cars and customers
+        $assignedCars = [];
+        $assignedCustomers = [];
+        
+        if (!empty($user->car_ids) && is_array($user->car_ids)) {
+            $assignedCars = Car::whereIn('id', $user->car_ids)->get();
+        }
+        
+        if (!empty($user->customer_ids) && is_array($user->customer_ids)) {
+            $assignedCustomers = Account::whereIn('id', $user->customer_ids)
+                ->where('account_type_id', 3)
+                ->get();
+        }
+        // return ['user' => $user,  'assignedCars' => $assignedCars, 'assignedCustomers' => $assignedCustomers];
+
+        return view('management.users.show', compact('user', 'orgbios', 'assignedCars', 'assignedCustomers'));
     }
 
     /**
@@ -221,112 +259,140 @@ class UserController extends Controller
         
         $isAdmin = $this->isAdmin ?? 0;
         
-        // Get list of customers, employees, or drivers
+        // Get list of employees, customers, and cars
         $accounts = Account::select('id', 'name')
             ->whereIn('account_type_id', [2, 3])
             ->get();
         
+        $customers = Account::select('id', 'name')
+            ->where('account_type_id', 3)
+            ->get();
+        
+        $cars = Car::select('id', 'name')->get();
+        
         // Get the user's current account
         $userAccount = $user->account; // Returns Account model or null
         
-        return view('management.users.edit', compact('roles', 'orgbios', 'user', 'isAdmin', 'accounts', 'userAccount'));
+        return view('management.users.edit', compact(
+            'roles', 
+            'orgbios', 
+            'user', 
+            'isAdmin', 
+            'accounts', 
+            'userAccount',
+            'customers',
+            'cars'
+        ));
     }
+    
 
 
      /**
      * Update the specified resource in storage.
      */
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, string $id)
     {
-        // Base validation rules
+        $user = User::findOrFail($id);
+        
+        // Build validation rules conditionally
         $rules = [
             'full_name' => 'required|string|min:5|max:128',
             'user_name' => 'required|string|min:5|max:128|unique:users,user_name,' . $id,
             'email' => 'nullable|email|max:128|unique:users,email,' . $id,
             'password' => 'nullable|string|min:5|max:20|confirmed',
+            'roleId' => 'required|exists:roles,roleId',
+            'isAdmin' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'account_id' => 'nullable',
-            'old_account_id' => 'nullable',
+            'old_account_id' => 'nullable|exists:accounts,id',
         ];
 
-        // Only admins can update these fields
-        if (auth()->user()->isAdmin) {
-            $rules['roleId'] = 'nullable|exists:roles,roleId';
-            $rules['isAdmin'] = 'nullable|boolean';
+        //  Add conditional validation for simple users
+        if ($request->isAdmin == 0) {
+            $rules['account_id'] = 'required|exists:accounts,id';
+            $rules['car_ids'] = 'required|array|min:1';
+            $rules['car_ids.*'] = 'exists:cars,id';
+            $rules['customer_ids'] = 'required|array|min:1';
+            $rules['customer_ids.*'] = 'exists:accounts,id';
+        } else {
+            $rules['account_id'] = 'nullable|exists:accounts,id';
+            $rules['car_ids'] = 'nullable|array';
+            $rules['car_ids.*'] = 'exists:cars,id';
+            $rules['customer_ids'] = 'nullable|array';
+            $rules['customer_ids.*'] = 'exists:accounts,id';
         }
 
+        // Validate the request
         $validated = $request->validate($rules);
 
         try {
             DB::beginTransaction();
 
-            $user = User::findOrFail($id);
-
-            // Update basic fields
+            //  Update user data
             $user->full_name = $validated['full_name'];
             $user->user_name = $validated['user_name'];
             $user->email = $validated['email'] ?? null;
+            $user->roleId = $validated['roleId'];
+            $user->isAdmin = $validated['isAdmin'];
+            
+            //  Update password only if provided
+            if (!empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
+            
+            //  Update car_ids and customer_ids as JSON
+            $user->car_ids = $validated['car_ids'] ?? [];
+            $user->customer_ids = $validated['customer_ids'] ?? [];
+            
+            // Update account_id
             $user->account_id = $validated['account_id'] ?? null;
 
-            // Only update admin fields if user is admin
-            if (auth()->user()->isAdmin) {
-                if (isset($validated['roleId'])) {
-                    $user->roleId = $validated['roleId'];
-                }
-                if (isset($validated['isAdmin'])) {
-                    $user->isAdmin = $validated['isAdmin'];
-                }
-            }
-
-            // Update password if provided
-            if ($request->filled('password')) {
-                $user->password = Hash::make($request->input('password'));
-            }
-
-            // Handle photo upload
+            //  Handle photo upload
             if ($request->hasFile('photo')) {
-                // Delete old photo
+                // Delete old photo if exists
                 if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                     Storage::disk('public')->delete($user->photo);
                 }
-                
                 $photoPath = $request->file('photo')->store('user_photos', 'public');
                 $user->photo = $photoPath;
             }
 
             $user->save();
 
-            // Update account association
-            // قبلا حساب انتخاب شده بود وحالا یا حساب دیگر ویا پاک ساختیم باید اکاونت تیبل نیز آپدیت و نل شود
-            if(!empty($validated['old_account_id'])) {
-                $this->updateAccountAssociation($user->id, $validated['account_id'] ?? null);
+            // Update account with user reference
+            $oldAccountId = $validated['old_account_id'] ?? null;
+            $newAccountId = $validated['account_id'] ?? null;
+
+            // Remove user reference from old account
+            if (!empty($oldAccountId) && $oldAccountId != $newAccountId) {
+                Account::where('id', $oldAccountId)
+                    ->where('user_account_id', $user->id)
+                    ->update(['user_account_id' => null]);
+            }
+
+            // Add user reference to new account
+            if (!empty($newAccountId)) {
+                Account::where('id', $newAccountId)
+                    ->update(['user_account_id' => $user->id]);
             }
 
             DB::commit();
 
-            Session::put('notification', [
+            return redirect()->route('user.index')->with('notification', [
                 'message' => __('common.updated_successfully'), 
                 'type' => 'success'
             ]);
-            return redirect()->route('user.index');
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
-            Session::put('notification', [
-                'message' => __('common.record_not_found'), 
-                'type' => 'danger'
-            ]);
-            return redirect()->route('user.index');
 
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error updating user: ' . $e->getMessage());
 
-            Session::put('notification', [
+            return redirect()->back()->withInput()->with('notification', [
                 'message' => __('common.update_failed') . ': ' . $e->getMessage(), 
                 'type' => 'danger'
             ]);
-            return redirect()->route('user.index')->withInput();
         }
     }
 

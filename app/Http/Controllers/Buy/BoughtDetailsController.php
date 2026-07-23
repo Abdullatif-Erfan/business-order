@@ -130,7 +130,7 @@ class BoughtDetailsController extends Controller
 
             ->addColumn('setprofit', function ($boughtItem) {
                 return '<i class="fas fa-money-bill setProfit" 
-                            data-id="' . $boughtItem->billno . '" 
+                            data-id="' . $boughtItem->billno . '" data-id2="'.$boughtItem->isEditable.'" 
                             style="font-size:20px; color: #0d8dc1">
                             </i>';
             })
@@ -216,6 +216,8 @@ class BoughtDetailsController extends Controller
         ->where('billno', $billno)
         ->get();
 
+        $boughtItemIsEditable = BoughtItem::where('billno',$billno)->value('isEditable');
+
         // Check if data exists
         if ($boughtItemDetails->isEmpty()) {
             return response()->json([
@@ -224,7 +226,7 @@ class BoughtDetailsController extends Controller
             ], 404);
         }
 
-        return view('buy.bought.setProfitModalContent', compact('boughtItemDetails'));
+        return view('buy.bought.setProfitModalContent', compact('boughtItemDetails','boughtItemIsEditable'));
     }
 
      public function updateProfit(Request $request)
@@ -828,7 +830,6 @@ class BoughtDetailsController extends Controller
     {
         $orgbios = OrgBio::all();
         $short_date = Carbon::now()->format('Y-m-d');
-
         // FIX: Proper variable naming
         $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
             ->where('times', $times)
@@ -845,8 +846,59 @@ class BoughtDetailsController extends Controller
 
         $jexists = Journal::where('times', $times)->exists();
 
+        // $supplier_account_id = $boughtItemDetails->isNotEmpty() ? $boughtItemDetails->first()->supplier_account_id ?? 0 : 0;
+        // $currency_id = $boughtItems->isNotEmpty() && $boughtItems->first()->currencyRelation ? $boughtItems->first()->currencyRelation->id : 1;
+
+        // get previous balances
+        // $supplier_balance = $this->getSupplierBalance($supplier_account_id, $currency_id);
+        // return ['supplier_account_id' =>  $supplier_account_id,'currency_id' =>  $currency_id,'times' =>  $times,];
+        // return ['supplier_balance' => $supplier_balance];
+
         return view('buy.bought.details', compact('boughtItemDetails', 'boughtItems', 'short_date', 'orgbios', 'jexists'));
     }
+
+      /**
+     * Get Customer balance by supplier_account_id
+     */
+    private function getSupplierBalance($supplier_account_id, $currency_id)
+    {
+        $journal = DB::table('journals')
+            ->select([
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_paid"),
+            ])
+            ->where('currency_id', $currency_id)
+            ->where('account_id', $supplier_account_id)
+            ->first();
+
+            // balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
+    
+        // Calculate the balance
+        $talabat = ($journal->cache_paid + $journal->loan_paid);
+        $loans = ($journal->cache_recieved + $journal->loan_recieved);
+
+        // return $balance;
+        return ['talabat' => $talabat , 'loans' => $loans];
+    }
+    
 
     public function checkBillNoDuplication(Request $request)
     {
@@ -964,7 +1016,7 @@ class BoughtDetailsController extends Controller
             // Log the error
             \Log::error('Error occurred during the journal update', ['error' => $e]);
     
-            // Flash error message
+            // Flash error message   
             Session::put('notification', [
                 'message' => __('common.update_failed'),
                 'type' => 'danger',
