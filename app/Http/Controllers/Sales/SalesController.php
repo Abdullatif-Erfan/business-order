@@ -94,12 +94,7 @@ class SalesController extends Controller
             return DataTables::of($soldItems)
             ->addIndexColumn()
             ->addColumn('billno', function($soldItem) {
-                $checkIcon = $soldItem->is_cleared == 1 
-                    ? '<i class="fas fa-check-circle success"></i>' 
-                    : '';
-                return $soldItem->billno 
-                    ? $checkIcon . ' SALES_' . $soldItem->billno 
-                    : 0;
+                return '<span style="cursor:pointer" class="itemList" data-id="'.$soldItem->billno.'" >'. ' SALES_' . $soldItem->billno. '</span>';
             })
             ->addColumn('total', fn($s) => number_format($s->total, 2))
             ->addColumn('cur_pay', fn($s) => number_format($s->cur_pay, 2))
@@ -201,6 +196,7 @@ class SalesController extends Controller
     }
 
 
+    // store bill payments
     public function storePayment(Request $request)
     {
         // return response()->json($request->all());
@@ -1279,8 +1275,11 @@ class SalesController extends Controller
         return view('sales.editModalContent', compact('salesDetails', 'units'));
     }
 
+    // update items one by one in edit page of sales
     public function updateSalesAndWarehouseItems(Request $request)
     {
+        // return response()->json($request->all());
+
         $validated = $request->validate([
             'id'                => 'required|exists:sales_details,id',
             'pre_list_id'       => 'required|exists:bought_item_pre_lists,id',
@@ -1293,7 +1292,8 @@ class SalesController extends Controller
         ]);
 
         DB::beginTransaction();
-        try {
+        try 
+        {
             $salesDetails = SalesDetails::findOrFail($validated['id']);
 
             $new_total = $validated['amount'] * $validated['sell_up'];
@@ -1311,42 +1311,54 @@ class SalesController extends Controller
             $warehouseItem = WarehouseItem::where('warehouse_id', $validated['warehouse_id'])
                                             ->where('buy_pre_id', $validated['pre_list_id'])
                                             ->where('unit_id', $validated['unit_id'])
-                                            ->where('available_amount', '>', 0)
+                                            ->lockForUpdate()
+                                            // ->where('available_amount', '>', 0)
                                             ->first();
 
             if (!$warehouseItem) {
                 throw new \Exception('Warehouse item not found.');
             }
 
-            // Calculate the difference
-            $oldAmount = (float) $validated['old_amount'];
-            $newAmount = (float) $validated['amount'];
-            $diff = abs($newAmount - $oldAmount);
-            
-            if (!$warehouseItem) {
-                throw new \Exception('Warehouse item not found.');
-            }
+                // Calculate the difference
+                $oldAmount = (float) $validated['old_amount'];
+                $newAmount = (float) $validated['amount'];
+                $diff = abs($newAmount - $oldAmount);
+                
+                if (!$warehouseItem) {
+                    throw new \Exception('Warehouse item not found.');
+                }
 
-            // Update warehouse quantities based on difference
-            // اگر مقدار کمتر شود باید به همان مقدار از 
-            // out_amount کم شود و available_amount نیز کم شود
-            // مثلا قبلا ۴ دانه فروخته بودیم و حالا ۲ ساختیم
-            if ($oldAmount > $newAmount) 
-            {
-                // Amount decreased - return items to warehouse
-                $warehouseItem->available_amount += $diff;
-                $warehouseItem->out_amount -= $diff;
+                // Update warehouse quantities based on difference
+                // اگر مقدار کمتر شود باید به همان مقدار از 
+                // out_amount کم شود و available_amount نیز کم شود
+                // مثلا قبلا ۴ دانه فروخته بودیم و حالا ۲ ساختیم
+                if ($oldAmount > $newAmount) 
+                {
+                    // Amount decreased - return items to warehouse
+                    $warehouseItem->available_amount += $diff;
+                    // $warehouseItem->out_amount -= $diff;
+                    
+                    //  Check: out_amount should not go negative
+                    if ($warehouseItem->out_amount >= $diff) {
+                        $warehouseItem->out_amount -= $diff;
+                    } else {
+                        // If out_amount is less than diff, set it to 0
+                        $warehouseItem->out_amount = 0;
+                    }
+
                 // اگر مقدار زیادتر شود باید از مقدار موجود کم شود و 
                 // مثلا: دو دانه فروخته بودیم حالا چهار دانه ویرایش میکنم این دو دانه 
             } 
             elseif ($newAmount > $oldAmount) 
-            {
+            {  
                 // Amount increased - take more items from warehouse
                 if ($warehouseItem->available_amount < $diff) {
-                    throw new \Exception('Not enough stock available in warehouse.');
+                    throw new \Exception('جنس به این تعداد موجود نیست');
+                    return;
                 }
-                $warehouseItem->available_amount -= $diff;
-                $warehouseItem->out_amount += $diff;
+
+                $warehouseItem->available_amount -= $diff;  // مقدار جدید از گدام کم شود
+                $warehouseItem->out_amount += $diff;   // مقدار جدید بیشتر فروش شده
             }
 
             // Determine the valuation price (with or without tax)
@@ -1357,6 +1369,18 @@ class SalesController extends Controller
 
             // Calculate available_total = available_amount × valuation_price
             $warehouseItem->available_total = round($warehouseItem->available_amount * $valuationPrice, 2);
+
+
+            //  Ensure out_amount is never negative (safety check)
+            if ($warehouseItem->out_amount < 0) {
+                $warehouseItem->out_amount = 0;
+            }
+
+            //  Ensure available_amount is never negative (safety check)
+            if ($warehouseItem->available_amount < 0) {
+                $warehouseItem->available_amount = 0;
+            }
+                
 
             $warehouseItem->save();
 
@@ -1392,13 +1416,14 @@ class SalesController extends Controller
      */
     public function update(Request $request)
     {
+        // return response()->json($request->all());
         // Validate request
         $validated = $request->validate([
             'billno'              => 'required|integer|min:1',
             'customer_account_id' => 'required|exists:accounts,id',
+            'account_id'          => 'required|exists:accounts,id',
             'currency_id'         => 'required|exists:currencies,id',
             'total_price'         => 'required|numeric|min:0',
-            'account_id'          => 'required|exists:accounts,id',
             'cur_pay'             => 'required|numeric|min:0',
             'remained'            => 'required|numeric|min:0',
             'note'                => 'nullable|string|max:500',
@@ -1426,8 +1451,11 @@ class SalesController extends Controller
             if ($oldJournals->isNotEmpty()) {
                 // Clone request to avoid modifying original data
                 $clonedRequest = clone $request;
+                // $clonedRequest->merge([
+                //     'code' => $oldJournals->first()->code, // Get 'code' from the first record
+                // ]);
                 $clonedRequest->merge([
-                    'code' => $oldJournals->first()->code, // Get 'code' from the first record
+                    'code' => Journal::max('code') + 1, 
                 ]);
     
                 // Delete all journal records in a single query
@@ -1444,6 +1472,14 @@ class SalesController extends Controller
                             'type'    => 'danger',
                         ]);
                 }
+            } 
+            else 
+            {
+                $clonedRequest = clone $request;
+                $clonedRequest->merge([
+                    'code' => Journal::max('code') + 1, 
+                ]);
+                $checkJournal = $this->handleJournalEntry($clonedRequest);
             }
             
             $salePayment = SalesBillPayment::where('billno', $validated['billno'])
@@ -1657,6 +1693,9 @@ class SalesController extends Controller
 
             // Get selected sold items
             $warehouseSales = WarehouseSales::whereIn('id', $warehouseSalesIds)->get();
+
+            // Extract bill numbers as an array
+            $billNumbers = $warehouseSales->pluck('billno')->toArray();
             
             if ($warehouseSales->isEmpty()) {
                 return response()->json([
@@ -1689,6 +1728,7 @@ class SalesController extends Controller
             // Create invoice
             $invoice = SalesInvoice::create([
                 'invoice_number' => $invoiceNumber,
+                'sales_bill_numbers' => json_encode($billNumbers), // Store as JSON
                 'customer_id' => $customerId,
                 'total' => $totalAmount,
                 'paid_amount' => $paidAmount,
@@ -1712,6 +1752,7 @@ class SalesController extends Controller
                     SalesInvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'sales_details_id' => $detail->id,
+                        'billno' => $detail->billno,
                         'warehouse_sales_id' => $salestItem->id,
                         'pre_list_id' => $detail->pre_list_id,
                         'amount' => $detail->amount,

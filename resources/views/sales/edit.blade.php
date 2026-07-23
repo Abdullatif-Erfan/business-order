@@ -2,12 +2,10 @@
 
 @php 
     $grandTotal = 0; 
-    $grandDiscount = 0;
-    $grandTransport =0;
-    $payable =0;
     $remained =0;
     $curPay=0;
     $count = 0;
+    $total  = 0;
 @endphp
 @section('content')
 
@@ -115,18 +113,16 @@
                                             <tbody>
                                                 @foreach($salesDetails as $key => $detail)
                                                 @php
-                                                    $grandTotal += $detail->amount * $detail->sell_up;
-                                                    $grandDiscount += $detail->discount;
-                                                    $payable = $grandTotal - $grandDiscount;
+                                                    $grandTotal += $detail->total ?? 0;
                                                 @endphp
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td> {{ $detail->amount  }} </td>
+                                                    <td>{{ $detail->amount  }} </td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
-                                                     @if($saved_with_tax) 
-                                                    <td> % {{ $detail->sell_tax_per }} </td>
-                                                    <td> {{  number_format($detail->sell_tax_price,2) }} </td>
+                                                    @if($saved_with_tax) 
+                                                    <td>% {{ $detail->sell_tax_per }} </td>
+                                                    <td>{{ number_format($detail->sell_tax_price,2) }} </td>
                                                     @endif
                                                     <td>{{ number_format($detail->sell_up,2) }}</td>
                                                     <td>{{ number_format($detail->total,2) }} </td>
@@ -139,35 +135,42 @@
                                     </div>
                                 
                                         <table class="table table-bordered new tableTdPadding" style="background-color:#f6f6f6; width:100%;margin-top:20px">
-                                        <tr>
-                                            <td>{{__('buy.total_price')}} &nbsp; </td>
-                                            <td><input type="number" step="0.01"  class="form-control" name="total_price" id="total_price" required readonly
-                                            value="{{ $grandTotal }}" ></td>
-
-                                            <td> {{__('buy.cur_pay')}} </td>
-                                           <td><input type="number" step="0.01"  class="form-control" name="cur_pay" required
-                                            value="{{ $warehouseSales->first()->cur_pay ?? '' }}" oninput="updateRemain(this.value)" ></td>
-                                             <td> {{__('buy.remained')}} </td>
-                                            <td><input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
-                                            value="{{ $payable - $warehouseSales->first()->cur_pay }}" ></td>
-                                        </tr>
-                                        <tr>
-                                            <td> {{__('journal.reciever')}} </td>
-                                            <td>
-                                                <select name="from_account_id" class="form-control select2" required>
-                                                    @foreach($ownBanks as $account)
-                                                        <option value="{{ $account->id }}" {{ $warehouseSales->first()->account_id == $account->id ? 'selected' : '' }}>
-                                                            {{ $account->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                            <td>{{__('buy.note')}} </td>
-                                            <td colspan="3"><input type="text"  class="form-control" name="note" id="note"
-                                            value="{{  $warehouseSales->first()->note }}" ></td>
-                                        </tr>
-                                    </table>
-
+                                            <tr>
+                                                <td><strong>{{__('buy.total_price')}}</strong></td>
+                                                <td>
+                                                    <input type="number"  class="form-control" name="total_price" id="total_price" required readonly
+                                                        value="{{ number_format($grandTotal, 2, '.', '') }}">
+                                                </td>
+                                                <td><strong>{{__('buy.cur_pay')}}</strong></td>
+                                                <td>
+                                                    <input type="number" step="0.01" class="form-control" name="cur_pay" id="cur_pay" required
+                                                        value="{{ number_format($warehouseSales->first()->cur_pay, 2, '.', '') }}" 
+                                                        oninput="updateRemain(this.value)">
+                                                </td>
+                                                <td><strong>{{__('buy.remained')}}</strong></td>
+                                                <td>
+                                                    <input type="number" step="0.01" readonly class="form-control" name="remained" id="remained" required
+                                                     value="{{ number_format(($grandTotal - ($warehouseSales->first()->cur_pay ?? 0)), 2, '.', '') }}">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{{__('journal.reciever')}}</strong></td>
+                                                <td>
+                                                    <select name="account_id" class="form-control select2" required>
+                                                        @foreach($ownBanks as $account)
+                                                            <option value="{{ $account->id }}" {{ $warehouseSales->first()->account_id == $account->id ? 'selected' : '' }}>
+                                                                {{ $account->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </td>
+                                                <td><strong>{{__('buy.note')}}</strong></td>
+                                                <td colspan="3">
+                                                    <input type="text" class="form-control" name="note" id="note"
+                                                        value="{{ $warehouseSales->first()->note ?? '' }}">
+                                                </td>
+                                            </tr>
+                                        </table>
                                 </div>
 
 
@@ -269,13 +272,7 @@
 
 
 <script>
-    function updatePayAble(discount)
-    {
-        var total_price = parseFloat($('#total_price').val());
-        var result = total_price - parseFloat(discount);
-        $('#payable').val(result).toFixed(2);
-    }
-
+  
     function updateRemain(cur_pay)
     {
         var total_price = parseFloat($('#total_price').val());

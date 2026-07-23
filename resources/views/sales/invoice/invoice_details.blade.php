@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@php 
+  $billNumbers = json_decode($invoice->sales_bill_numbers, true);
+@endphp
 
 @section('content')
 <style>
@@ -142,8 +145,16 @@
                                         <tr>
                                             <td><strong>{{ __('buy.invoice_date') }}:</strong></td>
                                             <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
-                                            <td><strong>{{ __('buy.due_date') }}:</strong></td>
-                                            <td>{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '-' }}</td>
+                                            <td><strong>{{ __('sales.billno') }}:</strong></td>
+                                            <td>
+                                                @if($billNumbers && is_array($billNumbers))
+                                                    @foreach($billNumbers as $bill)
+                                                        <span class="badge">{{ 'SALES_'.$bill }}</span> &nbsp;&nbsp;
+                                                    @endforeach
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
                                         </tr>
                                         <tr>
                                             <td><strong>{{ __('common.currency') }}:</strong></td>
@@ -180,6 +191,7 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
+                                                <th>{{ __('sales.billno') }}</th>
                                                 <th>{{ __('buy.item') }}</th>
                                                 <th>{{ __('common.amount') }}</th>
                                                 <th>{{ __('common.unit') }}</th>
@@ -198,6 +210,7 @@
                                             @foreach($invoice->items as $key => $item)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
+                                                <td>{{ 'SALES_'.$item->billno ?? '' }}</td>
                                                 <td>{{ $item->preList->name ?? '' }}</td>
                                                 <td>{{ $item->amount }}</td>
                                                 <td>{{ $item->unit->name ?? '' }}</td>

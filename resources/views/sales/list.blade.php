@@ -18,7 +18,7 @@
                                 <i class="fas fa-file-invoice"></i> {{__('buy.generate_invoice')}}
                             </button>
 
-                              <!-- Responsive Filter Toggle Button - Visible only on XS -->
+                            <!-- Responsive Filter Toggle Button - Visible only on XS -->
                             <div class="pull-left" style="width:90px">
                                 <button type="button" class="responsive_button btn btn-sm  visible-xs"
                                   id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">

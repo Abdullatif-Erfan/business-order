@@ -187,12 +187,12 @@
                                         <span class="sub-item">{{ __('menu.bought_list') }}</span>
                                     </a>
                                 </li>
-                                <li class="{{ request()->routeIs('boughtListBasedItem.index') ? 'active' : '' }}">
+                                <!-- <li class="{{ request()->routeIs('boughtListBasedItem.index') ? 'active' : '' }}">
                                     <a href="{{ route('boughtListBasedItem.index') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">{{ __('menu.bought_list_item') }}</span>
                                     </a>
-                                </li>
+                                </li> -->
                                 <li class="{{ request()->routeIs('return.list') ? 'active' : '' }}">
                                     <a href="{{ route('return.list') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
@@ -249,12 +249,12 @@
                                         <span class="sub-item">{{ __('menu.sold_list') }}</span>
                                     </a>
                                 </li>
-                                <li class="{{ request()->routeIs('soldItemList.index') ? 'active' : '' }}">
+                                <!-- <li class="{{ request()->routeIs('soldItemList.index') ? 'active' : '' }}">
                                     <a href="{{ route('soldItemList.index') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">{{ __('menu.sold_list_by_item') }}</span>
                                     </a>
-                                </li>
+                                </li> -->
                                 <li class="{{ request()->routeIs('sales.invoices') ? 'active' : '' }}">
                                     <a href="{{ route('sales.invoices') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>

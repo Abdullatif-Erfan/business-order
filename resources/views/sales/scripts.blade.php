@@ -43,6 +43,15 @@ function showNotification(message, type = 'info', from = 'top', align = 'right',
     });
 }
 
+    // =========================================
+    // ENTER KEY SEARCH
+    // =========================================
+    $('.filter-section input').on('keypress', function(e) {
+        if (e.which === 13) {
+            $('#btn-filter').click();
+        }
+    });
+
 $(document).ready(function() {
     fetchList();
 

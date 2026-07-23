@@ -14,6 +14,7 @@ class SalesInvoice extends Model
 
     protected $fillable = [
         'invoice_number',
+        'sales_bill_numbers',
         'customer_id',
         'total',
         'paid_amount',
@@ -31,7 +32,9 @@ class SalesInvoice extends Model
     protected $casts = [
         'invoice_date' => 'date',
         'due_date' => 'date',
+        'sales_bill_numbers' => 'array',
     ];
+
 
     // Relationships
     public function customer()
