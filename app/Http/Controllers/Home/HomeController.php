@@ -29,6 +29,9 @@ class HomeController extends Controller
     
     public function index(Request $request)
     {        
+        // $user = auth()->user()->full_name;
+        // return ['user' => $user];
+
         $search['start_date'] = $request->input('start_date') ?? Carbon::now()->format('Y-m-d');
         $search['end_date'] = $request->input('end_date');
         $search['supplier_id'] = $request->input('supplier_id') ?? 0;

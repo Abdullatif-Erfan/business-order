@@ -136,7 +136,6 @@
                         <form id="buyingForm" action="{{ route('boughtList.submit') }}" method="POST">
                             @csrf
                             <input type="hidden" name="times" value="{{ $times }}">
-                            <input type="hidden" name="journal_code" value="{{ $newJournalCode }}">
                             <input type="hidden" name="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
                             <input type="hidden" name="tax_per" value="{{ $tax->tax_per ?? 0 }}">
                             <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
@@ -232,11 +231,11 @@
                                                                     <th style="width:20%">{{__('wh.item_selection')}}</th>
                                                                     <th style="width:10%">{{__('common.amount')}}</th>
                                                                     <th style="width:10%">{{__('common.category')}}</th>
-                                                                    <th style="width:10%">{{__('common.unit')}}</th>
+                                                                    <th style="width:8%">{{__('common.unit')}}</th>
                                                                     <th style="width:15%">{{__('buy.buy_up')}}</th>
                                                                     <th style="width:12%">{{__('buy.profit')}}</th>
                                                                     <th style="width:12%">{{__('sales.sold_up')}}</th>
-                                                                    <th style="width:15%">{{__('common.total')}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                                                    <th style="width:17%">{{__('common.total')}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                                                                     <th style="width:5%">{{__('common.action')}}</th>
                                                                 </tr>
                                                             </thead>
@@ -358,7 +357,7 @@ $(document).ready(function () {
     // GENERATE ROW HTML
     // =========================================
     function generateRowHtml(item, index) {
-        var amount = parseFloat(item.amount) || 0;
+        var amount = parseFloat(item.amount) || 1;
         var buyUp = (item.buy_up !== '' && item.buy_up !== undefined) ? parseFloat(item.buy_up) : '';
         var profitAmount = (item.profit_amount !== '' && item.profit_amount !== undefined) ? parseFloat(item.profit_amount) : '';
         var sellUp = (item.sell_up !== '' && item.sell_up !== undefined) ? parseFloat(item.sell_up) : '';
@@ -612,7 +611,7 @@ $(document).ready(function () {
                     pre_list_name: item.pre_list.name || 'Unknown',
                     unit_id: item.unit_id,
                     unit_name: item.unit.name || 'Unknown',
-                    amount: parseFloat(item.amount) || 0,
+                    amount: parseFloat(item.amount) || 1,
                     category_id: item.category_id || order.category_id || '',
                     category_name: order.category_relation ? order.category_relation.name : 'Unknown',
                     buy_up: '',

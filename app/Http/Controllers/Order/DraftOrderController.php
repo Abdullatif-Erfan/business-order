@@ -18,14 +18,16 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DraftOrderController extends Controller
 {
-    protected $isAdmin;
+    protected $isAdmin, $customerIds;
     
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->customerIds = session('customerIds', []);
         } else {
             $this->isAdmin = false;
+            $this->customerIds = [];
         }
     }
 
@@ -36,7 +38,7 @@ class DraftOrderController extends Controller
     {
         $orgbios = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
-
+        
         return view('order.draft.list', compact('todaysDate', 'orgbios'));
         // if ($tabIndex == 0) {
         // return view('order.draft.list', compact('todaysDate', 'orgbios'));
@@ -71,6 +73,10 @@ class DraftOrderController extends Controller
             'unitRelation:id,name',
         ])
         ->orderBy('id', 'DESC');
+
+        if (!$this->isAdmin) {
+            $draftOrders->whereIn('draft_orders.customer_id', $this->customerIds);
+        }
 
         // Apply filters
         if ($request->customer_name) {
@@ -246,14 +252,20 @@ class DraftOrderController extends Controller
      */
     public function create()
     {
-        $autoNum = DraftOrder::max('dord_num') + 1;
         $preLists = BuyPreList::select('id', 'name', 'category_id','unit_id','unit_name')->orderBy('name')->get();
         $units = Unit::select('id', 'name')->orderBy('name')->get();
-        $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        if(!$this->isAdmin) 
+        {
+            $customers = Account::select('id', 'name')
+            ->where('account_type_id', 3)
+            ->whereIn('id', $this->customerIds)
+            ->get();
+        } else {
+            $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        }
         $todaysDate = Carbon::now()->format('Y-m-d');
-        $times = time();
         
-        return view('order.draft.create_form', compact('preLists', 'units', 'customers','todaysDate', 'times','autoNum'));
+        return view('order.draft.create_form', compact('preLists', 'units', 'customers','todaysDate'));
     }
 
     /**
@@ -270,8 +282,6 @@ class DraftOrderController extends Controller
             'unit_id' => 'required|array|min:1',
             'customer_id' => 'required|exists:accounts,id',
             'category_id' => 'nullable|array',
-            'times' => 'required|integer',
-            'dord_num' => 'required|integer',
         ]);
 
         DB::beginTransaction();
@@ -280,6 +290,8 @@ class DraftOrderController extends Controller
             // $idate = isset($validated['idate']) && !empty($validated['idate']) 
             //     ? Carbon::parse($validated['idate'])->startOfDay() 
             //     : now()->startOfDay();
+            $dord_num = DraftOrder::max('dord_num') + 1;
+            $times = time();
 
             $items = collect($validated['buy_pre_list'])->map(function ($preListId, $index) use ($validated) {
                 return [
@@ -294,7 +306,7 @@ class DraftOrderController extends Controller
 
             foreach ($items as $item) {
                 DraftOrder::create([
-                    'dord_num'   => $validated['dord_num'],
+                    'dord_num'   => $dord_num,
                     'pre_list_id' => $item['pre_list_id'],
                     'category_id' => $item['category_id'],
                     'customer_id' => $validated['customer_id'],
@@ -304,7 +316,7 @@ class DraftOrderController extends Controller
                     'user_name' => auth()->user()->full_name ?? '',
                     'idate' => $request->date,
                     'state' => 1, 
-                    'times' => $validated['times'],
+                    'times' => $times,
                 ]);
             }
 

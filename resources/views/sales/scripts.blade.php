@@ -1,5 +1,4 @@
 <script>
-
     $(document).on('show.bs.dropdown', '.dropdown', function() {
     var $menu = $(this).find('.dropdown-menu');
     var $button = $(this).find('.dropdown-toggle');

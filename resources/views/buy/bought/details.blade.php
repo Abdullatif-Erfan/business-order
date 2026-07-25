@@ -268,18 +268,16 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                 <div class="row">
                                     
                                     <!-- print button -->
-                                    <button onclick="print_page_with_image()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
+                                    <!-- <button onclick="print_page_with_image()" class="btn btn-success btn-sm btn-border m-r-10 hidden-print" >
                                     <i class="fas fa-print"></i> {{__('buy.print_bill')}}  
-                                    </button>
+                                    </button> -->
                                             
                                     <!-- edit button -->
-                                   @if($boughtItems->first()->isEditable == 0)
                                         <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}" class="hidden-print">
                                             <button class="btn btn-primary btn-sm m-r-10">
                                                 <i class="fas fa-pen"></i> {{__('common.edit')}}
                                             </button>
                                         </a>
-                                    @endif
 
                                      <!-- حذف بل های ناقص -->
                                      @if(!$jexists && $boughtItems->isNotEmpty())

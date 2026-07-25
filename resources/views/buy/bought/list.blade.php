@@ -43,12 +43,7 @@
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6 m-b-4">
-                                        <select class="form-control select2" style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" id="currency_id">
-                                            <!-- <option value="">  {{__('common.currency')}} </option> -->
-                                            @foreach($currencies as $currency)
-                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                            @endforeach
-                                        </select>
+                                        <input type="text" id="user_name" placeholder="{{__('common.user')}}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2 col-sm-6 col-xs-6">
@@ -108,7 +103,7 @@
                                             <th> {{__('common.total_price')}} </th>
                                             <th> {{__('buy.cache_paid')}} </th>
                                             <th> {{__('buy.loan')}} </th>
-                                            <th>  {{__('common.currency')}} </th>
+                                            <th>  {{__('common.user')}} </th>
                                             <th> {{__('common.date')}} </th>
                                             <th class="hidden-print"> {{__('common.profit')}} </th>
                                             <th class="hidden-print"> {{__('common.details')}} </th>
@@ -198,7 +193,8 @@ $(document).ready(function() {
         $('#customer_name').val('');
         $('#start_date').val('');
         $('#end_date').val('');
-        $('#currency_id').val('');
+        $('#user_name').val('');
+        $('#bill_number').val('');
         $('#boughtItemTable').DataTable().ajax.reload(null, false);
     });
 
@@ -239,7 +235,7 @@ function fetchList() {
                 url: '{{ route("boughtList.data") }}',
                 data: function (d) {
                     d.customer_name = $('#customer_name').val();
-                    d.currency_id = $('#currency_id').val();
+                    d.user_name = $('#user_name').val();
                     d.bill_number = $('#bill_number').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
@@ -267,7 +263,7 @@ function fetchList() {
                 { data: 'total', name: 'total' },
                 { data: 'cur_pay', name: 'cur_pay' },
                 { data: 'remained', name: 'remained' },
-                { data: 'currencyRelation', name: 'currencyRelation' },
+                { data: 'user_name', name: 'user_name' },
                 { data: 'idate', name: 'idate' },
                 { data: 'setprofit', name: 'setprofit', orderable: false, searchable: false, class: 'hidden-print' },
                 { data: 'view', name: 'view', orderable: false, searchable: false, class: 'hidden-print' }

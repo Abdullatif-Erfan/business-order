@@ -28,7 +28,7 @@
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="amount">{{__('buy.amount')}} </label>
             <input  name="old_amount" id="old_amount" type="hidden" value={{ $boughtItemDetails->amount ?? 0}} >
-            <input class="form-control" name="amount" id="amount" type="number" step="0.01" oninput="checkAmountChanges(this.value)"
+            <input class="form-control" name="amount" id="amount" type="number" step="any"oninput="checkAmountChanges(this.value)"
             value="{{ $boughtItemDetails->amount ?? ''}}" required >
         </div>
 
@@ -46,10 +46,10 @@
         <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="buy_up">{{__('buy.bought_up')}} </label>
             <input  name="old_buy_up" id="old_buy_up" type="hidden" value="{{ $boughtItemDetails->buy_up ?? 0}}" >
-            <input class="form-control" name="buy_up" id="buy_up" type="number" step="0.01" 
+            <input class="form-control" name="buy_up" id="buy_up" type="number" step="any"
             value="{{ $boughtItemDetails->buy_up ?? 0}}" required >
 
-            <input class="form-control" name="total" id="total" type="hidden" step="0.01" 
+            <input class="form-control" name="total" id="total" type="hidden" step="any"
             value="{{ $boughtItemDetails->total ?? 0 }}" >
         </div>
 
@@ -66,71 +66,25 @@
 
             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
                 <label for="buy_tax_price"> {{__('buy.buy_tax_price')}} </label>
-                <input class="form-control" name="buy_tax_price" id="buy_tax_price" value="{{ $boughtItemDetails->buy_tax_price ?? 0 }}"  type="number" step="0.01" >
+                <input class="form-control" name="buy_tax_price" id="buy_tax_price" value="{{ $boughtItemDetails->buy_tax_price ?? 0 }}"  type="number" step="any">
             </div>
 
             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
                 <label for="buy_up_vat"> {{__('buy.buy_up_vat')}} </label>
-                <input class="form-control" name="buy_up_vat" id="buy_up_vat" value="{{ $boughtItemDetails->buy_up_vat ?? 0 }}"  type="number" step="0.01" >
+                <input class="form-control" name="buy_up_vat" id="buy_up_vat" value="{{ $boughtItemDetails->buy_up_vat ?? 0 }}"  type="number" step="any">
             </div>
 
             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
                 <label for="total_vat"> {{__('buy.total_buy_with_tax')}} </label>
-                <input class="form-control" name="total_vat" id="total_vat" value="{{ $boughtItemDetails->total_vat ?? 0 }}"  type="number" step="0.01" >
+                <input class="form-control" name="total_vat" id="total_vat" value="{{ $boughtItemDetails->total_vat ?? 0 }}"  type="number" step="any">
             </div>
             
          @endif
-            <div class="col-md-3 col-sm-4 col-xs-12 m-t-10">
+            <div class="col-md-6 col-sm-4 col-xs-12 m-t-10">
                 <label for="note"> {{__('buy.comment')}} </label>
-                <input class="form-control" name="note" id="note" type="text" value="{{ $boughtItemDetails->note ?? 0 }}" placeholder="{{__('buy.comment')}}" >
+                <input class="form-control" name="note" id="note" type="text" value="{{ $boughtItemDetails->note ?? ' ' }}" placeholder="{{__('buy.comment')}}" >
             </div>
     <!-- / Third Row -->
-
-    <!-- Fourth Row -->
-        <div class="col-12">
-          <div class="col-12" style="background-color:#f3f3f3; margin-top:10px;padding: 5px;">
-            <strong><center>{{__('buy.sales_section')}}</center></strong>
-          </div>
-        </div>
-    <!-- / Fourth Row -->
-
-
-    <!-- fifth Row -->
-        <div class="col-md-3 col-sm-4 col-xs-6">
-        <label for="sell_up"> {{__('buy.sell_up')}} </span></label>
-        <input type="number" name="sell_up" id="sell_up" step="0.01" class="form-control" placeholder="{{__('buy.sell_up')}}" 
-        value="{{ $boughtItemDetails->sell_up ?? 0 }}">
-     </div>
-
-    @if(intval($tax_activation->tax_activation) === 1) 
-     <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
-        <label for="sell_tax_per">  {{__('buy.sales_tax_percentage')}} </label>
-        <input class="form-control" name="sell_tax_per" id="sell_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100
-        value="{{ $boughtItemDetails->sell_tax_per ?? 0 }}" oninput="calculateSalesTax(this.value);"  >
-    </div>
-
-    <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
-        <label for="sell_tax_price"> {{__('buy.sell_tax_price')}} </label>
-        <input class="form-control" name="sell_tax_price" id="sell_tax_price"  type="number" step="0.01"
-        value="{{ $boughtItemDetails->sell_tax_price ?? 0 }}">
-    </div>
-
-    <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
-        <label for="sell_up_vat"> {{__('buy.sell_up_vat')}} </label>
-        <input class="form-control" name="sell_up_vat" id="sell_up_vat"  type="number" step="0.01" 
-        value="{{ $boughtItemDetails->sell_up_vat ?? 0 }}" >
-    </div>
-
-    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
-        <label for="total_sales_with_tax"> {{__('buy.total_sales_with_tax')}} </label>
-        <input class="form-control" name="total_sales_with_tax" id="total_sales_with_tax"  type="number" step="0.01" 
-        value="{{ $boughtItemDetails->sell_up_vat * $boughtItemDetails->amount ?? 0 }}" >
-    </div>
-
-    @endif
-    <!-- / fifth Row -->
-
-
     </div>
 
 

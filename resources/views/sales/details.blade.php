@@ -64,8 +64,12 @@
                                             <td> {{__('sales.customer')}} : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
                                             <td> {{__('common.unit')}}: {{ $warehouseSales->first()->currencyRelation->name ?? '' }}</td>
                                             <td> {{__('common.sales_date')}} : {{ $warehouseSales->first()->idate ?? '' }}</td>
-                                            <td> {{__('common.bill')}} : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}</td>
-                                            <td> {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}</td>
+                                            <td> {{__('common.bill')}}  : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}
+                                                <br/>
+                                               {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}
+                                            </td>
+                                            <td> {{__('common.journal_code')}} :  {{$warehouseSales->first()->journal_code ?? ''}}
+                                                </td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -128,14 +132,11 @@
                                 <div class="row">
                                     
                                     <!-- edit button -->
-                                    @if($warehouseSales->first()->is_cleared == 0)
                                     <a href="{{ route('sales.edit', $warehouseSales->first()->billno) }}"   class="hidden-print">
                                         <button class="btn btn-primary btn-sm m-r-10">
                                         <i class="fas fa-pen"></i>  {{__('common.edit')}} 
                                         </button>
                                     </a>
-                                    @endif
-                                      
 
                                     </div>
                                 </div>

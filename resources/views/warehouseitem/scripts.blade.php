@@ -88,7 +88,7 @@ function fetchList() {
         { data: 'total', name: 'total' },
         { data: 'sell_up', name: 'sell_up' },
         { data: 'idate', name: 'idate', orderable: false, searchable: false },
-        { data: 'transfer', name: 'transfer', orderable:false, searchable:false}
+        { data: 'transfer', name: 'transfer', orderable:false, searchable:false, className:'hidden-print'}
     );
 
     // =============================================

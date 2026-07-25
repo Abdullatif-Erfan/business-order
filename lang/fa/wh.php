@@ -62,4 +62,5 @@ return [
     'no_permission' => 'عدم صلاحیت',
     'not_allowed_to_access' => 'این بخش به شما صلاحیت داده نشده است',
     'warehouse' => 'گدام',
+    'enter_valid_amount' => 'مقدار نادرست میباشد',
 ];

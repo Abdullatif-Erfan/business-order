@@ -125,8 +125,6 @@
 
                         <form id="salesForm" action="{{ route('sales.store') }}" method="POST">
                             @csrf
-                            <input type="hidden"  name="times" value="{{ $times }}">
-                            <input type="hidden" name="code"  value="{{ $journal_code }}">
                             <input type="hidden"  name="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
                             <input type="hidden"  name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
                             

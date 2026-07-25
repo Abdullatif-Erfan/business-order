@@ -41,12 +41,22 @@
                                    value="{{ $item->buy_up }}" readonly style="background:#f5f5f5;">
                         </td>
                         <td>
-                            <input type="number" step="any" min="0" 
+                            @if(intval($boughtItemIsEditable) === 0)
+                                <input type="number" step="any" min="0" 
+                                   class="form-control profit-input" 
+                                   name="items[{{ $index }}][profit]" 
+                                   value="{{ $item->expected_profit ?? '' }}" 
+                                   placeholder="{{__('common.profit')}}">
+                            @else 
+                                <input type="number" step="any" min="0" 
                                    class="form-control profit-input" 
                                    name="items[{{ $index }}][profit]" 
                                    value="{{ $item->expected_profit ?? '' }}" 
                                    readonly
                                    placeholder="{{__('common.profit')}}">
+                            
+                            @endif
+                            
                         </td>
                         <td>
                             <input type="number" step="any" min="0" 

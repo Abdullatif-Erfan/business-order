@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Date; 
 use Laravel\Sanctum\HasApiTokens; 
 use App\Models\Setting\OrgBio;
+use App\Models\Setting\Account;
+use App\Models\Setting\Car;
 use App\Models\User; 
 use Illuminate\Support\Facades\Schema;
 use App\Models\Auth\Role; 
@@ -31,52 +33,6 @@ class LoginController extends Controller
 
     public function login()
     {
-        $columns = [];
-
-        if (Schema::hasColumn('org_bios', 'is_expired')) {
-            $columns[] = 'is_expired';
-        }
-
-        if (Schema::hasColumn('org_bios', 'expired_date')) {
-            $columns[] = 'expired_date';
-        }
-
-        // If no columns exist → skip safely
-        if (empty($columns)) {
-            return view('login.login');
-        }
-
-        $orgData = OrgBio::select('is_expired', 'expired_date')->first();
-    
-        if (!$orgData) {
-            return view('login.login');
-        }
-    
-        $today = Carbon::now();
-        $daysLeft = null;
-    
-        //  Only parse date if exists
-        if (!empty($orgData->expired_date)) {
-            $expiredDate = Carbon::parse($orgData->expired_date);
-            $daysLeft = (int) ceil($today->diffInDays($expiredDate, false)); // can be negative
-        }
-    
-        //  EXPIRED (by flag OR by date)
-        if ($orgData->is_expired == 1 || ($daysLeft !== null && $daysLeft < 0)) {
-    
-            $daysPassed = $daysLeft !== null ? abs($daysLeft) : null;
-    
-            Session::flash('expired_days', $daysPassed);
-            Session::flash('expired_text', $daysPassed === null ? 'مدت زیادی گذشته است' : null);
-    
-            return view('login.expiredLoginMessage');
-        }
-    
-        // ✅ NEAR EXPIRY
-        if ($daysLeft !== null && $daysLeft <= 20) {
-            Session::flash('nearExpired', $daysLeft);
-        }
-    
         return view('login.login');
     }
 
@@ -141,16 +97,48 @@ class LoginController extends Controller
             $accessInfo = $this->accessInfo($user->roleId);
             // return response()->json(['accessInfo' => $accessInfo]);
 
+            // =========================================
+            // STORE CARS, CUSTOMERS, AND ACCOUNT IN SESSION
+            // =========================================
+
+            // Get assigned cars (if any)
+            $assignedCarIds = $user->car_ids ?? [];
+            $assignedCustomerIds = $user->customer_ids ?? [];
+            
+            // Optionally load the actual models for quick access
+            // $assignedCars = [];
+            // $assignedCustomers = [];
+            
+            // if (!empty($assignedCarIds) && is_array($assignedCarIds)) {
+            //     $assignedCars = Car::whereIn('id', $assignedCarIds)
+            //         ->select('id', 'name')
+            //         ->get()
+            //         ->toArray();
+            // }
+            
+            // if (!empty($assignedCustomerIds) && is_array($assignedCustomerIds)) {
+            //     $assignedCustomers = Account::whereIn('id', $assignedCustomerIds)
+            //         ->where('account_type_id', 3)
+            //         ->select('id', 'name')
+            //         ->get()
+            //         ->toArray();
+            // }
 
             Session::put([
                 'userId' => $user->id,
-                'accountId' => $user->account_id,
+                'accountId' => $user->account_id, 
                 'role' => $user->roleId,
                 'roleText' => $user->roleRelationName->role,
                 'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
+                'carIds' => $assignedCarIds,
+                'customerIds' => $assignedCustomerIds,
+                // 'assigned_cars' => $assignedCars,
+                // 'assigned_customers' => $assignedCustomers,
+                // 'has_car_access' => !empty($assignedCarIds),
+                // 'has_customer_access' => !empty($assignedCustomerIds),
             ]);
 
             // Session::put('lang', 'dr');
@@ -166,6 +154,23 @@ class LoginController extends Controller
             Session::flash('failed', 'failed');
             return redirect()->route('login');
         }
+    }
+
+
+    /**
+     * Get assigned car IDs from session
+     */
+    public function getAssignedCarIds()
+    {
+        return session('carIds', []);
+    }
+
+    /**
+     * Get assigned customer IDs from session
+     */
+    public function getAssignedCustomerIds()
+    {
+        return session('customerIds', []);
     }
 
     /**
@@ -295,16 +300,23 @@ class LoginController extends Controller
 
             $accessInfo = $this->accessInfo($user->roleId);
 
-            Session::put([
+            // Get assigned cars (if any)
+            $assignedCarIds = $user->car_ids ?? [];
+            $assignedCustomerIds = $user->customer_ids ?? [];
+
+             Session::put([
                 'userId' => $user->id,
-                'accountId' => $user->account_id,
+                'accountId' => $user->account_id, 
                 'role' => $user->roleId,
-                'roleText' => $user->roleRelationName->name,
+                'roleText' => $user->roleRelationName->role,
                 'name' => $user->full_name,
                 'isAdmin' => $user->isAdmin,
                 'accessInfo' => $accessInfo,
                 'isLoggedIn' => true,
+                'carIds' => $assignedCarIds,
+                'customerIds' => $assignedCustomerIds,
             ]);
+            
 
             // Session::put('lang', 'dr');
             // Session::put('comein', 'business@kawoshgaran');

@@ -44,9 +44,6 @@
 
                         <form id="orderForm" action="{{ route('orders.store') }}" method="POST">
                             @csrf
-
-                            <input type="hidden" name="times" value="{{ $times ?? 0 }}">
-
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;">

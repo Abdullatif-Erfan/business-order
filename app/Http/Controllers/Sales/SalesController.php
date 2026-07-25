@@ -33,13 +33,20 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalesController extends Controller
 {
-    protected  $isAdmin;
+    protected $isAdmin, $userId, $userName, $customerIds, $carIds;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
+            $this->carIds = session('carIds', []);
+            $this->customerIds = session('customerIds', []);
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
+            $this->userName='System';
+            $this->customerIds = [];
         }
     }
     /**
@@ -69,7 +76,10 @@ class SalesController extends Controller
             ->join('currencies', 'currencies.id', '=', 'warehouse_sales.currency_id')
             ->select('warehouse_sales.id','billno','factor','accounts.name as customer_name','total','cur_pay','is_cleared','remained','currencies.name as currency_name','idate','user_name','warehouse_sales.invoice_id','warehouse_sales.has_invoice')
             ->orderBy('warehouse_sales.id','DESC');
-            
+
+            if(!$this->isAdmin){
+                $soldItems->where('warehouse_sales.user_id', $this->userId);
+            }
 
             // Apply filters if provided
               if ($request->customer_name) {
@@ -444,54 +454,110 @@ class SalesController extends Controller
     // SHOW CREATE FORM
     public function create()
     {
-        $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        if($this->isAdmin) 
+        {
+            $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+            $cars = Car::select('id', 'name')->get();
+
+            // Get warehouse items with available stock > 0
+            $warehouseItems = DB::table('warehouse_items')
+                ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+                ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+                ->where('warehouse_items.available_amount', '>', 0)
+                ->select(
+                    'warehouse_items.id as warehouse_item_id',
+                    'warehouse_items.unit_id as warehouse_unit_id',
+                    'units.name as warehouse_unit_name',
+                    DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                    'warehouse_items.available_amount',
+                    'warehouse_items.warehouse_id',
+                    'bought_item_pre_lists.name as item_name',
+                    'bought_item_pre_lists.id as pre_list_id',
+                    'bought_item_pre_lists.category_id as category_id'
+                )
+                ->get();
+
+            // Get draft orders with state = 2
+            $draftOrders = DraftOrder::select(
+                'id',
+                'dord_num',
+                'customer_id',
+                'category_id',
+                'pre_list_id',
+                'unit_id',
+                'amount',
+                'idate',
+                'iby',
+                'user_name',
+                'state',
+                'times'
+            )
+            ->with([
+                'customerRelation:id,name',
+                'preListRelation:id,name,category_id',
+                'unitRelation:id,name',
+            ])
+            ->where('draft_orders.state', 2)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        } 
+        else 
+        {
+            $customers = Account::select('id', 'name')->where('account_type_id', 3)->whereIn('id', $this->customerIds)->get();
+            $cars = Car::select('id', 'name')->whereIn('id', $this->carIds)->get();
+             // Get warehouse items with available stock > 0
+            $warehouseItems = DB::table('warehouse_items')
+                ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
+                ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
+                ->where('warehouse_items.available_amount', '>', 0)
+                ->where('warehouse_items.user_id', $this->userId)
+                ->select(
+                    'warehouse_items.id as warehouse_item_id',
+                    'warehouse_items.unit_id as warehouse_unit_id',
+                    'units.name as warehouse_unit_name',
+                    DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                    'warehouse_items.available_amount',
+                    'warehouse_items.warehouse_id',
+                    'bought_item_pre_lists.name as item_name',
+                    'bought_item_pre_lists.id as pre_list_id',
+                    'bought_item_pre_lists.category_id as category_id'
+                )
+                ->get();
+
+            // Get draft orders with state = 2
+            $draftOrders = DraftOrder::select(
+                'id',
+                'dord_num',
+                'customer_id',
+                'category_id',
+                'pre_list_id',
+                'unit_id',
+                'amount',
+                'idate',
+                'iby',
+                'user_name',
+                'state',
+                'times'
+            )
+            ->with([
+                'customerRelation:id,name',
+                'preListRelation:id,name,category_id',
+                'unitRelation:id,name',
+            ])
+            ->where('draft_orders.state', 2)
+            ->whereIn('draft_orders.customer_id', $this->customerIds)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        }
         $currencies = Currency::select('id', 'name')->get();
         $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
         $tax = OrgBio::select('tax_activation')->first();
         $units = Unit::select('id', 'name')->get();
-        $cars = Car::select('id', 'name')->get();
+       
         
-        // Get warehouse items with available stock > 0
-        $warehouseItems = DB::table('warehouse_items')
-            ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
-            ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
-            ->where('warehouse_items.available_amount', '>', 0)
-            ->select(
-                'warehouse_items.id as warehouse_item_id',
-                'warehouse_items.unit_id as warehouse_unit_id',
-                'units.name as warehouse_unit_name',
-                DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
-                'warehouse_items.available_amount',
-                'warehouse_items.warehouse_id',
-                'bought_item_pre_lists.name as item_name',
-                'bought_item_pre_lists.id as pre_list_id',
-                'bought_item_pre_lists.category_id as category_id'
-            )
-            ->get();
-
-        // Get draft orders with state = 2
-        $draftOrders = DraftOrder::select(
-            'id',
-            'dord_num',
-            'customer_id',
-            'category_id',
-            'pre_list_id',
-            'unit_id',
-            'amount',
-            'idate',
-            'iby',
-            'user_name',
-            'state',
-            'times'
-        )
-        ->with([
-            'customerRelation:id,name',
-            'preListRelation:id,name,category_id',
-            'unitRelation:id,name',
-        ])
-        ->where('draft_orders.state', 2)
-        ->orderBy('id', 'DESC')
-        ->get();
+       
 
         // Get customer IDs that have orders (state=2)
         $customerIdsWithOrders = $draftOrders->pluck('customer_id')->unique()->toArray();
@@ -556,12 +622,10 @@ class SalesController extends Controller
             ];
         })->values();
 
-
-        $billno = WarehouseSales::max('billno') + 1;
-        $times = time();
-        $journal_code = Journal::max('code') + 1;
+       $billno = WarehouseSales::max('billno') + 1;
        
-
+      
+       
         // return ['data' => $customersWithStatus, 'items' => $combinedItems];
         // return ['warehouseItems' => $warehouseItems];
         return view('sales.v2.create.create', compact(
@@ -574,8 +638,6 @@ class SalesController extends Controller
             'combinedItems',
             'customersWithStatus',
             'billno',
-            'times',
-            'journal_code',
             'cars'
         ));
     }
@@ -584,20 +646,21 @@ class SalesController extends Controller
     public function store(Request $request)
     {
         // return response()->json($request->all());
+       
 
         $validated = $request->validate([
             'customer_account_id' => 'required|exists:accounts,id',
             'account_id' => 'required|exists:accounts,id',
             'car_id' => 'required|exists:cars,id',
             'todays_date' => 'required',
-            'billno' => 'required|numeric|unique:warehouse_sales,billno',
+            // 'billno' => 'required|numeric|unique:warehouse_sales,billno',
+            'billno' => 'required|numeric',
             'factor' => 'nullable|string|max:255',
             'total_price' => 'required|numeric|min:0',
             'cur_pay' => 'required|numeric|min:0',
             'remained' => 'required|numeric|min:0',
             'currency_id' => 'required|exists:currencies,id',
             'note' => 'nullable|string|max:1000',
-            'times' => 'required|integer',
             'items' => 'required|array|min:1',
             'items.*.pre_list_id' => 'required|exists:bought_item_pre_lists,id',
             'items.*.unit_id' => 'required|exists:units,id',
@@ -614,9 +677,49 @@ class SalesController extends Controller
             $user_id = auth()->id();
             $user_name = auth()->user()->full_name ?? 'System';
 
+            /**
+             * برای اینکه چند کاربر همزمان ثبت نکند و  بل نمبر یکسان نباشد باید 
+             * اینجا چک شود اگر ثبت نبود همان بل نمبر اوکی است و اگر ثبت شده بود بل نمبر جدید بیگیرد
+             */
+            
+             /**
+             * FIXED: Use lockForUpdate() to prevent race conditions
+             * Multiple users can't get the same billno anymore
+             */
+            $times = time();
+            $billno = null;
+            
+            // Lock the table to prevent concurrent access
+            // Check if billno exists with lock
+            $existingBill = WarehouseSales::where('billno', $validated['billno'])
+                ->lockForUpdate()
+                ->first();
+
+            $journalCode =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journal_code = $journalCode + 1;
+              
+
+            if ($existingBill) {
+                // Get max billno with lock to prevent duplicates
+                $maxBill = WarehouseSales::lockForUpdate()->max('billno') ?? 0;
+                $billno = $maxBill + 1;
+                $times = time();
+            } else {
+                $billno = $validated['billno'];
+            }
+
+            // ADD TO REQUEST: Merge the new values into the request
+            $request->merge([
+                'billno' => $billno,
+                'code' => $journal_code,
+                'times' => $times,
+            ]);
+
+
             // Create WarehouseSales
             $warehouseSale = WarehouseSales::create([
-                'billno' => $validated['billno'],
+                'billno' => $billno,
+                'journal_code' => $journal_code,
                 'factor' => $validated['factor'] ?? null,
                 'account_id' => $validated['account_id'],
                 'customer_account_id' => $validated['customer_account_id'],
@@ -631,7 +734,7 @@ class SalesController extends Controller
                 'year' => $date->year,
                 'month' => $date->month,
                 'day' => $date->day,
-                'times' => $validated['times'],
+                'times' => $times,
                 'user_id' => $user_id,
                 'user_name' => $user_name,
                 'has_invoice' => 0,
@@ -670,7 +773,7 @@ class SalesController extends Controller
 
                 // Create sales detail with all fields
                 SalesDetails::create([
-                    'billno' => $validated['billno'],
+                    'billno' => $billno,
                     'warehouse_id' => $warehouseItem->warehouse_id ?? null,
                     'warehouse_sales_id' => $warehouseSale->id,
                     'pre_list_id' => $item['pre_list_id'],
@@ -702,15 +805,15 @@ class SalesController extends Controller
             // Handle journal entry
             $this->handleJournalEntry($request);
 
-
-            // =========================================
+ 
+            // ===========================================
             // STORE PAYMENT IN SALES_BILL_PAYMENTS TABLE
-            // =========================================
+            // ===========================================
             if($validated['cur_pay'] > 0 && $validated['cur_pay'] <= $validated['total_price']) 
             {
                 $salePayment = SalesBillPayment::create([
                     'warehouse_sales_id' => $warehouseSale->id,
-                    'billno' => $validated['billno'],
+                    'billno' => $billno,
                     'customer_account_id' =>  $validated['customer_account_id'],
                     'account_id' => $validated['account_id'],
                     'currency_id' => $validated['currency_id'],
@@ -718,10 +821,10 @@ class SalesController extends Controller
                     'remaining_after_payment' =>  $validated['remained'],
                     'payment_date' => $date->format('Y-m-d'),
                     'note' => 'پرداخت نقد فروش',
-                    'journal_code' => $request->code,
+                    'journal_code' => $journal_code,
                     'user_id' => $user_id,
                     'user_name' => $user_name,
-                    'times' => $validated['times'],
+                    'times' => $times,
                 ]);
             }
 
@@ -1262,7 +1365,11 @@ class SalesController extends Controller
             return $item->sell_tax_per > 0;
         }) ? true : false;
 
-        $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
+        if($this->isAdmin) {
+            $customers = Account::select('id','name')->whereIn('account_type_id',[3,4])->get();
+        } else {
+            $customers = Account::select('id','name')->whereIn('id',$this->customerIds)->get();
+        }
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
 
         $currencies = Currency::select('id','name')->get();
@@ -1281,10 +1388,30 @@ class SalesController extends Controller
         if (!$salesDetails) {
             return response()->json(['error' => 'Sales Details not found'], 404);
         }
+        
+        $warehouse_id = $salesDetails->warehouse_id ?? 0;
+        $pre_list_id = $salesDetails->pre_list_id ?? 0;
+        $unit_id = $salesDetails->unit_id ?? 0;
 
+
+         if($this->isAdmin) {
+                $warehouseAmount = WarehouseItem::select('available_amount')->where('warehouse_id', $warehouse_id)
+                    ->where('buy_pre_id', $pre_list_id)
+                    ->where('unit_id', $unit_id)
+                    // ->where('available_amount', '>', 0)
+                    ->first();
+            } else {
+                $warehouseAmount = WarehouseItem::select('available_amount')->where('warehouse_id', $warehouse_id)
+                    ->where('buy_pre_id', $pre_list_id)
+                    ->where('unit_id', $unit_id)
+                    ->where('user_id', $this->userId)
+                    // ->where('available_amount', '>', 0)
+                    ->first();
+            }
+        
         //  return response()->json(['boughtItemDetails' => $boughtItemDetails]);
         // return response()->json(['boughtItemDetails' => $boughtItemDetails, 'warehouseItems' => $warehouseItems]);
-        return view('sales.editModalContent', compact('salesDetails', 'units'));
+        return view('sales.editModalContent', compact('salesDetails', 'units','warehouseAmount'));
     }
 
     // update items one by one in edit page of sales
@@ -1296,9 +1423,9 @@ class SalesController extends Controller
             'id'                => 'required|exists:sales_details,id',
             'pre_list_id'       => 'required|exists:bought_item_pre_lists,id',
             'warehouse_id'      => 'required|exists:warehouses,id',
-            'amount'            => 'required|numeric|min:0',
-            'old_amount'        => 'required|numeric|min:0',
-            'billno'            => 'required|numeric|min:0',
+            'amount'            => 'required|numeric|min:1',
+            'old_amount'        => 'required|numeric|min:1',
+            'billno'            => 'required|numeric|min:1',
             'unit_id'           => 'required|exists:units,id',
             'sell_up'           => 'required|numeric|min:1',
         ]);
@@ -1320,16 +1447,28 @@ class SalesController extends Controller
             ]);
 
             // Find Warehouse Item
-            $warehouseItem = WarehouseItem::where('warehouse_id', $validated['warehouse_id'])
-                                            ->where('buy_pre_id', $validated['pre_list_id'])
-                                            ->where('unit_id', $validated['unit_id'])
-                                            ->lockForUpdate()
-                                            // ->where('available_amount', '>', 0)
-                                            ->first();
-
-            if (!$warehouseItem) {
-                throw new \Exception('Warehouse item not found.');
+            if($this->isAdmin) 
+            {
+                $warehouseItem = WarehouseItem::where('warehouse_id', $validated['warehouse_id'])
+                        ->where('buy_pre_id', $validated['pre_list_id'])
+                        ->where('unit_id', $validated['unit_id'])
+                        // ->where('available_amount', '>', 0) 
+                        // ->orderBy('id', 'DESC') 
+                        ->lockForUpdate()
+                        ->first();
+            } 
+            else 
+            {
+                $warehouseItem = WarehouseItem::where('warehouse_id', $validated['warehouse_id'])
+                        ->where('buy_pre_id', $validated['pre_list_id'])
+                        ->where('unit_id', $validated['unit_id'])
+                        ->where('user_id', $this->userId)
+                        // ->where('available_amount', '>', 0)
+                        // ->orderBy('id', 'DESC') 
+                        ->lockForUpdate()
+                        ->first();
             }
+            
 
                 // Calculate the difference
                 $oldAmount = (float) $validated['old_amount'];
@@ -1337,7 +1476,7 @@ class SalesController extends Controller
                 $diff = abs($newAmount - $oldAmount);
                 
                 if (!$warehouseItem) {
-                    throw new \Exception('Warehouse item not found.');
+                    throw new \Exception('این جنس در گدام یافت نشد');
                 }
 
                 // Update warehouse quantities based on difference
@@ -1364,10 +1503,10 @@ class SalesController extends Controller
             elseif ($newAmount > $oldAmount) 
             {  
                 // Amount increased - take more items from warehouse
-                if ($warehouseItem->available_amount < $diff) {
-                    throw new \Exception('جنس به این تعداد موجود نیست');
-                    return;
-                }
+                // if ($warehouseItem->available_amount < $diff) {
+                //     throw new \Exception('جنس به این تعداد موجود نیست');
+                //     return;
+                // }
 
                 $warehouseItem->available_amount -= $diff;  // مقدار جدید از گدام کم شود
                 $warehouseItem->out_amount += $diff;   // مقدار جدید بیشتر فروش شده
@@ -1446,32 +1585,56 @@ class SalesController extends Controller
     
         try {
             // Find the warehouse sale record
-            $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->firstOrFail();
-           
-            // Update warehouse sale details
-            $warehouseSales->update([
-                'total'          => $validated['total_price'],
-                'cur_pay'        => $validated['cur_pay'],
-                'remained'       => $validated['remained'],
-                'note'           => $validated['note'],
-                'factor'         => $validated['factor'],
-            ]);
+            $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->where('user_id', $this->userId)->firstOrFail();
+
+            if(!$warehouseSales) {
+                throw new \Exception('اجناس یافت نشد');
+            }
+
+            $journal_code = $warehouseSales->journal_code ?? 0;
+        //    if(!$this->isAdmin) {
+        //         if (!$warehouseSales) {
+        //                 throw new \Exception('شما نمی توانید معلومات دیگران را ویرایش نمایید');
+        //         }
+        //    }
+
+            
 
             // Retrieve old journal records
-            $oldJournals = Journal::where('times', $request->times)->where('status', 8)->get();
+            $oldJournals = Journal::where('times', $request->times)
+            ->where('user_id', $this->userId)
+            ->where('status', 8)->get();
     
-            if ($oldJournals->isNotEmpty()) {
+            if ($oldJournals->isNotEmpty()) 
+            {
+
+               
+               if($oldJournals->first()->code > 1) {  //  همیشه ریکارد هایکه کد نگیرد همین کد را ثبت میکند
+                   $journal_code = $oldJournals->first()->code; 
+                } 
+               else 
+                {
+                   $journal_code = Journal::max('code') + 1;
+                }
+
                 // Clone request to avoid modifying original data
                 $clonedRequest = clone $request;
-                // $clonedRequest->merge([
-                //     'code' => $oldJournals->first()->code, // Get 'code' from the first record
-                // ]);
                 $clonedRequest->merge([
-                    'code' => Journal::max('code') + 1, 
+                        'code' => $journal_code, 
+                    ]);
+
+                 // Update warehouse sale details
+                $warehouseSales->update([
+                    'total'          => $validated['total_price'],
+                    'cur_pay'        => $validated['cur_pay'],
+                    'remained'       => $validated['remained'],
+                    'note'           => $validated['note'],
+                    'factor'         => $validated['factor'],
+                    'journal_code'   => $journal_code,
                 ]);
     
                 // Delete all journal records in a single query
-                Journal::where('times', $request->times)->where('status', 8)->delete();
+                Journal::where('times', $request->times)->where('user_id', $this->userId)->where('status', 8)->delete();
     
                 // Handle new journal entry
                 $checkJournal = $this->handleJournalEntry($clonedRequest);
@@ -1485,13 +1648,18 @@ class SalesController extends Controller
                         ]);
                 }
             } 
-            else 
+            else // بنابر دلایل ریکارد ژورنال قبلا ایجاد نشده بوده حالا باید ایجاد شود
             {
                 $clonedRequest = clone $request;
+                $new_journal_code = Journal::max('code') + 1;
                 $clonedRequest->merge([
-                    'code' => Journal::max('code') + 1, 
+                    'code' => $new_journal_code, 
                 ]);
                 $checkJournal = $this->handleJournalEntry($clonedRequest);
+
+                $warehouseSales->update([
+                    'journal_code'   => $new_journal_code,
+                ]);
             }
             
             $salePayment = SalesBillPayment::where('billno', $validated['billno'])
@@ -1532,12 +1700,29 @@ class SalesController extends Controller
         DB::beginTransaction();
         try {
             // Retrieve SalesDetails correctly
-            $SalesDetails = SalesDetails::findOrFail($id);
+           // Find the sales detail or fail with a clear message
+            $salesDetail = SalesDetails::findOrFail($id);
+
+            // Get the bill number
+            $salesBillNo = $salesDetail->billno ?? 0;
+
+            // Validate bill number exists
+            if (empty($salesBillNo)) {
+                throw new \Exception('بل نمبر در این فروش یافت نشد');
+            }
+
+            // Check if any payments exist for this bill
+            $hasPayments = SalesBillPayment::where('billno', $salesBillNo)->exists();
+
+            if ($hasPayments) {
+                throw new \Exception('این فاکتور دارای پرداخت می باشد و قابل حذف نیست');
+            }
 
             // Find Warehouse Item
-            $warehouseItem = WarehouseItem::where('warehouse_id', $SalesDetails->warehouse_id)
-                                        ->where('buy_pre_id', $SalesDetails->pre_list_id)
-                                        ->where('unit_id', $SalesDetails->unit_id)
+            $warehouseItem = WarehouseItem::where('warehouse_id', $salesDetail->warehouse_id)
+                                        ->where('buy_pre_id', $salesDetail->pre_list_id)
+                                        ->where('unit_id', $salesDetail->unit_id)
+                                        ->where('user_id', $this->userId)
                                         ->first();
 
             if (!$warehouseItem) {
@@ -1546,14 +1731,14 @@ class SalesController extends Controller
 
             // Update warehouse item
             // در صورت حذف باید از رفت همان تعداد کم شود و در موجود اضافه شود
-            $warehouseItem->available_amount += $SalesDetails->amount;
-            $warehouseItem->out_amount -= $SalesDetails->amount; 
-            // $warehouseItem->available_total = (($warehouseItem->available_amount + $SalesDetails->amount) * $warehouseItem->buy_up);
-            $warehouseItem->available_total = $warehouseItem->available_amount * $SalesDetails->buy_up;
+            $warehouseItem->available_amount += $salesDetail->amount;
+            $warehouseItem->out_amount -= $salesDetail->amount; 
+            // $warehouseItem->available_total = (($warehouseItem->available_amount + $salesDetail->amount) * $warehouseItem->buy_up);
+            $warehouseItem->available_total = round($warehouseItem->available_amount * $salesDetail->buy_up, 2);
             $warehouseItem->save();
 
-            // Delete SalesDetails **after** updating warehouse item
-            $SalesDetails->delete();
+            // Delete salesDetail **after** updating warehouse item
+            $salesDetail->delete();
 
             DB::commit();
 
@@ -1581,7 +1766,7 @@ class SalesController extends Controller
     {
         DB::beginTransaction();
         try {
-            $warehouse_sales = WarehouseSales::where('times', $times)
+            $warehouse_sales = WarehouseSales::where('times', $times)->where('user_id', $this->userId)
                 
                 ->first();
 
@@ -1594,7 +1779,7 @@ class SalesController extends Controller
             }
 
             Journal::where('times', $times)
-                
+                ->where('user_id', $this->userId)
                 ->delete();
 
             DB::commit();

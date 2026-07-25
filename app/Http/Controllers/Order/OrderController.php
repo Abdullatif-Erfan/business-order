@@ -22,14 +22,20 @@ use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
 {
-    protected $isAdmin;
+    protected $isAdmin, $customerIds, $carIds, $userId;
     
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->customerIds = session('customerIds', []);
+            $this->carIds = session('carIds', []);
+            $this->userId = session('userId', auth()->user()->id);
         } else {
             $this->isAdmin = false;
+            $this->customerIds = [];
+            $this->carIds = [];
+            $this->userId = 0;
         }
     }
 
@@ -71,6 +77,10 @@ class OrderController extends Controller
         //         ->groupBy('ord_num');
         // })
         ->orderBy('id', 'DESC');
+
+        if(!$this->isAdmin) {
+            $orders->where('orders.user_id', $this->userId);
+        }
 
         // Apply filters
         if ($request->ord_num) {
@@ -351,25 +361,46 @@ class OrderController extends Controller
     $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
     $categories = Category::select('id', 'name')->orderBy('name')->get();
     $todaysDate = Carbon::now()->format('Y-m-d');
-    $cars = Car::get();
     $times = time();
 
 
 
-    // Get draft orders with state = 1
-    $draftOrders = DraftOrder::select(
-        'category_id',
-        'pre_list_id',
-        'unit_id',
-        'amount'
-    )
-    ->with([
-        'preListRelation:id,name,category_id,supplier_id',
-        'preListRelation.categoryRelation:id,name', // Load category through preListRelation
-        'unitRelation:id,name',
-    ])
-    ->where('draft_orders.state', 1) // get just new draft orders
-    ->get();
+    if($this->isAdmin) {
+        $cars = Car::get();
+          // Get draft orders with state = 1
+        $draftOrders = DraftOrder::select(
+            'category_id',
+            'pre_list_id',
+            'unit_id',
+            'amount'
+        )
+        ->with([
+            'preListRelation:id,name,category_id,supplier_id',
+            'preListRelation.categoryRelation:id,name', // Load category through preListRelation
+            'unitRelation:id,name',
+        ])
+        ->where('draft_orders.state', 1) // get just new draft orders
+        ->get();
+    } 
+    else 
+    {
+        $cars = Car::whereIn('id', $this->carIds)->get();
+        $draftOrders = DraftOrder::select(
+            'category_id',
+            'pre_list_id',
+            'unit_id',
+            'amount'
+        )
+        ->with([
+            'preListRelation:id,name,category_id,supplier_id',
+            'preListRelation.categoryRelation:id,name', // Load category through preListRelation
+            'unitRelation:id,name',
+        ])
+        ->where('draft_orders.state', 1) // get just new draft orders
+        ->whereIn('draft_orders.customer_id', $this->customerIds)
+        ->get();
+    }
+   
 
     // Group by category_id, then by pre_list_id and unit_id
     $groupedItems = $draftOrders->groupBy('category_id')->map(function ($items, $categoryId) {
@@ -426,9 +457,13 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        // return response()->json($request->all());
         // Get items directly from request (it's already an array)
         $items = $request->input('items');
-        
+        $times =  time();
+        $user_id = auth()->user()->id ?? 0;
+        $user_name = auth()->user()->full_name ?? 'System';
+
         if (!$items || !is_array($items) || count($items) === 0) {
             return response()->json([
                 'status' => 'error',
@@ -439,7 +474,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'state' => 'required|integer|in:0,1,2,3',
-            'times' => 'nullable|integer',
+            'car_id' => 'required|exists:cars,id',
         ]);
 
         // Validate each item
@@ -482,11 +517,12 @@ class OrderController extends Controller
                 $order = Order::create([
                     'supplier_id' => $supplierId,
                     'category_id' => $categoryId,
-                    'iby' => auth()->user()->id ?? '',
                     'idate' => $validated['date'],
                     'state' => $validated['state'],
-                    'user_name' => auth()->user()->full_name ?? 'System',
-                    'times' => $validated['times'] ?? time(),
+                    'car_id' => $validated['car_id'],
+                    'user_id' => $user_id,
+                    'user_name' => $user_name,
+                    'times' => $times,
                 ]);
 
                 // Create order items for this order
@@ -517,7 +553,11 @@ class OrderController extends Controller
             }
 
             // update DraftOrder state to progress
-            DraftOrder::where('state', 1)->update(['state' => 2]);
+            if($this->isAdmin) {
+                DraftOrder::where('state', 1)->update(['state' => 2]);
+            } else {
+                DraftOrder::where('state', 1)->where('iby', $user_id)->update(['state' => 2]);
+            }
             
 
             return response()->json([
@@ -542,7 +582,7 @@ class OrderController extends Controller
      */
     public function show($order_id)
     {
-         $orgbios = OrgBio::all();
+        $orgbios = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d'); 
         // Get the main order (assuming you have an Order model)
         $order = Order::where('id', $order_id)->first();

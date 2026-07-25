@@ -26,13 +26,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class WarehouseListController extends Controller
 {
-    protected $isAdmin;
+    protected $isAdmin, $userId, $carIds;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
+            $this->carIds = session('carIds', []);
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
+            $this->carIds = [];
         }
     }
     /**
@@ -74,6 +78,9 @@ class WarehouseListController extends Controller
             ->where('warehouse_id', $warehouse_id)
             ->orderBy('id', 'DESC')
             ->orderBy('buy_pre_id', 'DESC');
+        if(!$this->isAdmin){
+            $WarehouseItems->where('warehouse_items.user_id', $this->userId);
+        }
             
         if ($request->input('item_name')) {
             $WarehouseItems->whereHas('preListRelation', function ($query) use ($request) {
@@ -206,7 +213,11 @@ class WarehouseListController extends Controller
         $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation','carRelation'])
         ->where('id', $id)->first();
         $units = Unit::all();
-        $cars = Car::all();
+        if($this->isAdmin){
+            $cars = Car::all();
+        } else {
+            $cars = Car::whereIn('id', $this->carIds)->get();
+        }
         // return response()->json(['data' => $warehouseItems]);
         // return response()->json(['data' => $warehouse]);
         return view('warehouseitem.modalTransfer',compact('warehouseItems','cars','units'));

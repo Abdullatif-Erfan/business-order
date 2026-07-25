@@ -1,3 +1,8 @@
+    @php 
+       $maxAmount = $warehouseAmount->available_amount ?? 0;
+       $curAmount = $salesDetails->amount ?? 0;
+       $maxLimit = $maxAmount + $curAmount;
+    @endphp
     <div class="row">
         <div class="col-md-4 col-sm-4 col-xs-6">
             <label for="item_name">{{__('sales.item')}}</label>
@@ -14,14 +19,18 @@
             <input class="form-control" name="warehouse_id"  type="hidden"  
             value="{{ $salesDetails->warehouse_id ?? 0 }}" >
 
+            <input class="form-control" name="max_available_amount" id="max_available_amount"  type="hidden"  
+            value="{{ $warehouseAmount->available_amount ?? 0 }}">
+
             <input class="form-control" name="item_name" id="item_name" type="text" readonly value={{ $salesDetails->preListRelation->name ?? ''}} >
         </div>
 
         <div class="col-md-4 col-sm-4 col-xs-6">
             <label for="amount"> {{__('common.amount')}} </label>
             <input name="old_amount"  type="hidden" step="0.01" value="{{ $salesDetails->amount ?? ''}}">
-            <input class="form-control" name="amount"  type="number" step="any" min="0.01" 
-            value="{{ $salesDetails->amount ?? ''}}" required >
+            <input class="form-control" name="amount"  type="number" step="any" min="1" max="{{ $maxLimit }}"
+            value="{{ $salesDetails->amount ?? 0}}" required >
+            <span>{{__('common.max_available_is')}}: {{$warehouseAmount->available_amount ?? 0 }}</span>
         </div>
 
         <div class="col-md-4 col-sm-4 col-xs-6">

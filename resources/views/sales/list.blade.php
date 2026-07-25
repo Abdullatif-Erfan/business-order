@@ -1,6 +1,86 @@
 @extends('layouts.app')
 @section('content')
 
+<style>
+    /* Fix dropdown visibility in DataTables */
+.content {
+    overflow: visible !important;
+    position: relative;
+    z-index: 1;
+}
+.card-body {
+    overflow: visible !important;
+}
+
+.table-responsive {
+    overflow: visible !important;
+}
+
+.dataTables_wrapper {
+    overflow: visible !important;
+}
+
+.dataTables_scroll {
+    overflow: visible !important;
+}
+
+.dataTables_scrollBody {
+    overflow: visible !important;
+    min-height: 150px;
+}
+
+/* Ensure dropdown menus are above everything */
+.dropdown-menu {
+    z-index: 9999 !important;
+    position: absolute !important;
+    min-width: 9rem !important;
+    left: 23px !important;
+}
+
+/* For dropdown inside DataTable */
+table.dataTable {
+    overflow: visible !important;
+}
+
+/* Fix for dropdown in table cells */
+table.dataTable tbody td {
+    overflow: visible !important;
+}
+
+/* Dropdown container fix */
+.dropdown {
+    position: relative !important;
+}
+
+/* Make sure dropdown opens upward when needed */
+.dropup .dropdown-menu {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-bottom: 5px !important;
+}
+
+/* Fix for card */
+.card {
+    overflow: visible !important;
+}
+
+/* For responsive table */
+.table-responsive {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+}
+
+/* DataTable fixed header fix */
+.dataTables_scrollHead {
+    overflow: visible !important;
+}
+
+.dataTables_scrollFoot {
+    overflow: visible !important;
+}
+
+</style>
+
 <!-- main content -->
 <div class="main-panel">
     <div class="content">

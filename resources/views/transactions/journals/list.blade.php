@@ -167,144 +167,93 @@
 </script>
 
 <script>
-    $(document).ready(function() {
-        let table = $('#journalTable').DataTable({
-            processing: true,
-            serverSide: true,
-            pageLength: 10,   // 👈 IMPORTANT
-            lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'همه']
-                ],
-            ajax: {
-                url: '{{ route('journal.data') }}',
-                data: function (d) {
-                    d.account_id = $('#account_id').val();
-                    d.start_date = $('#start_date').val();
-                    d.end_date = $('#end_date').val();
-                    d.code_number = $('#code_number').val();
-                    d.bill_number = $('#bill_number').val();
-                },
-                error: function(xhr, status, error) 
-                {
-                   console.log("Error fetching data: ", error);
-                   $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">مواردی یافت نشد</td></tr>');
-                }
+$(document).ready(function() {
+    let table = $('#journalTable').DataTable({
+        processing: true,
+        serverSide: true,
+        pageLength: 10,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'همه']
+        ],
+        ajax: {
+            url: '{{ route('journal.data') }}',
+            data: function (d) {
+                d.account_id = $('#account_id').val();
+                d.start_date = $('#start_date').val();
+                d.end_date = $('#end_date').val();
+                d.code_number = $('#code_number').val();
+                d.bill_number = $('#bill_number').val();
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
-                { data: 'code', name: 'code' },
-                { data: 'accountRelation', name: 'accountRelation' },
-                { data: 'details', name: 'details' },
-                // { data: 'transaction_type_1', name: 'transaction_type_1' },
-                // { data: 'transaction_type_2', name: 'transaction_type_2' },
-
-                { data: 'cacheRecieved', name: 'cacheRecieved' },
-                { data: 'cachePaid', name: 'cachePaid' },
-                { data: 'loanRecieved', name: 'loanRecieved' },
-                { data: 'loanPaid', name: 'loanPaid' },
-
-                { data: 'currency', name: 'currency' },
-                // { data: 'option_label', name: 'option_label' },
-                { data: 'idate', name: 'idate' },
-                { data: 'actions', name: 'actions', orderable: false, searchable: false }
-            ],
-           
-            drawCallback: function (settings) {
-                var api = this.api();
-                let isCompanyAccount = settings.json.isCompanyAccount;
-
-                // Handle case where no records exist
-                if (api.rows().data().length === 0) {
-                    $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
-                    return; // Exit early to avoid unnecessary calculations
-                }
-
-                // Check if account_id is filtered (i.e., has a value)
-                var accountId = $('#account_id').val();
-
-                // Function to sum columns and return raw numbers
-                function sumColumn(index) {
-                    return api
-                        .column(index, { page: 'current' })
-                        .data()
-                        .reduce(function (a, b) {
-                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
-                            return numA + numB;
-                        }, 0);
-                }
-
-                // Only calculate finalResult if account_id is filtered
-                if (parseInt(accountId) > 0) {
-                    // Store column sums (as numbers, not formatted strings)
-                    let sum4 = sumColumn(4);
-                    let sum5 = sumColumn(5);
-                    let sum6 = sumColumn(6);
-                    let sum7 = sumColumn(7);
-
-                    /**
-                    * (بیلانس = (آورد نقد + طلبات) - (برد نقد + قرضه
-                    * balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
-                    */
-
-                    // Ensure valid numbers for all sums
-                    sum4 = isNaN(sum4) ? 0 : sum4;
-                    sum5 = isNaN(sum5) ? 0 : sum5;
-                    sum6 = isNaN(sum6) ? 0 : sum6;
-                    sum7 = isNaN(sum7) ? 0 : sum7;
-
-                    // Calculate the final result based on account type
-                    let finalResult = isCompanyAccount 
-                        ? (sum4 + sum7) - (sum5 + sum6)
-                        : (sum5 + sum7) - (sum4 + sum6);
-
-                    // Ensure finalResult is not NaN
-                    finalResult = isNaN(finalResult) ? 0 : finalResult;
-
-                    // Format final result with proper decimal places
-                    let finalResultFormatted = Number.isInteger(finalResult)
-                        ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                        : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-                    // Determine badge type
-                    let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
-
-                    // Update footer totals with formatted results
-                    $(api.column(4).footer()).html(sum4.toLocaleString());
-                    $(api.column(5).footer()).html(sum5.toLocaleString());
-                    $(api.column(6).footer()).html(sum6.toLocaleString());
-                    $(api.column(7).footer()).html(sum7.toLocaleString());
-                    $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
-                } else {
-                    // Hide results when no account is filtered
-                    $(api.column(4).footer()).html('');
-                    $(api.column(5).footer()).html('');
-                    $(api.column(6).footer()).html('');
-                    $(api.column(7).footer()).html('');
-                    // $(api.column(8).footer()).html('');
-                }
+            error: function(xhr, status, error) {
+                console.log("Error fetching data: ", error);
+                $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">مواردی یافت نشد</td></tr>');
             }
-
-        });
-
-        // When the filter button is clicked, refresh the table
-         $('#btn-filter').on('click', function() {
-            table.ajax.reload();
-        });
-
-        // =========================================
-        // RESET BUTTON
-        // =========================================
-        $('#btn-reset').on('click', function() {
-            $('#account_id').val('');
-            $('#start_date').val('');
-            $('#end_date').val('');
-            $('#code_number').val('');
-            $('#bill_number').val('');
-            table.ajax.reload(null, false);
-        });
+        },
+        columns: [
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+            { data: 'code', name: 'code' },
+            { data: 'accountRelation', name: 'accountRelation' },
+            { data: 'details', name: 'details' },
+            { data: 'cacheRecieved', name: 'cacheRecieved' },
+            { data: 'cachePaid', name: 'cachePaid' },
+            { data: 'loanRecieved', name: 'loanRecieved' },
+            { data: 'loanPaid', name: 'loanPaid' },
+            { data: 'currency', name: 'currency' },
+            { data: 'idate', name: 'idate' },
+            { data: 'actions', name: 'actions', orderable: false, searchable: false }
+        ],
+        
+        // Use footerCallback instead of drawCallback
+        footerCallback: function(row, data, start, end, display) {
+            var api = this.api();
+            
+            function getNumber(val) {
+                if (val === null || val === undefined || val === '') return 0;
+                if (typeof val === 'string') {
+                    // Remove commas and any non-numeric characters except decimal
+                    val = val.replace(/,/g, '').replace(/[^0-9.-]/g, '');
+                }
+                return parseFloat(val) || 0;
+            }
+            
+            // Calculate column totals (columns 4,5,6,7)
+            var totals = [0, 0, 0, 0];
+            var columnIndices = [4, 5, 6, 7];
+            
+            api.rows({ page: 'current' }).data().each(function(rowData) {
+                columnIndices.forEach(function(idx, i) {
+                    totals[i] += getNumber(rowData[api.column(idx).dataSrc()]);
+                });
+            });
+            
+            // Update footer
+            columnIndices.forEach(function(idx, i) {
+                $(api.column(idx).footer()).html(
+                    totals[i].toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                );
+            });
+        }
     });
+
+    // Filter button
+    $('#btn-filter').on('click', function() {
+        table.ajax.reload();
+    });
+
+    // Reset button
+    $('#btn-reset').on('click', function() {
+        $('#account_id').val('');
+        $('#start_date').val('');
+        $('#end_date').val('');
+        $('#code_number').val('');
+        $('#bill_number').val('');
+        table.ajax.reload(null, false);
+    });
+});
 </script>
 
 @endsection('content')

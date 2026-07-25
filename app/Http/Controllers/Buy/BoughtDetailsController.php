@@ -31,13 +31,21 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BoughtDetailsController extends Controller
 {
-    protected  $isAdmin;
+    protected $isAdmin, $customerIds, $carIds, $userId, $userName;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->customerIds = session('customerIds', []);
+            $this->carIds = session('carIds', []);
+            $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
         } else {
             $this->isAdmin = false;
+            $this->customerIds = [];
+            $this->carIds = [];
+            $this->userId = 0;
+            $this->userName ='';
         }
     }
     /**
@@ -58,7 +66,6 @@ class BoughtDetailsController extends Controller
         // $boughtItems = BoughtItem::with(['currencyRelation','customerRelation'])->orderBy('id', 'DESC')->get();
         // return response()->json($boughtItems);
 
-
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
@@ -70,7 +77,16 @@ class BoughtDetailsController extends Controller
     public function getData(Request $request)
     {
         $tax_activation = $request->input('tax_activation');
-        $boughtItems = BoughtItem::with(['currencyRelation', 'customerRelation'])->orderBy('id', 'DESC');
+        // $boughtItems = BoughtItem::with(['customerRelation'])->orderBy('id', 'DESC');
+
+        if($this->isAdmin) {
+            $boughtItems = BoughtItem::with(['customerRelation'])->orderBy('id', 'DESC');
+        } else {
+            $boughtItems = BoughtItem::with(['customerRelation'])
+            ->whereIn('bought_items.car_id', $this->carIds)
+            ->orderBy('id', 'DESC');
+        }
+
         
         // Apply filters if provided
         if ($request->customer_name) {
@@ -79,9 +95,11 @@ class BoughtDetailsController extends Controller
             });
         }
         
-        if ($request->currency_id) {
-            $boughtItems->where('currency_id', $request->currency_id);
+
+         if ($request->user_name) {
+             $boughtItems->where('bought_items.user_name', 'LIKE', '%' . $request->user_name . '%');
         }
+        
         
         if ($request->start_date && $request->end_date) {
             $boughtItems->whereBetween('idate', [$request->start_date, $request->end_date]);
@@ -115,9 +133,6 @@ class BoughtDetailsController extends Controller
                 return number_format($boughtItem->remained ?? 0, 2);
             })
 
-            ->addColumn('currencyRelation', function ($boughtItem) {
-                return $boughtItem->currencyRelation->name ?? '';
-            })
         
             ->addColumn('view', function ($boughtItem) {
                 return '<a href="boughtList/details/' . $boughtItem->times . '" class="hidden-print">
@@ -145,9 +160,68 @@ class BoughtDetailsController extends Controller
      */
     public function create()
     {
-        // should be removed
-        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
-        $cars = Car::select('id','name')->get();
+        
+        if($this->isAdmin)
+        {
+            $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+            $cars = Car::select('id','name')->get();
+
+            $orders = Order::select(
+                'id',
+                'ord_num',
+                'supplier_id',
+                'category_id',
+                'idate',
+                'state',
+                'user_name',
+                'times'
+            )
+            ->with([
+                'supplierRelation:id,name',
+                'categoryRelation:id,name',
+                'items:id,order_id,pre_list_id,unit_id,amount,category_id',
+                'items.preList:id,name',      // Load pre_list name
+                'items.unit:id,name'          // Load unit name
+            ])
+            ->where('orders.state', 1)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+            // Get supplier IDs that have orders (state = 1)
+            $supplierIdsWithOrders = $orders->pluck('supplier_id')->unique()->toArray();
+        } 
+        else 
+        {
+            $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+            $cars = Car::select('id','name')->whereIn('id', $this->carIds ?? [])->get();
+
+            $orders = Order::select(
+                'id',
+                'ord_num',
+                'supplier_id',
+                'category_id',
+                'idate',
+                'state',
+                'user_name',
+                'times'
+            )
+            ->with([
+                'supplierRelation:id,name',
+                'categoryRelation:id,name',
+                'items:id,order_id,pre_list_id,unit_id,amount,category_id',
+                'items.preList:id,name',      // Load pre_list name
+                'items.unit:id,name'          // Load unit name
+            ])
+            ->where('orders.state', 1)
+            ->where('orders.user_id', $this->userId)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+            // Get supplier IDs that have orders (state = 1)
+            // $supplierIdsWithOrders = $orders->where('user_id', $this->userId)->pluck('supplier_id')->unique()->toArray();
+            $supplierIdsWithOrders = $orders->pluck('supplier_id')->unique()->toArray();
+
+        }
         $preLists = BuyPreList::select('id','name','unit_id','category_id','unit_name')->get();
         $categories = Category::select('id','name')->get(); 
         $units = Unit::select('id','name')->get();
@@ -159,34 +233,13 @@ class BoughtDetailsController extends Controller
         $billno =  BoughtItem::max('billno') + 1;
     
         $todaysDate = Carbon::now()->format('Y-m-d');
-        $newJournalCode =  Journal::max('code') + 1;
         $tax = OrgBio::select('tax_per','tax_activation')->first();
         $times = time();
 
-        $orders = Order::select(
-            'id',
-            'ord_num',
-            'supplier_id',
-            'category_id',
-            'idate',
-            'state',
-            'user_name',
-            'times'
-        )
-        ->with([
-            'supplierRelation:id,name',
-            'categoryRelation:id,name',
-            'items:id,order_id,pre_list_id,unit_id,amount,category_id',
-            'items.preList:id,name',      // Load pre_list name
-            'items.unit:id,name'          // Load unit name
-        ])
-        ->where('orders.state', 1)
-        ->orderBy('id', 'DESC')
-        ->get();
+        
 
            // گروپ ساختن سپلایر با آیتم هایکه سفارش داده شده است و باید علامت تیک مارک نشان داده شود
-          // Get supplier IDs that have orders (state = 1)
-            $supplierIdsWithOrders = $orders->pluck('supplier_id')->unique()->toArray();
+          
 
             // Add has_order flag to suppliers
             $suppliersWithStatus = $suppliers->map(function ($supplier) use ($supplierIdsWithOrders) {
@@ -203,33 +256,91 @@ class BoughtDetailsController extends Controller
          $suppliersWithStatus = $suppliersWithStatus->sortByDesc('has_order')->values();
 
         // return response()->json($orders);
+        // return response()->json($supplierIdsWithOrders);
+        // return response()->json($orders);
 
-        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','newJournalCode','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
+        return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
     }
     
     public function getToUpdateProfit(string $billno)
     {
-        $boughtItemDetails = BoughtItemDetails::with([
-            'preListRelation:id,name', 
-            'unitRelation:id,name'
-        ])
-        ->where('billno', $billno)
-        ->get();
+        try {
+            // Validate input
+            if (!is_numeric($billno) || $billno <= 0) {
+                return $this->errorResponse('Invalid bill number provided', 400);
+            }
 
-        $boughtItemIsEditable = BoughtItem::where('billno',$billno)->value('isEditable');
+            // Use a transaction for consistency
+            return DB::transaction(function () use ($billno) {
+                // Check if bill exists and get editable status in one query
+                $boughtItem = BoughtItem::select('billno', 'isEditable')
+                    ->where('billno', $billno)
+                    ->lockForUpdate() // Prevent race conditions
+                    ->first();
 
-        // Check if data exists
-        if ($boughtItemDetails->isEmpty()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'No items found for this bill'
-            ], 404);
+                if (!$boughtItem) {
+                    return $this->errorResponse('Bill not found', 404);
+                }
+
+                // Check if any items have been sold (out_amount > 0)
+                $hasSoldItems = WarehouseItem::where('billno', $billno)
+                    ->where('out_amount', '>', 0)
+                    ->exists();
+
+                // Determine if editable
+                $boughtItemIsEditable = $hasSoldItems ? 1 : 0;
+
+                // If editable status changed, update it
+                if ($boughtItem->isEditable != $boughtItemIsEditable) {
+                    $boughtItem->update(['isEditable' => $boughtItemIsEditable]);
+                }
+
+                // Get details with relations - only select needed columns
+                $boughtItemDetails = BoughtItemDetails::with([
+                    'preListRelation:id,name', 
+                    'unitRelation:id,name'
+                ])
+                ->where('billno', $billno)
+                ->select('id', 'billno', 'pre_list_id', 'unit_id', 'amount', 'buy_up', 'sell_up', 'expected_profit')
+                ->get();
+
+                if ($boughtItemDetails->isEmpty()) {
+                    return $this->errorResponse('No items found for this bill', 404);
+                }
+
+                return view('buy.bought.setProfitModalContent', compact(
+                    'boughtItemDetails',
+                    'boughtItemIsEditable',
+                    'billno'
+                ));
+            });
+
+        } catch (\Exception $e) {
+            \Log::error('getToUpdateProfit error: ' . $e->getMessage(), [
+                'billno' => $billno,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return $this->errorResponse('An error occurred while processing your request', 500);
         }
-
-        return view('buy.bought.setProfitModalContent', compact('boughtItemDetails','boughtItemIsEditable'));
     }
 
-     public function updateProfit(Request $request)
+    /**
+     * Helper method for error responses
+     */
+    private function errorResponse(string $message, int $statusCode = 400)
+    {
+        if (request()->expectsJson()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $message
+            ], $statusCode);
+        }
+
+        return back()->with('error', $message);
+    }
+
+    public function updateProfit(Request $request)
     {
         $validated = $request->validate([
             'billno' => 'required|exists:bought_item_details,billno',
@@ -274,6 +385,7 @@ class BoughtDetailsController extends Controller
                     ->where('billno', $boughtItemDetail->billno)
                     ->where('unit_id', $boughtItemDetail->unit_id)
                     ->where('times', $validated['times'] ?? $boughtItemDetail->times)
+                    ->where('user_id', $this->userId ?? $boughtItemDetail->user_id)
                     ->first();
                 
                 if ($warehouseItem) {
@@ -300,99 +412,11 @@ class BoughtDetailsController extends Controller
                 'message' => __('common.error_occurred') . ': ' . $e->getMessage()
             ], 500);
         }
-    }
+    } 
 
-    private function createOrUpdateBoughtItem($request, $short_date, $times)
-    {
-        $date = Carbon::parse($request->todays_date);
-        $year = $date->year;   
-        $month = $date->month; 
-        $day = $date->day;     
-        
-        // Check if a record with the same billno exists
-        $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
-
-        if ($BoughtItem) {
-            // \Log::info('updating BoughtItem');
-            // Update existing record
-            $BoughtItem->update([
-                'total'               => $request->total ?? 0,
-                'cur_pay'             => $request->cur_pay ?? 0,
-                'remained'            => $request->remained ?? 0,
-                'currency_id'         => $request->currency_id ?? 0,
-                'account_id'          => $request->from_account_id,
-                'supplier_account_id' => $request->supplier_account_id,
-                'note'                => $request->note ?? '',
-            ]);
-        } else {
-            // \Log::info('Inserting BoughtItem');
-            $BoughtItem = BoughtItem::create([
-                'factor'              => $request->factor ?? 0,
-                'billno'              => $request->billno,
-                'journal_code'        => $request->journal_code ?? 0,
-                'total'               => $request->total ?? 0,
-                'cur_pay'             => $request->cur_pay ?? 0,
-                'remained'            => $request->remained ?? 0,
-                'account_id'          => $request->from_account_id,
-                'supplier_account_id' => $request->supplier_account_id,
-                'currency_id'         => $request->currency_id,
-                'tax_activation'      => $request->tax_activation ?? 0,
-                'note'                => $request->note ?? '',
-                'idate'               => $short_date,
-                'year'                => $year,
-                'month'               => $month,
-                'day'                 => $day,
-                'times'               => $times,
-                'user_id'             => auth()->user()->id ?? '',
-                'user_name'           => auth()->user()->full_name ?? '',
-                'has_invoice'         => 0,
-
-            ]);
-        }
-
-        return $BoughtItem->id;
-    }
-
-
-    private function storeBoughtItemDetails($request, $boughtItemId, $times)
-    {
-        // If not exists, create new record
-        $flag = $request->tax_activation == 1 ? true : false;
-
-        $preListId = $request->pre_list_id ?? null;
-        if (!$preListId) {
-            throw new \Exception('Pre-list ID is required');
-        }
-
-        return BoughtItemDetails::create([
-            'billno' => $request->billno,
-            'bought_item_id' => $boughtItemId,
-            'supplier_account_id' => $request->supplier_account_id,
-            'pre_list_id' => $preListId,
-            'amount' => $request->amount,
-            'unit_id' => $request->unit_id,
-            'buy_up' => $request->buy_up,
-            'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
-            'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
-            'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
-            'total' => $request->total,   
-            // 'total_vat' => $flag ? $request->total_vat : NULL, 
-            'total_vat' => $flag ? ($request->buy_up_vat ?? 0) * $request->amount : NULL, 
-            'sell_up' => $request->sell_up,
-            'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
-            'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
-            'sell_up_vat' =>  $flag ? $request->sell_up_vat : NULL,
-            'is_moved' => 1,
-            'times' => $times,
-            'user_id'             => auth()->user()->id ?? '',
-            'user_name'           => auth()->user()->full_name ?? '',
-        ]);
-        return true;
-    }    
-
-   /**
- * Create warehouse items from bought items
- */
+    /**
+     * Create warehouse items from bought items
+    */
     private function createWarehouseItems($request)
     {
         $date = Carbon::parse($request->todays_date);
@@ -474,7 +498,7 @@ class BoughtDetailsController extends Controller
         return true;
     }
         
-
+    // Insert once all items of ordered list
     public function submit(Request $request)
     {
         // return ['data' => $request->all()];
@@ -483,14 +507,15 @@ class BoughtDetailsController extends Controller
             'supplier_account_id' => 'required|exists:accounts,id',
             'from_account_id' => 'required|exists:accounts,id',
             'todays_date' => 'required|date',
-            'billno' => 'required|numeric|unique:bought_items,billno',
+            // 'billno' => 'required|numeric|unique:bought_items,billno',
+            'billno' => 'required|numeric',
             'factor' => 'nullable|string|max:255',
             'total_price' => 'required|numeric|min:0',
             'cur_pay' => 'required|numeric|min:0',
             'remained' => 'required|numeric|min:0',
             'currency_id' => 'required|exists:currencies,id',
             'note' => 'nullable|string|max:1000',
-            'journal_code' => 'nullable|string',
+            // 'category_id'   => 'required|exists:categories,id',
             'tax_activation' => 'nullable|integer',
             'times' => 'required|integer',
             'items' => 'required|array|min:1',
@@ -509,12 +534,50 @@ class BoughtDetailsController extends Controller
         try {
             // Parse date
             $date = Carbon::parse($validated['todays_date']);
-        
+
+            /**
+             * برای اینکه چند کاربر همزمان ثبت نکند و  بل نمبر یکسان نباشد باید 
+             * اینجا چک شود اگر ثبت نبود همان بل نمبر اوکی است و اگر ثبت شده بود بل نمبر جدید بیگیرد
+             */
+            
+             /**
+             * FIXED: Use lockForUpdate() to prevent race conditions
+             * Multiple users can't get the same billno anymore
+             */
+            $times = time();
+            $billno = null;
+            
+            // Lock the table to prevent concurrent access
+            // Check if billno exists with lock
+            $existingBill = BoughtItem::where('billno', $validated['billno'])
+                ->lockForUpdate()
+                ->first();
+
+            $journalCode =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journal_code = $journalCode + 1;
+                
+            if ($existingBill) {
+                // Get max billno with lock to prevent duplicates
+                $maxBill = BoughtItem::lockForUpdate()->max('billno') ?? 0;
+                $billno = $maxBill + 1;
+                $times = time();
+            } else {
+                $billno = $validated['billno'];
+            }
+
+
+            // ADD TO REQUEST: Merge the new values into the request
+            $request->merge([
+                'billno' => $billno,
+                'journal_code' => $journal_code,
+                'times' => $times,
+            ]);
+
             // Create BoughtItem (main record)
             $boughtItem = BoughtItem::create([
-                'billno' => $validated['billno'],
+                'billno' => $billno,
                 'factor' => $validated['factor'] ?? null,
-                'journal_code' => $validated['journal_code'] ?? null,
+                'journal_code' => $journal_code ?? null,
                 'total' => $validated['total_price'],
                 'cur_pay' => $validated['cur_pay'],
                 'category_id' => $validated['category_id'] ?? 0,
@@ -529,9 +592,9 @@ class BoughtDetailsController extends Controller
                 'month' => $date->month,
                 'day' => $date->day,
                 'tax_activation' => $validated['tax_activation'] ?? 0,
-                'times' => $validated['times'],
-                'user_id' => auth()->id(),
-                'user_name' => auth()->user()->full_name ?? 'System',
+                'times' => $times,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName ?? 'System',
                 'has_invoice' => 0,
                 'invoice_id' => null,
             ]);
@@ -539,7 +602,7 @@ class BoughtDetailsController extends Controller
             // Create BoughtItemDetails (items)
             foreach ($validated['items'] as $item) {
                 BoughtItemDetails::create([
-                    'billno' => $validated['billno'],
+                    'billno' => $billno,
                     'bought_item_id' => $boughtItem->id,
                     'supplier_account_id' => $validated['supplier_account_id'],
                     'pre_list_id' => $item['pre_list_id'],
@@ -558,9 +621,9 @@ class BoughtDetailsController extends Controller
                     'sell_tax_price' => 0,
                     'sell_up_vat' => 0,
                     'is_moved' => 0,
-                    'times' => $validated['times'],
-                    'user_id' => auth()->id(),
-                    'user_name' => auth()->user()->full_name ?? 'System',
+                    'times' => $times,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName ?? 'System',
                 ]);
             }
 
@@ -586,7 +649,8 @@ class BoughtDetailsController extends Controller
                 Order::where('state', 1)
                     ->where('category_id', $categoryId)
                     ->where('bill_no', 0)
-                    ->update(['state' => 3, 'bill_no' => $validated['billno']]);
+                    ->where('user_id', $this->userId)
+                    ->update(['state' => 3, 'bill_no' => $billno]);
             }
 
             DB::commit();
@@ -603,8 +667,7 @@ class BoughtDetailsController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Bought Item Creation Error: ' . $e->getMessage());
-            Log::error('Request Data: ', $request->all());
-            
+            // Log::error('Request Data: ', $request->all());
             return response()->json([
                 'status' => 'error',
                 'message' => __('common.error_occurred') . ': ' . $e->getMessage()
@@ -916,6 +979,20 @@ class BoughtDetailsController extends Controller
      */
     public function edit(string $times)
     {
+        // Check if any items have been sold (out_amount > 0)
+        $hasSoldItems = WarehouseItem::where('times', $times)
+            ->where('out_amount', '>', 0)
+            ->exists();
+
+        // Determine if editable
+        if($hasSoldItems) {
+             Session::put('notification', [
+                    'message' => __('common.not_editable'),
+                    'type' => 'danger',
+            ]);
+            return redirect()->route('boughtList.details', ['times' => $times]);
+        }
+
         $billno = BoughtItem::max('billno') + 1;   
         $currencies = Currency::select('id', 'name')->get();
         $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->orderBy('is_pre_select', 'DESC')->get();
@@ -1057,6 +1134,157 @@ class BoughtDetailsController extends Controller
         // Validate input data
         $validated = $request->validate([
             'id'                    => 'required|exists:bought_item_details,id',
+            'amount'                => 'required|numeric|min:1',
+            'old_amount'            => 'required|numeric|min:1',
+            'buy_up'                => 'required|numeric|min:1',
+            'unit_id'               => 'required|exists:units,id',
+            'pre_list_id'           => 'required',
+            'times'                 => 'required|string',
+            "total"                 => 'required|numeric|',
+            'note'                  => 'nullable|string',
+        ]);
+        
+
+        DB::beginTransaction();
+        try {
+            // Update BoughtItemDetails
+            $boughtItemDetails = BoughtItemDetails::findOrFail($validated['id']);
+
+            // TODO : need to calculate tax later 
+            // find total_vat 
+            $new_total = $validated['amount'] * $validated['buy_up'];
+
+            $boughtItemDetails->update([
+                'amount'   => $validated['amount'],
+                'buy_up'   => $validated['buy_up'],
+                'unit_id'  => $validated['unit_id'],
+                'total'    => $new_total,
+                'note'     => $validated['note'],
+            ]);
+
+
+               // Refresh the model to get the updated value
+                 $boughtItemDetails->refresh();
+            
+               // Find Warehouse Item
+            if($this->isAdmin) 
+            {
+                $warehouseItem = WarehouseItem::where('times', $validated['times'])
+                    ->where('buy_pre_id', $validated['pre_list_id'])
+                    ->where('unit_id', $validated['unit_id'])
+                    ->lockForUpdate() // Prevents race conditions
+                    ->first();
+            } else {
+                $warehouseItem = WarehouseItem::where('times', $validated['times'])
+                    ->where('buy_pre_id', $validated['pre_list_id'])
+                    ->where('unit_id', $validated['unit_id'])
+                    ->where('user_id', $this->userId)
+                    ->lockForUpdate() // Prevents race conditions
+                    ->first();
+            } 
+
+                
+                // Calculate the difference
+                $oldAmount = (float) $validated['old_amount'];
+                $newAmount = (float) $validated['amount'];
+                $diff = abs($newAmount - $oldAmount);
+
+                // Determine the valuation price (with or without tax)
+                // $valuationPrice = $validated['buy_up'] ?? $warehouseItem->buy_up;
+                // if (intval($warehouseItem->buy_tax_per ?? 0) > 0) {
+                //     $valuationPrice = $warehouseItem->buy_up_vat ?? $warehouseItem->buy_up ?? 0;
+                // }
+
+                $valuationPrice = $validated['buy_up'] ?? $warehouseItem->buy_up;
+                
+                if (!$warehouseItem) {
+                    throw new \Exception('این جنس در گدام یافت نشد');
+                }
+
+                // Update warehouse quantities based on difference
+                // اگر مقدار کمتر شود باید به همان مقدار از 
+                // out_amount کم شود و available_amount نیز کم شود
+                // مثلا قبلا ۴ دانه فروخته بودیم و حالا ۲ ساختیم
+                if ($oldAmount > $newAmount) 
+                {
+                    // $warehouseItem->available_amount += $diff;
+                    // if ($warehouseItem->out_amount >= $diff) {
+                    //     $warehouseItem->out_amount -= $diff;
+                    // } else {
+                    //     $warehouseItem->out_amount = 0;
+                    // }
+                     $warehouseItem->available_amount -= $diff;
+                    if ($warehouseItem->in_amount >= $diff) {
+                        $warehouseItem->in_amount -= $diff;
+                    } 
+
+            } 
+            elseif ($newAmount > $oldAmount) 
+            {  
+                // اگر مقدار زیادتر شود باید از مقدار موجود کم شود و 
+                // مثلا: دو دانه فروخته بودیم حالا چهار دانه ویرایش میکنم این دو دانه 
+                // Amount increased - take more items from warehouse
+                // if ($warehouseItem->available_amount < $diff) {
+                //     throw new \Exception('جنس به این تعداد موجود نیست');
+                //     return;
+                // }
+
+                $warehouseItem->available_amount += $diff;  
+                $warehouseItem->in_amount += $diff;   
+            }
+
+            // Calculate available_total = available_amount × valuation_price
+            $warehouseItem->available_total = round($warehouseItem->available_amount * $valuationPrice, 2);
+            $warehouseItem->total = round($warehouseItem->in_amount * $valuationPrice, 2);
+
+
+            //  Ensure out_amount is never negative (safety check)
+            if ($warehouseItem->in_amount < 0) {
+                $warehouseItem->in_amount = 0;
+            }
+
+            //  Ensure available_amount is never negative (safety check)
+            if ($warehouseItem->available_amount < 0) {
+                $warehouseItem->available_amount = 0;
+            }
+
+            // مقدار موجود درست محاسبه میشود وبعضی اوقات زیادتر از مقدار آمد میشود زیرا مثلا
+            // اگر ۵ دانه در گدام موجود باشد و ۵ دانه فروخته باشیم و اگر فروش شده را یک بسازیم مقدار موجود ۹ دانه میشود
+            // if($warehouseItem->available_amount > $warehouseItem->in_amount) {
+            //     $warehouseItem->in_amount = $warehouseItem->available_amount;
+            //     $warehouseItem->total =  $warehouseItem->in_amount * $valuationPrice;
+            // }
+            $warehouseItem->buy_up = $validated['buy_up'];
+            $warehouseItem->save();
+            
+            DB::commit();
+            Session::put('notification', [
+                'message' => __('common.updated_successfully'),
+                'type' => 'success',
+            ]);
+
+            return redirect()->route('boughtList.edit', ['times' => $validated['times']]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error in updateItemAndWarehouseItems: ' . $e->getMessage());
+
+            Session::put('notification', [
+                'message' => __('common.update_failed'),
+                'type' => 'danger',
+            ]);
+
+            return redirect()->route('boughtList.edit', ['times' => $validated['times']]);
+        }
+    }
+
+    public function updateItemAndWarehouseItemsV1Bkp(Request $request)
+    {
+        // return response()->json(['formData' => $request->all()]);
+
+        // Validate input data
+        $validated = $request->validate([
+            'id'                    => 'required|exists:bought_item_details,id',
             'amount'                => 'required|numeric|min:0',
             'buy_up'                => 'required|numeric|min:0',
             'unit_id'               => 'required|exists:units,id',
@@ -1134,24 +1362,6 @@ class BoughtDetailsController extends Controller
                     ]);
                      return redirect()->route('boughtList.edit', ['times' => $validated['times']]);
                 }
-
-                // $WarehouseItem->update([
-                //     'in_amount' => $in_amount , 
-                //     "out_amount" => $out_amount,
-                //     "available_amount" => $available_amount,
-                //     'buy_up' => $validated['buy_up'],
-                //     'unit_id' => $validated['unit_id'],
-                //     'total' => $validated['total'],
-                //     "buy_tax_per"  =>  $request->buy_tax_per ?? NULL,
-                //     "buy_tax_price" =>  $request->buy_tax_price ?? NULL,
-                //     "buy_up_vat" =>  $request->buy_up_vat ?? NULL,
-                //     "total_vat" =>  $request->total_vat ?? NULL,
-                //     "note"  =>  $request->note,
-                //     "sell_up" =>  $request->sell_up ?? NULL,
-                //     "sell_tax_per" =>  $request->sell_tax_per ?? NULL,
-                //     "sell_tax_price" =>  $request->sell_tax_price ?? NULL,
-                //     "sell_up_vat" =>  $request->sell_up_vat ?? NULL,
-                // ]);
 
             $WarehouseData['in_amount'] = $in_amount;
             $WarehouseData['out_amount'] = $out_amount;

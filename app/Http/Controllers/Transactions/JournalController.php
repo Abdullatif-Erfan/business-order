@@ -20,7 +20,7 @@ use App\Services\NumberToWordsService;
 
 class JournalController extends Controller
 {
-    protected $isAdmin, $userId, $full_name, $numberToWordsService;
+    protected $isAdmin, $userId, $customerIds, $carIds, $full_name, $numberToWordsService;
 
     // Inject the message service into the controller
     public function __construct(NumberToWordsService $numberToWordsService)
@@ -30,22 +30,31 @@ class JournalController extends Controller
         {
             $this->isAdmin = session('isAdmin', auth()->check() ? auth()->user()->isAdmin == 1 : false);
             $this->full_name = session('full_name', auth()->check() ? auth()->user()->full_name : 0);
-            $this->userId = session('userId', auth()->id());
+            $this->userId = session('userId', auth()->user()->id);
+            $this->customerIds = session('customerIds', []);
+            $this->carIds = session('carIds', []);
             
         } else {
             $this->isAdmin = false;
             $this->full_name = '';
             $this->userId = 0;
+            $this->customerIds = [];
+            $this->carIds = [];
         }
     }
 
+    
 
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $accounts = Account::get();
+        if($this->isAdmin) {
+            $accounts = Account::get();
+        } else {
+            $accounts = Account::whereIn('id', $this->customerIds)->get();
+        }
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         
@@ -61,6 +70,10 @@ class JournalController extends Controller
         $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'idate', 'status', 'times', 'is_single_record')
         ->orderBy('id', 'DESC');
+
+        if(!$this->isAdmin) {
+            $journals->where('journals.user_id', $this->userId);
+        }
 
         // Apply filters if provided
         if ($request->account_id) {
