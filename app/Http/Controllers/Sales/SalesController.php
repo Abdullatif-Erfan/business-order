@@ -1585,7 +1585,11 @@ class SalesController extends Controller
     
         try {
             // Find the warehouse sale record
-            $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->where('user_id', $this->userId)->firstOrFail();
+            if($this->isAdmin) {
+                $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->firstOrFail();
+            } else {
+                $warehouseSales = WarehouseSales::where('billno', $validated['billno'])->where('user_id', $this->userId)->firstOrFail();
+            }
 
             if(!$warehouseSales) {
                 throw new \Exception('اجناس یافت نشد');
@@ -1650,16 +1654,16 @@ class SalesController extends Controller
             } 
             else // بنابر دلایل ریکارد ژورنال قبلا ایجاد نشده بوده حالا باید ایجاد شود
             {
-                $clonedRequest = clone $request;
-                $new_journal_code = Journal::max('code') + 1;
-                $clonedRequest->merge([
-                    'code' => $new_journal_code, 
-                ]);
-                $checkJournal = $this->handleJournalEntry($clonedRequest);
+                // $clonedRequest = clone $request;
+                // $new_journal_code = Journal::max('code') + 1;
+                // $clonedRequest->merge([
+                //     'code' => $new_journal_code, 
+                // ]);
+                // $checkJournal = $this->handleJournalEntry($clonedRequest);
 
-                $warehouseSales->update([
-                    'journal_code'   => $new_journal_code,
-                ]);
+                // $warehouseSales->update([
+                //     'journal_code'   => $new_journal_code,
+                // ]);
             }
             
             $salePayment = SalesBillPayment::where('billno', $validated['billno'])

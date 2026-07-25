@@ -98,8 +98,17 @@ class WarehouseListController extends Controller
             $WarehouseItems->where('currency_id', $request->input('currency_id'));
         }
 
-         if($request->input('availability_options') && $request->input('availability_options') == 1) {
-            $WarehouseItems->where('available_amount','>', 0);
+        
+        if ($request->has('availability_options')) {
+            $availabilityOption = $request->input('availability_options');
+            
+            if ($availabilityOption == 1) {
+                // Only show available items (in stock)
+                $WarehouseItems->where('available_amount', '>', 0);
+            } elseif ($availabilityOption == 2) {
+                // Show all items (no filter)
+                // Do nothing - show all
+            }
         }
         
 
@@ -115,6 +124,7 @@ class WarehouseListController extends Controller
             ->addIndexColumn()
             ->addColumn('prelist', function ($WarehouseItem) {
                 return optional($WarehouseItem->preListRelation)->name ?? '';
+                // return $WarehouseItem->id;
             })
             ->addColumn('carName', function ($WarehouseItem) {
                 return optional($WarehouseItem->carRelation)->name ?? '';

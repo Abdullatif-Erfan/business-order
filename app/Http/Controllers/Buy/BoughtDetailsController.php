@@ -415,9 +415,9 @@ class BoughtDetailsController extends Controller
     } 
 
     /**
-     * Create warehouse items from bought items
+     * Create Or Update warehouse items from bought items
     */
-    private function createWarehouseItems($request)
+    private function createOrUpdateWarehouseItems($request)
     {
         $date = Carbon::parse($request->todays_date);
         $year = $date->year;
@@ -427,75 +427,92 @@ class BoughtDetailsController extends Controller
         $default_warehouse_id = 1; // You can make this dynamic
         $flag = $request->tax_activation == 1 ? true : false;
         
-        $warehouseItemsToInsert = [];
-        
-        // Loop through each item
-        foreach ($request->items as $item) {
-            // Calculate totals based on tax activation
-            // if ($flag) {
-            //     // With tax
-            //     $buyUpVat = isset($item['buy_up_vat']) ? $item['buy_up_vat'] : $item['buy_up'] * (1 + ($item['buy_tax_per'] / 100));
-            //     $total = $buyUpVat * $item['amount'];
-            //     $buyTaxPer = $item['buy_tax_per'] ?? 0;
-            //     $buyTaxPrice = $item['buy_tax_price'] ?? ($item['buy_up'] * $item['buy_tax_per'] / 100);
-            //     $sellTaxPer = $item['sell_tax_per'] ?? 0;
-            //     $sellTaxPrice = $item['sell_tax_price'] ?? ($item['sell_up'] * $item['sell_tax_per'] / 100);
-            // } else {
-                // Without tax
-                $buyUpVat = null;
+        DB::beginTransaction();
+        try {
+            // Loop through each item
+            foreach ($request->items as $item) {
                 $total = $item['buy_up'] * $item['amount'];
-                $buyTaxPer = null;
-                $buyTaxPrice = null;
-                $sellTaxPer = null;
-                $sellTaxPrice = null;
-            // }
-            
-            // Get item name from pre_list
-            // $preList = \App\Models\Buy\BuyPreList::find($item['pre_list_id']);
-            // $itemName = $preList ? $preList->name : '';
-            
-            $warehouseItemsToInsert[] = [
-                'warehouse_id' => $default_warehouse_id,
-                'buy_pre_id' => $item['pre_list_id'],
-                'billno' =>  $request->billno, 
-                'in_amount' => $item['amount'],
-                'out_amount' => 0.00,
-                'available_amount' => $item['amount'],
-                'unit_id' => $item['unit_id'],
-                'buy_up' => $item['buy_up'],
-                'buy_tax_per' => 0,
-                'buy_tax_price' => 0,
-                'buy_up_vat' => $buyUpVat,
-                'total' => $total,
-                'available_total' => $total,
-                'sell_up' => $item['sell_up'],
-                'sell_tax_per' => $sellTaxPer,
-                'sell_tax_price' => $sellTaxPrice,
-                'sell_up_vat' => null,
-                'currency_id' => $request->currency_id,
-                'category_id' => $item['category_id'] ?? null,
-                'car_id' => $request->car_id ?? null,
-                'supplier_id' => $request->supplier_account_id,
-                'idate' => $request->todays_date,
-                'user_id' => auth()->id() ?? 0,
-                'year' => $year,
-                'month' => $month,
-                'day' => $day,
-                'times' => $request->times,
-                'is_cleared' => 0,
-            ];
-        }
-        
-        // Bulk insert all warehouse items
-        if (!empty($warehouseItemsToInsert)) {
-            try {
-                WarehouseItem::insert($warehouseItemsToInsert);
-            } catch (\Exception $e) {
-                throw new \Exception('Failed to insert warehouse items: ' . $e->getMessage());
+                
+                // Prepare the data
+                $data = [
+                    'warehouse_id' => $default_warehouse_id,
+                    'buy_pre_id' => $item['pre_list_id'],
+                    'billno' => $request->billno,
+                    'in_amount' => $item['amount'],
+                    'out_amount' => 0.00,
+                    'available_amount' => $item['amount'],
+                    'unit_id' => $item['unit_id'],
+                    'buy_up'  => $item['buy_up'],
+                    'buy_tax_per' => 0,
+                    'buy_tax_price' => 0,
+                    'buy_up_vat' => null,
+                    'total' => $total,
+                    'available_total' => $total,
+                    'sell_up' => $item['sell_up'],
+                    'sell_tax_per' => null,
+                    'sell_tax_price' => null,
+                    'sell_up_vat' => null,
+                    'currency_id' => $request->currency_id,
+                    'category_id' => $item['category_id'] ?? null,
+                    'car_id' => $request->car_id ?? null,
+                    'supplier_id' => $request->supplier_account_id,
+                    'idate' => $request->todays_date,
+                    'user_id' => $this->userId ?? auth()->id(),
+                    'year' => $year,
+                    'month' => $month,
+                    'day' => $day,
+                    'times' => $request->times,
+                    'is_cleared' => 0,
+                ];
+
+                // Check if the record exists
+                $existing = WarehouseItem::where('buy_pre_id', $item['pre_list_id'])
+                    ->where('unit_id', $item['unit_id'])
+                    // ->where('times', $request->times)
+                    ->where('user_id', $this->userId ?? auth()->id())
+                    ->first();
+
+                if ($existing) // UPDATE: If exists, update it
+                {
+                    $currentInAmount = (float) $existing->in_amount;
+                    $currentAvailableAmount = (float) $existing->available_amount;
+                    $amount = (float) $item['amount'];
+
+                    $in_amount = $currentInAmount + $amount;
+                    $available_amount = $currentAvailableAmount + $amount;
+                    $new_total = $in_amount * $item['buy_up'];
+                    $available_total = $available_amount * $item['buy_up'];
+
+                    $existing->update([
+                        'warehouse_id' => $default_warehouse_id,
+                        'in_amount' => $in_amount,
+                        'available_amount' => $available_amount,
+                        'buy_up' => $item['buy_up'],
+                        'total' => $new_total,
+                        'available_total' => $available_total,
+                        'sell_up' => $item['sell_up'],
+                        'currency_id' => $request->currency_id,
+                        'category_id' => $item['category_id'] ?? null,
+                        'car_id' => $request->car_id ?? null,
+                        'supplier_id' => $request->supplier_account_id,
+                        'idate' => $request->todays_date,
+                        'year' => $year,
+                        'month' => $month,
+                        'day' => $day,
+                    ]);
+                } else {
+                    // INSERT: If not exists, create new
+                    WarehouseItem::create($data);
+                }
             }
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to process warehouse items: ' . $e->getMessage());
         }
-        
-        return true;
     }
         
     // Insert once all items of ordered list
@@ -639,7 +656,7 @@ class BoughtDetailsController extends Controller
             }
 
             
-            $this->createWarehouseItems($request);
+            $this->createOrUpdateWarehouseItems($request);
 
 
             // update Order state to progress
