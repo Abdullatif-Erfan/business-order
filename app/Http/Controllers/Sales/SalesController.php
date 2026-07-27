@@ -126,8 +126,8 @@ class SalesController extends Controller
                         <a class="dropdown-item" target="_blank" href="' . route('sales.bill', $soldItem->billno) . '">' . __('sales.sales_bill') . '</a>
                         <a class="dropdown-item billPayment" href="#" data-id="'.$soldItem->billno.'" data-id2="'.$soldItem->has_invoice.'" data-id3="'.$soldItem->remained.'" >' . __('sales.bill_payment') . '</a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Return</a>
                         <a class="dropdown-item itemList" href="#" data-id="'.$soldItem->billno.'">' . __('sales.item_lists') . '</a>
+                        <a class="dropdown-item" target="_blank" href="' . route('sales.edit', $soldItem->billno) . '">' . __('common.edit') . '</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" target="_blank" href="' . route('sales.details', $soldItem->billno) . '">' . __('common.details') . '</a>
                     </div>

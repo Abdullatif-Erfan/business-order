@@ -47,6 +47,12 @@
                                         <button class="btn mybtn bg-default">{{__('common.back')}}</button>
                                     </a>
                                 </span>
+
+                                <span class="pull-left m-t--5 btn ">
+                                     <a href="{{ route('sales.bill', $warehouseSales->first()->billno) }}">
+                                        <button class="btn btn-success btn-sm btn-border">{{__('common.bill')}}</button>
+                                    </a>
+                                </span>
                             </h4>
                         </div>
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
