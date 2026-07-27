@@ -143,7 +143,7 @@ class JournalController extends Controller
             ])
 
             ->setRowClass(function ($journal) {
-                return $journal->status == 11 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
+                return $journal->status == 12 ? 'clearance-row bg-green' : ''; // Example: Add class if status is 9
             })
             
             ->make(true);
@@ -295,7 +295,7 @@ class JournalController extends Controller
     
          /**
          * ================================== Journal Roles ========================
-         * status:           1: old journal,  2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+         * status:  1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:buy invoice, 10:sales invoice, 11:return, 12:other
          * 
          * transaction_type: 1: recieved      2:paid = 
          * payment_type:     1: cache,        2: loan

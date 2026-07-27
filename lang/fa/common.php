@@ -111,5 +111,14 @@ return [
     'max_available_is' => 'مقدار اجناس موجود',
     'remaining' => 'موجود فعلی',
     'sold_amount' => 'مقدار اجناس فروخته شده',
+    'return' => 'برگشت',
+    'reason' => 'دلیل برگشت جنس',
+    'return_date' => 'تاریخ برگشت',
+    'created_at' => 'تاریخ ثبت',
+    'updated_at' => 'تاریخ ویرایش',
+    'status' => 'وضعیت',
+    'payment_type' => 'نوعیت پرداخت',
+    'cash' => 'نقد',
+    'loan' => 'قرض',
 
 ];

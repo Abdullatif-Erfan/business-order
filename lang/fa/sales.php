@@ -37,6 +37,8 @@ return [
     'add_new_item' => 'ایجاد آیتم جدید',
     'no_available_items' => 'آیتم موجود نیست',
     'cannot_exceed_availability' => 'بالاتر از موجودی انتخاب نمی توانید',
+    'transfer' => 'انتقال اجناس',
+    'return' => 'برگشت اجناس',
 
 
     // sales details

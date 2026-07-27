@@ -261,7 +261,8 @@ return [
     "loan_paid" => "پرداخت قرض",
     "loan_recieved" => "دریافت قرض",
     "loan_get" => "رسید قرض",
-
+    "saved_loan" => 'ثبت قرض',
+    "saved_talab" => 'ثبت طلب',
 
     "account_not_found" => "حساب بانکی یافت نگردید",
     "currency_not_found_converter" => "لطفا نرخ روز را برای این دو کرنسی ثبت نمایید",

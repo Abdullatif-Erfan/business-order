@@ -112,6 +112,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // warehouse
      require __DIR__ . '/v1/warehouse.php';
 
+    //  return
+     require __DIR__ . '/v1/return.php';
+
 
     // transaction
     require __DIR__ . '/v1/transaction.php';

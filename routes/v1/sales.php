@@ -25,7 +25,6 @@ use App\Http\Controllers\Sales\SalesByItemController;
     Route::get('/bill/{billno}',[SalesController::class,'bill'])->name('sales.bill')->middleware('access:sales,list');
     Route::get('/billPayment/{billno}',[SalesController::class,'billPayment'])->name('sales.billPayment')->middleware('access:sales,create_records');
     Route::post('/storePayment', [SalesController::class, 'storePayment'])->name('sales.storePayment');
-    Route::get('/return/{billno}',[SalesController::class,'return'])->name('sales.return')->middleware('access:sales,edit_records');
     Route::get('/details/{billno}',[SalesController::class,'details'])->name('sales.details');
     
     // Invoice routes

@@ -115,7 +115,7 @@
                                             <th> {{__('common.total')}} </th> 
                                             <th> {{__('buy.sell_up')}} </th> 
                                             <th> {{__('common.date')}} </th>
-                                             <th class="hidden-print">{{ __('common.transfer')}}</th>
+                                             <th class="hidden-print">{{ __('common.action')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -175,6 +175,33 @@
         </div>
     </div>
 </div>
+
+
+<div class="modal fade" id="returnModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width:800px !important">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{__('common.edit')}} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="returnModalContent"></div>
+                <div id="returnModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin font-20"></i> {{__('common.loading')}}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm"  data-dismiss="modal">{{__('common.close')}}</button>
+                <button type="submit" id="submitReturn" class="btn btn-success btn-sm m-r-10" >
+                    {{__('common.save_and_submit')}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 @include('warehouseitem.scripts')

@@ -165,7 +165,7 @@
                 <!-- ============================================ -->
                 @if($permissions['buy'] || $isAdmin)
                     @php
-                        $buyActive = isSectionActive(['boughtList.', 'return.', 'buyprelist.']);
+                        $buyActive = isSectionActive(['boughtList.', 'buyprelist.']);
                     @endphp
                     <li class="nav-item {{ $buyActive ? 'active' : '' }}">
                         <a data-toggle="collapse" href="#buy-section" class="{{ $buyActive ? 'collapsed' : '' }}" aria-expanded="{{ $buyActive ? 'true' : 'false' }}">
@@ -193,12 +193,7 @@
                                         <span class="sub-item">{{ __('menu.bought_list_item') }}</span>
                                     </a>
                                 </li> -->
-                                <li class="{{ request()->routeIs('return.list') ? 'active' : '' }}">
-                                    <a href="{{ route('return.list') }}">
-                                        <i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">{{ __('menu.return') }}</span>
-                                    </a>
-                                </li>
+                                
                                 <li class="{{ request()->routeIs('boughtList.invoices') ? 'active' : '' }}">
                                     <a href="{{ route('boughtList.invoices') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
@@ -222,6 +217,19 @@
                     </li>
                 @endif
 
+
+                <!-- ============================================ -->
+                <!-- SECTION 7: WAREHOUSE Return List -->
+                <!-- ============================================ -->
+                @if($permissions['gudam'] || $isAdmin)
+                    <li class="nav-item {{ request()->routeIs('return.list') ? 'active' : '' }}">
+                        <a href="{{ route('return.list') }}">
+                            <i class="fas fa-undo"></i>
+                            <p>{{ __('menu.return') }}</p>
+                        </a>
+                    </li>
+                @endif
+                    
                 <!-- ============================================ -->
                 <!-- SECTION 8: SALES -->
                 <!-- ============================================ -->

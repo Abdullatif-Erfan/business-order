@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-// use App\Models\Buy\BoughtItem;
+use App\Models\Buy\BoughtItem;
+use App\Models\Warehouse\WarehouseReturn;
 use App\Models\Setting\Currency;
 use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
@@ -17,25 +18,22 @@ use App\Models\Setting\Car;
 use App\Models\Buy\BuyPreList;
 use App\Models\Setting\Warehouse;
 use App\Models\Warehouse\WarehouseItem;
-
-
-
 use Yajra\DataTables\Facades\DataTables;
-
-
 
 class WarehouseListController extends Controller
 {
-    protected $isAdmin, $userId, $carIds;
+    protected $isAdmin, $userId, $carIds, $userName;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userName = auth()->user()->full_name;
             $this->userId = session('userId', auth()->user()->id);
             $this->carIds = session('carIds', []);
         } else {
             $this->isAdmin = false;
             $this->userId = 0;
+            $this->userName = '';
             $this->carIds = [];
         }
     }
@@ -60,7 +58,6 @@ class WarehouseListController extends Controller
         
         return view('warehouseitem.list',compact('currencies','todaysDate','orgbios','warehouse'));
     }
-
 
     /**
     * Get paginated data
@@ -165,33 +162,44 @@ class WarehouseListController extends Controller
                 }
                 return $WarehouseItem->buy_up; 
             })
-
-
             ->addColumn('total', function($WarehouseItem) {
                 return number_format($WarehouseItem->total,2); 
-            })
-
-            
+            })            
             ->addColumn('sell_up', function($WarehouseItem) {
                   if ($WarehouseItem->sell_tax_per && $WarehouseItem->sell_tax_per > 0) {
                     return $WarehouseItem->sell_up_vat;
                 }
                 return $WarehouseItem->sell_up; 
             })
+            // ->addColumn('transfer', function ($WarehouseItem) {
+            //     return '<i class="fas fa-exchange-alt transferItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;color:blue; cursor:pointer"></i>';
+            // })
+            // ->addColumn('return', function ($WarehouseItem) {
+            //     return '<i class="fas fa-undo returnItems" data-id="'.$WarehouseItem->id.'" style="font-size:20px;color:blue; cursor:pointer"></i>';
+            // })
 
-             ->addColumn('transfer', function ($WarehouseItem) {
-                return '<i class="fas fa-exchange-alt transferItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;color:blue; cursor:pointer"></i>';
+            ->addColumn('action', function ($soldItem) {
+                return '
+                <div class="dropdown dropend">
+                    <button class="btn btn-primary btn-sm dropdown-toggle"
+                        type="button"  data-toggle="dropdown">
+                    </button>
+
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item transferItems" href="#" data-id="' . $soldItem->id . '"><i class="fas fa-exchange-alt"></i> '. ' ' . __('sales.transfer') . '</a>
+                        <a class="dropdown-item returnItems" href="#" data-id="' . $soldItem->id . '"><i class="fas fa-undo"></i> '.' '. __('sales.return') . '</a>
+                    </div>
+                </div>';
             })
+
             // ->addColumn('view', function ($WarehouseItem) {
             //     return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print">
             //                 <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>
             //             </a>';
             // })
-            ->rawColumns(['view','buy_tax_per','transfer'])
+            ->rawColumns(['view','buy_tax_per','action'])
             ->make(true);
     }
-
-
 
     /**
      * Show warehouse details by id
@@ -233,7 +241,6 @@ class WarehouseListController extends Controller
         return view('warehouseitem.modalTransfer',compact('warehouseItems','cars','units'));
 
     }
-
  
     /**
      *  Transfer from Warehouse to Warehouse
@@ -361,8 +368,123 @@ class WarehouseListController extends Controller
         }
     }
 
-    
 
+    /**
+    * Get List of items to show into Return Modal
+    */
+    public function getWarehouseItemForReturn(string $id)
+    {
+        $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation'])
+        ->where('id', $id)->first();
+        $units = Unit::all();
+        return view('warehouseitem.modalReturn',compact('warehouseItems','units'));
+    }
+
+    /**
+     *  Transfer from Warehouse to Warehouse
+     */
+    public function updateReturn(Request $request)
+    { 
+        // return response()->json($request->all());
+
+        $validated = $request->validate([
+            'id' => 'required|exists:warehouse_items,id',
+            'amount' => 'required|numeric|min:0.01',
+            'reason' => 'required|string',
+        ]);
+
+        DB::beginTransaction();
+        try 
+        {
+            // **Source Car (Current Item)**
+            $sourceItem = WarehouseItem::where('id', $validated['id'])->firstOrFail();
+            
+            // Check if amount is greater than available amount
+            if ($validated['amount'] > $sourceItem->available_amount) {
+                throw new \Exception('این مقدار در لیست اجناس موجود وجود ندارد: ' . $sourceItem->available_amount);
+            }
+
+    
+            $boughtItems = BoughtItem::where('billno', $sourceItem->billno)->first();
+            if (!$boughtItems) {
+                throw new \Exception('بل نمبر در لیست خرید یافت نشد');
+            }
+
+            // **Reduce stock from source item**
+            $sourceItem->available_amount -= $validated['amount'];
+            $sourceItem->in_amount -= $validated['amount'];
+
+            $valuationPrice = $sourceItem->buy_up;
+            if (intval($sourceItem->buy_tax_per) > 0) {
+                $valuationPrice = $sourceItem->buy_up_vat ?? $sourceItem->buy_up;
+            }
+            $sourceItem->available_total = round($sourceItem->available_amount * $valuationPrice, 2);
+            $sourceItem->total = round($sourceItem->in_amount * $valuationPrice, 2);
+            $sourceItem->save();
+
+    
+            $warehouseReturn = WarehouseReturn::where('billno', $sourceItem->billno)->first();
+
+            if(!$warehouseReturn) 
+            {
+                WarehouseReturn::create([
+                    'return_number' => WarehouseReturn::generateReturnNumber(), 
+                    'warehouse_item_id' => $sourceItem->id,
+                    'pre_list_id' => $sourceItem->buy_pre_id,
+                    'unit_id' => $sourceItem->unit_id,
+                    'currency_id' => $sourceItem->currency_id,
+                    'car_id' => $sourceItem->car_id,
+                    'billno' => $sourceItem->billno,
+                    'return_date' => Carbon::now()->format('Y-m-d'),
+                    'supplier_account_id' => $boughtItems->supplier_account_id,
+                    'account_id' => $boughtItems->account_id,
+                    'quantity' => $validated['amount'],
+                    'unit_price' => $sourceItem->buy_up,
+                    'total' => $sourceItem->buy_up * $validated['amount'],
+                    'paid_amount' => 0,
+                    'remaining_amount' => $sourceItem->buy_up * $validated['amount'], 
+                    'reason' => $validated['reason'],
+                    'status' => 0,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName,
+                ]);
+            }
+            else 
+            {
+                $prev_amount = (float)$warehouseReturn->quantity ?? 0;
+                $cur_amount = $prev_amount + $validated['amount'];
+                $new_total = $cur_amount * $sourceItem->buy_up;
+                
+                $warehouseReturn->update([
+                    'quantity' => $cur_amount,
+                    'total' => $new_total,
+                    'remaining_amount' => $new_total - $warehouseReturn->paid_amount,
+                    'reason' => $validated['reason'],
+                ]);
+            }
+            
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.moved_successfully'),
+            ]);
+
+        } 
+        catch (\Exception $e) 
+        {
+            DB::rollBack();
+            \Log::error('Error in updateReturn', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.move_failed') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Show a form for inserting old items
@@ -411,8 +533,6 @@ class WarehouseListController extends Controller
         } 
     }
 
-
-    // +++++++++++++++++++++++++++++ STORE RELATED FUNCTIONS ++++++++++++++++++++++++++++++++++++++
      private function validateRequest($request)
     {
         $validated = $request->validate([
@@ -556,27 +676,7 @@ class WarehouseListController extends Controller
     
         return true;
     }
-    
 
-
-    // +++++++++++++++++++++++++++++ / STORE RELATED FUNCTIONS ++++++++++++++++++++++++++++++++++++++
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.

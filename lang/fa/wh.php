@@ -41,6 +41,7 @@ return [
     'become' => ' میشود؟ ',
     'total_in' => 'مجموع به',
     'transferable_items' => 'جنس قابل انتقال',
+    'returnable_items' => 'جنس که برگشت داده میشود',
     'move_to_wh' => 'انتقال به گدام',
     'greater_amount_msg' => 'مقدار وارد شده نباید بیشتر از مقدار موجود باشد!',
     'select_available_item' => 'انتخاب جنس',

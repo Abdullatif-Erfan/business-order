@@ -46,7 +46,8 @@ class HomeController extends Controller
         $orders = $this->getDashboardOrdersData($request);
         $bought = $this->getDashboardBoughtsData($request);
         $sales = $this->getDashboardSalesData($request);
-        $returns = $this->getDashboardReturnsData($request);
+        // $returns = $this->getDashboardReturnsData($request);
+        $returns = [];
 
         return view('dashboard.dashboard', compact('orders', 'bought', 'sales', 'orgBio', 'drivers', 'suppliers', 'customers','returns', 'search'));
     }

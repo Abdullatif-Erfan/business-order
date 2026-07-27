@@ -88,7 +88,7 @@ function fetchList() {
         { data: 'total', name: 'total' },
         { data: 'sell_up', name: 'sell_up' },
         { data: 'idate', name: 'idate', orderable: false, searchable: false },
-        { data: 'transfer', name: 'transfer', orderable:false, searchable:false, className:'hidden-print'}
+        { data: 'action', name: 'action', orderable:false, searchable:false, className:'hidden-print'}
     );
 
     // =============================================
@@ -152,7 +152,6 @@ function fetchList() {
     }
 }
 
-// transferItems
 $(document).on('click', '.transferItems', function() {
     var $this = $(this);
     var id = $this.data('id');
@@ -174,7 +173,6 @@ $(document).on('click', '.transferItems', function() {
         }
     });
 });
-
 
 
 $(document).ready(function() {
@@ -246,4 +244,84 @@ $(document).ready(function() {
         });
     });
 });
+
+// ============================  transferItems =============================
+$(document).on('click', '.returnItems', function() {
+    var $this = $(this);
+    var id = $this.data('id');
+    $('#returnModal').modal('show');
+    $('#returnModalLoader').show();
+    $.ajax({
+        url: `/warehousesList/getWarehouseItemForReturn/${id}`,
+        type: 'GET',
+        success: (result) => {
+            $('#returnModalContent').html(result);
+            $('#returnModalLoader').hide();
+        },
+        error: () => {
+            $('#returnModalLoader').hide();
+            alert('اطلاعات یافت نشد');
+        }
+    });
+});
+
+
+// submit return
+$(document).ready(function() {
+    $('#submitReturn').on('click', function(e) {
+        e.preventDefault();
+        
+        var $btn = $(this);
+        var originalText = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> {{__("common.loading")}}...');
+        
+        var formData = {
+            id: $('input[name="id"]').val(),
+            amount: $('#amount').val(),
+            reason: $('#reason').val(),
+            _token: '{{ csrf_token() }}'
+        };
+        
+        
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+            alert('{{__("wh.enter_valid_amount")}}');
+            $btn.prop('disabled', false).html(originalText);
+            return;
+        }
+        
+        $.ajax({
+            url: '{{ route("warehousesList.updateReturn") }}',
+            type: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                $btn.prop('disabled', false).html(originalText);
+                if (response.status === 'success') {
+                    showNotification(response.message, 'success');
+                     $('#returnModal').modal('hide');
+                     $('#returnModalLoader').hide();
+                      fetchList();
+                } else {
+                    showNotification(response.message, 'danger');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html(originalText);
+                if (xhr.status === 422) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorMessages = [];
+                    $.each(errors, function(key, messages) {
+                        errorMessages.push(messages[0]);
+                    });
+                    alert(errorMessages.join('\n'));
+                } else {
+                    showNotification('{{__("common.error_occurred")}}', 'danger');
+                }
+            }
+        });
+    });
+});
+
 </script>

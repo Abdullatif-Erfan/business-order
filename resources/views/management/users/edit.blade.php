@@ -119,11 +119,11 @@
                                                     name="password" id="password"
                                                     minlength="5" maxlength="20" 
                                                     placeholder="{{ __('user.password') }}">
-                                                <div class="input-group-append">
-                                                    <span class="input-group-text password-toggle" onclick="togglePasswordVisibility('password', this)">
-                                                        <i class="fas fa-eye"></i>
-                                                    </span>
-                                                </div>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text password-toggle" onclick="togglePasswordVisibility('password', this)">
+                                                            <i class="fas fa-eye"></i>
+                                                        </span>
+                                                    </div>
                                             </div>
                                             <small class="text-muted">{{ __('user.leave_blank_to_keep') }}</small>
                                             @error('password') <span class="text-danger">{{ $message }}</span> @enderror

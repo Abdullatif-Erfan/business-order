@@ -25,4 +25,9 @@ use App\Http\Controllers\Warehouse\WarehouseWastageController;
         Route::get('/getWarehouseItemForTransfer/{id}', [WarehouseListController::class, 'getWarehouseItemForTransfer'])->name('warehousesList.getWarehouseItemForTransfer')->middleware('access:gudam,edit_records');
         Route::post('/updateTransfer', [WarehouseListController::class, 'updateTransfer'])->name('warehousesList.updateTransfer');
 
+        // Return
+        Route::get('/getWarehouseItemForReturn/{id}', [WarehouseListController::class, 'getWarehouseItemForReturn'])->name('warehousesList.getWarehouseItemForReturn')->middleware('access:gudam,edit_records');
+        Route::post('/updateReturn', [WarehouseListController::class, 'updateReturn'])->name('warehousesList.updateReturn');
+        
+
     });
