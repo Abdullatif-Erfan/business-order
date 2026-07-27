@@ -16,19 +16,25 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalaryReportController extends Controller
 {
-    protected  $isAdmin;
+    protected $isAdmin, $userId;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
         }
     }
 
     public function index()
     {
-        $accounts   = Account::where('account_type_id',2)->get();
+        if($this->isAdmin) {
+            $accounts   = Account::where('account_type_id',2)->get();
+        } else {
+            $accounts   = Account::where('account_type_id',2)->where('user_account_id',$this->userId)->get();
+        }
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
 
@@ -120,12 +126,17 @@ class SalaryReportController extends Controller
         $account_id = $request->account_id ?? 0;
 
 
-        $journals = Journal::with(['accountRelation:id,name'])
+        $journals = Journal::with(['accountRelation:id,name,user_account_id'])
             ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
                     'payment_type', 'options', 'option_label', 'currency_id', 'details', 
                     'idate', 'status', 'times', 'is_single_record', 'user_name')
             ->where('account_type_id', 2)  // Enforce just employees
             ->where('currency_id', $request->currency_id) 
+            ->whereHas('accountRelation', function($query) {
+            if(!$this->isAdmin) {
+                $query->where('user_account_id', $this->userId);
+            }
+            })
             ->orderBy('id', 'ASC');
 
         // Apply optional filters

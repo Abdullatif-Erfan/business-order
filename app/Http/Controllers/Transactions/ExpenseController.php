@@ -17,24 +17,25 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseController extends Controller
 {
-    protected $isAdmin;
-    
+    protected $isAdmin, $userId;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
         }
     }
 
     public function index()
     {
         $types = ExpenseType::all();
-        $accounts = Account::get();
+        // $accounts = Account::get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        return view('transactions.expense.list', compact('accounts', 'currencies', 'orgbios', 'types'));
+        return view('transactions.expense.list', compact('currencies', 'orgbios', 'types'));
     }
 
     /**
@@ -47,7 +48,7 @@ class ExpenseController extends Controller
          */
         $expenses = Journal::with([
             'accountRelation' => function($query) {
-                $query->select('id', 'name');
+                $query->select('id', 'name','user_account_id');
             },
             'currencyRelation' => function($query) {
                 $query->select('id', 'name', 'symbols', 'color');
@@ -60,7 +61,16 @@ class ExpenseController extends Controller
                 'payment_type', 'currency_id', 'details', 'idate', 'status', 'times', 
                 'is_single_record', 'dynamic_type', 'doc')
         ->where('journals.status', '=', 4)
+        // ->whereHas('accountRelation', function($query) {
+        //     if(!$this->isAdmin) {
+        //         $query->where('user_account_id', $this->userId);
+        //     }
+        // })
         ->orderBy('id', 'DESC');
+
+          if(!$this->isAdmin) {
+                $expenses->where('user_id',$this->userId);
+        }
 
         // Apply filters if provided
         if ($request->type_id) {

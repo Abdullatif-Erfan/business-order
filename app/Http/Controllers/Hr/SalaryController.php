@@ -18,14 +18,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalaryController extends Controller
 {
-    protected $isAdmin;
-    
+    protected $isAdmin, $userId;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
         }
     }
 
@@ -102,15 +103,21 @@ class SalaryController extends Controller
          */
         $salary = Journal::with([
             'accountRelation' => function($query) {
-                $query->select('id', 'name');
+                $query->select('id', 'name','user_account_id');
             },
             'currencyRelation' => function($query) {
                 $query->select('id', 'name', 'symbols', 'color');
             }
         ])
-        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'currency_id', 'details', 'year', 'month', 'idate', 'status', 'times')
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'currency_id', 
+                'details', 'year', 'month', 'idate', 'status', 'times')
         ->where('journals.status', '=', 5)
-        ->where('journals.dynamic_type', '=', 1) // ✅ Show just employee records
+        ->where('journals.dynamic_type', '=', 1)
+        ->whereHas('accountRelation', function($query) {
+            if(!$this->isAdmin) {
+                $query->where('user_account_id', $this->userId);
+            }
+        })
         ->orderBy('id', 'DESC');
 
         // Apply filters

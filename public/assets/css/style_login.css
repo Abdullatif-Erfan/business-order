@@ -10591,7 +10591,11 @@ fieldset[disabled] .form-control {
     text-align: right;
     position: relative;
     background-image: url(../../assets/img/bg2.jpg)!important;
-    background-size: cover;
+    background-size: cover; 
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 100vh;
+    min-height: 100vh; 
 }
 .overlay {
     position: absolute;

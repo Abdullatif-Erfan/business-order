@@ -63,6 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/edit/{id}',[UserController::class, 'edit'])->name('user.edit')->middleware('access:users,edit_records');
         Route::post('/store',[UserController::class, 'store'])->name('user.store');
         Route::patch('/update/{id}',[UserController::class, 'update'])->name('user.update')->middleware('access:users,edit_records');
+        Route::patch('/updateProfile/{id}',[UserController::class, 'updateProfile'])->name('user.updateProfile')->middleware('access:users,edit_records');
         Route::get('/delete/{id}',[UserController::class, 'delete'])->name('user.delete')->middleware('access:users,delete_records');
     });
 

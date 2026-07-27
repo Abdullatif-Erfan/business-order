@@ -763,7 +763,7 @@ label {
 
 .sidebar .nav>.nav-item a i,
 .sidebar[data-background-color="white"] .nav>.nav-item a i {
-    color: #346cb0;
+    color: #0f9bd4;
     margin-right: 15px;
     width: 25px;
     text-align: center;
@@ -1097,11 +1097,11 @@ label {
 .sidebar.sidebar-style-2 .nav.nav-primary>.nav-item.active>a i,
 .sidebar.sidebar-style-2 .nav.nav-primary>.nav-item.active>a .caret,
 .sidebar.sidebar-style-2 .nav.nav-primary>.nav-item.active>a span {
-    color: #346cb0 !important
+    color: #0f9bd4 !important
 }
 
 .sidebar.sidebar-style-2 .nav.nav-primary>.nav-item.active>a[data-toggle=collapse][aria-expanded=true] i {
-    color: #ffffff !important;
+    color: #ee5d08 !important;
 }
 
 .sidebar.sidebar-style-2 .nav.nav-secondary>.nav-item.active>a {

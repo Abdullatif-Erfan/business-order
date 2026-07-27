@@ -20,7 +20,7 @@
                             <form action="{{ route('expense.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
 
-                                <input type="hidden" name="reciever_account_id" value="{{ $ownBanks->first()->id }}">
+                                <!-- <input type="hidden" name="reciever_account_id" value="{{ $ownBanks->first()->id }}"> -->
                                 <input type="hidden" name="reciever_account_name" value="{{ $ownBanks->first()->name }}">
                                               
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -98,22 +98,31 @@
                                         </div>
                                        
 
-
                                         <!-- Row:3 - Col:1  -->
-                                        <div class="col-md-6  col-sm-4 col-xs-6">
+                                        <div class="col-md-4  col-sm-4 col-xs-6">
+                                            <div class="form-group form-floating-label">
+                                                <select class="form-control select2" name="reciever_account_id" required>
+                                                    @foreach($ownBanks as $bank)
+                                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('reciever_account_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-4 col-xs-6">
                                             <div class="form-group">
                                                 <input class="form-control" id="details" name="details" type="text" 
                                                 placeholder="{{__('common.details')}} " required>
                                                 @error('details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>
-
                                         <!-- Row:3 - Col:2  -->
                                         
 
 
                                         <!-- Row:4 - Col:1  -->
-                                        <div class="col-md-6  col-sm-4 col-xs-6 m-t-30">
+                                        <div class="col-md-4 col-sm-4 col-xs-6 m-t-30">
                                             <div class="row">
                                                 <div class="col-6">
                                                     <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue">

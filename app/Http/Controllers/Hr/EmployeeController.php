@@ -17,13 +17,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class EmployeeController extends Controller
 {
-    protected $isAdmin;
+    protected $isAdmin, $userId;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
         }
     }
     
@@ -50,6 +52,10 @@ class EmployeeController extends Controller
             'emp_start_date')
             ->where('account_type_id',$employee_account_type_id)
             ->orderBy('id', 'DESC');
+
+            if(!$this->isAdmin) {
+                $accounts->where('user_account_id',$this->userId);
+            }
 
             return DataTables::eloquent($accounts)
                 ->addIndexColumn()

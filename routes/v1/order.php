@@ -25,7 +25,7 @@ Route::prefix('draftOrders')->name('draftOrders.')->group(function(){
     
     // Delete
     Route::delete('/destroy/{ord_num}', [DraftOrderController::class, 'destroy'])->name('destroy')->middleware('access:order,delete_records');
-
+    
 });
 
 // =========================================

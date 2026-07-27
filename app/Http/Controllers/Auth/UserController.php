@@ -273,16 +273,13 @@ class UserController extends Controller
         // Get the user's current account
         $userAccount = $user->account; // Returns Account model or null
         
-        return view('management.users.edit', compact(
-            'roles', 
-            'orgbios', 
-            'user', 
-            'isAdmin', 
-            'accounts', 
-            'userAccount',
-            'customers',
-            'cars'
-        ));
+        if($this->isAdmin) {
+            return view('management.users.edit', compact('roles','orgbios','user','isAdmin', 
+                'accounts','userAccount','customers','cars'));
+        } else {
+            return view('management.users.simple_user_edit', compact('roles','orgbios','user','isAdmin', 
+                'accounts','userAccount','customers','cars'));
+        }
     }
     
 
@@ -391,6 +388,76 @@ class UserController extends Controller
 
             return redirect()->back()->withInput()->with('notification', [
                 'message' => __('common.update_failed') . ': ' . $e->getMessage(), 
+                'type' => 'danger'
+            ]);
+        }
+    }
+
+
+    /**
+     * Update user profile (self-editing)
+     * Only allows updating: user_name, email, password, photo
+     */
+    public function updateProfile(Request $request, string $id)
+    {
+        $user = User::findOrFail($id);
+        
+        // Ensure user can only update their own profile
+        if (auth()->id() != $user->id) {
+            return redirect()->back()->with('notification', [
+                'message' => __('user.unauthorized_action'),
+                'type' => 'danger'
+            ]);
+        }
+
+        // Validation rules
+        $rules = [
+            'user_name' => 'required|string|min:5|max:128|unique:users,user_name,' . $id,
+            'email' => 'required|email|min:10|max:128|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:5|max:20|confirmed',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ];
+
+        // Validate the request
+        $validated = $request->validate($rules);
+
+        try {
+            DB::beginTransaction();
+
+            // Update user data (only editable fields)
+            $user->user_name = $validated['user_name'];
+            $user->email = $validated['email'];
+            
+            // Update password only if provided
+            if (!empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
+            
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                // Delete old photo if exists
+                if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+                $photoPath = $request->file('photo')->store('user_photos', 'public');
+                $user->photo = $photoPath;
+            }
+
+            $user->save();
+
+            DB::commit();
+
+            return redirect()->route('user.index')->with('notification', [
+                'message' => __('common.updated_successfully'),
+                'type' => 'success'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating user profile: ' . $e->getMessage());
+
+            return redirect()->back()->withInput()->with('notification', [
+                'message' => __('common.update_failed') . ': ' . $e->getMessage(),
                 'type' => 'danger'
             ]);
         }
