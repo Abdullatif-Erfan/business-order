@@ -26,13 +26,15 @@ use App\Models\Setting\Warehouse;
 use App\Models\Warehouse\WarehouseItem;
 use Carbon\Carbon;
 use App\Models\Setting\Account;
+use App\Services\TaxCalculationService;
 use Yajra\DataTables\Facades\DataTables;
 
 
 class BoughtDetailsController extends Controller
 {
     protected $isAdmin, $customerIds, $carIds, $userId, $userName;
-    public function __construct()
+    protected TaxCalculationService $taxService;
+    public function __construct(TaxCalculationService $taxService)
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
@@ -47,25 +49,13 @@ class BoughtDetailsController extends Controller
             $this->userId = 0;
             $this->userName ='';
         }
+        $this->taxService = $taxService;
     }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
-        // return response()->json($boughtItems);
-
-        // $insertedData = BoughtItemDetails::with(['preListRelation','unitRelation'])->get();
-        // return response()->json(['insertedData' => $insertedData]); 
-        // return view('buy.bought.curlist',compact('insertedData'));
-        
-        // return response()->json(auth()->user());
-        // return response()->json(auth()->user());
-
-        // $boughtItems = BoughtItem::with(['currencyRelation','customerRelation'])->orderBy('id', 'DESC')->get();
-        // return response()->json($boughtItems);
-
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
@@ -154,9 +144,81 @@ class BoughtDetailsController extends Controller
             ->make(true);
     }
 
+    public function testingTax()
+    {
+         $amount = 5;
+         $buy_up = 40;
+         $tax_per = 15;
+         $sell_up = 45;
+         $sell_tax_per = $tax_per;
+         $total = 200;
+         $buyingTax = $this->taxService->calculateBuyingTax($amount, $buy_up, $tax_per);
+         $fullTax   = $this->taxService->calculateFullTax($amount, $buy_up, $tax_per, $sell_up, $sell_tax_per);
+         $sellingTax   = $this->taxService->calculateSellingTax($amount, $sell_up, $sell_tax_per);
+         $findTaxPrice = $this->taxService->calculateVATAmount($total, $tax_per);
+
+         return response()->json(['buyingTax' => $buyingTax, 'fullTax' =>$fullTax, 'sellingTax' => $sellingTax,
+         'findTaxPrice' => $findTaxPrice,
+         ]);
+
+        //  ============= RESULT =================
+        // {
+        //     "buyingTax": {
+        //         "buy_tax_price": 30,
+        //         "buy_up_vat": 70,
+        //         "total_vat": 350,
+        //         "buy_total_without_tax": 200,
+        //         "buy_tax_percentage": 15
+        //     },
+        //     "fullTax": {
+        //         "buy_tax_price": 30,
+        //         "buy_up_vat": 70,
+        //         "total_vat": 350,
+        //         "buy_total_without_tax": 200,
+        //         "buy_tax_percentage": 15,
+        //         "sell_tax_price": 33.75,
+        //         "sell_up_vat": 78.75,
+        //         "total_sales_with_tax": 393.75,
+        //         "sell_total_without_tax": 225,
+        //         "sell_tax_percentage": 15
+        //     },
+        //     "sellingTax": {
+        //         "sell_tax_price": 33.75,
+        //         "sell_up_vat": 78.75,
+        //         "total_sales_with_tax": 393.75,
+        //         "sell_total_without_tax": 225,
+        //         "sell_tax_percentage": 15
+        //     },
+        //     "findTaxPrice": 33.75
+        // }
+    }
+    /**
+     * This function is used to test tax 
+     */
+    public function create2()
+    {
+        // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
+        $currencies = Currency::select('id','name')->get();
+        $warehouses = Warehouse::select('id','name')->get();
+        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        $billno =  BoughtItem::max('billno') + 1;
+    
+        $preLists = BuyPreList::select('id','name')->get();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $units = Unit::select('id','name')->get();
+        $newJournalCode =  Journal::max('code') + 1;
+        $tax = OrgBio::select('tax_activation','tax_per')->first();
+
+        $times = time();
+
+        // return response()->json($preLists);
+        return view('buy.test_tax.list',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
+    }
 
     /**
      * Create Belongs to V2
+     * Currently used
      */
     public function create()
     {

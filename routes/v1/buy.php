@@ -33,6 +33,7 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/',[BoughtDetailsController::class,'index'])->name('boughtList.index')->middleware('access:buy,list');
     Route::get('/data',[BoughtDetailsController::class,'getData'])->name('boughtList.data');
     Route::get('/create',[BoughtDetailsController::class,'create'])->name('boughtList.create')->middleware('access:buy,create_records');
+    Route::get('/create2',[BoughtDetailsController::class,'create2'])->name('boughtList.create2')->middleware('access:buy,create_records');
     Route::post('/store',[BoughtDetailsController::class,'store'])->name('boughtList.store')->middleware('access:buy,create_records');
     Route::post('/submit',[BoughtDetailsController::class,'submit'])->name('boughtList.submit')->middleware('access:buy,create_records');
     Route::post('/update',[BoughtDetailsController::class,'update'])->name('boughtList.update')->middleware('access:buy,edit_records');
