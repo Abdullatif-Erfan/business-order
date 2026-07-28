@@ -188,7 +188,7 @@ return [
     'select_category' => 'انتخاب کتگوری',
     'car' => 'انتخاب موتر',
     'transfer_to_car' => 'انتقال به موتر',
-    'enter' => '',
+    'payment_price' => 'مبلغ پرداخت',
     'enter' => '',
     'enter' => '',
     'enter' => '',

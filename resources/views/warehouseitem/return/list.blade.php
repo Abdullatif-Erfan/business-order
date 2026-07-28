@@ -96,17 +96,22 @@
                                             <th style="width:12%">{{__('sales.item')}}</th>
                                             <th style="width:8%">{{__('common.unit')}}</th>
                                             <th style="width:8%">{{__('sales.quantity')}}</th>
-                                            <th style="width:10%">{{__('common.total_price')}}</th>
+                                            <th style="width:10%">{{__('common.total_recieved')}}</th>
+                                            <th style="width:10%">{{__('common.baqi')}}</th>
                                             <th style="width:8%">{{__('common.date')}}</th>
                                             <th style="width:8%">{{__('common.car')}}</th>
-                                            <th style="width:8%">{{__('common.view')}}</th>
+                                            <th style="width:8%" class="hidden-print">{{__('common.view')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="7">{{__('common.total')}}</td>
                                             <td id="totalSum"></td>
-                                            <td colspan="3"></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -145,6 +150,8 @@
 <!-- Edit Return Modal -->
 <div class="modal fade" id="editReturnModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="width:800px !important">
+        <form id="returnForm" action="{{ route('return.updateReturn') }}" method="POST">
+        @csrf
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> <i class="fas fa-eye"></i> {{ __('buy.return_details') }} </h5>
@@ -159,23 +166,15 @@
                 <div id="editReturnContent"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+                <button type="button" class="btn btn-success btn-sm" id="submitReturnBtn">{{ __('common.save_and_submit') }}</button>
+                <button type="button" class="btn btn-danger btn-sm m-r-10" data-dismiss="modal">{{ __('common.close') }}</button>
             </div>
         </div>
+       </form>
     </div>
 </div>
 
-
 <script>
-$(document).on('click', '.datepicker-icon', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    var $input = $(this).closest('.input-group').find('input');
-    if ($input.length) {
-        $input.datepicker('show');
-    }
-});
-
 $(document).ready(function() {
     // Initialize DataTable
     fetchReturnList();
@@ -238,30 +237,31 @@ function fetchReturnList() {
                 { data: 'item_name', name: 'item_name' },
                 { data: 'unit_name', name: 'unit_name' },
                 { data: 'quantity', name: 'quantity' },
-                { data: 'total', name: 'total' },
+                { data: 'paid_amount', name: 'paid_amount' },
+                { data: 'remaining_amount', name: 'remaining_amount' },
                 { data: 'return_date', name: 'return_date' },
                 { data: 'car_name', name: 'car_name' },
-                { data: 'action', name: 'action', orderable: false, searchable: false }
+                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'hidden-print' }
             ],
             order: [[1, 'desc']],
-            drawCallback: function() {
+            drawCallback: function () {
                 var api = this.api();
-                var totalSum = api
-                    .column(7, { page: 'current' })
-                    .data()
-                    .reduce(function(a, b) {
-                        var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
-                        var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
-                        return numA + numB;
-                    }, 0);
 
-                var formattedSum = totalSum.toLocaleString(undefined, { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
-                });
+                function sumColumn(index) {
+                    return api
+                        .column(index, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            var numA = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var numB = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            return numA + numB;
+                        }, 0)
+                        .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
 
-                $('#totalSum').html(formattedSum);
-            }
+                $(api.column(7).footer()).html(sumColumn(7));
+                $(api.column(8).footer()).html(sumColumn(8));
+            },
         });
     } else {
         table.DataTable().ajax.reload(null, false);
@@ -296,7 +296,7 @@ $(document).on('click', '.viewReturn', function() {
 });
 
 // =============================================
-// EDIT RETURN
+// EDIT RETURN - Load Form
 // =============================================
 $(document).on('click', '.editReturn', function() {
     var id = $(this).data('id');
@@ -322,7 +322,138 @@ $(document).on('click', '.editReturn', function() {
     });
 });
 
+// =============================================
+// SUBMIT RETURN FORM VIA AJAX
+// =============================================
+$(document).on('click', '#submitReturnBtn', function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    var form = $('#returnForm');
+    var formData = form.serialize();
+    var submitBtn = $(this);
+    
+    // Disable button and show loading
+    submitBtn.prop('disabled', true);
+    submitBtn.html('<i class="fa fa-spinner fa-spin"></i> {{ __("common.saving") }}...');
+    
+    // Validate form (optional)
+    if (!validateReturnForm()) {
+        submitBtn.prop('disabled', false);
+        submitBtn.html('{{ __("common.save_and_submit") }}');
+        return;
+    }
+    
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function(response) {
+            // Reset button
+            submitBtn.prop('disabled', false);
+            submitBtn.html('{{ __("common.save_and_submit") }}');
+            
+            if (response.status === 'success' || response.success === true) {
+                // Show success notification
+                showNotification(response.message || '{{ __("common.saved_successfully") }}', 'success');
+                
+                // Close modal
+                $('#editReturnModal').modal('hide');
+                fetchReturnList();
 
+            } else {
+                // Show error notification
+                showNotification(response.message || '{{ __("common.error_occurred") }}', 'danger');
+            }
+        },
+        error: function(xhr) {
+            // Reset button
+            submitBtn.prop('disabled', false);
+            submitBtn.html('{{ __("common.save_and_submit") }}');
+            
+            // Handle validation errors
+            if (xhr.status === 422) {
+                var errors = xhr.responseJSON.errors;
+                var errorMessage = '';
+                $.each(errors, function(key, value) {
+                    errorMessage += value[0] + '<br>';
+                });
+                showNotification(errorMessage, 'danger');
+            } else {
+                showNotification('{{ __("common.error_occurred") }}', 'danger');
+            }
+        }
+    });
+});
+
+// =============================================
+// VALIDATION FUNCTION
+// =============================================
+function validateReturnForm() {
+    var isValid = true;
+    var errorMessages = [];
+    
+    // Get values
+    var paidAmount = parseFloat($('#paid_amount').val()) || 0;
+    var limit = parseFloat($('#limit').val()) || 0;
+    var paymentType = $('#payment_type').val();
+    var payerAccount = $('#payer_account_id').val();
+    var receiverAccount = $('#receiver_account_id').val();
+    
+    // Clear previous errors
+    $('.is-invalid').removeClass('is-invalid');
+    $('.invalid-feedback').remove();
+    
+    // Validate paid_amount
+    if (!$('#paid_amount').val() || $('#paid_amount').val().trim() === '') {
+        $('#paid_amount').addClass('is-invalid');
+        $('#paid_amount').after('<div class="invalid-feedback" style="display:block;">{{ __("common.required") }}</div>');
+        isValid = false;
+        errorMessages.push('{{ __("common.required") }}');
+    } else if (paidAmount <= 0) {
+        $('#paid_amount').addClass('is-invalid');
+        $('#paid_amount').after('<div class="invalid-feedback" style="display:block;">{{ __("common.amount_must_be_greater_than_zero") }}</div>');
+        isValid = false;
+        errorMessages.push('{{ __("common.amount_must_be_greater_than_zero") }}');
+    } else if (paidAmount > limit) {
+        $('#paid_amount').addClass('is-invalid');
+        $('#paid_amount').after('<div class="invalid-feedback" style="display:block;">{{ __("common.over_pay") }}: ' + limit.toFixed(2) + '</div>');
+        isValid = false;
+        errorMessages.push('{{ __("common.over_pay") }}: ' + limit.toFixed(2));
+    }
+    
+    // Validate payment_type
+    if (!paymentType || paymentType === '') {
+        $('#payment_type').addClass('is-invalid');
+        $('#payment_type').after('<div class="invalid-feedback" style="display:block;">{{ __("common.required") }}</div>');
+        isValid = false;
+        errorMessages.push('{{ __("common.required") }}');
+    }
+    
+    // Validate payer_account_id
+    if (!payerAccount || payerAccount === '') {
+        $('#payer_account_id').addClass('is-invalid');
+        $('#payer_account_id').after('<div class="invalid-feedback" style="display:block;">{{ __("common.please_select_payer_account") }}</div>');
+        isValid = false;
+        errorMessages.push('{{ __("common.please_select_payer_account") }}');
+    }
+    
+    // Validate receiver_account_id
+    if (!receiverAccount || receiverAccount === '') {
+        $('#receiver_account_id').addClass('is-invalid');
+        $('#receiver_account_id').after('<div class="invalid-feedback" style="display:block;">{{ __("common.required") }}</div>');
+        isValid = false;
+        errorMessages.push('{{ __("common.required") }}');
+    }
+    
+    // Show all error messages
+    if (!isValid) {
+        showNotification(errorMessages.join('<br>'), 'warning');
+    }
+    
+    return isValid;
+}
 
 // =============================================
 // NOTIFICATION FUNCTION

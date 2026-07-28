@@ -100,8 +100,11 @@ class WarehouseReturnController extends Controller
             ->addColumn('quantity', function($return) {
                 return number_format($return->quantity, 2);
             })
-            ->addColumn('total', function($return) {
-                return number_format($return->total, 2);
+            ->addColumn('paid_amount', function($return) {
+                return number_format($return->paid_amount, 2);
+            })
+            ->addColumn('remaining_amount', function($return) {
+                return number_format($return->remaining_amount, 2);
             })
             ->addColumn('return_date', function($return) {
                 return $return->return_date ? $return->return_date->format('Y-m-d') : '-';

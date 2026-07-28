@@ -20,6 +20,7 @@ return [
     'loading'   => 'درحال بارگزاری ... ',
     'talab'     => 'طلب',
     'baqi'      => 'باقی',
+    'total_recieved'  => 'رسید',
     'cancel'    => 'لغو',
     'bill'      => 'بل',
     'factor'    => 'فاکتور',
@@ -109,6 +110,7 @@ return [
     'options' => 'گزینه ها',
     'not_editable' => 'از این جنس فروشات صورت گرفته است و قابل ویرایش نمیباشد',
     'max_available_is' => 'مقدار اجناس موجود',
+    'max_payable' => 'حد اکثر قابل پرداخت ',
     'remaining' => 'موجود فعلی',
     'sold_amount' => 'مقدار اجناس فروخته شده',
     'return' => 'برگشت',
@@ -120,5 +122,7 @@ return [
     'payment_type' => 'نوعیت پرداخت',
     'cash' => 'نقد',
     'loan' => 'قرض',
+    'required' => 'انتخاب این بخش ضروری میباشد',
+    'amount_must_be_greater_than_zero' => 'باید بالاتر از صفر باشد',
 
 ];

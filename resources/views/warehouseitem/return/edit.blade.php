@@ -1,13 +1,8 @@
 <div class="container-fluid">
-    <form id="returnForm" action="{{ route('return.updateReturn') }}" method="POST">
-        @csrf
         <input type="hidden" name="id" value="{{ $return->id }}">
         <input type="hidden" name="billno" value="{{ $return->billno }}">
-        <input type="hidden" id="limit" value="{{ $return->total }}">
+        <input type="hidden" id="limit" value="{{ $return->remaining_amount }}">
 
-
-        
-        
         <div class="row">
             <div class="col-md-12">
 
@@ -49,10 +44,11 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="paid_amount">{{ __('buy.paid_amount') }} <span class="text-danger">*</span></label>
+                            <label for="paid_amount">{{ __('buy.payment_price') }} <span class="text-danger">*</span></label>
                             <input type="number" step="any" class="form-control" name="paid_amount" id="paid_amount" 
-                                   placeholder="{{ __('common.amount') }}" min="0" max="{{$return->total}}" required>
+                                   placeholder="{{ __('common.amount') }}" min="0" max="{{$return->remaining_amount}}" required>
                         </div>
+                        <small>{{__('common.max_payable')}}: {{$return->remaining_amount}} </small>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
@@ -88,20 +84,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Submit Buttons -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> {{ __('common.save') }}
-                        </button>
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">
-                            <i class="fas fa-times"></i> {{ __('common.close') }}
-                        </button>
-                    </div>
-                </div>
-
             </div>
         </div>
-    </form>
 </div>
