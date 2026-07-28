@@ -22,8 +22,9 @@
                                 <td colspan="3">
                                     <select class="form-control" id="orderStatus" style="width: 200px;">
                                         <option value="1" {{ $order->state == 1 ? 'selected' : '' }}>{{ __('order.new') }}</option>
-                                        <option value="2" {{ $order->state == 2 ? 'selected' : '' }}>{{ __('order.cancelled') }}</option>
+                                        <option value="2" {{ $order->state == 2 ? 'selected' : '' }}>{{ __('order.pending') }}</option>
                                         <option value="3" {{ $order->state == 3 ? 'selected' : '' }}>{{ __('order.completed') }}</option>
+                                        <option value="4" {{ $order->state == 4 ? 'selected' : '' }}>{{ __('order.cancelled') }}</option>
                                     </select>
                                 </td>
                             </tr>

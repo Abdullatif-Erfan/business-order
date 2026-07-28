@@ -31,7 +31,7 @@ class UserController extends Controller
         }
     }
 
-    public function createUser()
+    public function createDemoUser()
     {
         // Create a sample user record
         $user = User::create([
@@ -131,6 +131,7 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+
     public function create()
     {
         if(!$this->isAdmin)

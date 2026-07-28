@@ -9,8 +9,9 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Setting\Account;
 use App\Models\Setting\OrgBio;
 use App\Models\Order\Order;
+use App\Models\Order\DraftOrder;
 use App\Models\Buy\BoughtItem;
-use App\Models\Buy\BoughtReturn;
+use App\Models\Warehouse\WarehouseReturn;
 use App\Models\Warehouse\WarehouseSales;
 use Carbon\Carbon;
 
@@ -46,8 +47,9 @@ class HomeController extends Controller
         $orders = $this->getDashboardOrdersData($request);
         $bought = $this->getDashboardBoughtsData($request);
         $sales = $this->getDashboardSalesData($request);
-        // $returns = $this->getDashboardReturnsData($request);
-        $returns = [];
+        $returns = $this->getDashboardReturnsData($request);
+
+        // return ['orders' => $orders];
 
         return view('dashboard.dashboard', compact('orders', 'bought', 'sales', 'orgBio', 'drivers', 'suppliers', 'customers','returns', 'search'));
     }
@@ -87,35 +89,36 @@ class HomeController extends Controller
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('idate', [$request->start_date, $request->end_date]);
         } elseif ($request->start_date) {
-            $query->where('idate', '>=', $request->start_date);
+            $query->where('idate',  '>=', $request->start_date);
         } elseif ($request->end_date) {
             $query->where('idate', '<=', $request->end_date);
         }
 
-        $result = $query->select(
+         $orderResult = $query->select(
             DB::raw("COUNT(DISTINCT ord_num) as total_orders"),
-            DB::raw("COUNT(DISTINCT CASE WHEN state = 0 THEN ord_num END) as total_draft"),
             DB::raw("COUNT(DISTINCT CASE WHEN state = 1 THEN ord_num END) as total_new"),
-            DB::raw("COUNT(DISTINCT CASE WHEN state = 2 THEN ord_num END) as total_cancelled"),
-            DB::raw("COUNT(DISTINCT CASE WHEN state = 3 THEN ord_num END) as total_completed")
+            DB::raw("COUNT(DISTINCT CASE WHEN state = 2 THEN ord_num END) as total_progress"),
+            DB::raw("COUNT(DISTINCT CASE WHEN state = 3 THEN ord_num END) as total_completed"),
+            DB::raw("COUNT(DISTINCT CASE WHEN state = 4 THEN ord_num END)  as  total_cancelled")
         )
         ->first();
 
-        $totalNew = (int) ($result->total_new ?? 0);
-        $totalCompleted = (int) ($result->total_completed ?? 0);
-        $totalNewAndCompleted = $totalNew + $totalCompleted;
-        // x = done * 100 / totalAmount || x = 1 * 100 / 3 = 33;
-        $progressPercentage = $totalNew > 0 ? round(($result->total_completed * 100) / $totalNewAndCompleted) : 0;
+        $total =  (int) ($orderResult->total_orders ?? 0);
+        $completed = (int) ($orderResult->total_completed ?? 0);
+
+        $percentage = $total > 0 ? round(($completed / $total) * 100, 2) : 0;
+
 
         return [
-            'total_orders' => (int) ($result->total_orders ?? 0),
-            'total_draft' => (int) ($result->total_draft ?? 0),
-            'total_new' => (int) ($result->total_new ?? 0),
-            'total_cancelled' => (int) ($result->total_cancelled ?? 0),
-            'total_completed' => (int) ($result->total_completed ?? 0),
-            'progress_percentage' => $progressPercentage,
+            'total_orders' => (int) ($orderResult->total_orders ?? 0),
+            'total_progress' => (int) ($orderResult->total_progress ?? 0),
+            'total_new' => (int) ($orderResult->total_new ?? 0),
+            'total_cancelled' => (int) ($orderResult->total_cancelled ?? 0),
+            'total_completed' => (int) ($orderResult->total_completed ?? 0),
+            'progress_percentage' => $percentage,
         ];
     }
+   
 
     // ____ BUY (BOUGHT) _______________________________________
     public function getDashboardBoughts(Request $request)
@@ -273,7 +276,7 @@ class HomeController extends Controller
     }
 
 
-    // ____ RETURNS (BOUGHT_RETURNS) _______________________________________
+    // ____ RETURNS (WAREHOUSE_RETURNS) _______________________________________
     public function getDashboardReturns(Request $request)
     {
         try {
@@ -295,7 +298,7 @@ class HomeController extends Controller
     
     private function getDashboardReturnsData(Request $request)
     {
-        $query = BoughtReturn::query();
+        $query = WarehouseReturn::query();
 
         // Apply filters
         if ($request->filled('supplier_id') && $request->supplier_id > 0) {
