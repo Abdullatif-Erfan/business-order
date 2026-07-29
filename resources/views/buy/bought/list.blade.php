@@ -136,7 +136,7 @@
 
 <!-- Update Profit and Sell_up Modal -->
 <div class="modal fade" id="EditRecordsModal" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+      <div class="modal-dialog" role="document" style="width: 1000px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{ __('common.edit') }} </h5>

@@ -91,7 +91,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                             <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
                                                 <label for="amount">{{__('buy.amount')}} <span class="danger">*</span> </label>
-                                                <input class="form-control" name="amount" id="amount" type="number" step="0.01" >
+                                                <input class="form-control" name="amount" id="amount" type="number" step="any" >
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
@@ -107,13 +107,13 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
                                                 <label for="buy_up">{{__('common.unit_price')}}<span class="danger">*</span> </label>
-                                                <input class="form-control" name="buy_up" id='buy_up' type="number" step="0.01"
+                                                <input class="form-control" name="buy_up" id='buy_up' type="number" step="any"
                                                 oninput="calculateTotalPrice(this.value)">
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
                                                 <label for="total_price">{{__('common.total')}}<span class="danger">*</span> </label>
-                                                <input class="form-control" name="total" id='total_with_or_without_tax' type="number" step="0.01" >
+                                                <input class="form-control" name="total" id='total_with_or_without_tax' type="number" step="any" >
                                             </div>
                                     <!-- / Second Row -->
 
@@ -122,7 +122,7 @@ select.select2{text-align:right !important;direction:rtl !important;}
                                             <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
                                                <label for="buy_tax_per">  {{__('buy.buy_tax_percentage')}} </label>
                                                 <input class="form-control" name="buy_tax_per" id="buy_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , max=100 
-                                                oninput="calculateTax(this.value);" >
+                                                oninput="calculateTax(this.value);" step="any" >
                                             </div>
 
                                             <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
@@ -204,112 +204,260 @@ select.select2{text-align:right !important;direction:rtl !important;}
 
 
 <script>
-
-function calculateTotalPrice(buy_up)
-{
-    var buyUp = parseFloat(buy_up) || 0;
-    var amount = parseFloat($('#amount').val()) || 0;
-    var total = (buyUp * amount).toFixed(2);
-    $('#total_with_or_without_tax').val(total);
-}
-
-function calculateTax(tax_percent) {
-    var taxPercent = parseFloat(tax_percent) || 0;
-    var quantity = parseFloat($('#amount').val()) || 0;
-    var unitPrice = parseFloat($('#buy_up').val()) || 0;
-    
-    // Calculate totals
-    var curTotal = quantity * unitPrice;  // Total without VAT
-    var taxAmount = (curTotal * taxPercent) / 100;  // Total VAT amount
-    
-    // Update fields with proper formatting
-    $('#buy_tax_price').val(taxAmount.toFixed(2));  // Total tax amount //مبلغ مالیات خرید
-    
-    // Unit price WITH VAT (per item)
-    var unitPriceWithVAT = unitPrice + taxAmount;
-    $('#buy_up_vat').val(unitPriceWithVAT.toFixed(2)); // فیات با مالیات
-    
-    // Total WITH VAT (all items)
-    var totalWithVAT = unitPriceWithVAT * quantity;  // Total with VAT
-    $('#total_vat').val(totalWithVAT.toFixed(2)); // مجموع با مالیات
-}
-
-function calculateSalesTax(sales_tax_percent) {
-    var salesTaxPercent = parseFloat(sales_tax_percent) || 0;
-    var quantity = parseFloat($('#amount').val()) || 0;
-    var unitPrice = parseFloat($('#sell_up').val()) || 0;
-    
-    // Calculate totals
-    var totalWithoutTax = quantity * unitPrice;  // Total without VAT
-    var totalTaxAmount = (totalWithoutTax * salesTaxPercent) / 100;  // Total VAT
-    
-    // Update fields with proper formatting
-    $('#sell_tax_price').val(totalTaxAmount.toFixed(2));  // Total tax amount
-    
-    // Unit price WITH VAT (per item)
-    var unitPriceWithTax = unitPrice + totalTaxAmount;
-    $('#sell_up_vat').val(unitPriceWithTax.toFixed(2));
-    
-    // Total WITH VAT (all items)
-    var totalWithTax = unitPriceWithTax * quantity;  // Total with VAT
-    $('#total_sales_with_tax').val(totalWithTax.toFixed(2));
-}
-
-
-function updateCurPay(curPay) {
-    var total_price = parseFloat($('#fina_total_price').val()) || 0;
-    var curPayVal = parseFloat(curPay) || 0;
-    console.log('updateCurPay is called');
-    console.log('total_price', total_price);
-    console.log('curPayVal', curPayVal);
-    
-    var result = total_price - curPayVal;
-    $('#remained').val(Math.max(result, 0).toFixed(2)); // Prevent negative values
-
-    // Hide submit button if curPay is greater than total_price
-    if (curPayVal > total_price) {
-        $('#submit_button').hide(); // Hides the submit button
-        alert("{{__('buy.over_pay')}}")
-    } else {
-        $('#submit_button').show(); // Shows the submit button
+$(document).ready(function() {
+    // =========================================
+    // CALCULATE TOTAL PRICE
+    // =========================================
+    function calculateTotalPrice() {
+        var buyUp = parseFloat($('#buy_up').val()) || 0;
+        var amount = parseFloat($('#amount').val()) || 0;
+        var total = (buyUp * amount).toFixed(2);
+        $('#total_with_or_without_tax').val(total);
+        
+        // Recalculate everything
+        recalculateAll();
     }
-}
-</script>
-<script>
 
-// Function to check sum validation
-function validateWarehouseAmounts() 
-{
-    let totalAmount = parseFloat($('#amount').val()) || 0;
-    let sumWarehouseAmount = 0;
+    // =========================================
+    // RECALCULATE ALL FIELDS
+    // =========================================
+    function recalculateAll() {
+        var amount = parseFloat($('#amount').val()) || 0;
+        var buyUp = parseFloat($('#buy_up').val()) || 0;
+        var buyTaxPercent = parseFloat($('#buy_tax_per').val()) || 0;
+        var sellUp = parseFloat($('#sell_up').val()) || 0;
+        var sellTaxPercent = parseFloat($('#sell_tax_per').val()) || 0;
 
-    $('input[name="warehouse_amount[]"]').each(function () {
-         sumWarehouseAmount += parseFloat($(this).val()) || 0;
+        // Calculate buy tax
+        calculateBuyTax(amount, buyUp, buyTaxPercent);
+        
+        // Calculate sell tax
+        calculateSellTax(amount, sellUp, sellTaxPercent);
+        
+        // Update total without tax
+        var totalWithoutTax = amount * buyUp;
+        $('#total_with_or_without_tax').val(totalWithoutTax.toFixed(2));
+    }
+
+    // =========================================
+    // CALCULATE BUY TAX
+    // =========================================
+    function calculateBuyTax(amount, unitPrice, taxPercent) {
+        if (!amount || !unitPrice) {
+            $('#buy_tax_price').val('0.00');
+            $('#buy_up_vat').val('0.00');
+            $('#total_vat').val('0.00');
+            return;
+        }
+
+        // Calculate totals
+        var curTotal = amount * unitPrice;  // Total without VAT
+        var taxAmount = (curTotal * taxPercent) / 100;  // Total VAT amount
+        
+        // Update fields with proper formatting
+        $('#buy_tax_price').val(taxAmount.toFixed(2));  // Total tax amount
+        
+        // Unit price WITH VAT (per item)
+        var unitPriceWithVAT = unitPrice + taxAmount;
+        $('#buy_up_vat').val(unitPriceWithVAT.toFixed(2)); // Unit price with VAT
+        
+        // Total WITH VAT (all items)
+        var totalWithVAT = unitPriceWithVAT * amount;  // Total with VAT
+        $('#total_vat').val(totalWithVAT.toFixed(2)); // Total with VAT
+    }
+
+    // =========================================
+    // CALCULATE SELL TAX
+    // =========================================
+    function calculateSellTax(amount, unitPrice, taxPercent) {
+        if (!amount || !unitPrice) {
+            $('#sell_tax_price').val('0.00');
+            $('#sell_up_vat').val('0.00');
+            $('#total_sales_with_tax').val('0.00');
+            return;
+        }
+
+        // Calculate totals
+        var totalWithoutTax = amount * unitPrice;  // Total without VAT
+        var totalTaxAmount = (totalWithoutTax * taxPercent) / 100;  // Total VAT
+        
+        // Update fields with proper formatting
+        $('#sell_tax_price').val(totalTaxAmount.toFixed(2));  // Total tax amount
+        
+        // Unit price WITH VAT (per item)
+        var unitPriceWithTax = unitPrice + totalTaxAmount;
+        $('#sell_up_vat').val(unitPriceWithTax.toFixed(2));
+        
+        // Total WITH VAT (all items)
+        var totalWithTax = unitPriceWithTax * amount;  // Total with VAT
+        $('#total_sales_with_tax').val(totalWithTax.toFixed(2));
+    }
+
+    // =========================================
+    // EVENT HANDLERS
+    // =========================================
+    
+    // When amount changes
+    $('#amount').on('input', function() {
+        var amount = parseFloat($(this).val()) || 0;
+        var buyUp = parseFloat($('#buy_up').val()) || 0;
+        
+        // Update total
+        var total = (buyUp * amount).toFixed(2);
+        $('#total_with_or_without_tax').val(total);
+        
+        // Recalculate all
+        recalculateAll();
     });
 
-    console.log('totalAmount', totalAmount);
-    console.log('warehouse_amount', sumWarehouseAmount);
+    // When buy_up changes
+    $('#buy_up').on('input', function() {
+        calculateTotalPrice();
+    });
 
-    if (sumWarehouseAmount > totalAmount) {
-        showNotification("{{__('buy.over_amount')}}", 'danger', 'top', 'right', 'withicon');
-        return false;
-    } else if (sumWarehouseAmount < totalAmount) {
-        showNotification("{{__('buy.select_less_than')}}", 'danger', 'top', 'right', 'withicon');
-        return false;
-    } else {
-        $('#warehouseAmountError').text(''); // Clear error if valid
-        return true;
-    }
-}
+    // When buy_tax_per changes
+    $('#buy_tax_per').on('input', function() {
+        var taxPercent = parseFloat($(this).val()) || 0;
+        var amount = parseFloat($('#amount').val()) || 0;
+        var unitPrice = parseFloat($('#buy_up').val()) || 0;
+        calculateBuyTax(amount, unitPrice, taxPercent);
+    });
 
-$(document).ready(function () {
-    $(document).on('click', '.close-error', function () {
+    // When sell_up changes
+    $('#sell_up').on('input', function() {
+        var sellUp = parseFloat($(this).val()) || 0;
+        var amount = parseFloat($('#amount').val()) || 0;
+        var sellTaxPercent = parseFloat($('#sell_tax_per').val()) || 0;
+        calculateSellTax(amount, sellUp, sellTaxPercent);
+    });
+
+    // When sell_tax_per changes
+    $('#sell_tax_per').on('input', function() {
+        var sellTaxPercent = parseFloat($(this).val()) || 0;
+        var amount = parseFloat($('#amount').val()) || 0;
+        var sellUp = parseFloat($('#sell_up').val()) || 0;
+        calculateSellTax(amount, sellUp, sellTaxPercent);
+    });
+
+    // =========================================
+    // INITIAL CALCULATION ON PAGE LOAD
+    // =========================================
+    // Trigger initial calculation
+    setTimeout(function() {
+        recalculateAll();
+    }, 100);
+
+    // =========================================
+    // ORIGINAL FUNCTIONS (keeping for compatibility)
+    // =========================================
+    window.calculateTotalPrice = function(buy_up) {
+        calculateTotalPrice();
+    };
+
+    window.calculateTax = function(tax_percent) {
+        var amount = parseFloat($('#amount').val()) || 0;
+        var unitPrice = parseFloat($('#buy_up').val()) || 0;
+        calculateBuyTax(amount, unitPrice, tax_percent);
+    };
+
+    window.calculateSalesTax = function(sales_tax_percent) {
+        var amount = parseFloat($('#amount').val()) || 0;
+        var unitPrice = parseFloat($('#sell_up').val()) || 0;
+        calculateSellTax(amount, unitPrice, sales_tax_percent);
+    };
+
+    window.updateCurPay = function(curPay) {
+        var total_price = parseFloat($('#fina_total_price').val()) || 0;
+        var curPayVal = parseFloat(curPay) || 0;
+        var result = total_price - curPayVal;
+        $('#remained').val(Math.max(result, 0).toFixed(2));
+
+        if (curPayVal > total_price) {
+            $('#submit_button').hide();
+            alert("{{__('buy.over_pay')}}");
+        } else {
+            $('#submit_button').show();
+        }
+    };
+
+    window.validateWarehouseAmounts = function() {
+        let totalAmount = parseFloat($('#amount').val()) || 0;
+        let sumWarehouseAmount = 0;
+
+        $('input[name="warehouse_amount[]"]').each(function() {
+            sumWarehouseAmount += parseFloat($(this).val()) || 0;
+        });
+
+        if (sumWarehouseAmount > totalAmount) {
+            showNotification("{{__('buy.over_amount')}}", 'danger', 'top', 'right', 'withicon');
+            return false;
+        } else if (sumWarehouseAmount < totalAmount) {
+            showNotification("{{__('buy.select_less_than')}}", 'danger', 'top', 'right', 'withicon');
+            return false;
+        } else {
+            $('#warehouseAmountError').text('');
+            return true;
+        }
+    };
+
+    $(document).on('click', '.close-error', function() {
         $('#errorWrapper').fadeOut();
+    });
+
+    // =========================================
+    // ADD KEYBOARD SHORTCUTS
+    // =========================================
+    // Enter key to recalculate
+    $('input').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            recalculateAll();
+        }
+    });
+
+    // =========================================
+    // ADD REAL-TIME VALIDATION
+    // =========================================
+    // Validate tax percentage (0-100)
+    $('#buy_tax_per, #sell_tax_per').on('blur', function() {
+        var val = parseFloat($(this).val()) || 0;
+        if (val < 0) {
+            $(this).val(0);
+        } else if (val > 100) {
+            $(this).val(100);
+        }
+        recalculateAll();
+    });
+
+    // Validate amount and prices (not negative)
+    $('#amount, #buy_up, #sell_up').on('blur', function() {
+        var val = parseFloat($(this).val()) || 0;
+        if (val < 0) {
+            $(this).val(0);
+            recalculateAll();
+        }
     });
 });
 
+// =========================================
+// ADD DEBUGGING HELPER (optional)
+// =========================================
+function logValues() {
+    console.log({
+        amount: $('#amount').val(),
+        buy_up: $('#buy_up').val(),
+        buy_tax_per: $('#buy_tax_per').val(),
+        buy_tax_price: $('#buy_tax_price').val(),
+        buy_up_vat: $('#buy_up_vat').val(),
+        total_vat: $('#total_vat').val(),
+        sell_up: $('#sell_up').val(),
+        sell_tax_per: $('#sell_tax_per').val(),
+        sell_tax_price: $('#sell_tax_price').val(),
+        sell_up_vat: $('#sell_up_vat').val(),
+        total_sales_with_tax: $('#total_sales_with_tax').val()
+    });
+}
 </script>
-
 @endsection
 
 

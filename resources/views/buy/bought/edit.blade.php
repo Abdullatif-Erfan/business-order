@@ -106,7 +106,7 @@
 
                                                         @if($orgbios[0]->tax_activation === 1)
                                                         <th>{{__('buy.buy_tax_percentage_s')}}</th>
-                                                        <th>{{__('buy.buy_tax_price_s')}}</th>
+                                                        <th>{{__('buy.buy_up_vat')}}</th>
                                                         @endif
                                                         <th>{{__('common.total_price')}}</th>
 
@@ -127,15 +127,11 @@
                                                         <td>{{ $detail->preListRelation->name }}</td>
                                                         <td>{{ $detail->unitRelation->name }} </td>
                                                         <td>{{ $detail->amount }} </td>
-                                                        <td>{{ 
-                                                                $detail->buy_tax_per > 0 ? 
-                                                                number_format($detail->buy_up_vat,2) : 
-                                                                number_format($detail->buy_up,2);
-                                                            }}
+                                                        <td>{{ number_format($detail->buy_up,2) }}
                                                        </td>
                                                         @if($orgbios[0]->tax_activation === 1)
                                                          <td> % {{$detail->buy_tax_per}}  </td>
-                                                         <td> {{$detail->buy_tax_price}} </td>
+                                                         <td> {{number_format($detail->buy_up_vat,2)}} </td>
                                                          @endif
                                                         <td>
                                                             @if($detail->buy_tax_per > 0)

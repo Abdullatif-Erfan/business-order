@@ -62,7 +62,7 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                     <th>{{__('common.unit_price')}}</th>
                                                     @if($orgbios[0]->tax_activation === 1)
                                                     <th>{{__('buy.buy_tax_percentage_s')}}</th>
-                                                    <th>{{__('buy.buy_tax_price_s')}}</th>
+                                                    <th>{{__('buy.buy_up_vat')}}</th>
                                                     @endif
                                                     <th>{{__('common.total_price')}}</th>
                                                     <th>{{__('common.unit')}}</th>
@@ -88,15 +88,13 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                                 <td>
                                                     <!-- اگر در زمان ثبت این ریکارد مالیات فعال بوده است حتما باید ریکارد مالیات دار  نشان داده شود -->
                                                     {{ 
-                                                        $detail->buy_tax_per > 0 ? 
-                                                        number_format($detail->buy_up_vat,2) : 
-                                                        number_format($detail->buy_up,2);
+                                                       number_format($detail->buy_up,2);
                                                     }}
                                                 </td>
                                                 
                                                 @if($orgbios[0]->tax_activation === 1)
                                                 <td> % {{$detail->buy_tax_per}}  </td>
-                                                <td> {{$detail->buy_tax_price}} </td>
+                                                <td> {{number_format($detail->buy_up_vat,2)}} </td>
                                                 @endif
 
                                                 <td>

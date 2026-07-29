@@ -36,6 +36,8 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/create2',[BoughtDetailsController::class,'create2'])->name('boughtList.create2')->middleware('access:buy,create_records');
     Route::post('/store',[BoughtDetailsController::class,'store'])->name('boughtList.store')->middleware('access:buy,create_records');
     Route::post('/submit',[BoughtDetailsController::class,'submit'])->name('boughtList.submit')->middleware('access:buy,create_records');
+    Route::post('/submitWithTax',[BoughtDetailsController::class,'submitWithTax'])->name('boughtList.submitWithTax')->middleware('access:buy,create_records');
+
     Route::post('/update',[BoughtDetailsController::class,'update'])->name('boughtList.update')->middleware('access:buy,edit_records');
     Route::get('/checkBillNoDuplication',[BoughtDetailsController::class, 'checkBillNoDuplication'])->name('boughtList.checkBillNoDuplication');
     Route::get('/getSingleRecordForEdit/{id}',[BoughtDetailsController::class,'getSingleRecordForEdit'])->name('boughtList.getSingleRecordForEdit');

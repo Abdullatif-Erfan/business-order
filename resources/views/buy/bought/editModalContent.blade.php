@@ -16,11 +16,17 @@
             <input class="form-control" name="id"  type="hidden" 
             value="{{ $boughtItemDetails->id ?? 0 }}" >
 
+            <input class="form-control" name="billno"  type="hidden" 
+            value="{{ $boughtItemDetails->billno ?? 0 }}" >
+
             <input class="form-control" name="pre_list_id"  type="hidden"
             value="{{ $boughtItemDetails->pre_list_id ?? 0}}" >
 
             <input class="form-control" name="times"  type="hidden"  
             value="{{ $boughtItemDetails->times ?? 0}}" >
+
+             <input class="form-control" name="buy_tax_per"  type="hidden"  
+            value="{{ $boughtItemDetails->buy_tax_per ?? 0}}" >
 
             <input class="form-control" name="item_name" id="item_name" type="text" readonly value={{ $boughtItemDetails->preListRelation->name ?? ''}} >
         </div>
@@ -34,12 +40,18 @@
 
           <div class="col-md-3 col-sm-4 col-xs-6">
             <label for="amount">{{__('common.unit')}}  </label>
-            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id" >
-                @foreach($units as $unitItem)
-                $unit_name = $boughtItemDetails->unit_id == $unitItem->id ? $unitItem->name : '';
-                 <option value="{{  $unitItem->id }}" {{ $boughtItemDetails->unit_id == $unitItem->id ? 'selected' : '' }} >{{ $unitItem->name }}</option>
-                @endforeach
-            </select>
+            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id">
+            @php $found = false; @endphp
+            @foreach($units as $unitItem)
+                @if($boughtItemDetails->unit_id == $unitItem->id)
+                    <option value="{{ $unitItem->id }}" selected>{{ $unitItem->name }}</option>
+                    @php $found = true; @endphp
+                @endif
+            @endforeach
+            @if(!$found)
+                <option value="">No matching unit found</option>
+            @endif
+        </select>
         </div>
 
         <!-- tax_activation -->
@@ -56,27 +68,30 @@
 
 
         <!-- VAT = Value Added Tax -->
-        @if(intval($tax_activation->tax_activation) === 1) 
+        @if(intval($boughtItemDetails->buy_tax_per) > 0) 
             <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
                 <label for="buy_tax_per">  {{__('buy.buy_tax_percentage')}} </label>
                 <input class="form-control" name="buy_tax_per" id="buy_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , 
-                max=100 value="{{ $boughtItemDetails->buy_tax_per ?? 0 }}"
+                max=100 value="{{ $boughtItemDetails->buy_tax_per ?? 0 }}" readonly
                 oninput="calculateTax(this.value);" >
             </div>
 
-            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+            <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
                 <label for="buy_tax_price"> {{__('buy.buy_tax_price')}} </label>
-                <input class="form-control" name="buy_tax_price" id="buy_tax_price" value="{{ $boughtItemDetails->buy_tax_price ?? 0 }}"  type="number" step="any">
+                <input class="form-control" name="buy_tax_price" id="buy_tax_price" value="{{ $boughtItemDetails->buy_tax_price ?? 0 }}"
+                readonly  type="number" step="any">
             </div>
 
-            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+            <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
                 <label for="buy_up_vat"> {{__('buy.buy_up_vat')}} </label>
-                <input class="form-control" name="buy_up_vat" id="buy_up_vat" value="{{ $boughtItemDetails->buy_up_vat ?? 0 }}"  type="number" step="any">
+                <input class="form-control" name="buy_up_vat" id="buy_up_vat" value="{{ $boughtItemDetails->buy_up_vat ?? 0 }}" 
+                readonly   type="number" step="any">
             </div>
 
-            <div class="col-md-2 col-sm-4 col-xs-6 m-t-10">
+            <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
                 <label for="total_vat"> {{__('buy.total_buy_with_tax')}} </label>
-                <input class="form-control" name="total_vat" id="total_vat" value="{{ $boughtItemDetails->total_vat ?? 0 }}"  type="number" step="any">
+                <input class="form-control" name="total_vat" id="total_vat" value="{{ $boughtItemDetails->total_vat ?? 0 }}" readonly
+                 type="number" step="any">
             </div>
             
          @endif
