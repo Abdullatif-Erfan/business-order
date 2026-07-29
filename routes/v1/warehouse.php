@@ -28,6 +28,10 @@ use App\Http\Controllers\Warehouse\WarehouseWastageController;
         // Return
         Route::get('/getWarehouseItemForReturn/{id}', [WarehouseListController::class, 'getWarehouseItemForReturn'])->name('warehousesList.getWarehouseItemForReturn')->middleware('access:gudam,edit_records');
         Route::post('/updateReturn', [WarehouseListController::class, 'updateReturn'])->name('warehousesList.updateReturn');
+
+        // View warehouse items in modal
+        Route::get('/getWarehouseItemForViewInModal/{id}', [WarehouseListController::class, 'getWarehouseItemForViewInModal'])->name('warehousesList.getWarehouseItemForViewInModal')->middleware('access:gudam,list');
+        
         
 
     });

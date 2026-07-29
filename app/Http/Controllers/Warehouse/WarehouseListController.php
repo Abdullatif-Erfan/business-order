@@ -129,55 +129,13 @@ class WarehouseListController extends Controller
             ->addColumn('unit', function ($WarehouseItem) {
                 return optional($WarehouseItem->unitRelation)->name ?? '';
             })
-            ->addColumn('buy_tax_per', function($WarehouseItem) {
-                return $WarehouseItem->buy_tax_per ? "% " . $WarehouseItem->buy_tax_per : '';
-            })
-            
-            ->addColumn('buy_tax_price', function($WarehouseItem) {
-                return $WarehouseItem->buy_tax_price ? $WarehouseItem->buy_tax_price: ''; 
-            })
-            ->addColumn('buy_up_vat', function($WarehouseItem) {
-                return $WarehouseItem->buy_up_vat ? $WarehouseItem->buy_up_vat: ''; 
-            })
-            
             ->addColumn('available_total', function ($WarehouseItem) {
                 // Use $tax_activation variable, not $this->$tax_activation
                 return  number_format($WarehouseItem->available_total ?? 0, 2);
             })
-            //  ->addColumn('buy_up', function ($WarehouseItem)  use ($tax_activation) {
-            //     return (int)$tax_activation === 1 ? 
-            //         number_format($WarehouseItem->buy_up ?? 0, 2) 
-            //         : number_format($WarehouseItem->buy_up_vat ?? 0, 2);
-            // })
-            // ->addColumn('sell_up', function ($WarehouseItem) use ($tax_activation) {
-            //     return (int)$WarehouseItem->buy_tax_per > 0 ? 
-            //         number_format($WarehouseItem->sell_up_vat ?? 0, 2) 
-            //         : number_format($WarehouseItem->sell_up ?? 0, 2);
-            // })
-
-            ->addColumn('buy_up', function($WarehouseItem) {
-                // If tax is enabled, show price with VAT
-                if ($WarehouseItem->buy_tax_per && $WarehouseItem->buy_tax_per > 0) {
-                    return $WarehouseItem->buy_up_vat;
-                }
-                return $WarehouseItem->buy_up; 
-            })
             ->addColumn('total', function($WarehouseItem) {
                 return number_format($WarehouseItem->total,2); 
-            })            
-            ->addColumn('sell_up', function($WarehouseItem) {
-                  if ($WarehouseItem->sell_tax_per && $WarehouseItem->sell_tax_per > 0) {
-                    return $WarehouseItem->sell_up_vat;
-                }
-                return $WarehouseItem->sell_up; 
-            })
-            // ->addColumn('transfer', function ($WarehouseItem) {
-            //     return '<i class="fas fa-exchange-alt transferItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;color:blue; cursor:pointer"></i>';
-            // })
-            // ->addColumn('return', function ($WarehouseItem) {
-            //     return '<i class="fas fa-undo returnItems" data-id="'.$WarehouseItem->id.'" style="font-size:20px;color:blue; cursor:pointer"></i>';
-            // })
-
+            })    
             ->addColumn('action', function ($soldItem) {
                 return '
                 <div class="dropdown dropend">
@@ -186,17 +144,13 @@ class WarehouseListController extends Controller
                     </button>
 
                     <div class="dropdown-menu">
+                        <a class="dropdown-item viewItems" href="#" data-id="' . $soldItem->id . '"><i class="fas fa-eye"></i> '. ' ' . __('common.viewItems') . '</a>
                         <a class="dropdown-item transferItems" href="#" data-id="' . $soldItem->id . '"><i class="fas fa-exchange-alt"></i> '. ' ' . __('sales.transfer') . '</a>
                         <a class="dropdown-item returnItems" href="#" data-id="' . $soldItem->id . '"><i class="fas fa-undo"></i> '.' '. __('sales.return') . '</a>
                     </div>
                 </div>';
             })
 
-            // ->addColumn('view', function ($WarehouseItem) {
-            //     return '<a href="warehousesList/details/'.$WarehouseItem->id.'" class="hidden-print">
-            //                 <i class="fas fa-eye viewItems" data-id="' . $WarehouseItem->id . '" style="font-size:20px;"></i>
-            //             </a>';
-            // })
             ->rawColumns(['view','buy_tax_per','action'])
             ->make(true);
     }
@@ -241,6 +195,18 @@ class WarehouseListController extends Controller
         return view('warehouseitem.modalTransfer',compact('warehouseItems','cars','units'));
 
     }
+
+    /**
+     * Get Warehouse Item to show with details in the modal 
+     */
+    public function getWarehouseItemForViewInModal(string $id)
+    {
+        $warehouseItems = WarehouseItem::with(['unitRelation','preListRelation','carRelation'])
+        ->where('id', $id)->first();
+        // return response()->json(['data' => $warehouseItems]);
+        return view('warehouseitem.viewItemDetailsInModal',compact('warehouseItems'));
+    }
+    
  
     /**
      *  Transfer from Warehouse to Warehouse

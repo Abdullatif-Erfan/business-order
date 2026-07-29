@@ -347,20 +347,21 @@ $('#generateInvoiceBtn').on('click', function() {
 
 // Set Profit
    $('table').on('click', '.setProfit', function () {
-        $('#EditRecordsModal').modal('show');
-        $('#loading_modal').show();
+       
         var billno = $(this).data('id');
         var isEditable = $(this).data('id2');
+        var hasInvoice = $(this).data('id3');
 
           // Check if invoice exists 
-        if (isEditable == 1) {
-            // showNotification('اجناس بعد از فروش قابل ویرایش نمیباشد', 'danger');
-            // return; // Exit the function
+        if (isEditable == 1 || hasInvoice == 1) {
+            showNotification('درصورتیکه انوایس ایجاد شده باشد ویا فروش شده باشد دیگر قابل ویرایش نمی باشد', 'danger');
             $('#EditAccountBtn').fadeOut(100);
+            return; // Exit the function
         } else {
             $('#EditAccountBtn').fadeIn(100);
         }
-
+        $('#EditRecordsModal').modal('show');
+        $('#loading_modal').show();
         $.ajax({
             url: `/boughtList/getToUpdateProfit/${billno}`,
             type: 'GET',

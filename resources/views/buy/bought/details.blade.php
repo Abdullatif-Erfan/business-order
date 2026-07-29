@@ -271,11 +271,13 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                     </button> -->
                                             
                                     <!-- edit button -->
+                                      @if($boughtItems->first()->has_invoice != 1)
                                         <a href="{{ route('boughtList.edit', $boughtItems->first()->times) }}" class="hidden-print">
                                             <button class="btn btn-primary btn-sm m-r-10">
                                                 <i class="fas fa-pen"></i> {{__('common.edit')}}
                                             </button>
                                         </a>
+                                      @endif
 
                                      <!-- حذف بل های ناقص -->
                                      @if(!$jexists && $boughtItems->isNotEmpty())

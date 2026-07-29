@@ -23,6 +23,7 @@ return [
     'total_recieved'  => 'رسید',
     'cancel'    => 'لغو',
     'bill'      => 'بل',
+    'buy_bill'      => 'بل خرید',
     'factor'    => 'فاکتور',
     'code'      => 'کد',
     'unit'      => 'واحد',
@@ -124,5 +125,6 @@ return [
     'loan' => 'قرض',
     'required' => 'انتخاب این بخش ضروری میباشد',
     'amount_must_be_greater_than_zero' => 'باید بالاتر از صفر باشد',
+    'viewItems' => 'نمایش لیست',
 
 ];

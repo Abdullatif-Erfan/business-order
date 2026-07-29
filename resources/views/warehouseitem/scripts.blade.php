@@ -70,26 +70,13 @@ function fetchList() {
         { data: 'out_amount', name: 'out_amount' }, 
         { data: 'available_amount', name: 'available_amount'},
         { data: 'unit', name: 'unit' },
-        { data: 'buy_up', name: 'buy_up' }
-    ];
-
-    // Add tax columns if tax is enabled
-    if (flag === 1) {
-        columns.push(
-            { data: 'buy_tax_per', name: 'buy_tax_per' },
-            { data: 'buy_tax_price', name: 'buy_tax_price' },
-            { data: 'buy_up_vat', name: 'buy_up_vat' }
-        );
-    }
-
-    // Add remaining columns
-    columns.push(
+        { data: 'buy_up', name: 'buy_up' },
         { data: 'available_total', name: 'available_total' },
         { data: 'total', name: 'total' },
         { data: 'sell_up', name: 'sell_up' },
         { data: 'idate', name: 'idate', orderable: false, searchable: false },
         { data: 'action', name: 'action', orderable:false, searchable:false, className:'hidden-print'}
-    );
+    ];
 
     // =============================================
     // INITIALIZE DATATABLE
@@ -266,6 +253,7 @@ $(document).on('click', '.returnItems', function() {
 });
 
 
+
 // submit return
 $(document).ready(function() {
     $('#submitReturn').on('click', function(e) {
@@ -324,4 +312,23 @@ $(document).ready(function() {
     });
 });
 
+// view items
+$(document).on('click', '.viewItems', function() {
+    var $this = $(this);
+    var id = $this.data('id');
+    $('#viewModal').modal('show');
+    $('#viewModalLoader').show();
+    $.ajax({
+        url: `/warehousesList/getWarehouseItemForViewInModal/${id}`,
+        type: 'GET',
+        success: (result) => {
+            $('#viewModalContent').html(result);
+            $('#viewModalLoader').hide();
+        },
+        error: () => {
+            $('#viewModalLoader').hide();
+            alert('اطلاعات یافت نشد');
+        }
+    });
+});
 </script>

@@ -184,7 +184,7 @@
                                                 <th>{{ __('common.amount') }}</th>
                                                 <th>{{ __('common.unit') }}</th>
                                                 <th>{{ __('common.unit_price') }}</th>
-                                                @if($orgbios[0]->tax_activation === 1)
+                                                @if($invoice->tax_activation === 1)
                                                 <th>% {{ __('buy.tax') }} </th>
                                                 <th>{{ __('buy.tax_price') }}</th>
                                                 <th>{{ __('buy.buy_up_vat') }}</th>
@@ -201,7 +201,7 @@
                                                 <td>{{ $item->preList->name ?? '' }}</td>
                                                 <td>{{ number_format($item->amount, 2) }}</td>
                                                 <td>{{ $item->unit->name ?? '' }}</td>
-                                                @if($orgbios[0]->tax_activation === 1)
+                                                @if($invoice->tax_activation === 1)
                                                 <td>{{ number_format($item->unit_price, 2)  }}</td>
                                                 <td>% {{ $item->tax_percentage ?? 0 }}  </td>
                                                 <td>{{ number_format($item->tax_amount ?? 0, 2) }}</td>
@@ -302,7 +302,7 @@
                                                 <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
                                                 <input type="hidden" name="times" value="{{ $times }}">
                                                 <input type="hidden" name="journal_code" value="{{ $newJournalCode }}">
-                                                <input type="hidden" name="tax_activation" value="{{ $orgbios[0]->tax_activation }}">
+                                                <input type="hidden" name="tax_activation" value="{{ $invoice->tax_activation ?? 0 }}">
                                                 <input type="hidden" name="supplier_account_id" value="{{ $invoice->supplier->id }}">
                                                 
                                                 

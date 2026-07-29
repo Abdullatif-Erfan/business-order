@@ -80,20 +80,12 @@
                                 <table id="warehouseItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                 <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                             @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="15">
-                                             @else
                                              <td colspan="12">
-                                             @endif 
                                             <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                             @if($orgbios[0]->tax_activation === 1)
-                                             <td colspan="15">
-                                             @else
                                              <td colspan="12">
-                                             @endif 
                                             <center> {{__('wh.existing_list')}}  {{ $warehouse->name ?? '' }}  </center>
                                             </td>
                                         </tr>
@@ -106,11 +98,6 @@
                                             <th> {{__('common.available')}}  </th>
                                             <th> {{__('common.unit')}} </th>
                                             <th> {{__('buy.buy_up')}} </th>
-                                            @if($orgbios[0]->tax_activation === 1)
-                                            <th>% {{__('buy.tax') ?? ''}}</th>
-                                            <th>{{__('buy.buy_tax_price_s') ?? ''}}</th>
-                                            <th> {{__('buy.buy_up_vat') ?? ''}} </th>
-                                            @endif 
                                             <th> {{__('common.available_total')}} </th> 
                                             <th> {{__('common.total')}} </th> 
                                             <th> {{__('buy.sell_up')}} </th> 
@@ -125,11 +112,6 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            @if($orgbios[0]->tax_activation === 1)
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            @endif 
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -176,7 +158,7 @@
     </div>
 </div>
 
-
+<!-- Return Modal -->
 <div class="modal fade" id="returnModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content" style="width:800px !important">
@@ -202,6 +184,28 @@
     </div>
 </div>
 
+<!-- View Items Modal -->
+ <div class="modal fade" id="viewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width:800px !important">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{__('common.view')}} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="viewModalContent"></div>
+                <div id="viewModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin font-20"></i> {{__('common.loading')}}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm"  data-dismiss="modal">{{__('common.close')}}</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 @include('warehouseitem.scripts')

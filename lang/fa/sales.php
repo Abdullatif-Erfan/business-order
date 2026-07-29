@@ -39,6 +39,7 @@ return [
     'cannot_exceed_availability' => 'بالاتر از موجودی انتخاب نمی توانید',
     'transfer' => 'انتقال اجناس',
     'return' => 'برگشت اجناس',
+    'sell_tax_per' => 'فیصدی مالیات فروشات',
 
 
     // sales details
