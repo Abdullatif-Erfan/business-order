@@ -141,7 +141,6 @@ class SalesController extends Controller
 
     }
 
-
     public function bill(string $billno)
     {
         $orgbios = OrgBio::all();
@@ -468,7 +467,9 @@ class SalesController extends Controller
                     'warehouse_items.id as warehouse_item_id',
                     'warehouse_items.unit_id as warehouse_unit_id',
                     'units.name as warehouse_unit_name',
-                    DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                    'warehouse_items.sell_up as sell_up', 
+                    // DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                    DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.buy_up_vat ELSE warehouse_items.buy_up END as buy_up"),
                     'warehouse_items.available_amount',
                     'warehouse_items.warehouse_id',
                     'bought_item_pre_lists.name as item_name',
@@ -516,7 +517,9 @@ class SalesController extends Controller
                     'warehouse_items.id as warehouse_item_id',
                     'warehouse_items.unit_id as warehouse_unit_id',
                     'units.name as warehouse_unit_name',
-                    DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                    'warehouse_items.sell_up as sell_up', 
+                    // DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
+                    DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.buy_up_vat ELSE warehouse_items.buy_up END as buy_up"),
                     'warehouse_items.available_amount',
                     'warehouse_items.warehouse_id',
                     'bought_item_pre_lists.name as item_name',
@@ -553,7 +556,7 @@ class SalesController extends Controller
         }
         $currencies = Currency::select('id', 'name')->get();
         $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
-        $tax = OrgBio::select('tax_activation')->first();
+        $tax = OrgBio::select('tax_activation','tax_per')->first();
         $units = Unit::select('id', 'name')->get();
        
         
@@ -566,10 +569,18 @@ class SalesController extends Controller
         $combinedItems = collect();
         
         foreach ($draftOrders as $order) {
-            $warehouseItem = $warehouseItems->first(function ($item) use ($order) {
-                return $item->pre_list_id == $order->pre_list_id 
-                    && $item->warehouse_unit_id == $order->unit_id;
-            });
+            if($this->isAdmin) {
+                $warehouseItem = $warehouseItems->first(function ($item) use ($order) {
+                    return $item->pre_list_id == $order->pre_list_id 
+                        && $item->warehouse_unit_id == $order->unit_id;
+                });
+            } else {
+                 $warehouseItem = $warehouseItems->first(function ($item) use ($order) {
+                    return $item->pre_list_id == $order->pre_list_id 
+                        && $item->warehouse_unit_id == $order->unit_id
+                        && $item->user_id == $this->userId;
+                });
+            }
             
             if ($warehouseItem) {
                 $combinedItems->push((object) [
@@ -586,6 +597,7 @@ class SalesController extends Controller
                     'state' => $order->state,
                     'times' => $order->times,
                     'warehouse_item_id' => $warehouseItem->warehouse_item_id,
+                    'buy_up' => $warehouseItem->buy_up,
                     'sell_up' => $warehouseItem->sell_up,
                     'available_amount' => $warehouseItem->available_amount,
                     'warehouse_unit_id' => $warehouseItem->warehouse_unit_id,
@@ -628,26 +640,46 @@ class SalesController extends Controller
        
         // return ['data' => $customersWithStatus, 'items' => $combinedItems];
         // return ['warehouseItems' => $warehouseItems];
-        return view('sales.v2.create.create', compact(
-            'customers',
-            'units',
-            'currencies',
-            'ownBanks',
-            'tax',
-            'warehouseItems',
-            'combinedItems',
-            'customersWithStatus',
-            'billno',
-            'cars'
-        ));
+        if((int)$tax->tax_activation === 1) 
+        {
+           return view('sales.v2.create.create_with_tax', compact('customers','units','currencies','ownBanks',
+            'tax','warehouseItems','combinedItems','customersWithStatus','billno','cars'
+           ));
+        } else {
+           return view('sales.v2.create.create', compact('customers','units','currencies','ownBanks',
+            'tax','warehouseItems','combinedItems','customersWithStatus','billno','cars'
+           ));
+        }
     }
             
     // STORE NEW SALES      
     public function store(Request $request)
     {
         // return response()->json($request->all());
-       
 
+        // billno: "1"
+        // car_id: "20"
+        // cur_pay: "0"
+        // currency_id: "1"
+        // customer_account_id: "85"
+        // factor: null
+        // account_id: "33"
+        // items:
+        // {
+        //     pre_list_id: "90", warehouse_item_id: "7", order_id: "2", amount: "5", unit_id: "18", buy_up: "13",
+        //     order_id: "2", profit_amount: "5", sell_tax_per: "6", sell_tax_price: "5.40", sell_up: "18.00",sell_up_vat: "23.40",
+        //     total: "90.00", total_vat: "117.00", unit_id: "18", warehouse_item_id: "7"
+        // } 
+  
+        // note: null
+        // remained: "10166.00"
+        // tax_activation: "1"
+        // tax_per: "6"
+        // todays_date: "2026-08-01"
+        // total_price: "7820.00"
+        // total_vat_summary: "10166.00"
+
+       
         $validated = $request->validate([
             'customer_account_id' => 'required|exists:accounts,id',
             'account_id' => 'required|exists:accounts,id',
@@ -655,8 +687,10 @@ class SalesController extends Controller
             'todays_date' => 'required',
             // 'billno' => 'required|numeric|unique:warehouse_sales,billno',
             'billno' => 'required|numeric',
+            'tax_activation' => 'required|numeric|min:0',
+            'tax_per' => 'required|numeric|min:0',
             'factor' => 'nullable|string|max:255',
-            'total_price' => 'required|numeric|min:0',
+            'total_price' => 'required|numeric|min:1',
             'cur_pay' => 'required|numeric|min:0',
             'remained' => 'required|numeric|min:0',
             'currency_id' => 'required|exists:currencies,id',
@@ -666,7 +700,16 @@ class SalesController extends Controller
             'items.*.unit_id' => 'required|exists:units,id',
             'items.*.amount' => 'required|numeric|min:0.01',
             'items.*.sell_up' => 'required|numeric|min:0',
+
+            // 'items.*.order_id' => 'required|exists:orders,id',
+            'items.*.buy_up' => 'required|numeric|min:0',
+            'items.*.profit_amount' => 'required|numeric|min:1',
+            'items.*.sell_tax_per' => 'nullable|numeric',
+            'items.*.sell_tax_price' => 'nullable|numeric',
+            'items.*.sell_up_vat' => 'nullable|numeric',
             'items.*.total' => 'required|numeric|min:0',
+            'items.*.total_vat' => 'required|numeric',
+
             'items.*.warehouse_item_id' => 'required|exists:warehouse_items,id',
             'items.*.category_id' => 'nullable|exists:categories,id',
         ]);
@@ -674,8 +717,6 @@ class SalesController extends Controller
         DB::beginTransaction();
         try {
             $date = Carbon::parse($validated['todays_date']);
-            $user_id = auth()->id();
-            $user_name = auth()->user()->full_name ?? 'System';
 
             /**
              * برای اینکه چند کاربر همزمان ثبت نکند و  بل نمبر یکسان نباشد باید 
@@ -728,24 +769,24 @@ class SalesController extends Controller
                 'cur_pay' => $validated['cur_pay'],
                 'remained' => $validated['remained'],
                 'currency_id' => $validated['currency_id'],
-                'tax_activation' => 0,
+                'tax_activation' => $validated['tax_activation'],
                 'note' => $validated['note'] ?? null,
                 'idate' => $date->format('Y-m-d'),
                 'year' => $date->year,
                 'month' => $date->month,
                 'day' => $date->day,
                 'times' => $times,
-                'user_id' => $user_id,
-                'user_name' => $user_name,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName,
                 'has_invoice' => 0,
                 'invoice_id' => null,
                 'is_cleared' => 0,
             ]);
 
-            // update bought_items by last car_id set editable to false, af
+            // update bought_items by last car_id set editable to false, if
             BoughtItem::where('car_id', $validated['car_id'])
                 ->where('isEditable', 0)
-                ->where('user_id', $user_id)
+                ->where('user_id', $this->userId)
                 ->orderBy('id', 'DESC')
                 ->limit(1)
                 ->update(['isEditable' => 1]);
@@ -761,15 +802,17 @@ class SalesController extends Controller
                     throw new \Exception("Warehouse item not found: {$item['warehouse_item_id']}");
                 }
 
+                $flag = (bool)$validated['tax_activation'];
+
                 // Calculate profit (sell_up - buy_up)
-                $buyUp = $warehouseItem->buy_up ?? 0;
-                $sellUp = $item['sell_up'] ?? 0;
-                $profit = $sellUp - $buyUp;
+                $buyUp  = $item['buy_up'] ?? 0;
+                $sellUp = $flag ? $item['sell_up_vat'] : $item['sell_up'];
+                $profit = $item['amount'] * $item['profit_amount'];
 
                 // Determine tax values
-                $sellTaxPer = $warehouseItem->sell_tax_per ?? 0;
-                $sellTaxPrice = $warehouseItem->sell_tax_price ?? 0;
-                $sellUpNoTax = $warehouseItem->sell_up_no_tax ?? $sellUp;
+                $sellTaxPer = $item['sell_tax_per'] ?? 0;
+                $sellTaxPrice = $item['sell_tax_price'] ?? 0;
+                $sellUpNoTax = $item['sell_up'] ?? 0;
 
                 // Create sales detail with all fields
                 SalesDetails::create([
@@ -786,6 +829,7 @@ class SalesController extends Controller
                     'sell_tax_per' => $sellTaxPer,
                     'sell_tax_price' => $sellTaxPrice,
                     'profit' => $profit,
+                    'expected_profit' => $item['profit_amount'],
                     'total' => $item['total'],
                     'is_returned' => 0,
                     'todays_date' => $date->format('Y-m-d'),
@@ -797,15 +841,22 @@ class SalesController extends Controller
 
             // Update draft order state to completed (3) for this customer
             if (!empty($validated['customer_account_id'])) {
-                DraftOrder::where('customer_id', $validated['customer_account_id'])
+                if($this->isAdmin) {
+                     DraftOrder::where('customer_id', $validated['customer_account_id'])
                     ->where('state', 2)
                     ->update(['state' => 3]);
+                } else {
+                     DraftOrder::where('customer_id', $validated['customer_account_id'])
+                    ->where('state', 2)
+                    ->where('iby', $this->userId)
+                    ->update(['state' => 3]);
+                }
             }
 
             // Handle journal entry
             $this->handleJournalEntry($request);
 
- 
+    
             // ===========================================
             // STORE PAYMENT IN SALES_BILL_PAYMENTS TABLE
             // ===========================================
@@ -822,8 +873,8 @@ class SalesController extends Controller
                     'payment_date' => $date->format('Y-m-d'),
                     'note' => 'پرداخت نقد فروش',
                     'journal_code' => $journal_code,
-                    'user_id' => $user_id,
-                    'user_name' => $user_name,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName,
                     'times' => $times,
                 ]);
             }
@@ -1066,7 +1117,7 @@ class SalesController extends Controller
     }
 
     /**
-     * Decrease warehouse item with proper tracking
+     * Decrease warehouse item with proper tracking and taxes
      */
     private function decreaseWarehouseItemAfterStore($warehouseItem, $soldAmount)
     {

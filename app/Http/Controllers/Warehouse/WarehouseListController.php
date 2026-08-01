@@ -389,7 +389,7 @@ class WarehouseListController extends Controller
             $sourceItem->save();
 
     
-            $warehouseReturn = WarehouseReturn::where('billno', $sourceItem->billno)->first();
+            $warehouseReturn = WarehouseReturn::where('billno', $sourceItem->billno)->where('car_id', $sourceItem->car_id)->first();
 
             if(!$warehouseReturn) 
             {

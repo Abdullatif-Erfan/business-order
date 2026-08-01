@@ -145,11 +145,11 @@
 }
 
 /* Make buy_up column relative for tax label positioning */
-td:has(.buy-up) {
+/* td:has(.buy-up) {
     position: relative;
     vertical-align: top;
     padding-bottom: 30px !important;
-}
+} */
 
 .buy-up {
     margin-bottom: 2px;
@@ -165,6 +165,17 @@ td:has(.buy-up) {
     border-radius: 3px;
     border: 1px dashed #a7adb5;
 }
+
+.availability-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    white-space: nowrap;
+}
+.availability-high { background: #d4edda; color: #155724; }
+.availability-medium { background: #fff3cd; color: #856404; }
+.availability-low { background: #f8d7da; color: #721c24; }
 </style>
 
 <div class="main-panel">
@@ -174,23 +185,17 @@ td:has(.buy-up) {
                 <div class="col-md-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title"> {{__('buy.create_title')}}
+                            <h4 class="card-title"> {{__('sales.pos_list_title')}}
                                 <span class="pull-left">
-                                    <a href="{{ route('boughtList.index') }}">
+                                    <a href="{{  route('sales.index')  }}">
                                         <button class="btn mybtn bg-default">{{__('common.back')}}</button>
                                     </a>
                                 </span>
-
-                                <small class="badge badge-info badge-sm"> <strong class="m-r-10"> {{__('buy.note')}}:</strong>
-                                  {{__('buy.note_text')}}
-                                 </small>
-
                             </h4>
                         </div>
 
-                        <form id="buyingForm" action="{{ route('boughtList.submitWithTax') }}" method="POST">
+                        <form id="salesForm" action="{{  route('sales.store') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="times" value="{{ $times }}">
                             <input type="hidden" name="tax_activation" id="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
                             <input type="hidden" name="tax_per" id="tax_per" value="{{ $tax->tax_per ?? 0 }}">
                             <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
@@ -216,34 +221,42 @@ td:has(.buy-up) {
 
                                         <!-- First Row -->
                                         <div class="col-md-3 col-sm-4 col-xs-6">
-                                            <label for="supplier_account_id">{{__('order.supplier_selection')}} <span class="danger">*</span></label>
-                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="supplier_account_id" id="supplier_account_id" required>
-                                                <option value="">{{__('order.supplier_name')}}</option>
-                                                @foreach($suppliersWithStatus as $supplier)
-                                                    <option value="{{ $supplier->id }}">
-                                                        {{ $supplier->name }}
-                                                        @if($supplier->has_order)
+                                            <label for="customer_account_id">{{__('order.customer_selection')}} <span class="danger">*</span></label>
+                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
+                                                <option value="">{{__('buy.customer')}}</option>
+                                                @foreach($customersWithStatus as $customer)
+                                                    <option value="{{ $customer->id }}" 
+                                                        data-has-order="{{ $customer->has_order ? 1 : 0 }}"
+                                                        data-has-items="{{ $customer->has_available_items ? 1 : 0 }}"
+                                                        data-name="{{ $customer->name }}">
+                                                        {{ $customer->name }}
+                                                        @if($customer->has_order)
                                                             ✅
+                                                        @endif
+                                                        @if(!$customer->has_available_items && $customer->has_order)
+                                                            ({{__('sales.no_stock')}})
                                                         @endif
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            @error('supplier_account_id')
+                                            @error('customer_account_id')
                                                 <span style='color:red'>{{ $message }}</span>
                                             @enderror
                                         </div>
 
-
-                                        <div class="col-md-2 col-sm-4 col-xs-6">
+                                        <div class="col-md-3 col-sm-4 col-xs-6">
                                             <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>
-                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" required>
+                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" id="car_id" required>
                                                 @foreach($cars as $car)
                                                     <option value="{{ $car->id }}">{{ $car->name }}</option>
                                                 @endforeach
                                             </select>
+                                            @error('car_id')
+                                                <span style='color:red'>{{ $message }}</span>
+                                            @enderror
                                         </div>
 
-                                        <div class="col-md-3 col-sm-4 col-xs-6">
+                                        <div class="col-md-2 col-sm-4 col-xs-6">
                                             <label for="date">{{__('order.date')}} <span class="text-danger">*</span></label>
                                             <div class="input-group date" id="datepicker">
                                                 <input type="text" class="form-control" name="todays_date" required
@@ -260,17 +273,11 @@ td:has(.buy-up) {
                                             <label for="billno">{{__('common.bill')}} <span class="danger">*</span></label>
                                             <input type="number" class="form-control" value="{{ $billno }}" name="billno" id="billno"
                                                 placeholder="{{__('common.bill')}}" required readonly>
-                                            <span id="successMsg" style="display:none">
-                                                <div style="color:green">{{__('buy.confirmed')}}</div>
-                                            </span>
-                                            <span id="failurMsg" style="display:none">
-                                                <div style="color:red">{{__('buy.repeated_billno')}}</div>
-                                            </span>
                                         </div>
 
                                         <div class="col-md-2 col-sm-4 col-xs-6">
-                                            <label for="factor">{{__('buy.factor')}}</label>
-                                            <input type="text" class="form-control" name="factor" id="factor" placeholder="{{__('buy.factor')}}">
+                                            <label for="factor">{{__('common.factor')}}</label>
+                                            <input type="text" class="form-control" name="factor" id="factor" placeholder="{{__('common.factor')}}">
                                         </div>
                                         <!-- / First Row -->
 
@@ -285,12 +292,12 @@ td:has(.buy-up) {
                                                                     <th style="width:5%">#</th>
                                                                     <th style="width:20%">{{__('wh.item_selection')}}</th>
                                                                     <th style="width:10%">{{__('common.amount')}}</th>
-                                                                    <th style="width:10%">{{__('common.category')}}</th>
                                                                     <th style="width:8%">{{__('common.unit')}}</th>
-                                                                    <th style="width:15%">{{__('buy.buy_up')}}</th>
+                                                                    <th style="width:12%">{{__('buy.buy_up')}}</th>
                                                                     <th style="width:12%">{{__('buy.profit')}}</th>
-                                                                    <th style="width:12%">{{__('sales.sold_up')}}</th>
-                                                                    <th style="width:17%">{{__('common.total')}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                                                    <th style="width:15%">{{__('sales.sold_up')}}</th>
+                                                                    <th style="width:15%">{{__('common.total')}}</th>
+                                                                    <th style="width:10%">{{__('common.availability')}}</th>
                                                                     <th style="width:5%">{{__('common.delete')}}</th>
                                                                 </tr>
                                                             </thead>
@@ -301,7 +308,7 @@ td:has(.buy-up) {
                                                                 <tr>
                                                                     <td colspan="10">
                                                                         <button type="button" id="addNewItemBtn" class="add-row-btn">
-                                                                            <i class="fa fa-plus-circle"></i> {{__('buy.add_new_item')}}
+                                                                            <i class="fa fa-plus-circle"></i> {{__('sales.add_new_item')}}
                                                                         </button>
                                                                     </td>
                                                                 </tr>
@@ -322,12 +329,14 @@ td:has(.buy-up) {
                                                     <tr>
                                                         <td style="width:10%"><strong>{{__('buy.total_price')}}</strong></td>
                                                         <td style="width:15%">
-                                                            <input type="number" name="total_without_price" id="total_price" value="0" class="form-control" step="0.01" readonly>
-
-                                                            <!-- total_vat -->
-                                                             <input type="number" name="total_price" id="total_vat_summary" value="0" class="form-control" step="0.01" readonly>
-
+                                                            <input type="number" name="total_vat_summary" id="total_price" value="0" class="form-control" step="0.01" readonly>
                                                         </td>
+                                                        <td style="width:10%"  colspan="2"><strong>{{__('buy.total_buy_with_tax')}}</strong></td>
+                                                        <td style="width:15%" colspan="2">
+                                                            <input type="number" name="total_price" id="total_vat_summary" value="0" class="form-control" step="0.01" readonly>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
                                                         <td style="width:10%"><strong>{{__('buy.cur_pay')}}</strong></td>
                                                         <td style="width:15%">
                                                             <input type="number" name="cur_pay" id="cur_pay" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="any" min="0" required>
@@ -336,16 +345,16 @@ td:has(.buy-up) {
                                                         <td style="width:15%">
                                                             <input type="number" name="remained" id="remained" class="form-control" step="0.01" readonly>
                                                         </td>
-                                                    </tr>
-                                                    <tr>
                                                         <td><strong>{{__('journal.payer_account')}}</strong></td>
                                                         <td>
-                                                            <select class="form-control select2" style="width:100%; background-color:#ddd;" name="from_account_id" required>
+                                                            <select class="form-control select2" style="width:100%; background-color:#ddd;" name="account_id" required>
                                                                 @foreach($ownBanks as $acc)
                                                                     <option value="{{ $acc->id }}">{{ $acc->name }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </td>
+                                                    </tr>
+                                                    <tr>
                                                         <td><strong>{{__('common.currency')}}</strong></td>
                                                         <td>
                                                             <select class="form-control select2" style="width:100%; background-color:#ddd;" name="currency_id" required>
@@ -355,7 +364,7 @@ td:has(.buy-up) {
                                                             </select>
                                                         </td>
                                                         <td><strong>{{__('buy.comment')}}</strong></td>
-                                                        <td>
+                                                        <td colspan="3">
                                                             <input type="text" placeholder="{{__('buy.comment')}}" name="note" id="note" class="form-control">
                                                         </td>
                                                     </tr>
@@ -371,7 +380,7 @@ td:has(.buy-up) {
                                                     <input type="submit" id="submit_button" name="submit" value="{{__('common.save')}}" class="form-control btn bg-blue">
                                                 </div>
                                                 <div class="col-3 col-xs-6">
-                                                    <a href="{{ route('boughtList.index') }}">
+                                                    <a href="{{ route('sales.index') }}">
                                                         <button type="button" class="form-control btn bg-danger">{{__('common.cancel')}}</button>
                                                     </a>
                                                 </div>
@@ -391,11 +400,26 @@ td:has(.buy-up) {
 
 <script>
 $(document).ready(function () {
-    // Store orders data and preLists
-    var ordersData = {!! json_encode($orders) !!};
-    var preListsData = {!! json_encode($preLists) !!};
-    var unitsData = {!! json_encode($units) !!};
-    var categoriesData = {!! json_encode($categories) !!};
+
+    // =========================================
+    // DEBUG - Check tax values
+    // =========================================
+    // console.log('=== TAX VALUES ===');
+    // console.log('tax_activation:', $('#tax_activation').val());
+    // console.log('tax_per:', $('#tax_per').val());
+    // console.log('tax_activation type:', typeof $('#tax_activation').val());
+    // console.log('tax_per type:', typeof $('#tax_per').val());
+    // console.log('tax_activation parsed:', parseInt($('#tax_activation').val()));
+    // console.log('tax_per parsed:', parseFloat($('#tax_per').val()));
+    // console.log('showTax:', parseInt($('#tax_activation').val()) === 1);
+
+    // =========================================
+    // DATA STORAGE
+    // =========================================
+    var combinedItemsData = {!! json_encode($combinedItems ?? []) !!};
+    var customersWithStatusData = {!! json_encode($customersWithStatus ?? []) !!};
+    var warehouseItemsData = {!! json_encode($warehouseItems ?? []) !!};
+    var unitsData = {!! json_encode($units ?? []) !!};
     var currentItems = [];
 
     // =========================================
@@ -417,133 +441,90 @@ $(document).ready(function () {
     // =========================================
     function generateRowHtml(item, index) {
         var amount = parseFloat(item.amount) || 1;
-        var buyUp = (item.buy_up !== '' && item.buy_up !== undefined) ? parseFloat(item.buy_up) : '';
-        var profitAmount = (item.profit_amount !== '' && item.profit_amount !== undefined) ? parseFloat(item.profit_amount) : '';
-        var total = (item.total !== '' && item.total !== undefined) ? parseFloat(item.total) : '';
-        var isNew = item.is_new !== undefined && item.is_new === true;
+        var buyUp = (item.buy_up !== '' && item.buy_up !== undefined) ? parseFloat(item.buy_up) : 0;
+        var profitAmount = (item.profit_amount !== '' && item.profit_amount !== undefined) ? parseFloat(item.profit_amount) : 0;
+        var sellUp = (item.sell_up !== '' && item.sell_up !== undefined) ? parseFloat(item.sell_up) : 0;
+        var total = (item.total !== '' && item.total !== undefined) ? parseFloat(item.total) : 0;
+        var availableAmount = item.available_amount || 0;
         var isFromOrder = item.from_order !== undefined && item.from_order === true;
         
-        var buyUpVat = (item.buy_up_vat !== '' && item.buy_up_vat !== undefined) ? parseFloat(item.buy_up_vat) : 0;
-        var sellUp = (item.sell_up !== '' && item.sell_up !== undefined) ? parseFloat(item.sell_up) : '';
-        var sellUpUpVat = (item.sell_up_vat !== '' && item.sell_up_vat !== undefined) ? parseFloat(item.sell_up_vat) : 0;
+        var sellUpVat = (item.sell_up_vat !== '' && item.sell_up_vat !== undefined) ? parseFloat(item.sell_up_vat) : 0;
         var sellTaxPrice = (item.sell_tax_price !== '' && item.sell_tax_price !== undefined) ? parseFloat(item.sell_tax_price) : 0;
         var totalVat = (item.total_vat !== '' && item.total_vat !== undefined) ? parseFloat(item.total_vat) : 0;
-        var buyTaxPrice = (item.buy_tax_price !== '' && item.buy_tax_price !== undefined) ? parseFloat(item.buy_tax_price) : 0; // <-- ADD THIS LINE
 
         var unitId = item.unit_id || '';
-        var categoryId = item.category_id || '';
         var preListId = item.pre_list_id || '';
+        var warehouseItemId = item.warehouse_item_id || '';
+        var itemName = item.item_name || item.pre_list_name || '';
 
         // Get tax activation and percentage from hidden fields
         var taxActivation = parseInt($('#tax_activation').val()) || 0;
         var taxPercent = parseFloat($('#tax_per').val()) || 0;
         var showTax = taxActivation === 1;
 
-
-        // calculate tax
-        // var curTotal = amount * buyUp;
-        // var buyTaxPrice = (curTotal * taxPercent) / 100;  // Total VAT amount 
-        // buyUpVat = buyTaxPrice + buyUp;
-        
-        // Category display - for from_order items, show readonly text
-        var categoryDisplay = isFromOrder ? 
-            `<input type="text" class="form-control category-name-display" value="${item.category_name || ''}" readonly style="background:#f5f5f5;">
-            <input type="hidden" name="items[${index}][category_id]" class="category-id-hidden" value="${categoryId}">` :
-            `<select class="form-control select2 category-select" name="items[${index}][category_id]" style="width: 100%;">
-                <option value="">{{__('buy.select_category')}}</option>
-                ${categoriesData.map(function(category) {
-                    var selected = (categoryId == category.id) ? 'selected' : '';
-                    return `<option value="${category.id}" ${selected}>${category.name}</option>`;
-                }).join('')}
-            </select>`;
-        
-        // Unit display - for from_order items, show readonly text
-        var unitDisplay = isFromOrder ? 
-            `<input type="text" class="form-control unit-name-display" value="${item.unit_name || ''}" readonly style="background:#f5f5f5;">
-            <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="${unitId}">` :
-            `<select class="form-control select2 unit-select" name="items[${index}][unit_id]" style="width: 100%;">
-                <option value="">{{__('order.unit_selection')}}</option>
-                ${unitsData.map(function(unit) {
-                    var selected = (unitId == unit.id) ? 'selected' : '';
-                    return `<option value="${unit.id}" ${selected}>${unit.name}</option>`;
-                }).join('')}
-            </select>`;
-
-        // Tax display (buy_up_vat as label below buy_up)
-        var buyUpVatDisplay = showTax ? `
-            <span class="tax-label">${taxPercent}% | <span class="tax-value" id="buy_up_vat_display_${index}">${buyUpVat ? buyUpVat.toFixed(2) : '0.00'}</span></span>
-            <input type="hidden" name="items[${index}][buy_up_vat]" class="buy-up-vat" value="${buyUpVat || 0}">
-            <input type="hidden" name="items[${index}][buy_tax_price]" class="buy-tax-price" value="${buyTaxPrice || 0}">
-            <input type="hidden" name="items[${index}][buy_tax_per]" class="buy-tax-per" value="${taxPercent}">
-            ` : `
-            <input type="hidden" name="items[${index}][buy_up_vat]" class="buy-up-vat" value="0">
-            <input type="hidden" name="items[${index}][buy_tax_price]" class="buy-tax-price" value="0">
-            <input type="hidden" name="items[${index}][buy_tax_per]" class="buy-tax-per" value="${taxPercent}">
-            `;
-
         // Tax display (sell_up_vat as label below sell_up)
         var sellUpVatDisplay = showTax ? `
-            <span class="tax-label">${taxPercent}% | <span class="tax-value" id="sell_up_vat_display_${index}">${sellUpUpVat ? sellUpUpVat.toFixed(2) : '0.00'}</span></span>
-            <input type="hidden" name="items[${index}][sell_up_vat]" class="sell-up-vat" value="${sellUpUpVat || 0}">
+            <span class="tax-label">${taxPercent}% | <span class="tax-value" id="sell_up_vat_display_${index}">${sellUpVat ? sellUpVat.toFixed(2) : '0.00'}</span></span>
+            <input type="hidden" name="items[${index}][sell_up_vat]" class="sell-up-vat" value="${sellUpVat || 0}">
             <input type="hidden" name="items[${index}][sell_tax_price]" class="sell-tax-price" value="${sellTaxPrice || 0}">
-            ` : `
+            <input type="hidden" name="items[${index}][sell_tax_per]" class="sell-tax-per" value="${taxPercent}">
+        ` : `
             <input type="hidden" name="items[${index}][sell_up_vat]" class="sell-up-vat" value="0">
-            <input type="hidden" name="items[${index}][sell_tax_price]" class="sell-tax-price" value="${sellTaxPrice || 0}">
-            `;
+            <input type="hidden" name="items[${index}][sell_tax_price]" class="sell-tax-price" value="0">
+            <input type="hidden" name="items[${index}][sell_tax_per]" class="sell-tax-per" value="${taxPercent}">
+        `;
 
-         // Total VAT display
+        // Total VAT display
         var totalVatDisplay = showTax ? `
             <span class="tax-label" id="total_vat_display_${index}">${totalVat ? totalVat.toFixed(2) : '0.00'}</span>
             <input type="hidden" name="items[${index}][total_vat]" class="total-vat" value="${totalVat || 0}">
-            ` : `
+        ` : `
             <input type="hidden" name="items[${index}][total_vat]" class="total-vat" value="0">
-            `;
+        `;
+
+        // Availability badge
+        var badgeClass = availableAmount > 10 ? 'availability-high' : (availableAmount > 5 ? 'availability-medium' : 'availability-low');
+        var availabilityBadge = availableAmount > 0 
+            ? `<span class="availability-badge ${badgeClass}"> ${availableAmount}</span>`
+            : `<span class="availability-badge availability-low">{{__('common.out_of_stock')}}</span>`;
 
         return `
             <tr class="item-row" data-index="${index}">
                 <td class="row-number">${index + 1}</td>
                 <td>
-                    <select class="form-control select2 item-select" name="items[${index}][pre_list_id]" style="width: 100%;" required>
-                        <option value="">{{__('wh.item_selection')}}</option>
-                        ${preListsData.map(function(preList) {
-                            var selected = (preListId == preList.id) ? 'selected' : '';
-                            return `<option value="${preList.id}" 
-                                data-category-id="${preList.category_id || ''}"
-                                data-unit-id="${preList.unit_id || ''}"
-                                ${selected}>${preList.name}</option>`;
-                        }).join('')}
-                    </select>
-                    <input type="hidden" name="items[${index}][order_id]" value="${item.order_id || ''}">
+                    <input type="text" class="form-control" value="${itemName}" readonly style="background:#f5f5f5;">
+                    <input type="hidden" name="items[${index}][pre_list_id]" class="pre-list-id-hidden" value="${item.pre_list_id || ''}">
+                    <input type="hidden" name="items[${index}][warehouse_item_id]" class="warehouse-item-id-hidden" value="${warehouseItemId}">
+                    <input type="hidden" name="items[${index}][order_id]" value="${item.dord_num || ''}">
                 </td>
                 <td>
                     <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
-                        value="${amount}" required>
+                        value="${amount}" max="${availableAmount}" required>
+                    <small class="text-muted" style="display:block;font-size:9px;">{{__('sales.max')}}: ${availableAmount}</small>
                 </td>
                 <td>
-                    ${categoryDisplay}
-                </td>
-                <td>
-                    ${unitDisplay}
+                    <input type="text" class="form-control unit-name-display" value="${item.unit_name || ''}" readonly style="background:#f5f5f5;">
+                    <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="${unitId}">
                 </td>
                 <td>
                     <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="any" min="0" 
-                        value="${buyUp !== '' ? buyUp : ''}" required>
-                     ${buyUpVatDisplay}
+                        value="${buyUp}" readonly style="background:#f5f5f5;">
                 </td>
                 <td>
                     <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="any" 
-                        value="${profitAmount !== '' ? profitAmount : ''}" placeholder="0.00">
+                        value="${profitAmount}" placeholder="0.00">
                 </td>
                 <td>
                     <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="any" min="0" 
-                        value="${sellUp !== '' ? sellUp : ''}" readonly>
+                        value="${sellUp}" readonly>
                     ${sellUpVatDisplay}
                 </td>
                 <td>
                     <input name="items[${index}][total]" class="form-control total" type="number" step="any" min="0" 
-                        value="${total !== '' ? total : ''}" readonly>
+                        value="${total}" readonly>
                         ${totalVatDisplay}
                 </td>
+                <td>${availabilityBadge}</td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm remove-item" style="padding: 2px 8px !important;" title="{{__('common.remove')}}">
                         <i class="fa fa-trash"></i>
@@ -563,49 +544,10 @@ $(document).ready(function () {
         $('#itemsBody').append($newRow);
         $newRow.find('.select2').select2();
         
-        // When item-select changes, update category and unit
-        $newRow.find('.item-select').on('change', function() {
-            var selectedOption = $(this).find(':selected');
-            var categoryId = selectedOption.data('category-id') || '';
-            var unitId = selectedOption.data('unit-id') || '';
-            var preListId = selectedOption.val();
-            
-            var row = $(this).closest('tr');
-            
-            // Update category select if it exists (for new items)
-            var categorySelect = row.find('.category-select');
-            if (categorySelect.length && categoryId) {
-                categorySelect.val(categoryId).trigger('change');
-            }
-            
-            // Update category hidden if it exists (for from-order items)
-            var categoryHidden = row.find('.category-id-hidden');
-            if (categoryHidden.length && categoryId) {
-                categoryHidden.val(categoryId);
-            }
-            
-            // Auto-select unit
-            var unitSelect = row.find('.unit-select');
-            if (unitSelect.length && unitId) {
-                unitSelect.val(unitId).trigger('change');
-            }
-            
-            // Update unit hidden
-            var unitHidden = row.find('.unit-id-hidden');
-            if (unitHidden.length && unitId) {
-                unitHidden.val(unitId);
-            }
-            
-            var index = row.data('index');
-            if (currentItems[index]) {
-                currentItems[index].pre_list_id = preListId;
-                currentItems[index].category_id = categoryId;
-                currentItems[index].unit_id = unitId;
-            }
-        });
+        var index = $newRow.data('index');
         
         updateRowNumbers();
-        updateTotalPrice();
+        recalculateRow($newRow);
         
         var scrollWrapper = $('.table-responsive-scroll');
         if (scrollWrapper.length) {
@@ -613,36 +555,6 @@ $(document).ready(function () {
                 scrollWrapper.scrollTop(scrollWrapper[0].scrollHeight);
             }, 50);
         }
-        
-        // Auto-select category and unit for existing data
-        setTimeout(function() {
-            var row = $newRow;
-            var selectedOption = row.find('.item-select').find(':selected');
-            var categoryId = selectedOption.data('category-id') || '';
-            var unitId = selectedOption.data('unit-id') || '';
-            
-            if (categoryId) {
-                var categorySelect = row.find('.category-select');
-                if (categorySelect.length) {
-                    categorySelect.val(categoryId).trigger('change');
-                }
-                var categoryHidden = row.find('.category-id-hidden');
-                if (categoryHidden.length) {
-                    categoryHidden.val(categoryId);
-                }
-            }
-            
-            if (unitId) {
-                var unitSelect = row.find('.unit-select');
-                if (unitSelect.length) {
-                    unitSelect.val(unitId).trigger('change');
-                }
-                var unitHidden = row.find('.unit-id-hidden');
-                if (unitHidden.length) {
-                    unitHidden.val(unitId);
-                }
-            }
-        }, 100);
     }
 
     // =========================================
@@ -684,11 +596,12 @@ $(document).ready(function () {
     // =========================================
     // SHOW EMPTY STATE
     // =========================================
-    function showEmptyState() {
+    function showEmptyState(message) {
+        var msg = message || '{{__("sales.no_items_found")}}';
         $('#itemsBody').html(`
             <tr>
                 <td colspan="10" class="text-center text-muted">
-                    <i class="fa fa-info-circle"></i> {{__('buy.no_items_found')}}
+                    <i class="fa fa-info-circle"></i> ${msg}
                 </td>
             </tr>
         `);
@@ -696,48 +609,70 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // LOAD ITEMS FOR SELECTED SUPPLIER
+    // LOAD ITEMS FOR SELECTED CUSTOMER
     // =========================================
-    function loadItemsForSupplier(supplierId) {
-        if (!supplierId) {
+    function loadItemsForCustomer(customerId, hasItems, hasOrder) {
+        if (!customerId) {
             currentItems = [];
-            showEmptyState();
+            showEmptyState('{{__("sales.select_customer")}}');
             return;
         }
 
-        var supplierOrders = ordersData.filter(function(order) {
-            return order.supplier_id == supplierId;
+        if (!hasItems) {
+            currentItems = [];
+            if (hasOrder) {
+                showEmptyState('{{__("sales.no_available_stock_for_customer")}}');
+            } else {
+                showEmptyState('{{__("sales.no_orders_for_customer_add_new")}}');
+            }
+            return;
+        }
+
+        var customerIdInt = parseInt(customerId);
+        var customerItems = combinedItemsData.filter(function(item) {
+            var itemCustomerId = parseInt(item.customer_id);
+            return itemCustomerId === customerIdInt;
         });
 
-        var allItems = [];
+        if (customerItems.length === 0) {
+            currentItems = [];
+            showEmptyState('{{__("sales.no_available_items")}}');
+            return;
+        }
 
-        supplierOrders.forEach(function(order) {
-            order.items.forEach(function(item) {
-                allItems.push({
-                    order_id: order.id,
-                    ord_num: order.ord_num,
-                    pre_list_id: item.pre_list_id,
-                    pre_list_name: item.pre_list.name || 'Unknown',
-                    unit_id: item.unit_id,
-                    unit_name: item.unit.name || 'Unknown',
-                    amount: parseFloat(item.amount) || 1,
-                    category_id: item.category_id || order.category_id || '',
-                    category_name: order.category_relation ? order.category_relation.name : 'Unknown',
-                    buy_up: '',
-                    profit_amount: '',
-                    sell_up: '',
-                    total: '',
-                    from_order: true,
-                    is_new: false
-                });
+        var allItems = [];
+        customerItems.forEach(function(item) {
+            allItems.push({
+                dord_num: item.dord_num,
+                customer_id: item.customer_id,
+                customer_name: item.customer_name || 'Unknown',
+                pre_list_id: item.pre_list_id,
+                pre_list_name: item.pre_list_name || 'Unknown',
+                unit_id: item.unit_id,
+                unit_name: item.unit_name || 'Unknown',
+                amount: parseFloat(item.amount) || 0,
+                category_id: item.category_id || null,
+                warehouse_item_id: item.warehouse_item_id,
+                buy_up: parseFloat(item.buy_up) || 0,
+                sell_up: parseFloat(item.sell_up) || 0,
+                available_amount: parseFloat(item.available_amount) || 0,
+                item_name: item.item_name || 'Unknown',
+                from_order: true,
+                is_new: false,
+                profit_amount: 0,
+                total: 0,
+                sell_up_vat: 0,
+                sell_tax_price: 0,
+                total_vat: 0
             });
         });
 
         currentItems = allItems;
+
         $('#itemsBody').empty();
         
         if (currentItems.length === 0) {
-            showEmptyState();
+            showEmptyState('{{__("sales.no_available_items")}}');
         } else {
             currentItems.forEach(function(item, index) {
                 appendRow(item, index);
@@ -748,35 +683,9 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // ADD NEW ITEM
-    // =========================================
-    function addNewItem() {
-        var newItem = {
-            pre_list_id: '',
-            pre_list_name: '',
-            unit_id: '',
-            unit_name: '',
-            amount: 0,
-            buy_up: '',
-            profit_amount: '',
-            sell_up: '',
-            total: '',
-            category_id: '',
-            category_name: '',
-            from_order: false,
-            is_new: true
-        };
-
-        currentItems.push(newItem);
-        var index = currentItems.length - 1;
-        appendRow(newItem, index);
-    }
-
-    // =========================================
     // RECALCULATE ROW
     // =========================================
-    function recalculateRow(row) 
-    {
+    function recalculateRow(row) {
         var amount = parseFloat(row.find('.amount').val()) || 0;
         var buyUp = parseFloat(row.find('.buy-up').val()) || 0;
         var profit = parseFloat(row.find('.profit-amount').val()) || 0;
@@ -789,35 +698,22 @@ $(document).ready(function () {
         row.find('.sell-up').val(sellUp.toFixed(2));
 
         // Calculate total without tax
-        var total = amount * buyUp;
+        var total = amount * sellUp;
         row.find('.total').val(total.toFixed(2));
 
         // === TAX CALCULATION ===
-        var buyTaxPrice = 0;
-        var buyUpVat = 0;
-        var sellUpVat= 0;
-        var sellTaxPrice = 0;  
+        var sellTaxPrice = 0;
+        var sellUpVat = 0;
         var totalVat = 0;
-
-        if (taxActivation === 1 && taxPercent > 0 && amount > 0 && buyUp > 0) {
-            var curTotal = amount * buyUp;
-            buyTaxPrice = (curTotal * taxPercent) / 100;  // Total VAT amount
-            buyUpVat = buyTaxPrice + buyUp;  // Unit price + total tax
-            totalVat = buyUpVat * amount;  // Total with VAT
-        }
 
         if (taxActivation === 1 && taxPercent > 0 && amount > 0 && sellUp > 0) {
             var curTotal = amount * sellUp;
             sellTaxPrice = (curTotal * taxPercent) / 100;  // Total VAT amount
             sellUpVat = sellTaxPrice + sellUp;  // Unit price + total tax
+            totalVat = sellUpVat * amount;  // Total with VAT
         }
 
         // Update tax display
-        var buyUpVatDisplay = row.find('#buy_up_vat_display_' + index);
-        if (buyUpVatDisplay.length) {
-            buyUpVatDisplay.text(buyUpVat.toFixed(2));
-        }
-
         var sellUpVatDisplay = row.find('#sell_up_vat_display_' + index);
         if (sellUpVatDisplay.length) {
             sellUpVatDisplay.text(sellUpVat.toFixed(2));
@@ -828,10 +724,8 @@ $(document).ready(function () {
             totalVatDisplay.text(totalVat.toFixed(2));
         }
 
-        // Update hidden fields with proper names (use 'hidden' not 'hidden2')
-        row.find('.buy-up-vat').val(buyUpVat.toFixed(2));
+        // Update hidden fields
         row.find('.sell-up-vat').val(sellUpVat.toFixed(2));
-        row.find('.buy-tax-price').val(buyTaxPrice.toFixed(2));
         row.find('.sell-tax-price').val(sellTaxPrice.toFixed(2));
         row.find('.total-vat').val(totalVat.toFixed(2));
 
@@ -839,26 +733,21 @@ $(document).ready(function () {
         if (currentItems[index]) {
             currentItems[index].amount = amount;
             currentItems[index].buy_up = buyUp;
-            currentItems[index].buy_up_vat = buyUpVat;
-            currentItems[index].buy_tax_price = buyTaxPrice;
             currentItems[index].profit_amount = profit;
             currentItems[index].sell_up = sellUp;
             currentItems[index].sell_tax_price = sellTaxPrice;
             currentItems[index].sell_up_vat = sellUpVat;
             currentItems[index].total = total;
             currentItems[index].total_vat = totalVat;
-            currentItems[index].buy_tax_per = taxPercent;
         }
 
         updateTotalPrice();
     }
-    
 
     // =========================================
     // UPDATE TOTAL PRICE
     // =========================================
-    function updateTotalPrice() 
-    {
+    function updateTotalPrice() {
         var totalPrice = 0;
         var totalVat = 0;
         
@@ -893,7 +782,6 @@ $(document).ready(function () {
 
     // =========================================
     // AMOUNT ARROW KEY BEHAVIOR
-    // Increase by 1 on arrow up, decrease by 1 on arrow down
     // =========================================
     $(document).on('keydown', '.amount', function(e) {
         var key = e.key || e.keyCode;
@@ -901,24 +789,51 @@ $(document).ready(function () {
         if (key === 'ArrowUp' || key === 38) {
             e.preventDefault();
             var currentVal = parseFloat($(this).val()) || 0;
-            $(this).val(currentVal + 1).trigger('input');
+            var maxVal = parseFloat($(this).attr('max')) || Infinity;
+            var newVal = currentVal + 1;
+            if (newVal > maxVal && maxVal !== Infinity) {
+                newVal = maxVal;
+            }
+            $(this).val(newVal).trigger('input');
         } else if (key === 'ArrowDown' || key === 40) {
             e.preventDefault();
             var currentVal = parseFloat($(this).val()) || 0;
+            var minVal = parseFloat($(this).attr('min')) || 0;
             var newVal = currentVal - 1;
-            if (newVal < 0) newVal = 0;
+            if (newVal < minVal) {
+                newVal = minVal;
+            }
             $(this).val(newVal).trigger('input');
         }
+    });
+
+    // =========================================
+    // AMOUNT VALIDATION
+    // =========================================
+    $(document).on('input', '.amount', function() {
+        var maxVal = parseFloat($(this).attr('max')) || 0;
+        var currentVal = parseFloat($(this).val()) || 0;
+        
+        if (currentVal > maxVal && maxVal > 0) {
+            $(this).val(maxVal);
+            showNotification('{{__("sales.cannot_exceed_availability")}}', 'warning');
+        }
+        
+        var row = $(this).closest('tr');
+        recalculateRow(row);
     });
 
     // =========================================
     // EVENT HANDLERS
     // =========================================
 
-    // Supplier select change
-    $('#supplier_account_id').on('change', function() {
-        var supplierId = $(this).val();
-        loadItemsForSupplier(supplierId);
+    // Customer select change
+    $('#customer_account_id').on('change', function() {
+        var customerId = $(this).val();
+        var selectedOption = $(this).find(':selected');
+        var hasItems = parseInt(selectedOption.data('has-items')) === 1;
+        var hasOrder = parseInt(selectedOption.data('has-order')) === 1;
+        loadItemsForCustomer(customerId, hasItems, hasOrder);
     });
 
     // Add new item button
@@ -926,8 +841,249 @@ $(document).ready(function () {
         addNewItem();
     });
 
-    // Recalculate on input change
-    $(document).on('input change', '.amount, .buy-up, .profit-amount', function() {
+    function addNewItem() {
+        var newItem = {
+            pre_list_id: '',
+            pre_list_name: '',
+            unit_id: '',
+            unit_name: '',
+            amount: 1,
+            buy_up: 0,
+            profit_amount: 0,
+            sell_up: 0,
+            total: 0,
+            category_id: '',
+            category_name: '',
+            available_amount: 0,
+            warehouse_item_id: '',
+            item_name: '',
+            from_order: false,
+            is_new: true,
+            sell_up_vat: 0,
+            sell_tax_price: 0,
+            total_vat: 0
+        };
+
+        currentItems.push(newItem);
+        var index = currentItems.length - 1;
+        appendNewRow(index);
+    }
+
+    // =========================================
+    // GENERATE NEW ROW HTML
+    // =========================================
+    function generateNewRowHtml(index) 
+    {
+        if (!warehouseItemsData || warehouseItemsData.length === 0) {
+            return `
+                <tr class="item-row" data-index="${index}">
+                    <td colspan="10" class="text-center text-danger">
+                        {{__('sales.no_warehouse_items_available')}}
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Get tax activation and percentage from hidden fields
+        var taxActivation = parseInt($('#tax_activation').val()) || 0;
+        var taxPercent = parseFloat($('#tax_per').val()) || 0;
+        var showTax = taxActivation === 1;
+
+        var optionsHtml = warehouseItemsData.map(function(item) {
+            return `<option value="${item.warehouse_item_id}" 
+                data-pre-list-id="${item.pre_list_id}"
+                data-unit-id="${item.warehouse_unit_id}"
+                data-unit-name="${item.warehouse_unit_name}"
+                data-available-amount="${item.available_amount}"
+                data-sell-up="${item.sell_up}"
+                data-buy-up="${item.buy_up}"
+                data-item-name="${item.item_name}"
+                data-category-id="${item.category_id || ''}">
+                ${item.item_name} (${item.available_amount} ${item.warehouse_unit_name})
+            </option>`;
+        }).join('');
+
+        // Tax display for new row (initially 0)
+        var sellUpVatDisplay = showTax ? `
+            <span class="tax-label">${taxPercent}% | <span class="tax-value" id="sell_up_vat_display_${index}">0.00</span></span>
+            <input type="hidden" name="items[${index}][sell_up_vat]" class="sell-up-vat" value="0">
+            <input type="hidden" name="items[${index}][sell_tax_price]" class="sell-tax-price" value="0">
+            <input type="hidden" name="items[${index}][sell_tax_per]" class="sell-tax-per" value="${taxPercent}">
+        ` : `
+            <input type="hidden" name="items[${index}][sell_up_vat]" class="sell-up-vat" value="0">
+            <input type="hidden" name="items[${index}][sell_tax_price]" class="sell-tax-price" value="0">
+            <input type="hidden" name="items[${index}][sell_tax_per]" class="sell-tax-per" value="${taxPercent}">
+        `;
+
+        var totalVatDisplay = showTax ? `
+            <span class="tax-label" id="total_vat_display_${index}">0.00</span>
+            <input type="hidden" name="items[${index}][total_vat]" class="total-vat" value="0">
+        ` : `
+            <input type="hidden" name="items[${index}][total_vat]" class="total-vat" value="0">
+        `;
+
+        return `
+            <tr class="item-row" data-index="${index}">
+                <td class="row-number">${index + 1}</td>
+                <td>
+                    <select class="form-control select2 warehouse-item-select" name="items[${index}][warehouse_item_id]" style="width: 100%;" required>
+                        <option value="">{{__('wh.select_available_item')}}</option>
+                        ${optionsHtml}
+                    </select>
+                    <input type="hidden" name="items[${index}][pre_list_id]" class="pre-list-id-hidden" value="">
+                    <input type="hidden" name="items[${index}][order_id]" value="">
+                </td>
+                <td>
+                    <input name="items[${index}][amount]" class="form-control amount" type="number" step="any" min="0.1" 
+                        value="1" required>
+                    <small class="text-muted max-label" style="display:block;font-size:9px;">{{__('sales.max')}}: 0</small>
+                </td>
+                <td>
+                    <input type="text" class="form-control unit-name-display" value="" readonly style="background:#f5f5f5;">
+                    <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="">
+                </td>
+                <td>
+                    <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="any" 
+                        value="0" readonly style="background:#f5f5f5;">
+                </td>
+                <td>
+                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="any" 
+                        value="0" placeholder="0.00">
+                </td>
+                <td>
+                    <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="any" 
+                        value="0" readonly>
+                    ${sellUpVatDisplay}
+                </td>
+                <td>
+                    <input name="items[${index}][total]" class="form-control total" type="number" step="any" 
+                        value="0" readonly>
+                    ${totalVatDisplay}
+                </td>
+                <td>
+                    <span class="availability-badge" style="background:#e9ecef; color:#6c757d;"> ? </span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-item" style="padding: 2px 8px !important;" title="{{__('common.remove')}}">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+
+    // =========================================
+    // APPEND NEW ROW
+    // =========================================
+    function appendNewRow(index) 
+    {
+        var html = generateNewRowHtml(index);
+        var $newRow = $(html);
+        $('#itemsBody').append($newRow);
+        
+        if (!warehouseItemsData || warehouseItemsData.length === 0) {
+            return;
+        }
+        
+        $newRow.find('.warehouse-item-select').select2();
+        
+        $newRow.find('.warehouse-item-select').on('change', function() {
+            var selectedOption = $(this).find(':selected');
+            var warehouseItemId = $(this).val();
+            
+            if (!warehouseItemId) {
+                resetNewRow($(this).closest('tr'));
+                return;
+            }
+            
+            var preListId = selectedOption.data('pre-list-id') || '';
+            var unitId = selectedOption.data('unit-id') || '';
+            var unitName = selectedOption.data('unit-name') || '';
+            var availableAmount = selectedOption.data('available-amount') || 0;
+            var sellUp = selectedOption.data('sell-up') || 0;
+            var buyUp = selectedOption.data('buy-up') || 0;
+            var itemName = selectedOption.data('item-name') || '';
+            var categoryId = selectedOption.data('category-id') || '';
+            
+            var row = $(this).closest('tr');
+            var index = row.data('index');
+            
+            // Set fields
+            row.find('.pre-list-id-hidden').val(preListId);
+            row.find('.unit-id-hidden').val(unitId);
+            row.find('.unit-name-display').val(unitName);
+            row.find('.warehouse-item-id-hidden').val(warehouseItemId);
+            row.find('.buy-up').val(buyUp);
+            row.find('.sell-up').val(sellUp);
+            row.find('.amount').attr('max', availableAmount);
+            
+            var maxLabel = row.find('.max-label');
+            if (maxLabel.length) {
+                maxLabel.text('{{__("sales.max")}}: ' + availableAmount);
+            }
+            
+            var badge = row.find('.availability-badge');
+            if (badge.length) {
+                var badgeClass = availableAmount > 10 ? 'availability-high' : (availableAmount > 5 ? 'availability-medium' : 'availability-low');
+                badge.attr('class', 'availability-badge ' + badgeClass);
+                badge.text(availableAmount);
+            }
+            
+            // Update currentItems
+            if (currentItems[index]) {
+                currentItems[index].pre_list_id = preListId;
+                currentItems[index].unit_id = unitId;
+                currentItems[index].available_amount = availableAmount;
+                currentItems[index].warehouse_item_id = warehouseItemId;
+                currentItems[index].sell_up = sellUp;
+                currentItems[index].buy_up = buyUp;
+                currentItems[index].item_name = itemName;
+                currentItems[index].unit_name = unitName;
+                currentItems[index].category_id = categoryId;
+            }
+            
+            // Trigger recalculation to update tax
+            recalculateRow(row);
+        });
+        
+        updateRowNumbers();
+        updateTotalPrice();
+    }
+
+    // =========================================
+    // RESET NEW ROW
+    // =========================================
+    function resetNewRow(row) {
+        row.find('.pre-list-id-hidden').val('');
+        row.find('.unit-id-hidden').val('');
+        row.find('.unit-name-display').val('');
+        row.find('.buy-up').val(0);
+        row.find('.profit-amount').val(0);
+        row.find('.sell-up').val(0);
+        row.find('.total').val(0);
+        row.find('.amount').val(0).attr('max', 0);
+        row.find('.max-label').text('{{__("sales.max")}}: 0');
+        row.find('.availability-badge').attr('class', 'availability-badge').text('{{__("common.select_item")}}');
+        
+        var index = row.data('index');
+        if (currentItems[index]) {
+            currentItems[index].pre_list_id = '';
+            currentItems[index].unit_id = '';
+            currentItems[index].available_amount = 0;
+            currentItems[index].warehouse_item_id = '';
+            currentItems[index].sell_up = 0;
+            currentItems[index].buy_up = 0;
+            currentItems[index].item_name = '';
+            currentItems[index].unit_name = '';
+        }
+        
+        recalculateRow(row);
+    }
+
+    // =========================================
+    // RECALCULATE ON INPUT CHANGE
+    // =========================================
+    $(document).on('input change', '.amount, .profit-amount', function() {
         var row = $(this).closest('tr');
         recalculateRow(row);
     });
@@ -941,7 +1097,7 @@ $(document).ready(function () {
     // =========================================
     // FORM SUBMISSION
     // =========================================
-    $('#buyingForm').on('submit', function(e) {
+    $('#salesForm').on('submit', function(e) {
         e.preventDefault();
 
         var isValid = true;
@@ -949,34 +1105,42 @@ $(document).ready(function () {
 
         $('.item-row').each(function() {
             var row = $(this);
-            var preListId = row.find('.item-select').val();
+            var preListId = row.find('.pre-list-id-hidden').val();
             var amount = row.find('.amount').val();
             var buyUp = row.find('.buy-up').val();
-            var unitId = row.find('.unit-select').val() || row.find('.unit-id-hidden').val();
-            var categoryId = row.find('.category-select').val() || row.find('.category-id-hidden').val();
+            var sellUp = row.find('.sell-up').val();
+            var unitId = row.find('.unit-id-hidden').val();
+            var warehouseItemId = row.find('.warehouse-item-id-hidden').val();
+            var availableAmount = parseFloat(row.find('.amount').attr('max')) || 0;
+            var enteredAmount = parseFloat(amount) || 0;
+
+            if (!preListId && !warehouseItemId) {
+                return;
+            }
 
             if (!preListId) {
                 isValid = false;
-                row.find('.item-select').css('border-color', 'red');
                 errorMessages.push('{{__("wh.select_item")}}');
-            } else {
-                row.find('.item-select').css('border-color', '');
             }
 
-            if (!amount || parseFloat(amount) <= 0) {
+            if (!amount || enteredAmount <= 0) {
                 isValid = false;
                 row.find('.amount').css('border-color', 'red');
                 errorMessages.push('{{__("wh.enter_valid_amount")}}');
+            } else if (enteredAmount > availableAmount && availableAmount > 0) {
+                isValid = false;
+                row.find('.amount').css('border-color', 'red');
+                errorMessages.push('{{__("sales.insufficient_stock")}}');
             } else {
                 row.find('.amount').css('border-color', '');
             }
 
-            if (!buyUp || parseFloat(buyUp) <= 0) {
+            if (!sellUp || parseFloat(sellUp) <= 0) {
                 isValid = false;
-                row.find('.buy-up').css('border-color', 'red');
-                errorMessages.push('{{__("buy.enter_valid_buy_up")}}');
+                row.find('.sell-up').css('border-color', 'red');
+                errorMessages.push('{{__("sales.enter_valid_sell_up")}}');
             } else {
-                row.find('.buy-up').css('border-color', '');
+                row.find('.sell-up').css('border-color', '');
             }
 
             if (!unitId) {
@@ -984,9 +1148,9 @@ $(document).ready(function () {
                 errorMessages.push('{{__("wh.select_unit")}}');
             }
 
-            if (!categoryId) {
+            if (!warehouseItemId) {
                 isValid = false;
-                errorMessages.push('{{__("wh.select_category")}}');
+                errorMessages.push('{{__("sales.select_valid_warehouse_item")}}');
             }
         });
 
@@ -1012,8 +1176,13 @@ $(document).ready(function () {
                 $submitBtn.prop('disabled', false).val(originalText);
                 if (response.status === 'success') {
                     showNotification(response.message || '{{__("common.added_successfully")}}', 'success');
+                    var billno = response.data.billno || response.billno || $('#billno').val();
                     setTimeout(function() {
-                        window.location.href = '{{ route("boughtList.index") }}';
+                        if (billno) {
+                            window.location.href = '/sales/bill/' + billno;
+                        } else {
+                            window.location.href = '{{ route("sales.index") }}';
+                        }
                     }, 1500);
                 } else {
                     showNotification(response.message || '{{__("common.error_occurred")}}', 'danger');
@@ -1056,6 +1225,11 @@ $(document).ready(function () {
             time: 500
         });
     }
+
+    // =========================================
+    // INITIAL SETUP
+    // =========================================
+    showEmptyState('{{__("sales.select_customer")}}');
 });
 </script>
 @endsection

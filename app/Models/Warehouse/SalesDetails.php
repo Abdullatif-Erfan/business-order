@@ -24,6 +24,7 @@ class SalesDetails extends Model
         'sell_tax_per',
         'sell_tax_price',
         'profit',
+        'expected_profit',
         'total',
         'is_returned',
         'todays_date',

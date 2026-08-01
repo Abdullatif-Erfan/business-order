@@ -558,10 +558,10 @@ class BoughtDetailsController extends Controller
     */
     private function createOrUpdateWarehouseItems($request)
     {
-        $date = Carbon::parse($request->todays_date);
-        $year = $date->year;
+        $date  = Carbon::parse($request->todays_date);
+        $year  = $date->year;
         $month = $date->month;
-        $day = $date->day;
+        $day   = $date->day;
         
         $default_warehouse_id = 1; // You can make this dynamic
         $flag = (bool)$request->tax_activation;
