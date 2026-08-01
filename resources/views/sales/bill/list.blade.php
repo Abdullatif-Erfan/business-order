@@ -2,8 +2,8 @@
 
 @section('content')
 @php
-  $not_col_for_print = $saved_with_tax ? "4":"3"; 
-  $total_cols = $saved_with_tax ? "3":"2"; 
+  $not_col_for_print = $saved_with_tax ? "6":"3"; 
+  $total_cols = $saved_with_tax ? "2":"2"; 
 
    // Customer Balance Calculations
    $customerLoans = $customer_balance['loans'] ?? 0;        // Company owes customer (طلبات)
@@ -59,10 +59,8 @@
                                 </span>
 
                                 <button onclick="print_page_with_image()" class="pull-left btn btn-success btn-sm btn-border m-l-10 hidden-print" >
-                                    <i class="fas fa-print"></i>    {{__('sales.print_bill')}} 
-                                </button>
-                                      
-
+                                   <i class="fas fa-print"></i>    {{__('sales.print_bill')}} 
+                                </button>       
                             </h4>
                         </div>
                         <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
@@ -99,12 +97,13 @@
                                                     <th>  {{__('sales.item')}}      </th>
                                                     <th>  {{__('buy.sold_amount')}} </th>
                                                     <th>  {{__('sales.unit')}}</th>
+                                                    <th>  {{__('common.unit_price')}}</th>
                                                     @if($saved_with_tax) 
                                                     <th>  {{__('buy.sales_tax_percentage')}} </th>
                                                     <th>  {{__('buy.sell_tax_price')}} </th>
+                                                    <th>  {{__('buy.sell_up_vat')}} </th>
                                                     @endif
-                                                    <th>  {{__('common.unit_price')}}</th>
-                                                    <th>  {{__('common.total_price')}}</th>
+                                                    <th style="width:15%">  {{__('common.total_price')}}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -114,11 +113,16 @@
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
                                                     <td> {{ $detail->amount  }} </td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
+                                                    @if($saved_with_tax) 
+                                                    <td>{{ number_format($detail->sell_up_no_tax,2) }}</td>
+                                                    @else 
+                                                    <td>{{ number_format($detail->sell_up,2) }}</td>
+                                                    @endif
                                                      @if($saved_with_tax) 
                                                     <td> % {{ $detail->sell_tax_per }} </td>
                                                     <td> {{  number_format($detail->sell_tax_price,2) }} </td>
+                                                     <td>{{ number_format($detail->sell_up,2) }}</td>
                                                     @endif
-                                                    <td>{{ number_format($detail->sell_up,2) }}</td>
                                                     <td>{{ number_format($detail->total,2) }} </td>
                                                 </tr>
                                                 @endforeach

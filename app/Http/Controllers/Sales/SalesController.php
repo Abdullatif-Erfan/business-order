@@ -708,7 +708,7 @@ class SalesController extends Controller
             'items.*.sell_tax_price' => 'nullable|numeric',
             'items.*.sell_up_vat' => 'nullable|numeric',
             'items.*.total' => 'required|numeric|min:0',
-            'items.*.total_vat' => 'required|numeric',
+            'items.*.total_vat' => 'nullable|numeric',
 
             'items.*.warehouse_item_id' => 'required|exists:warehouse_items,id',
             'items.*.category_id' => 'nullable|exists:categories,id',
@@ -813,6 +813,7 @@ class SalesController extends Controller
                 $sellTaxPer = $item['sell_tax_per'] ?? 0;
                 $sellTaxPrice = $item['sell_tax_price'] ?? 0;
                 $sellUpNoTax = $item['sell_up'] ?? 0;
+                $total = $flag ? $item['total_vat'] : $item['total'];
 
                 // Create sales detail with all fields
                 SalesDetails::create([
@@ -830,7 +831,7 @@ class SalesController extends Controller
                     'sell_tax_price' => $sellTaxPrice,
                     'profit' => $profit,
                     'expected_profit' => $item['profit_amount'],
-                    'total' => $item['total'],
+                    'total' => $total,
                     'is_returned' => 0,
                     'todays_date' => $date->format('Y-m-d'),
                 ]);

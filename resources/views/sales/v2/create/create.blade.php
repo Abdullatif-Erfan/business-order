@@ -125,8 +125,9 @@
 
                         <form id="salesForm" action="{{ route('sales.store') }}" method="POST">
                             @csrf
-                            <input type="hidden"  name="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
-                            <input type="hidden"  name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
+                            <input type="hidden" name="tax_activation" id="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
+                            <input type="hidden" name="tax_per" id="tax_per" value="{{ $tax->tax_per ?? 0 }}">
+                            <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
                             
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -221,6 +222,8 @@
                                                                 <th style="width:20%">{{__('wh.item_selection')}}</th>
                                                                 <th style="width:10%">{{__('common.amount')}}</th>
                                                                 <th style="width:12%">{{__('common.unit')}}</th>
+                                                                <th style="width:12%">{{__('buy.buy_up')}}</th>
+                                                                <th style="width:12%">{{__('buy.profit')}}</th>
                                                                 <th style="width:15%">{{__('sales.sold_up')}}</th>
                                                                 <th style="width:15%">{{__('common.total')}}</th>
                                                                 <th style="width:10%">{{__('common.availability')}}</th>
@@ -232,7 +235,7 @@
                                                         </tbody>
                                                         <tfoot>
                                                             <tr>
-                                                                <td colspan="8">
+                                                                <td colspan="10">
                                                                     <button type="button" id="addNewItemBtn" class="add-row-btn">
                                                                         <i class="fa fa-plus-circle"></i> {{__('sales.add_new_item')}}
                                                                     </button>
@@ -403,8 +406,8 @@ $(document).ready(function () {
             return itemCustomerId === customerIdInt;
         });
 
-        console.log('Filtered items for customer:', customerItems);
-        console.log('Number of items found:', customerItems.length);
+        // console.log('Filtered items for customer:', customerItems);
+        // console.log('Number of items found:', customerItems.length);
 
         if (customerItems.length === 0) {
             currentItems = [];
@@ -428,10 +431,12 @@ $(document).ready(function () {
                 amount: parseFloat(item.amount) || 0,
                 category_id: item.category_id || null,
                 warehouse_item_id: item.warehouse_item_id,
+                buy_up: parseFloat(item.buy_up) || 0,
                 sell_up: parseFloat(item.sell_up) || 0,
                 available_amount: parseFloat(item.available_amount) || 0,
                 item_name: item.item_name || 'Unknown',
                 from_order: true,
+                profit_amount: 0,
                 is_new: false
             });
         });
@@ -457,6 +462,8 @@ $(document).ready(function () {
     // =========================================
     function generateRowHtml(item, index) {
         var amount = parseFloat(item.amount) || 0;
+        var buyUp = (item.buy_up !== '' && item.buy_up !== undefined) ? parseFloat(item.buy_up) : 0;
+        var profitAmount = (item.profit_amount !== '' && item.profit_amount !== undefined) ? parseFloat(item.profit_amount) : 0;
         var sellUp = (item.sell_up !== '' && item.sell_up !== undefined) ? parseFloat(item.sell_up) : '';
         var total = (item.total !== '' && item.total !== undefined) ? parseFloat(item.total) : 0;
         var availableAmount = item.available_amount || 0;
@@ -487,6 +494,14 @@ $(document).ready(function () {
                 <td>
                     <input type="text" class="form-control unit-name-display" value="${item.unit_name || ''}" readonly style="background:#f5f5f5;">
                     <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="${unitId}">
+                </td>
+                <td>
+                    <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="any" min="0" 
+                        value="${buyUp}" readonly style="background:#f5f5f5;">
+                </td>
+                <td>
+                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="any" 
+                        value="${profitAmount}" placeholder="0.00">
                 </td>
                 <td>
                     <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="any"  
@@ -522,9 +537,19 @@ $(document).ready(function () {
     // =========================================
     // RECALCULATE ROW
     // =========================================
-    function recalculateRow(row) {
+    function recalculateRow(row) 
+    {
         var amount = parseFloat(row.find('.amount').val()) || 1;
+        var buyUp = parseFloat(row.find('.buy-up').val()) || 1;
+        var profit = Math.max(0, parseFloat(row.find('.profit-amount').val()) || 0);
         var sellUp = parseFloat(row.find('.sell-up').val()) || 0;
+
+        // prevent negative value
+        row.find('.profit-amount').val(profit);
+
+         // Calculate sell price
+        var sellUp = buyUp + profit;
+        row.find('.sell-up').val(sellUp.toFixed(2));
 
         var total = amount * sellUp;
         row.find('.total').val(total.toFixed(2));
@@ -532,6 +557,8 @@ $(document).ready(function () {
         var index = row.data('index');
         if (currentItems[index]) {
             currentItems[index].amount = amount;
+            currentItems[index].buy_up = buyUp;
+            currentItems[index].profit_amount = profit;
             currentItems[index].sell_up = sellUp;
             currentItems[index].total = total;
         }
@@ -566,13 +593,21 @@ $(document).ready(function () {
     };
 
     // =========================================
+    // RECALCULATE ON INPUT CHANGE
+    // =========================================
+    $(document).on('input change', '.amount, .profit-amount', function() {
+        var row = $(this).closest('tr');
+        recalculateRow(row);
+    });
+
+    // =========================================
     // SHOW EMPTY STATE
     // =========================================
     function showEmptyState(message) {
         var msg = message || '{{__("sales.no_items_found")}}';
         $('#itemsBody').html(`
             <tr>
-                <td colspan="8" class="text-center text-muted">
+                <td colspan="10" class="text-center text-muted">
                     <i class="fa fa-info-circle"></i> ${msg}
                 </td>
             </tr>
@@ -682,6 +717,8 @@ $(document).ready(function () {
             unit_id: '',
             unit_name: '',
             amount: 0,
+            buy_up: 0,
+            profit_amount: 0,
             sell_up: '',
             total: 0,
             available_amount: 0,
@@ -698,23 +735,26 @@ $(document).ready(function () {
     // =========================================
     // GENERATE NEW ROW HTML
     // =========================================
-    function generateNewRowHtml(index) {
-          // Check if warehouseItemsData has items
+    function generateNewRowHtml(index) 
+    {
+        // Check if warehouseItemsData has items
         if (!warehouseItemsData || warehouseItemsData.length === 0) {
             return `
                 <tr class="item-row" data-index="${index}">
-                    <td colspan="8" class="text-center text-danger">
+                    <td colspan="10" class="text-center text-danger">
                         {{__('sales.no_warehouse_items_available')}}
                     </td>
                 </tr>
             `;
         }
+        
         var optionsHtml = warehouseItemsData.map(function(item) {
             return `<option value="${item.warehouse_item_id}" 
                 data-pre-list-id="${item.pre_list_id}"
                 data-unit-id="${item.warehouse_unit_id}"
                 data-unit-name="${item.warehouse_unit_name}"
                 data-available-amount="${item.available_amount}"
+                data-buy-up="${item.buy_up}"
                 data-sell-up="${item.sell_up}"
                 data-item-name="${item.item_name}"
                 data-category-id="${item.category_id || ''}">
@@ -743,15 +783,23 @@ $(document).ready(function () {
                     <input type="hidden" name="items[${index}][unit_id]" class="unit-id-hidden" value="">
                 </td>
                 <td>
+                    <input name="items[${index}][buy_up]" class="form-control buy-up" type="number" step="any" min="0" 
+                        value="0" readonly style="background:#f5f5f5;"> 
+                </td>
+                <td>
+                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="any" 
+                        value="0" placeholder="0.00">  
+                </td>
+                <td>
                     <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="0.01" 
-                        value="" min="0" readonly>
+                        value="0" min="0" readonly>  
                 </td>
                 <td>
                     <input name="items[${index}][total]" class="form-control total" type="number" step="0.01" 
                         value="0" min="0" readonly>
                 </td>
                 <td>
-                    <span class="availability-badge" style="background:#e9ecef; color:#6c757d;">{{__('common.select_item')}}</span>
+                    <span class="availability-badge" style="background:#e9ecef; color:#6c757d;">?</span>
                 </td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm remove-item" style="padding: 2px 8px !important;" title="{{__('common.remove')}}">
@@ -791,6 +839,7 @@ $(document).ready(function () {
             var unitId = selectedOption.data('unit-id') || '';
             var unitName = selectedOption.data('unit-name') || '';
             var availableAmount = selectedOption.data('available-amount') || 0;
+            var buyUp = selectedOption.data('buy-up') || 0;
             var sellUp = selectedOption.data('sell-up') || '';
             var itemName = selectedOption.data('item-name') || '';
             var categoryId = selectedOption.data('category-id') || '';
@@ -811,6 +860,7 @@ $(document).ready(function () {
             
             // Update display fields
             row.find('.amount').attr('max', availableAmount);
+            row.find('.buy-up').val(buyUp);
             row.find('.sell-up').val(sellUp);
             
             var maxLabel = row.find('.max-label');
@@ -822,7 +872,7 @@ $(document).ready(function () {
             if (badge.length) {
                 var badgeClass = availableAmount > 10 ? 'availability-high' : (availableAmount > 5 ? 'availability-medium' : 'availability-low');
                 badge.attr('class', 'availability-badge ' + badgeClass);
-                badge.text(availableAmount + ' {{__("common.available")}}');
+                badge.text(availableAmount);
             }
             
             // Update currentItems
@@ -831,6 +881,7 @@ $(document).ready(function () {
                 currentItems[index].unit_id = unitId;
                 currentItems[index].available_amount = availableAmount;
                 currentItems[index].warehouse_item_id = warehouseItemId;
+                currentItems[index].buy_up = buyUp;
                 currentItems[index].sell_up = sellUp;
                 currentItems[index].item_name = itemName;
                 currentItems[index].unit_name = unitName;
@@ -853,7 +904,9 @@ $(document).ready(function () {
         row.find('.unit-id-hidden').val('');
         row.find('.unit-name-display').val('');
         row.find('.amount').val(0).attr('max', 0);
-        row.find('.sell-up').val('');
+         row.find('.buy-up').val(0); 
+        row.find('.sell-up').val(0);
+         row.find('.profit-amount').val(0); 
         row.find('.total').val(0);
         row.find('.max-label').text('{{__("sales.max")}}: 0');
         row.find('.availability-badge').attr('class', 'availability-badge').text('{{__("common.select_item")}}');
@@ -864,7 +917,9 @@ $(document).ready(function () {
             currentItems[index].unit_id = '';
             currentItems[index].available_amount = 0;
             currentItems[index].warehouse_item_id = '';
-            currentItems[index].sell_up = '';
+            currentItems[index].buy_up = 0;  
+            currentItems[index].profit_amount = 0;  
+            currentItems[index].sell_up = 0;
             currentItems[index].item_name = '';
             currentItems[index].unit_name = '';
         }

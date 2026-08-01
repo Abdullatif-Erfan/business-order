@@ -688,10 +688,13 @@ $(document).ready(function () {
     function recalculateRow(row) {
         var amount = parseFloat(row.find('.amount').val()) || 0;
         var buyUp = parseFloat(row.find('.buy-up').val()) || 0;
-        var profit = parseFloat(row.find('.profit-amount').val()) || 0;
+        var profit = Math.max(0, parseFloat(row.find('.profit-amount').val()) || 0);
         var taxActivation = parseInt($('#tax_activation').val()) || 0;
         var taxPercent = parseFloat($('#tax_per').val()) || 0;
         var index = row.data('index');
+
+        // prevent negative value
+         row.find('.profit-amount').val(profit);
 
         // Calculate sell price
         var sellUp = buyUp + profit;
@@ -1148,10 +1151,10 @@ $(document).ready(function () {
                 errorMessages.push('{{__("wh.select_unit")}}');
             }
 
-            if (!warehouseItemId) {
-                isValid = false;
-                errorMessages.push('{{__("sales.select_valid_warehouse_item")}}');
-            }
+            // if (!warehouseItemId) {
+            //     isValid = false;
+            //     errorMessages.push('{{__("sales.select_valid_warehouse_item")}}');
+            // }
         });
 
         if (!isValid) {
