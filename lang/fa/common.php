@@ -103,6 +103,7 @@ return [
     'category' => 'کتگوری',
     'profit' => 'مفاد',
     "item_list" => "لیست اجناس خریده شده",
+    "sold_item_list" => "لیست اجناس به فروش رسیده ",
     'error_occurred' => 'مشکل رخ داد',
     'total_payment' => 'مبلغ پرداخت شده',
     'journal_code' => 'کد ژورنال',
@@ -126,5 +127,7 @@ return [
     'required' => 'انتخاب این بخش ضروری میباشد',
     'amount_must_be_greater_than_zero' => 'باید بالاتر از صفر باشد',
     'viewItems' => 'نمایش لیست',
+    'buy' => 'خرید',
+    'sell' => 'فروش',
 
 ];

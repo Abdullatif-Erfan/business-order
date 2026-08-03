@@ -93,8 +93,8 @@
                                             <th> {{__('common.number')}} &nbsp; </th>
                                             <th> {{__('common.car')}} </th>
                                             <th> {{__('common.name')}} </th>
-                                            <th> {{__('common.in')}} </th>
-                                            <th> {{__('common.out')}} </th>
+                                            <th> {{__('common.buy')}} </th>
+                                            <th> {{__('common.sell')}} </th>
                                             <th> {{__('common.available')}}  </th>
                                             <th> {{__('common.unit')}} </th>
                                             <th> {{__('buy.buy_up')}} </th>

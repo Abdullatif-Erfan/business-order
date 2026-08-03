@@ -89,12 +89,12 @@ table.dataTable tbody td {
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header" style="padding: 10px;">
-                              <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation ?? 0 }}" >
-                              <!-- Generate Invoice Button -->
-                              <span class="card-title">   {{__('sales.list_title')}}  {{ $warehouse->name ?? ''}} </span>
+                            <input type="hidden" id="tax_activation" value="{{ $orgbios[0]->tax_activation ?? 0 }}" >
+                            <!-- Generate Invoice Button -->
+                            <span class="card-title">   {{__('sales.list_title')}}  {{ $warehouse->name ?? ''}} </span>
                               
-                            <button type="button" class="btn pull-right m-r-10 btn-success btn-sm" id="generateInvoiceBtn" 
-                            style="display:none;">
+                            <button type="button" class="btn pull-right m-r-10 btn-success btn-sm" 
+                                id="generateInvoiceBtn" style="display:none;">
                                 <i class="fas fa-file-invoice"></i> {{__('buy.generate_invoice')}}
                             </button>
 
@@ -215,7 +215,7 @@ table.dataTable tbody td {
       <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"> {{ __('common.item_list') }} </h5>
+                <h5 class="modal-title"> {{ __('common.sold_item_list') }} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

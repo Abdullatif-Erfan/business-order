@@ -101,10 +101,15 @@
                                                     <th>{{__('sales.sales_amount')}}</th>
                                                     <th>{{__('common.unit')}}</th>
                                                     @if($saved_with_tax) 
-                                                    <th>  {{__('buy.sales_tax_percentage')}} </th>
-                                                    <th>  {{__('buy.sell_tax_price')}} </th>
+                                                    <th>{{__('common.unit_price')}}</th>
+                                                    <th>{{__('buy.sales_tax_percentage')}}</th>
+                                                    <th>{{__('buy.sell_tax_price')}}</th>
                                                     @endif
-                                                    <th>  {{__('common.unit_price')}}</th>
+                                                    @if($saved_with_tax) 
+                                                    <th>{{__('buy.sell_up_vat')}}</th>
+                                                    @else 
+                                                    <th>{{__('common.unit_price')}}</th>
+                                                    @endif
                                                     <th>  {{__('common.total_price')}}</th>
                                                     <th class="hidden-print"> {{__('common.edit')}}</th>
                                                     <th class="hidden-print">{{__('common.delete')}}</th>
@@ -120,10 +125,13 @@
                                                     <td>{{ $detail->preListRelation->name ?? ' '}}</td>
                                                     <td>{{ $detail->amount  }} </td>
                                                     <td>{{ $detail->unitRelation->name }}</td>
+                                                            
                                                     @if($saved_with_tax) 
-                                                    <td>% {{ $detail->sell_tax_per }} </td>
-                                                    <td>{{ number_format($detail->sell_tax_price,2) }} </td>
+                                                    <td> {{ $detail->sell_up_no_tax ?? 0 }}</td>
+                                                    <td>% {{ $detail->sell_tax_per ?? 0 }}</td>
+                                                    <td>{{ number_format($detail->sell_tax_price ?? 0, 2) }}</td>
                                                     @endif
+
                                                     <td>{{ number_format($detail->sell_up,2) }}</td>
                                                     <td>{{ number_format($detail->total,2) }} </td>
                                                     <td class="hidden-print"><i class="fas fa-pen-square font-20" onclick="updateThisRecord({{ $detail->id }})" ></i></td>

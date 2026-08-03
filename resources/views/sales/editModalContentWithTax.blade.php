@@ -5,7 +5,7 @@
 @endphp
 
 <div class="row">
-    <div class="col-md-4 col-sm-4 col-xs-6">
+    <div class="col-md-3 col-sm-4 col-xs-6">
         <label for="item_name">{{__('sales.item')}}</label>
 
         <input class="form-control" name="id" type="hidden" 
@@ -22,22 +22,22 @@
 
         <input class="form-control" name="max_available_amount" id="max_available_amount" type="hidden"  
         value="{{ $warehouseAmount->available_amount ?? 0 }}">
-        
+
+        <input class="form-control" name="buy_tax_per"  type="hidden"  
+            value="{{ $warehouseAmount->sell_tax_per ?? 0 }}" id="buy_tax_per_hidden">
+
         <input class="form-control" name="saved_with_tax"  type="hidden"  
             value="{{ $saved_with_tax ? 1 : 0 }}">
-
-        <input class="form-control" name="sell_up_hidden" id="sell_up_hidden" type="hidden"  
-            value="{{ $salesDetails->sell_up ?? 0 }}">
 
         <input class="form-control" name="item_name" id="item_name" type="text" readonly value="{{ $salesDetails->preListRelation->name ?? ''}}">
     </div>
 
-    <div class="col-md-4 col-sm-4 col-xs-6">
+    <div class="col-md-3 col-sm-4 col-xs-6">
         <label for="amount"> {{__('common.sold_amount')}} </label>
-        <input name="old_amount" id="old_amount" type="hidden" step="0.01" value="{{ $salesDetails->amount ?? ''}}">
+        <input name="old_amount" type="hidden" step="0.01" value="{{ $salesDetails->amount ?? ''}}">
         <input class="form-control" name="amount" id="amount" type="number" step="any" min="1" max="{{ $maxLimit }}"
         value="{{ $salesDetails->amount ?? 0}}" required 
-        oninput="updateMaxLimitLabel(this.value, '{{ $maxAmount }}', '{{ $curAmount }}')">
+        oninput="updateMaxLimitLabel(this.value, '{{ $maxAmount }}', '{{ $curAmount }}'); recalculateAll();">
         <span id="max_limit_info">
             <span id="max_limit_label" style="display:none">{{ $maxAmount }}</span>
             <span id="remaining_label" style="margin-left: 15px;">
@@ -51,17 +51,36 @@
         </div>
     </div>
 
-    <div class="col-md-4 col-sm-4 col-xs-6">
+    <div class="col-md-3 col-sm-4 col-xs-6">
         <label for="amount"> {{__('common.unit')}} </label>
         <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id">
             <option value="{{$salesDetails->unit_id}}">{{$salesDetails->unitRelation->name ?? ''}}</option>
         </select>
     </div>
 
-    <div class="col-md-4 col-sm-4 col-xs-6">
-        <label for="sell_up"> {{__('sales.sold_up')}} </label>
+    <!-- VAT = Value Added Tax -->
+    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_tax_per">  {{__('buy.sales_tax_percentage')}} </label>
+        <input class="form-control" name="sell_tax_per" id="sell_tax_per" type="number" placeholder="نمبر: 0 - 100" min=0 , 
+        max=100 value="{{ $salesDetails->sell_tax_per ?? 0 }}" readonly>
+    </div>
+
+    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_tax_price"> {{__('buy.sell_tax_price')}} </label>
+        <input class="form-control" name="sell_tax_price" id="sell_tax_price" value="{{ $salesDetails->sell_tax_price ?? 0 }}"
+        readonly  type="number" step="any">
+    </div>
+
+    <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
+        <label for="sell_up_no_tax"> {{__('buy.sell_up_no_tax')}} </label>
+        <input class="form-control" name="sell_up_no_tax" id="sell_up_no_tax" value="{{ $salesDetails->sell_up_no_tax ?? 0 }}" 
+        readonly   type="number" step="any">
+    </div>
+
+    <div class="col-md-3 col-sm-4 col-xs-6">
+        <label for="sell_up"> {{__('buy.sell_up_vat')}} </label>
         <input class="form-control" name="sell_up" id="sell_up" type="number" step="0.01" 
-        value="{{ $salesDetails->sell_up ?? 0}}" required>
+        value="{{ $salesDetails->sell_up ?? 0}}" readonly required>
     </div>
 
     <div class="col-md-3 col-sm-4 col-xs-6 m-t-10">
@@ -69,40 +88,54 @@
         <input class="form-control" name="total" id="total" value="{{ $salesDetails->total ?? 0 }}" readonly
          type="number" step="any">
     </div>
-
 </div>
 
 <script>
 $(document).ready(function () {
     // =========================================
-    // UPDATE TOTAL ON AMOUNT CHANGE
+    // RECALCULATE ALL ON AMOUNT CHANGE
     // =========================================
     $('#amount').on('input change', function () {
-        updateTotal();
-    });
-
-    // =========================================
-    // UPDATE TOTAL ON SELL_UP CHANGE
-    // =========================================
-    $('#sell_up').on('input change', function () {
-        updateTotal();
+        recalculateAll();
     });
 
     // =========================================
     // INITIAL CALCULATION
     // =========================================
-    updateTotal();
+    recalculateAll();
 });
 
 // =========================================
-// UPDATE TOTAL FUNCTION
+// RECALCULATE ALL TAX FIELDS
 // =========================================
-function updateTotal() {
+function recalculateAll() {
     var amount = parseFloat($('#amount').val()) || 0;
-    var sellUp = parseFloat($('#sell_up').val()) || 0;
+    var taxPercent = parseFloat($('#sell_tax_per').val()) || 0;
     
-    var total = amount * sellUp;
-    $('#total').val(total.toFixed(2));
+    // Get sell_up_no_tax from the field (which should be set from the warehouse item)
+    var sellUpNoTax = parseFloat($('#sell_up_no_tax').val()) || 0;
+    
+    // Calculate total without tax
+    var totalWithoutTax = amount * sellUpNoTax;
+    
+    // Calculate tax
+    var sellTaxPrice = 0;
+    var sellUpVat = 0;
+    var totalWithVat = 0;
+    
+    if (taxPercent > 0 && amount > 0 && sellUpNoTax > 0) {
+        sellTaxPrice = (totalWithoutTax * taxPercent) / 100;
+        sellUpVat = sellUpNoTax + sellTaxPrice;
+        totalWithVat = sellUpVat * amount;
+    }
+    
+    // Update fields
+    $('#sell_tax_price').val(sellTaxPrice.toFixed(2));
+    $('#sell_up').val(sellUpVat.toFixed(2));
+    $('#total').val(totalWithVat.toFixed(2));
+    
+    // Also update sell_up_no_tax display (it doesn't change)
+    $('#sell_up_no_tax').val(sellUpNoTax.toFixed(2));
 }
 
 // =========================================
@@ -116,9 +149,6 @@ function updateMaxLimitLabel(curAmount, maxAmount, oldAmount) {
     
     // Calculate remaining amount
     let remaining = maxAvailable + originalAmount - currentValue;
-    
-    // Update total
-    updateTotal();
     
     // Get elements
     let maxLimitLabel = document.getElementById('max_limit_label');
@@ -190,8 +220,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMaxLimitLabel(amountInput.value, maxAmount, oldAmount);
     }
     
-    // Initial total calculation
-    updateTotal();
+    // Initial tax calculation
+    recalculateAll();
 });
 
 // =========================================

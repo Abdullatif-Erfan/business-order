@@ -116,6 +116,7 @@ return [
     'total_with_tax' => ' مجموع با مالیات',
     'sell_up_vat' => ' فیات با مالیات',
     'sell_up' => ' فیات فروش',
+    'sell_up_no_tax' => 'فیات بدون مالیات',
     
 
     'generate_invoice' => 'ایجاد انوایس',

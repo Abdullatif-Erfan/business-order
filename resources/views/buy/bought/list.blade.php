@@ -83,13 +83,13 @@
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="8">
                                                 <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" 
                                                 style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="8">
                                                 <center> {{__('buy.buy_title')}} </center>
                                             </td>
                                         </tr>
@@ -105,7 +105,7 @@
                                             <th> {{__('buy.loan')}} </th>
                                             <th>  {{__('common.user')}} </th>
                                             <th> {{__('common.date')}} </th>
-                                            <th class="hidden-print"> {{__('common.profit')}} </th>
+                                            <!-- <th class="hidden-print"> {{__('common.profit')}} </th> -->
                                             <th class="hidden-print"> {{__('common.details')}} </th>
                                         </tr>
                                     </thead>
@@ -118,7 +118,7 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td class="hidden-print"></td>
+                                            <!-- <td class="hidden-print"></td> -->
                                             <td class="hidden-print"></td>
                                         </tr>
                                     </tfoot> 
@@ -265,7 +265,7 @@ function fetchList() {
                 { data: 'remained', name: 'remained' },
                 { data: 'user_name', name: 'user_name' },
                 { data: 'idate', name: 'idate' },
-                { data: 'setprofit', name: 'setprofit', orderable: false, searchable: false, class: 'hidden-print' },
+                // { data: 'setprofit', name: 'setprofit', orderable: false, searchable: false, class: 'hidden-print' },
                 { data: 'view', name: 'view', orderable: false, searchable: false, class: 'hidden-print' }
             ],
             drawCallback: function () 

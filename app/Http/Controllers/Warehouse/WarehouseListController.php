@@ -129,6 +129,9 @@ class WarehouseListController extends Controller
             ->addColumn('unit', function ($WarehouseItem) {
                 return optional($WarehouseItem->unitRelation)->name ?? '';
             })
+             ->addColumn('buy_up', function ($WarehouseItem) {
+                return $WarehouseItem->buy_tax_per > 0 ? $WarehouseItem->buy_up_vat : $WarehouseItem->buy_up;
+            })
             ->addColumn('available_total', function ($WarehouseItem) {
                 // Use $tax_activation variable, not $this->$tax_activation
                 return  number_format($WarehouseItem->available_total ?? 0, 2);

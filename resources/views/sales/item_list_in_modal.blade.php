@@ -2,7 +2,7 @@
     $totalProfit = $salesDetails->sum('profit');
     $totalPrice = $salesDetails->sum('total');
     $totalAmount = $salesDetails->sum('amount');
-    $colspan = $saved_with_tax ? 7 : 5;
+    $colspan = $saved_with_tax ? 8 : 5;
 @endphp
 
 <div class="table-responsive">
@@ -14,10 +14,15 @@
                 <th>{{__('buy.sold_amount')}}</th>
                 <th>{{__('sales.unit')}}</th>
                 @if($saved_with_tax) 
+                <th>{{__('common.unit_price')}}</th>
                 <th>{{__('buy.sales_tax_percentage')}}</th>
                 <th>{{__('buy.sell_tax_price')}}</th>
                 @endif
+                 @if($saved_with_tax) 
+                <th>{{__('buy.sell_up_vat')}}</th>
+                 @else 
                 <th>{{__('common.unit_price')}}</th>
+                 @endif
                 <th>{{__('sales.profit')}}</th>
                 <th>{{__('common.total_price')}}</th>
             </tr>
@@ -30,6 +35,7 @@
                 <td>{{ $detail->amount }}</td>
                 <td>{{ $detail->unitRelation->name ?? ' ' }}</td>
                 @if($saved_with_tax) 
+                <td> {{ $detail->sell_up_no_tax ?? 0 }}</td>
                 <td>% {{ $detail->sell_tax_per ?? 0 }}</td>
                 <td>{{ number_format($detail->sell_tax_price ?? 0, 2) }}</td>
                 @endif

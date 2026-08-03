@@ -1434,12 +1434,14 @@ class SalesController extends Controller
      */
     public function getSingleRecordForEdit(string $id)
     {
-        $units = Unit::select('id','name')->get();
+        // $units = Unit::select('id','name')->get();
         $salesDetails = SalesDetails::with(['preListRelation','unitRelation'])->where('id', $id)->first();
 
         if (!$salesDetails) {
             return response()->json(['error' => 'Sales Details not found'], 404);
         }
+
+        $saved_with_tax = $salesDetails->sell_tax_per > 0 ? true : false;
         
         $warehouse_id = $salesDetails->warehouse_id ?? 0;
         $pre_list_id = $salesDetails->pre_list_id ?? 0;
@@ -1447,13 +1449,13 @@ class SalesController extends Controller
 
 
          if($this->isAdmin) {
-                $warehouseAmount = WarehouseItem::select('available_amount')->where('warehouse_id', $warehouse_id)
+                $warehouseAmount = WarehouseItem::select('available_amount','buy_tax_per')->where('warehouse_id', $warehouse_id)
                     ->where('buy_pre_id', $pre_list_id)
                     ->where('unit_id', $unit_id)
                     // ->where('available_amount', '>', 0)
                     ->first();
             } else {
-                $warehouseAmount = WarehouseItem::select('available_amount')->where('warehouse_id', $warehouse_id)
+                $warehouseAmount = WarehouseItem::select('available_amount','buy_tax_per')->where('warehouse_id', $warehouse_id)
                     ->where('buy_pre_id', $pre_list_id)
                     ->where('unit_id', $unit_id)
                     ->where('user_id', $this->userId)
@@ -1463,7 +1465,11 @@ class SalesController extends Controller
         
         //  return response()->json(['boughtItemDetails' => $boughtItemDetails]);
         // return response()->json(['boughtItemDetails' => $boughtItemDetails, 'warehouseItems' => $warehouseItems]);
-        return view('sales.editModalContent', compact('salesDetails', 'units','warehouseAmount'));
+        if($saved_with_tax) {
+            return view('sales.editModalContentWithTax', compact('salesDetails','warehouseAmount','saved_with_tax'));
+        } else {
+            return view('sales.editModalContent', compact('salesDetails','warehouseAmount','saved_with_tax'));
+        }
     }
 
     // update items one by one in edit page of sales
@@ -1471,32 +1477,86 @@ class SalesController extends Controller
     {
         // return response()->json($request->all());
 
-        $validated = $request->validate([
-            'id'                => 'required|exists:sales_details,id',
-            'pre_list_id'       => 'required|exists:bought_item_pre_lists,id',
-            'warehouse_id'      => 'required|exists:warehouses,id',
-            'amount'            => 'required|numeric|min:1',
-            'old_amount'        => 'required|numeric|min:1',
-            'billno'            => 'required|numeric|min:1',
-            'unit_id'           => 'required|exists:units,id',
-            'sell_up'           => 'required|numeric|min:1',
-        ]);
+        $flag=false;
+        if((int)$request->saved_with_tax === 1) {
+         $flag = true;
+
+            $validated = $request->validate([
+                'id'                => 'required|exists:sales_details,id',
+                'pre_list_id'       => 'required|exists:bought_item_pre_lists,id',
+                'warehouse_id'      => 'required|exists:warehouses,id',
+                'amount'            => 'required|numeric|min:1',
+                'old_amount'        => 'required|numeric|min:1',
+                'billno'            => 'required|numeric|min:1',
+                'unit_id'           => 'required|exists:units,id',
+                'sell_up'           => 'required|numeric|min:1',
+                "max_available_amount"  => 'required|numeric|min:1',
+                "sell_tax_per"     =>  'required|numeric|min:0',
+                "saved_with_tax"  => 'required|numeric|min:1',
+                "sell_tax_per"    => 'required|numeric|min:1',
+                "sell_tax_price"  => 'required|numeric|min:1',
+                "sell_up_no_tax"  => 'required|numeric|min:1',
+                "sell_up"         => 'required|numeric|min:1',
+                "total"           => 'required|numeric|min:1',
+            ]);
+
+        }
+        else 
+        {
+            $flag = false;
+             $validated = $request->validate([
+                'id'                => 'required|exists:sales_details,id',
+                'pre_list_id'       => 'required|exists:bought_item_pre_lists,id',
+                'warehouse_id'      => 'required|exists:warehouses,id',
+                'amount'            => 'required|numeric|min:1',
+                'old_amount'        => 'required|numeric|min:1',
+                'billno'            => 'required|numeric|min:1',
+                'unit_id'           => 'required|exists:units,id',
+                'sell_up'           => 'required|numeric|min:1',
+                "max_available_amount"  => 'required|numeric|min:1',
+                "total"           => 'required|numeric|min:1',
+            ]);
+        }
 
         DB::beginTransaction();
         try 
         {
-            $salesDetails = SalesDetails::findOrFail($validated['id']);
+            $salesDetails = SalesDetails::where('id', $validated['id'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            $new_total = $validated['amount'] * $validated['sell_up'];
+             if(!$salesDetails) {
+                throw new \Exception('جنس یافت نشد');
+            }
+
+            $new_total = (float)$validated['total'];
             $profit = $new_total - ($validated['amount'] * $salesDetails->buy_up);
 
-            $salesDetails->update([
-                'amount'   => $validated['amount'],
-                'sell_up'  => $validated['sell_up'],
-                'profit'   => $profit,
-                'unit_id'  => $validated['unit_id'],
-                'total'    => $new_total,
-            ]);
+            if($flag)
+            {
+                $salesDetails->update([
+                    'amount'   => $validated['amount'],
+                    'sell_up'  => $validated['sell_up'],
+                    'sell_up_no_tax'  => $validated['sell_up_no_tax'],
+                    'sell_tax_per'    => $validated['sell_tax_per'],
+                    'sell_tax_price'  => $validated['sell_tax_price'],
+                    'profit'   => $profit,
+                    // 'unit_id'  => $validated['unit_id'],
+                    'total'    => $new_total,
+                ]);
+            } 
+            else 
+            {
+                $salesDetails->update([
+                    'amount'   => $validated['amount'],
+                    'sell_up'  => $validated['sell_up'],
+                    'profit'   => $profit,
+                    // 'unit_id'  => $validated['unit_id'],
+                    'total'    => $new_total,
+                ]);
+            }
+
+            $salesDetails->refresh();
 
             // Find Warehouse Item
             if($this->isAdmin) 
@@ -1530,11 +1590,13 @@ class SalesController extends Controller
                 if (!$warehouseItem) {
                     throw new \Exception('این جنس در گدام یافت نشد');
                 }
+                
 
                 // Update warehouse quantities based on difference
                 // اگر مقدار کمتر شود باید به همان مقدار از 
                 // out_amount کم شود و available_amount نیز کم شود
                 // مثلا قبلا ۴ دانه فروخته بودیم و حالا ۲ ساختیم
+
                 if ($oldAmount > $newAmount) 
                 {
                     // Amount decreased - return items to warehouse
@@ -1582,6 +1644,7 @@ class SalesController extends Controller
             //  Ensure available_amount is never negative (safety check)
             if ($warehouseItem->available_amount < 0) {
                 $warehouseItem->available_amount = 0;
+                $warehouseItem->available_total = 0;
             }
                 
 
