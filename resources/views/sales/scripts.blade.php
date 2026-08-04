@@ -1,19 +1,4 @@
 <script>
-    $(document).on('show.bs.dropdown', '.dropdown', function() {
-    var $menu = $(this).find('.dropdown-menu');
-    var $button = $(this).find('.dropdown-toggle');
-    var buttonBottom = $button.offset().top + $button.outerHeight();
-    var windowHeight = $(window).height();
-    var menuHeight = $menu.outerHeight();
-
-    // If not enough space below, open upward
-    if (buttonBottom + menuHeight > windowHeight) {
-        $(this).addClass('dropup');
-    } else {
-        $(this).removeClass('dropup');
-    }
-});
-
 $(document).ready(function () {
        // Initialize datepicker
     $('.datepicker-input').datepicker({
@@ -31,6 +16,21 @@ $(document).on('click', '.datepicker-icon', function(e) {
     var $input = $(this).closest('.input-group').find('input');
     if ($input.length) {
         $input.datepicker('show');
+    }
+});
+
+    $(document).on('show.bs.dropdown', '.dropdown', function() {
+    var $menu = $(this).find('.dropdown-menu');
+    var $button = $(this).find('.dropdown-toggle');
+    var buttonBottom = $button.offset().top + $button.outerHeight();
+    var windowHeight = $(window).height();
+    var menuHeight = $menu.outerHeight();
+
+    // If not enough space below, open upward
+    if (buttonBottom + menuHeight > windowHeight) {
+        $(this).addClass('dropup');
+    } else {
+        $(this).removeClass('dropup');
     }
 });
 </script>

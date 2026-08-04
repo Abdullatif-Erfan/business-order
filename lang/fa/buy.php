@@ -1,11 +1,13 @@
 <?php
 return [
     'buy_title' => 'لیست خرید',
+    'bought_bill' => 'بل خرید',
     'list_title' => 'ثبت و راجستریشن اجناس',
     'save_and_resume' => 'ثبت و ماندن',
     'print_barcode' => 'چاپ بارکد',
     'prev_barcode_scan' => 'سکن بارکد خود جنس',
     'barcode' => 'بارکد',
+     'billno' => 'بل نمبر خرید',
     'image' => 'عکس',
     'category' => 'کتگوری',
     'select_category' => 'انتخاب کتگوری',
@@ -191,6 +193,8 @@ return [
     'car' => 'انتخاب موتر',
     'transfer_to_car' => 'انتقال به موتر',
     'payment_price' => 'مبلغ پرداخت',
+    'payment_for_bill' => ' پرداخت نقد خرید ',
+    'recieved_of_bill' => ' دریافت نقد خرید ',
     'enter' => '',
     'enter' => '',
     'enter' => '',

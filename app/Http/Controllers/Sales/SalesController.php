@@ -248,7 +248,8 @@ class SalesController extends Controller
             $customer_account_type_id = Account::where('id', $request->customer_account_id)->value('account_type_id');
 
             // Generate journal code
-            $journalCode = Journal::max('code') + 1;
+            $journal_code =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journalCode = $journal_code + 1;
             $date = Carbon::parse($validated['payment_date']);
             $year = $date->year;
             $month = $date->month;

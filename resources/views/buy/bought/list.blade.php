@@ -17,11 +17,6 @@
                                     <i class="fas fa-plus"></i> {{__('common.add')}}
                                 </button>
                             </a>
-                             <!-- Generate Invoice Button -->
-                            <button type="button" class="btn pull-right m-r-10 btn-success btn-sm" id="generateInvoiceBtn" 
-                            style="display:none;">
-                                <i class="fas fa-file-invoice"></i> {{__('buy.generate_invoice')}}
-                            </button>
                             <span class="card-title">  {{__('buy.buy_title')}} </span>
 
                              <!-- Responsive Filter Toggle Button - Visible only on XS -->
@@ -83,30 +78,26 @@
                                 <table id="boughtItemTable" class="display responsive nowrap table table-bordered my_table datatable" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="8">
+                                            <td colspan="9">
                                                 <img src="{{ asset($orgbios[0]->header) }}" alt="navbar brand" class="navbar-brand" 
                                                 style="width: 100% !important;">
                                             </td>
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="8">
+                                            <td colspan="9">
                                                 <center> {{__('buy.buy_title')}} </center>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th style="width:5%">
-                                                <input type="checkbox" id="selectAll">
-                                            </th>
-                                            <th> {{__('common.number')}} &nbsp; </th>
-                                            <th> {{__('common.bill')}} </th>
-                                            <th> {{__('order.supplier_name')}} </th>                                            
-                                            <th> {{__('common.total_price')}} </th>
-                                            <th> {{__('buy.cache_paid')}} </th>
-                                            <th> {{__('buy.loan')}} </th>
-                                            <th>  {{__('common.user')}} </th>
-                                            <th> {{__('common.date')}} </th>
-                                            <!-- <th class="hidden-print"> {{__('common.profit')}} </th> -->
-                                            <th class="hidden-print"> {{__('common.details')}} </th>
+                                            <th>{{__('common.number')}} &nbsp;</th>
+                                            <th>{{__('common.bill')}}</th>
+                                            <th>{{__('order.supplier_name')}}</th>                                            
+                                            <th>{{__('common.total_price')}}</th>
+                                            <th>{{__('buy.cache_paid')}}</th>
+                                            <th>{{__('buy.loan')}}</th>
+                                            <th>{{__('common.user')}}</th>
+                                            <th>{{__('common.date')}}</th>
+                                            <th class="hidden-print">{{__('common.details')}}</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -117,8 +108,6 @@
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td></td>
-                                            <!-- <td class="hidden-print"></td> -->
                                             <td class="hidden-print"></td>
                                         </tr>
                                     </tfoot> 
@@ -131,8 +120,6 @@
         </div>
     </div>
 </div>
-
-
 
 <!-- Update Profit and Sell_up Modal -->
 <div class="modal fade" id="EditRecordsModal" tabindex="-1" role="dialog">
@@ -158,8 +145,69 @@
     </div>
 </div>
 
+<!-- Show List of items in modal -->
+<div class="modal fade" id="itemListModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{ __('common.sold_item_list') }} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="itemListModalContent"></div>
+                <div id="itemListModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Show Bill Payment -->
+<div class="modal fade" id="billPaymentModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{ __('sales.bill_payment') }} </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="billPaymentModalContent"></div>
+                <div id="billPaymentModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success btn-sm m-l-5" id="paymentBill" data-dismiss="modal">{{ __('common.save_and_submit') }}</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
+$(document).on('show.bs.dropdown', '.dropdown', function() {
+    var $menu = $(this).find('.dropdown-menu');
+    var $button = $(this).find('.dropdown-toggle');
+    var buttonBottom = $button.offset().top + $button.outerHeight();
+    var windowHeight = $(window).height();
+    var menuHeight = $menu.outerHeight();
+
+    // If not enough space below, open upward
+    if (buttonBottom + menuHeight > windowHeight) {
+        $(this).addClass('dropup');
+    } else {
+        $(this).removeClass('dropup');
+    }
+});
+
 $(document).on('click', '.datepicker-icon', function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -169,14 +217,14 @@ $(document).on('click', '.datepicker-icon', function(e) {
     }
 });
 
-    // =========================================
-    // ENTER KEY SEARCH
-    // =========================================
-    $('.filter-section input').on('keypress', function(e) {
-        if (e.which === 13) {
-            $('#btn-filter').click();
-        }
-    });
+// =========================================
+// ENTER KEY SEARCH
+// =========================================
+$('.filter-section input').on('keypress', function(e) {
+    if (e.which === 13) {
+        $('#btn-filter').click();
+    }
+});
 
 $(document).ready(function() {
     fetchList();
@@ -197,27 +245,7 @@ $(document).ready(function() {
         $('#bill_number').val('');
         $('#boughtItemTable').DataTable().ajax.reload(null, false);
     });
-
-    // Select All checkbox
-    $('#selectAll').on('click', function() {
-        $('.row-checkbox').prop('checked', this.checked);
-        toggleGenerateButton();
-    });
-
-    // Individual checkbox
-    $(document).on('change', '.row-checkbox', function() {
-        toggleGenerateButton();
-    });
 });
-
-function toggleGenerateButton() {
-    var checked = $('.row-checkbox:checked').length;
-    if (checked > 0) {
-        $('#generateInvoiceBtn').show();
-    } else {
-        $('#generateInvoiceBtn').hide();
-    }
-}
 
 function fetchList() {
     let boughtItemTable = $('#boughtItemTable');
@@ -243,20 +271,6 @@ function fetchList() {
                 }
             },
             columns: [
-                { 
-                    data: 'id', 
-                    name: 'checkbox',
-                    orderable: false, 
-                    searchable: false,
-                    render: function(data, type, row) {
-                        // Check if invoice already generated
-                        var hasInvoice = parseInt(row.has_invoice) || 0;
-                        if (hasInvoice === 1) {
-                            return '<span class="badge badge-success" title="{{ __("buy.invoice_generated") }}"><i class="fas fa-check"></i></span>';
-                        }
-                        return '<input type="checkbox" class="row-checkbox" value="' + data + '">';
-                    }
-                },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
                 { data: 'billno', name: 'billno' },
                 { data: 'customer_relation.name', name: 'customer_relation.name' },
@@ -265,8 +279,7 @@ function fetchList() {
                 { data: 'remained', name: 'remained' },
                 { data: 'user_name', name: 'user_name' },
                 { data: 'idate', name: 'idate' },
-                // { data: 'setprofit', name: 'setprofit', orderable: false, searchable: false, class: 'hidden-print' },
-                { data: 'view', name: 'view', orderable: false, searchable: false, class: 'hidden-print' }
+                { data: 'action', name: 'action', orderable: false, searchable: false, class: 'hidden-print' }
             ],
             drawCallback: function () 
             {
@@ -295,12 +308,9 @@ function fetchList() {
                         .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
     
+                $(api.column(3).footer()).html(sumColumn(3));
                 $(api.column(4).footer()).html(sumColumn(4));
                 $(api.column(5).footer()).html(sumColumn(5));
-                $(api.column(6).footer()).html(sumColumn(6));
-                
-                // Toggle generate button after draw
-                toggleGenerateButton();
             }
         });
 
@@ -309,76 +319,85 @@ function fetchList() {
     }
 }
 
-// Generate Invoice
-$('#generateInvoiceBtn').on('click', function() {
-    var selectedIds = [];
-    $('.row-checkbox:checked').each(function() {
-        selectedIds.push($(this).val());
-    });
-    
-    if (selectedIds.length === 0) {
-        showNotification('{{ __("buy.select_at_least_one") }}', 'warning');
-        return;
-    }
-    
-    if (confirm('{{ __("buy.confirm_generate_invoice") }}')) {
-        $.ajax({
-            url: '{{ route("boughtList.generateInvoice") }}',
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                bought_item_ids: selectedIds
-            },
-            success: function(response) {
-                if (response.status === 'success') {
-                    showNotification(response.message, 'success');
-                    window.location.href = '{{ url("boughtList/invoice") }}/' + response.invoice_id;
-                } else {
-                    showNotification(response.message, 'danger');
-                }
-            },
-            error: function(xhr) {
-                showNotification('{{ __("common.error_occurred") }}', 'danger');
-            }
-        });
-    }
-});
-
-
 // Set Profit
-   $('table').on('click', '.setProfit', function () {
-       
-        var billno = $(this).data('id');
-        var isEditable = $(this).data('id2');
-        var hasInvoice = $(this).data('id3');
+$('table').on('click', '.setProfit', function () {
+    var billno = $(this).data('id');
+    var isEditable = $(this).data('id2');
+    var hasInvoice = $(this).data('id3');
 
-          // Check if invoice exists 
-        if (isEditable == 1 || hasInvoice == 1) {
-            showNotification('درصورتیکه انوایس ایجاد شده باشد ویا فروش شده باشد دیگر قابل ویرایش نمی باشد', 'danger');
-            $('#EditAccountBtn').fadeOut(100);
-            return; // Exit the function
-        } else {
-            $('#EditAccountBtn').fadeIn(100);
+    // Check if invoice exists 
+    if (isEditable == 1 || hasInvoice == 1) {
+        showNotification('درصورتیکه انوایس ایجاد شده باشد ویا فروش شده باشد دیگر قابل ویرایش نمی باشد', 'danger');
+        $('#EditAccountBtn').fadeOut(100);
+        return; // Exit the function
+    } else {
+        $('#EditAccountBtn').fadeIn(100);
+    }
+    $('#EditRecordsModal').modal('show');
+    $('#loading_modal').show();
+    $.ajax({
+        url: `/boughtList/getToUpdateProfit/${billno}`,
+        type: 'GET',
+        success: (result) => {
+            $('#EditAccountFormWrapper').html(result);
+            $('#loading_modal').hide();
+
+            // Initialize Select2 after the form has been injected
+            $(".select2").select2();
+        },
+        error: () => {
+            $('#loading_modal').hide();
+            alert('اطلاعات یافت نشد');
         }
-        $('#EditRecordsModal').modal('show');
-        $('#loading_modal').show();
-        $.ajax({
-            url: `/boughtList/getToUpdateProfit/${billno}`,
-            type: 'GET',
-            success: (result) => {
-                $('#EditAccountFormWrapper').html(result);
-                $('#loading_modal').hide();
-
-                // Initialize Select2 after the form has been injected
-                $(".select2").select2();
-            },
-            error: () => {
-                $('#loading_modal').hide();
-                alert('اطلاعات یافت نشد');
-            }
-        });
+    });
 });
 
+// Show Items in modal
+$('table').on('click', '.itemList', function () {
+    $('#itemListModal').modal('show');
+    $('#itemListModalLoader').show();
+    const billno = $(this).data('id');
+    $.ajax({
+        url: `/boughtList/getListOfItemsToShowInModal/${billno}`,
+        type: 'GET',
+        success: (result) => {
+            $('#itemListModalContent').html(result);
+            $('#itemListModalLoader').hide();
+        },
+        error: () => {
+            $('#itemListModalLoader').hide();
+            alert('اطلاعات یافت نشد');
+        }
+    });
+});
+
+// Sales Bill
+$('table').on('click', '.billPayment', function () {
+    var billno = $(this).data('id');
+    var remained = $(this).data('id2');
+    
+    if (remained <= 0) {
+        showNotification('پرداخت تکمیل گردیده است', 'success');
+        return; // Exit the function
+    }
+    
+    $('#billPaymentModal').modal('show');
+    $('#billPaymentModalLoader').show();
+    $('#billPaymentModalContent').html('');
+    
+    $.ajax({
+        url: `/boughtList/billPayment/${billno}`,
+        type: 'GET',
+        success: function(result) {
+            $('#billPaymentModalContent').html(result);
+            $('#billPaymentModalLoader').hide();
+        },
+        error: function() {
+            $('#billPaymentModalLoader').hide();
+            alert('اطلاعات یافت نشد');
+        }
+    });
+});
 
 function showNotification(message, type = 'info', from = 'top', align = 'center', style = 'withicon') {
     var content = {

@@ -514,8 +514,8 @@ class AccountController extends Controller
             // Log::info('Deleting journal by created_at:', ['created_at' => $account->created_at->toDateTimeString()]);
 
             // Check if the account has related records
-            $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
-            $boughtItemDetailsExists = BoughtItemDetails::where('customer_account_id', $id)->exists();
+            $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('supplier_account_id', $id)->exists();
+            $boughtItemDetailsExists = BoughtItemDetails::where('supplier_account_id', $id)->exists();
             $warehouseSalesExists = WarehouseSales::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
 
             // If any record exists, prevent deletion

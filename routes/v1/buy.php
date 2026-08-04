@@ -43,17 +43,23 @@ Route::prefix('boughtList')->group(function(){
     Route::get('/getSingleRecordForEdit/{id}',[BoughtDetailsController::class,'getSingleRecordForEdit'])->name('boughtList.getSingleRecordForEdit');
     Route::post('/updateItemAndWarehouseItems',[BoughtDetailsController::class, 'updateItemAndWarehouseItems'])->name('boughtList.updateItemAndWarehouseItems');
     Route::get('/getWarehouseListForDelete/{id}',[BoughtDetailsController::class,'getWarehouseListForDelete'])->name('boughtList.getWarehouseListForDelete');
-    Route::get('/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
     Route::get('/destroy/{times}',[BoughtDetailsController::class,'destroy'])->name('boughtList.destroy')->middleware('access:buy,delete_records');
     Route::get('/deleteSingleItem/{id}',[BoughtDetailsController::class,'deleteSingleItem'])
            ->name('boughtList.deleteSingleItem')->middleware('access:buy,delete_records');
-    Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
     
     // Profit routes - Add these
     Route::get('/getToUpdateProfit/{billno}',[BoughtDetailsController::class,'getToUpdateProfit'])->name('boughtList.getToUpdateProfit')->middleware('access:buy,edit_records');
     Route::post('/updateProfit', [BoughtDetailsController::class, 'updateProfit'])->name('updateProfit');
     
 
+    // Action Buttons
+    Route::get('/getListOfItemsToShowInModal/{billno}',[BoughtDetailsController::class,'getListOfItemsToShowInModal'])->name('boughtList.getListOfItemsToShowInModal')->middleware('access:buy,list');
+    Route::get('/bill/{billno}',[BoughtDetailsController::class,'bill'])->name('boughtList.bill')->middleware('access:buy,list');
+    Route::get('/billPayment/{billno}',[BoughtDetailsController::class,'billPayment'])->name('boughtList.billPayment')->middleware('access:buy,create_records');
+    Route::post('/storePayment', [BoughtDetailsController::class, 'storePayment'])->name('boughtList.storePayment');
+    Route::get('/details/{times}',[BoughtDetailsController::class,'details'])->name('boughtList.details');
+    Route::get('/edit/{times}',[BoughtDetailsController::class,'edit'])->name('boughtList.edit')->middleware('access:buy,edit_records');
+    
 
     // Invoice routes
     Route::get('/invoices', [BoughtDetailsController::class, 'invoiceList'])->name('boughtList.invoices')->middleware('access:buy,list');;

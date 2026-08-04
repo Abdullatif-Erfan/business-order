@@ -13,6 +13,7 @@ use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
 use App\Models\Buy\BuyInvoice;
 use App\Models\Buy\BuyInvoiceItem;
+use App\Models\Buy\BoughtBillPayment;
 use App\Models\Buy\BuyInvoicePayment;
 use App\Models\Buy\BoughtItem;
 use App\Models\Order\Order;
@@ -124,24 +125,42 @@ class BoughtDetailsController extends Controller
             })
 
         
-            ->addColumn('view', function ($boughtItem) {
-                return '<a href="boughtList/details/' . $boughtItem->times . '" class="hidden-print">
-                            <i class="fas fa-eye viewItems" 
-                            data-id="' . $boughtItem->details_id . '" 
-                            style="font-size:20px;">
-                            </i>
-                        </a>';
+            // ->addColumn('view', function ($boughtItem) {
+            //     return '<a href="boughtList/details/' . $boughtItem->times . '" class="hidden-print">
+            //                 <i class="fas fa-eye viewItems" 
+            //                 data-id="' . $boughtItem->details_id . '" 
+            //                 style="font-size:20px;">
+            //                 </i>
+            //             </a>';
+            // })
+
+            // ->addColumn('setprofit', function ($boughtItem) {
+            //     return '<i class="fas fa-money-bill setProfit" 
+            //                 data-id="' . $boughtItem->billno . '" data-id2="'.$boughtItem->isEditable.'" 
+            //                 data-id3="'.$boughtItem->has_invoice.'"
+            //                 style="font-size:20px; color: #0d8dc1">
+            //                 </i>';
+            // })
+
+             ->addColumn('action', function ($boughtItem) {
+                return '
+                <div class="dropdown dropend">
+                    <button class="btn btn-primary btn-sm dropdown-toggle"
+                        type="button"  data-toggle="dropdown">
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" target="_blank" href="' . route('boughtList.bill', $boughtItem->billno) . '">' . __('buy.bought_bill') . '</a>
+                        <a class="dropdown-item billPayment" href="#" data-id="'.$boughtItem->billno.'"  data-id2="'.$boughtItem->remained.'" >' . __('sales.bill_payment') . '</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item itemList" href="#" data-id="'.$boughtItem->billno.'">' . __('sales.item_lists') . '</a>
+                        <a class="dropdown-item" target="_blank" href="' . route('boughtList.edit', $boughtItem->times) . '">' . __('common.edit') . '</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" target="_blank" href="' . route('boughtList.details', $boughtItem->times) . '">' . __('common.details') . '</a>
+                    </div>
+                </div>';
             })
 
-            ->addColumn('setprofit', function ($boughtItem) {
-                return '<i class="fas fa-money-bill setProfit" 
-                            data-id="' . $boughtItem->billno . '" data-id2="'.$boughtItem->isEditable.'" 
-                            data-id3="'.$boughtItem->has_invoice.'"
-                            style="font-size:20px; color: #0d8dc1">
-                            </i>';
-            })
-
-            ->rawColumns(['billno', 'view','setprofit'])
+            ->rawColumns(['billno', 'action'])
             ->make(true);
     }
 
@@ -2209,5 +2228,251 @@ class BoughtDetailsController extends Controller
                 'message' => __('common.error_occurred') . ': ' . $e->getMessage()
             ], 500);
         }
+    }
+
+
+
+    // =================================== BILL =====================================
+
+    public function bill(string $billno)
+    {
+        $orgbios = OrgBio::all();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
+            ->where('billno', $billno)
+            ->get();
+
+        $boughtItems = BoughtItem::with([
+            'account' => function($query) {
+                $query->select('id', 'name');
+            }, 
+            'currencyRelation' => function ($query) {
+                $query->select('id', 'name', 'symbols');
+            },
+            'account' => function ($query) {
+                $query->select('id', 'name');
+            }
+        ])->where('billno', $billno)->get();
+
+        $saved_with_tax = $boughtItemDetails->contains(function($item) {
+            return $item->buy_tax_per > 0;
+        }) ? true : false;
+
+        $customer_account_id = $boughtItems->first()->customer_account_id ?? 0;
+        $currency_id = $boughtItems->first()->currency_id ?? 1;
+        $times = $boughtItems->first()->times ?? 1;
+
+        // Get Bill Payments
+        $boughtBillPayments = BoughtBillPayment::where('billno', $billno)->get();
+
+        return view('buy.bill.list', compact(
+            'boughtItems',
+            'boughtItemDetails',
+            'orgbios',
+            'todaysDate',
+            'saved_with_tax',
+            'boughtBillPayments'
+        ));
+    }
+
+    public function billPayment(string $billno)
+    {
+        $boughtItems = DB::table('bought_items')
+            ->join('accounts', 'accounts.id', '=', 'bought_items.supplier_account_id')
+            ->join('currencies', 'currencies.id', '=', 'bought_items.currency_id')
+            ->select(
+                'bought_items.id',
+                'billno',
+                'factor',
+                'journal_code',
+                'accounts.id as supplier_account_id',
+                'accounts.name as customer_name',
+                'total',
+                'cur_pay',
+                'remained',
+                'currencies.id as currency_id',
+                'currencies.name as currency_name',
+                'idate',
+                'user_name',
+                'bought_items.invoice_id',
+                'bought_items.has_invoice'
+            )
+            ->where('bought_items.billno', $billno)
+            ->first();
+
+        if (!$boughtItems) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sale not found'
+            ], 404);
+        }
+
+        // Get own banks (company accounts)
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+
+        return view('buy.bill.payment', compact('boughtItems', 'ownBanks'));
+    }
+
+
+    // store bill payments
+    public function storePayment(Request $request)
+    {
+        // return response()->json($request->all());
+
+        $validated = $request->validate([
+            'billno' => 'required|exists:bought_items,billno',
+            'bought_item_id' => 'required|exists:bought_items,id',
+            'payment_amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'account_id' => 'required|exists:accounts,id',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:500',
+            'current_remained' => 'required|numeric|min:0',
+            'supplier_account_id' => 'required|exists:accounts,id',
+        ]);
+
+        // Check if payment amount exceeds remained
+        if ($validated['payment_amount'] > $validated['current_remained']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('sales.payment_cannot_exceed_remained')
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Find the sale
+            $bought = BoughtItem::find($validated['bought_item_id']);
+            
+            if (!$bought) {
+                throw new \Exception('Item not found');
+            }
+
+            // Calculate new values
+            $newCurPay = $bought->cur_pay + $validated['payment_amount'];
+            $newRemained = $bought->remained - $validated['payment_amount'];
+
+            $company_account_type_id = Account::where('id', $request->account_id)->value('account_type_id');
+            $supplier_account_type_id = Account::where('id', $request->supplier_account_id)->value('account_type_id');
+
+            // Generate journal code
+            $journal_code =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journalCode = $journal_code + 1;
+
+            $date = Carbon::parse($validated['payment_date']);
+            $year = $date->year;
+            $month = $date->month;
+            $day = $date->day;
+            $times = time();
+
+             /**
+             * خزانه نقد پرداخت میکند
+             * مشتری نقد دریافت میکند
+             */
+            
+            // خزانه نقد پرداخت میکند
+            // Create journal entry for payment
+            $journal = new Journal();
+            $journal->code = $journalCode;
+            $journal->bill_no = $validated['billno'];
+            $journal->account_type_id = $company_account_type_id;
+            $journal->account_id = $validated['account_id'];
+            $journal->amount = $validated['payment_amount'];
+            $journal->currency_id = $validated['currency_id'];
+            $journal->details =  __('buy.payment_for_bill').' BUY_'.$validated['billno'];  
+            $journal->transaction_type = 2; // Paid
+            $journal->payment_type = 1; // Cash
+            $journal->option_label = __('validate.salary_payment');
+            $journal->status = 7; // Buy
+            $journal->idate = $validated['payment_date'];
+            $journal->year = $year;
+            $journal->month = $month;
+            $journal->day = $day;
+            $journal->user_id =  $this->userId;
+            $journal->user_name = $this->userName ?? 'System';
+            $journal->times = $times;
+            $journal->is_cleared = 0;
+            $journal->save();
+
+            // Create customer journal entry
+            // دریافت نقد مشتری
+            $customerJournal = new Journal();
+            $customerJournal->code = $journalCode;
+            $customerJournal->bill_no = $validated['billno'];
+            $customerJournal->account_type_id = $supplier_account_type_id;
+            $customerJournal->account_id = $validated['supplier_account_id'];
+            $customerJournal->amount = $validated['payment_amount'];
+            $customerJournal->currency_id = $validated['currency_id'];
+            $customerJournal->details = __('buy.recieved_of_bill').' BUY_'.$validated['billno'];
+            $customerJournal->transaction_type = 1; // Recieved
+            $customerJournal->payment_type = 1; // Cash
+            $customerJournal->status = 7; // Buy
+            $customerJournal->idate = $validated['payment_date'];
+            $customerJournal->year = $year;
+            $customerJournal->month = $month;
+            $customerJournal->day = $day;
+            $customerJournal->user_id =  $this->userId;
+            $customerJournal->user_name = $this->userName ?? 'System';
+            $customerJournal->times = $times;
+            $customerJournal->is_cleared = 0;
+            $customerJournal->save();
+
+            // =========================================
+            // STORE PAYMENT IN BOUGHT_BILL_PAYMENTS TABLE
+            // =========================================
+            $payment = BoughtBillPayment::create([
+                'bought_item_id' => $bought->id,
+                'billno' => $validated['billno'],
+                'supplier_account_id' => $validated['supplier_account_id'],
+                'account_id' => $validated['account_id'],
+                'currency_id' => $validated['currency_id'],
+                'cur_pay' => $validated['payment_amount'],
+                'remained' => $newRemained,
+                'payment_date' => $validated['payment_date'],
+                'note' => $validated['note'] ?? null,
+                'journal_code' => $journalCode,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName ?? 'System',
+                'times' => $times,
+            ]);
+
+            // Update sale
+            $bought->cur_pay = $newCurPay;
+            $bought->remained = $newRemained;
+            $bought->save();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'bought_id' => $bought->id,
+                    // 'payment_id' => $salePayment->id,
+                    // 'new_remained' => $newRemained,
+                    // 'new_cur_pay' => $newCurPay,
+                    // 'journal_code' => $journalCode,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Payment Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getListOfItemsToShowInModal(string $billno)
+    {
+        $boughtDetails = BoughtItemDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
+        $saved_with_tax = $boughtDetails->contains(function($item) {
+            return $item->buy_tax_per > 0;
+        }) ? true : false;
+        return view('buy.bought.item_list_in_modal',compact('boughtDetails','saved_with_tax'));
     }
 }
