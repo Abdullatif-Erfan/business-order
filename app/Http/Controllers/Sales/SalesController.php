@@ -316,8 +316,8 @@ class SalesController extends Controller
                 'customer_account_id' => $validated['customer_account_id'],
                 'account_id' => $validated['account_id'],
                 'currency_id' => $validated['currency_id'],
-                'amount' => $validated['payment_amount'],
-                'remaining_after_payment' => $newRemained,
+                'cur_pay' => $validated['payment_amount'],
+                'remained' => $newRemained,
                 'payment_date' => $validated['payment_date'],
                 'note' => $validated['note'] ?? null,
                 'journal_code' => $journalCode,
@@ -869,8 +869,8 @@ class SalesController extends Controller
                     'customer_account_id' =>  $validated['customer_account_id'],
                     'account_id' => $validated['account_id'],
                     'currency_id' => $validated['currency_id'],
-                    'amount' => $validated['cur_pay'],
-                    'remaining_after_payment' =>  $validated['remained'],
+                    'cur_pay' => $validated['cur_pay'],
+                    'remained' =>  $validated['remained'],
                     'payment_date' => $date->format('Y-m-d'),
                     'note' => 'پرداخت نقد فروش',
                     'journal_code' => $journal_code,
@@ -1784,8 +1784,8 @@ class SalesController extends Controller
             $salePayment = SalesBillPayment::where('billno', $validated['billno'])
                 ->where('times', $warehouseSales->times)
                 ->update([
-                    'amount' => $validated['cur_pay'],
-                    'remaining_after_payment' => $validated['remained'],
+                    'cur_pay' => $validated['cur_pay'],
+                    'remained' => $validated['remained'],
                 ]);
 
     
@@ -1990,8 +1990,9 @@ class SalesController extends Controller
 
     /**
      * Generate invoice from selected bought items
+     * ایجاد انوایس که تمام آیتم هارا نیز ذخیره میکند
      */
-    public function generateInvoice(Request $request)
+    public function generateInvoiceV1(Request $request)
     {
         try 
         {
@@ -2106,6 +2107,118 @@ class SalesController extends Controller
         }
     }
 
+      /**
+     * Generate invoice from selected bought items
+     * ایجاد انوایس که تمام بل هارا نیز ذخیره میکند
+     */
+    public function generateInvoice(Request $request)
+    {
+        try 
+        {
+            // id of warehouse_sales table
+            $warehouseSalesIds = $request->sold_item_ids;
+
+            // return ['warehouseSalesIds' => $warehouseSalesIds];
+            
+            if (empty($warehouseSalesIds)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.select_at_least_one')
+                ]);
+            }
+
+            // Get selected sold items
+            $warehouseSales = WarehouseSales::whereIn('id', $warehouseSalesIds)->get();
+
+            // Extract bill numbers as an array
+            $billNumbers = $warehouseSales->pluck('billno')->toArray();
+            
+            if ($warehouseSales->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.no_items_found')
+                ]);
+            }
+
+            // Check if all items belong to same customer
+            $customerId = $warehouseSales->first()->customer_account_id;
+            $differentCustomer = $warehouseSales->where('customer_account_id', '!=', $customerId)->count() > 0;
+            
+            if ($differentCustomer) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('buy.different_customers')
+                ]);
+            }
+
+            DB::beginTransaction();
+
+            // Generate invoice number
+            $invoiceNumber = 'SINV-' . date('Ymd') . '-' . (SalesInvoice::count() + 1);
+
+            // Calculate totals
+            $totalAmount = $warehouseSales->sum('total');
+            $paidAmount = $warehouseSales->sum('cur_pay');
+            $remainingAmount = $warehouseSales->sum('remained');
+            $times = time();
+            $invoice_date = now()->format('Y-m-d');
+
+            // Create invoice
+            $invoice = SalesInvoice::create([
+                'invoice_number' => $invoiceNumber,
+                'sales_bill_numbers' => json_encode($billNumbers), // Store as JSON
+                'customer_id' => $customerId,
+                'total' => $totalAmount,
+                'paid_amount' => $paidAmount,
+                'remaining' => $remainingAmount,
+                'currency_id' => $warehouseSales->first()->currency_id,
+                'status' =>   1, // 0: draft, 1: in progress, 2: partial, 3: paid
+                'tax_activation' => $warehouseSales->first()->tax_activation ?? 0,  
+                'invoice_date' => $invoice_date,
+                'due_date' => now()->addDays(30),
+                'notes' => __('buy.invoice_generated_from_bought_items'),
+                'created_by' => auth()->id(),
+                'times' => $times,
+            ]);
+
+            // Create invoice based on bill
+            foreach ($billNumbers as $billno) 
+            {
+                // Get details for this Sales item from sales details
+                $details = WarehouseSales::where('billno', $billno)->first();
+                SalesInvoiceItem::create([
+                    'invoice_id'    => $invoice->id,
+                    'billno'        => $billno,
+                    'total'         => $details->total,
+                    'cur_pay'       => $details->cur_pay,
+                    'remained'      => $details->remained,
+                    'times'         => $times,
+                    'invoice_date'  => $invoice_date,
+                    'user_name'     => $this->userName,
+                ]);
+            }
+
+            // Update warehouse_sales to mark as invoiced (you need to add a column)
+            WarehouseSales::whereIn('id', $warehouseSalesIds)->update(['has_invoice' => 1,'invoice_id' => $invoice->id]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('buy.invoice_generated_successfully'),
+                'invoice_id' => $invoice->id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Generate Invoice Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Show invoice details
      */
@@ -2113,13 +2226,15 @@ class SalesController extends Controller
     {
         $orgbios = OrgBio::all();
         $times = time();
-        $invoice = SalesInvoice::with(['customer', 'items.unit', 'items.preList', 'payments', 'currency'])
+        $invoice = SalesInvoice::with(['customer:id,name'])
             ->findOrFail($id);
+        $invoiceItems = SalesInvoiceItem::select('id','billno','total','cur_pay','remained','invoice_date','user_name','created_at')
+            ->where('invoice_id', $id)->get();
         $customers = Account::select('id','name')->whereIn('account_type_id',[3])->get();
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
         $newJournalCode =  Journal::max('code') + 1;
         $currencies = Currency::select('id','name')->get();
-        // return ['data' => $invoice];
+        // return ['invoice' => $invoice];
 
         return view('sales.invoice.invoice_details', compact('invoice','orgbios','customers','ownBanks','newJournalCode','times','currencies'));
     }
@@ -2148,6 +2263,20 @@ class SalesController extends Controller
             // Log::info($request->all());
 
             DB::beginTransaction();
+
+            // check journal code, if exists, create new journal code
+            $journalCode = $validated['code'];
+            $checkJournalCode = Journal::where('code', $validated['code'])->lockForUpdate()->first();
+            $times = $validated['times'];
+            if($checkJournalCode) 
+            {
+                $times = time();
+                $journalCode = Journal::lockForUpdate()->max('code') + 1;
+                $request->merge([
+                    'code' => $journalCode,
+                    'times' => $times,
+                ]);
+            } 
 
             $invoice = SalesInvoice::findOrFail($validated['invoice_id']);
             $taxActivation = (int) ($request->tax_activation ?? 0);
@@ -2182,6 +2311,7 @@ class SalesController extends Controller
                 'customer_account_id' => $validated['customer_account_id'],
                 'reference_number' => $validated['reference_number'],
                 'notes' => $validated['notes'],
+                'journal_code' => $journalCode,
                 'created_by' => auth()->id(),
                 'times' => time()
             ]);

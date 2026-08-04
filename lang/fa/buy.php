@@ -142,6 +142,7 @@ return [
     'invoice_date' => 'تاریخ انوایس',
     'due_date' => 'تاریخ سررسید',
     'paid_amount' => 'مبلغ پرداخت شده',
+    'paid_amount_bill_invoice' => 'مبلغ پرداخت شده بل و انوایس',
     'remaining_amount' => 'مبلغ باقی‌مانده',
     'payment_method' => 'روش پرداخت',
     'payment_date' => 'تاریخ پرداخت',

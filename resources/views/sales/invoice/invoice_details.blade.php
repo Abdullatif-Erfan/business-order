@@ -1,6 +1,9 @@
 @extends('layouts.app')
 @php 
   $billNumbers = json_decode($invoice->sales_bill_numbers, true);
+  $total = 0;
+  $total_cur_pay = 0;
+  $total_remained = 0;
 @endphp
 
 @section('content')
@@ -192,43 +195,42 @@
                                             <tr>
                                                 <th>#</th>
                                                 <th>{{ __('sales.billno') }}</th>
-                                                <th>{{ __('buy.item') }}</th>
-                                                <th>{{ __('common.amount') }}</th>
-                                                <th>{{ __('common.unit') }}</th>
-                                                <th>{{ __('common.unit_price') }}</th>
-                                                @if($orgbios[0]->tax_activation === 1)
-                                                <th>% {{ __('buy.tax') }} </th>
-                                                <th>{{ __('buy.tax_price') }}</th>
-                                                <th>{{ __('buy.buy_up_vat') }}</th>
-                                                <th>{{__('buy.total_with_tax')}}</th>
-                                                @else
+                                                <th>{{ __('buy.invoice_date') }}</th>
                                                 <th>{{ __('common.total_price') }}</th>
-                                                @endif
+                                                <th>{{ __('buy.paid_amount') }} {{ __('common.bill') }}</th>
+                                                <th>{{ __('buy.remaining_amount') }}</th>
+                                                <th>{{ __('common.user') }}</th>
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($invoice->items as $key => $item)
+                                            @php 
+                                                $total += $item->total;
+                                                $total_cur_pay += $item->cur_pay;
+                                                $total_remained += $item->remained;
+
+                                            @endphp
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ 'SALES_'.$item->billno ?? '' }}</td>
-                                                <td>{{ $item->preList->name ?? '' }}</td>
-                                                <td>{{ $item->amount }}</td>
-                                                <td>{{ $item->unit->name ?? '' }}</td>
-                                                @if($orgbios[0]->tax_activation === 1)
-                                                <td>{{ $item->unit_price  }}</td>
-                                                <td>% {{ $item->tax_percentage ?? 0 }}  </td>
-                                                <td>{{ number_format($item->tax_amount ?? 0, 2) }}</td>
-                                                <td>{{ $item->sell_up_vat ?? 0 }}  </td>
-                                                <td>{{ number_format($item->total_vat, 2) }}</td>
-                                                 @else
-                                                 <td>{{ $item->tax_percentage > 0 ? number_format($item->sell_up_vat, 2):
-                                                    $item->unit_price  }}</td>
-                                                <td>{{ $item->tax_percentage > 0 ? number_format($item->total_vat, 2):
-                                                    number_format($item->total, 2)  }}</td>
-                                                @endif
+                                                <td>{{ $item->invoice_date ?? '' }}</td>
+                                                <td>{{ $item->total }}</td>
+                                                <td>{{ $item->cur_pay ?? '' }}</td>
+                                                <td>{{ $item->remained ?? '' }}</td>
+                                                <td>{{ $item->user_name ?? '' }}</td>
                                             </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr style="background-color:#f9f9f9">
+                                                <td colspan="3">{{__('common.total')}}</td>
+                                                <td>{{number_format($total,2)}}</td>
+                                                <td style="text-align:right; color:#00b894;">{{number_format($total_cur_pay,2)}}</td>
+                                                <td style="text-align:right; color:#e17055;">{{number_format($total_remained,2)}}</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
 
@@ -249,8 +251,9 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td><strong>{{ __('buy.paid_amount') }}</strong></td>
-                                                        <td style="text-align:right; color:#00b894;">{{ number_format($invoice->paid_amount, 2) }}</td>
+                                                        <td><strong>{{ __('buy.paid_amount_bill_invoice') }}</strong></td>
+                                                        <td style="text-align:right; color:#00b894;">
+                                                            {{ number_format($invoice->paid_amount, 2) }}</td>
                                                     </tr>
                                                     <tr style="font-size:18px; font-weight:700;">
                                                         <td><strong>{{ __('buy.remaining_amount') }}</strong></td>
@@ -276,6 +279,7 @@
                                                     <th>{{ __('buy.payment_method') }}</th>
                                                     <th>{{ __('buy.reference_number') }}</th>
                                                     <th>{{ __('buy.notes') }}</th>
+                                                    <th  class="hidden-print">{{ __('common.journal_code') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -295,6 +299,7 @@
                                                     </td>
                                                     <td>{{ $payment->reference_number ?? '-' }}</td>
                                                     <td>{{ $payment->notes ?? '-' }}</td>
+                                                    <td class="hidden-print">{{ $payment->journal_code ?? '-' }}</td>
                                                 </tr>
                                                 @empty
                                                 <tr>

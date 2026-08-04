@@ -205,12 +205,12 @@
                                             <tbody>
                                                @foreach($salesBillPayments as $key => $pay)
                                                @php 
-                                                 $paymentsTotal += $pay->amount;
+                                                 $paymentsTotal += $pay->cur_pay;
                                                @endphp
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ 'SALES_'.$pay->billno ?? ' '}}</td>
-                                                    <td>{{ number_format($pay->amount,2)  }}</td>
+                                                    <td>{{ number_format($pay->cur_pay,2)  }}</td>
                                                     <td>{{ $pay->payment_date }}</td>
                                                     <td class="hidden-print">{{ $pay->journal_code }}</td>
                                                     <td>{{ $pay->note }} </td>

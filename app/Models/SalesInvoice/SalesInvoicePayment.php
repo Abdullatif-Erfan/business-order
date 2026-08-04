@@ -17,6 +17,7 @@ class SalesInvoicePayment extends Model
         'account_id',
         'customer_account_id',
         'reference_number',
+        'journal_code',
         'notes',
         'created_by',
         'times'
