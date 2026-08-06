@@ -10,7 +10,7 @@
                         <div class="card-header" style="padding: 11px 20px !important;">
                             
                             <strong>  {{__('reports.belance_sheet_title')}}  </strong>
-
+                            
                              <!-- Responsive Filter Toggle Button - Visible only on XS -->
                             <div class="pull-left" style="width:90px">
                                 <button type="button" class="responsive_button btn btn-sm  visible-xs"
@@ -28,7 +28,7 @@
                                 
                                     <div class="col-md-2 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_type_id" style="width:100%">
-                                            <!-- <option value=""> حساب اصلی </option> -->
+                                            <option value=""> انتخاب کتگوری </option>
                                             @foreach($accountTypes as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
                                             @endforeach
@@ -89,13 +89,13 @@
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="10">
                                               <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
                                             
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="9">
+                                            <td colspan="10">
                                                 <center>
                                                  {{__('reports.belance_sheet_title')}}  
                                                 </center>
@@ -104,11 +104,12 @@
                                         <tr>
                                             <th> {{__('common.number')}} </th>
                                             <th> {{__('reports.account')}} </th>
-                                            <th> {{__('reports.cache_in')}}</th>
-                                            <th>{{__('reports.cache_out')}} </th>
+                                            <th> دریافت نقد</th>
+                                            <th> پرداخت نقد </th>
                                             <th> {{__('reports.loan')}}</th>
                                             <th> {{__('reports.talab')}}</th>
                                             <th> {{__('reports.balance')}} </th>
+                                            <th> مصارف </th>
                                             <th>{{__('common.unit')}}</th>
                                             <th>{{__('reports.specify')}}</th>
                                         </tr>
@@ -116,6 +117,7 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="2">{{__('common.total')}}</td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -178,6 +180,7 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 { data: 'cache_paid', name: 'cache_paid' },
                 { data: 'loan_recieved', name: 'loan_recieved' },
                 { data: 'loan_paid', name: 'loan_paid' },
+                { data: 'currency', name: 'currency' },
                 { data: 'balance', name: 'balance' },
                 { data: 'currency', name: 'currency' },
                 { data: 'result_label', name: 'result_label' },

@@ -66,7 +66,7 @@ class JournalController extends Controller
      */
     public function getData(Request $request)
     {
-        
+        $isCompanyAccount = false;
         $journals = Journal::with(['accountRelation', 'currencyRelation'])
         ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'idate', 'status', 'times', 'is_single_record')
         ->orderBy('id', 'DESC');
@@ -78,6 +78,12 @@ class JournalController extends Controller
         // Apply filters if provided
         if ($request->account_id) {
             $journals->where('account_id', $request->account_id);
+
+            $companyAccount = Account::where('id', $request->account_id)
+            ->select('account_type_id', 'is_pre_select')
+            ->first();
+
+            $isCompanyAccount = $companyAccount && in_array($companyAccount->account_type_id, [1, 6]);
         }
         if ($request->currency_id) {
             $journals->where('currency_id', $request->currency_id);
@@ -139,7 +145,8 @@ class JournalController extends Controller
             })
             ->rawColumns(['actions','currency'])
             ->with([
-                'isCompanyAccount' => $isCompanyAccount ?? 0 
+                'isCompanyAccount' => $isCompanyAccount ?? false, 
+                'accountId' => $request->account_id ?? 0
             ])
 
             ->setRowClass(function ($journal) {

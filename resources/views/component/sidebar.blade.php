@@ -194,12 +194,12 @@
                                     </a>
                                 </li> -->
                                 
-                                <li class="{{ request()->routeIs('boughtList.invoices') ? 'active' : '' }}">
+                                <!-- <li class="{{ request()->routeIs('boughtList.invoices') ? 'active' : '' }}">
                                     <a href="{{ route('boughtList.invoices') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">{{ __('menu.invoices') }}</span>
                                     </a>
-                                </li>
+                                </li> -->
                             </ul>
                         </div>
                     </li>

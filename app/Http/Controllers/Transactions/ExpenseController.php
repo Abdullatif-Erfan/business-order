@@ -17,15 +17,19 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseController extends Controller
 {
-    protected $isAdmin, $userId;
+    protected $isAdmin, $userId, $carIds;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
             $this->userId = session('userId', auth()->user()->id);
-        } else {
+            $this->carIds = session('carIds', []);
+        } 
+        else 
+        {
             $this->isAdmin = false;
             $this->userId = 0;
+            $this->carIds = [];
         }
     }
 
@@ -86,7 +90,7 @@ class ExpenseController extends Controller
         } elseif ($request->start_date) {
             $expenses->whereDate('idate', '=', $request->start_date);
         } elseif ($request->end_date) {
-            // ✅ FIX: Use <= instead of >= for end_date
+            //   Use <= instead of >= for end_date
             $expenses->whereDate('idate', '<=', $request->end_date);
         }
 
@@ -144,8 +148,7 @@ class ExpenseController extends Controller
     public function create()
     {
         $expenseTypes = ExpenseType::all();
-        $customers = Account::select('id', 'name')->whereIn('account_type_id', [3, 4])->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])
             ->orderBy('is_pre_select', 'DESC')
             ->get();
 
@@ -160,7 +163,7 @@ class ExpenseController extends Controller
         $currencies = Currency::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
 
-        return view('transactions.expense.create', compact('customers', 'ownBanks', 'currencies', 'todaysDate', 'expenseTypes'));
+        return view('transactions.expense.create', compact('ownBanks', 'currencies', 'todaysDate', 'expenseTypes'));
     }
 
     /**

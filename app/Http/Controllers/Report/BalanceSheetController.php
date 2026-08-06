@@ -31,10 +31,10 @@ class BalanceSheetController extends Controller
     public function index()
     {
         // بدون سهم داران همگی را نشان بدهد
-        $accounts = Account::whereNotIn('account_type_id',[5])->get();
+        $accounts = Account::whereIn('account_type_id',[2,3,4,7])->get();
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        $accountTypes = AccountType::whereNotIn('id',[5])->get();
+        $accountTypes = AccountType::whereIn('id',[2,3,4,7])->get();
         // $sums = $this->showFooterReport(1,33);
         // return response()->json(['sums' =>  $sums]);
 
@@ -77,43 +77,15 @@ class BalanceSheetController extends Controller
         }
 
     
-        // Fetch account details for khazana only
-        if($account_type_id == 1 || $account_type_id == 6)
-        {
-            $accounts = DB::table('accounts')
+        $accounts = DB::table('accounts')
             ->join('journals', function ($join) use ($currency_id) {
                 $join->on('accounts.id', '=', 'journals.account_id')
                     ->where('journals.currency_id', $currency_id);  
             })
-            ->where('accounts.account_type_id', $account_type_id)
+            ->whereIn('accounts.account_type_id', [2,3,4,7])
             ->select([
                 'accounts.id as accountId',
                 'accounts.name',
-                DB::raw("SUM(CASE 
-                            WHEN journals.transaction_type = 1 
-                            AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as cache_recieved"),
-                DB::raw("SUM(CASE 
-                            WHEN journals.transaction_type = 2 
-                            AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as cache_paid")
-            ])
-            ->groupBy('accounts.id', 'accounts.name');
-
-            // $loanAndTalab = DB::table('journals')
-            // ->where('journals.currency_id', $currency_id)
-            // ->whereIn('journals.account_type_id', [3, 4, 5])
-             $loanAndTalab = DB::table('accounts')
-                ->leftJoin('journals', function ($join) use ($currency_id) { 
-                    $join->on('accounts.id', '=', 'journals.account_id')
-                        ->where('journals.currency_id', $currency_id);
-                })
-                ->where(function($query) {
-                    $query->whereIn('accounts.account_type_id', [3, 4, 5]); // sum from customers, suppliers, participants
-                })
-                ->select([
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
@@ -133,55 +105,23 @@ class BalanceSheetController extends Controller
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
                             AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as loan_paid")
+                            THEN journals.amount ELSE 0 END) as loan_paid"),
             ])
-            ->first(); // Get a single row instead of a collection
+            ->groupBy('accounts.id', 'accounts.name')
+            ->orderBy('accounts.account_type_id','ASC');
 
-            $total_loans = $loanAndTalab->cache_paid + $loanAndTalab->loan_paid;
-            $total_talabat = $loanAndTalab->cache_recieved + $loanAndTalab->loan_recieved;
-        }
-        else 
-        {
-            $accounts = DB::table('accounts')
-                ->join('journals', function ($join) use ($currency_id) {
-                    $join->on('accounts.id', '=', 'journals.account_id')
-                        ->where('journals.currency_id', $currency_id);  
-                })
-                ->where('accounts.account_type_id', $account_type_id)
-                ->select([
-                    'accounts.id as accountId',
-                    'accounts.name',
-                    DB::raw("SUM(CASE 
-                                WHEN journals.transaction_type = 1 
-                                AND journals.payment_type = 1 
-                                AND journals.is_cleared = 0 
-                                THEN journals.amount ELSE 0 END) as cache_recieved"),
-                    DB::raw("SUM(CASE 
-                                WHEN journals.transaction_type = 2 
-                                AND journals.payment_type = 1 
-                                AND journals.is_cleared = 0 
-                                THEN journals.amount ELSE 0 END) as cache_paid"),
-                    DB::raw("SUM(CASE 
-                                WHEN journals.transaction_type = 1 
-                                AND journals.payment_type = 2 
-                                AND journals.is_cleared = 0 
-                                THEN journals.amount ELSE 0 END) as loan_recieved"),
-                    DB::raw("SUM(CASE 
-                                WHEN journals.transaction_type = 2 
-                                AND journals.payment_type = 2 
-                                AND journals.is_cleared = 0 
-                                THEN journals.amount ELSE 0 END) as loan_paid"),
-                ])
-                ->groupBy('accounts.id', 'accounts.name');
-
-        }
 
             // \Log::info($accounts->toSql());
             // \Log::info($accounts->getBindings());
 
+        if ($request->account_type_id) {
+            $accounts->where('accounts.account_type_id', $request->account_type_id);
+        }
+
         if ($request->account_id) {
             $accounts->where('account_id', $request->account_id);
         }
+        
         
         if ($request->start_date && $request->end_date) {
             $accounts->whereBetween('idate', [$request->start_date, $request->end_date]);
@@ -196,67 +136,34 @@ class BalanceSheetController extends Controller
             ->addColumn('name', function ($account) {
                 return $account->name ?: '';
             })
-            // آمد نقد
-            ->addColumn('cache_recieved', function ($account) use ($account_type_id) {
-                if($account_type_id == 1 || $account_type_id == 6)
-                {
-                    return $account->cache_recieved ? number_format($account->cache_recieved,2) : null;
-                }
-                else 
-                {
-                    return $account->cache_paid ? number_format($account->cache_paid,2) : null;
-                }
+            // دریافت نقد
+            ->addColumn('cache_recieved', function ($account) {
+                 return $account->cache_recieved ? number_format($account->cache_recieved,2) : null;
             })
             
-            // رفت نقد
-            ->addColumn('cache_paid', function ($account) use ($account_type_id) {
-                if($account_type_id == 1 || $account_type_id == 6)
-                {
-                    return $account->cache_paid ? number_format($account->cache_paid,2) : null;
-                }
-                else 
-                {
-                    return $account->cache_recieved ? number_format($account->cache_recieved,2) : null;
-                }
+            // پرداخت نقد
+            ->addColumn('cache_paid', function ($account) {
+                 return $account->cache_paid ? number_format($account->cache_paid,2) : null;
             })
 
             // قرض
-            ->addColumn('loan_recieved', function ($account) use ($account_type_id, $total_loans)  
+            ->addColumn('loan_recieved', function ($account)  
             {
-                if($account_type_id == 1 || $account_type_id == 6)
-                {
-                    return $total_loans ? number_format($total_loans,2) : null;
-                }
-                else 
-                {
-                    return $account->loan_recieved ? number_format($account->loan_recieved,2) : null;
-                }
+                return $account->loan_recieved ? number_format($account->loan_recieved,2) : null;
             })
 
             // طلب
-            ->addColumn('loan_paid', function ($account) use ($account_type_id, $total_talabat) 
+            ->addColumn('loan_paid', function ($account) 
             {
-                if($account_type_id == 1 || $account_type_id == 6)
-                {
-                    // $loans = $account->cust_cache_recieved + $account->loan_recieved;
-                    return $total_talabat ? number_format($total_talabat,2) : null;
-                }
-                else 
-                {
-                    return $account->loan_paid ? number_format($account->loan_paid,2) : null;
-                }
+                return $account->loan_paid ? number_format($account->loan_paid,2) : null;
             })
+
+            // مصارف
+
+            // بیلانس
             ->addColumn('balance', function ($account) use ($account_type_id, $total_loans, $total_talabat) 
             {
-                if($account_type_id == 1 || $account_type_id == 6)
-                {
-                    $balance = ($account->cache_recieved + $total_talabat) - ($account->cache_paid + $total_loans);
-                }
-                else 
-                {
-                  $balance =  ($account->cache_paid + $account->loan_paid) - ($account->cache_recieved + $account->loan_recieved);
-                }
-                
+                $balance =  ($account->cache_paid + $account->loan_paid) - ($account->cache_recieved + $account->loan_recieved);
                 $account->computed_balance = $balance; // Store it in the object
                 return number_format($balance,2);
             })

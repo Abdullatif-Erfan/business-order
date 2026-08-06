@@ -168,6 +168,9 @@
 
 <script>
 $(document).ready(function() {
+    let isCompanyAccount = false;
+    let accountId = 0;
+    
     let table = $('#journalTable').DataTable({
         processing: true,
         serverSide: true,
@@ -184,6 +187,22 @@ $(document).ready(function() {
                 d.end_date = $('#end_date').val();
                 d.code_number = $('#code_number').val();
                 d.bill_number = $('#bill_number').val();
+            },
+            dataSrc: function (json) {
+                // Get current account_id from filter
+                var currentAccountId = $('#account_id').val();
+                
+                // Only update if there's an account selected
+                if (currentAccountId && currentAccountId !== '') {
+                    isCompanyAccount = json.isCompanyAccount || false;
+                    accountId = json.accountId || 0;
+                } else {
+                    // No account selected, reset everything
+                    isCompanyAccount = false;
+                    accountId = 0;
+                }
+                
+                return json.data;
             },
             error: function(xhr, status, error) {
                 console.log("Error fetching data: ", error);
@@ -204,14 +223,12 @@ $(document).ready(function() {
             { data: 'actions', name: 'actions', orderable: false, searchable: false }
         ],
         
-        // Use footerCallback instead of drawCallback
         footerCallback: function(row, data, start, end, display) {
             var api = this.api();
             
             function getNumber(val) {
                 if (val === null || val === undefined || val === '') return 0;
                 if (typeof val === 'string') {
-                    // Remove commas and any non-numeric characters except decimal
                     val = val.replace(/,/g, '').replace(/[^0-9.-]/g, '');
                 }
                 return parseFloat(val) || 0;
@@ -227,7 +244,7 @@ $(document).ready(function() {
                 });
             });
             
-            // Update footer
+            // Update footer for columns 4, 5, 6, 7
             columnIndices.forEach(function(idx, i) {
                 $(api.column(idx).footer()).html(
                     totals[i].toLocaleString(undefined, {
@@ -236,6 +253,23 @@ $(document).ready(function() {
                     })
                 );
             });
+            
+            // Calculate and display balance only if an account is selected
+            if (accountId > 0) {
+                var balance = isCompanyAccount 
+                    ? (totals[0] + totals[2]) - (totals[1] + totals[3]) 
+                    : (totals[1] + totals[3]) - (totals[0] + totals[2]);
+                
+                $(api.column(8).footer()).html(
+                    balance.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                );
+            } else {
+                // Clear balance when no account is selected
+                $(api.column(8).footer()).html('');
+            }
         }
     });
 
@@ -246,11 +280,18 @@ $(document).ready(function() {
 
     // Reset button
     $('#btn-reset').on('click', function() {
+        // Reset all filter inputs
         $('#account_id').val('');
         $('#start_date').val('');
         $('#end_date').val('');
         $('#code_number').val('');
         $('#bill_number').val('');
+        
+        // Reset variables
+        isCompanyAccount = false;
+        accountId = 0;
+        
+        // Reload the table with reset filters
         table.ajax.reload(null, false);
     });
 });
