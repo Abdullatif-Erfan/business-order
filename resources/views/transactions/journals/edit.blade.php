@@ -87,6 +87,8 @@
                                                         @elseif($journals[0]->options == 4) معاملات نسیه به نقد
                                                         @endif
                                                     </option>
+                                                    <!-- <option value="1">{{ __('journal.cash_transaction') }}</option> -->
+                                                    <!-- <option value="2">{{ __('journal.credit_transaction') }}</option> -->
                                                     <!-- <option value="">--- انتخاب نوع معامله ---</option>
                                                     <option value="1">معاملات نقد به نقد</option>
                                                     <option value="2">معاملات نسیه به نسیه</option>

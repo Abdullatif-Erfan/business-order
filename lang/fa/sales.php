@@ -82,5 +82,6 @@ return [
     'payment_for_bill' => ' پرداخت نقد فروشات ',
     'recieved_of_bill' => ' دریافت نقد فروشات ',
     'billno' => 'بل نمبر فروش',
+    'select_car' => 'انتخاب موتر',
     
 ];

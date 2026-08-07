@@ -39,7 +39,7 @@
                     <th>{{__('reports.cache_in')}}</th>
                     <th>{{__('reports.cache_out')}}</th>
                     <th>{{__('reports.cache_balance')}}</th>
-                    <th>{{__('reports.talabat')}}</th>
+                    <th>{{__('reports.talab')}}</th>
                     <th>{{__('reports.loan')}}</th>
                     <th>{{__('reports.talabat_and_loan_balance')}}</th>
                     <th>{{__('reports.general_balance')}}</th>
@@ -55,10 +55,10 @@
                     $total_cache_paid += $row->cache_paid;
 
                     // قرضه
-                    $total_loans = $talabat_and_loans->cache_paid + $talabat_and_loans->loan_paid;
+                    $total_loans = $talabat_and_loans->loan_recieved;
 
                     // طلبات
-                    $total_talabat = $talabat_and_loans->cache_recieved + $talabat_and_loans->loan_recieved;
+                    $total_talabat = $talabat_and_loans->loan_paid;
 
                     // بیلانس نقد
                     $cache_balance = $row->cache_recieved - $row->cache_paid;

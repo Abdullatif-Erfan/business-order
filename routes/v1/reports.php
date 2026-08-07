@@ -10,10 +10,9 @@ use App\Http\Controllers\Report\ProfitAndLossController;
 
 
 Route::prefix('reports')->group(function() {
-    Route::get('/home',[ItemController::class, 'home'])->name('reports.home')->middleware('access:reports,list');
-    Route::post('/daily',[ItemController::class, 'daily'])->name('reports.daily')->middleware('access:reports,list');
-    Route::post('/monthly',[ItemController::class, 'monthly'])->name('reports.monthly')->middleware('access:reports,list');
-    Route::post('/yearly',[ItemController::class, 'yearly'])->name('reports.yearly')->middleware('access:reports,list');
+    Route::get('/home', [ItemController::class, 'home'])->name('reports.home')->middleware('access:reports,list');
+    Route::get('/daily', [ItemController::class, 'daily'])->name('reports.daily')->middleware('access:reports,list');
+    Route::post('/daily-data', [ItemController::class, 'getDailyData'])->name('reports.daily.data')->middleware('access:reports,list');
 });
 
 Route::get('/chartOfAccount/{id?}',[ChartOfAccount::class, 'index'])->name('chartOfAccount.index')->middleware('access:reports,list');

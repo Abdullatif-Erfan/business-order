@@ -12,6 +12,7 @@
         $total_loan_paid = 0;
         $cache_balance = 0;
         $loan_balance = 0;
+        $total_expense = 0;
         $general_balance = 0;
         $general_total_balance = 0;
     @endphp
@@ -21,7 +22,8 @@
             <th>{{__('common.number')}}</th>
             <th>{{__('reports.account')}}</th>
             <th>{{__('reports.loan')}}</th>
-            <th>{{__('reports.talabat')}}</th>
+            <th>{{__('reports.talab')}}</th>
+            <th>{{__('common.expense')}}</th>
             <th>{{__('reports.balance')}} </th>
             <th>{{__('reports.specify')}}</th>
         </tr>
@@ -30,6 +32,7 @@
                 // Ensure values are always numeric (avoid null issues)
                 $loan_paid = $row->loan_paid ?? 0;
                 $cache_paid = $row->cache_paid ?? 0;
+                $expense = $row->expense ?? 0;
 
                 $loan_recieved = $row->loan_recieved ?? 0; 
                 $cache_recieved = $row->cache_recieved ?? 0; 
@@ -43,8 +46,11 @@
                 // مجموع بیلانس طلبات
                 $total_loan_paid += $talab_balance;
 
+                // مصارف
+                $total_expense += $expense;
+
                 // بیلانس عمومی 
-                $general_balance =  $talab_balance - $loan_balance;
+                $general_balance =  (($talab_balance + $expense) - $loan_balance);
 
                 // مجموع بیلانس عمومی
                 $general_total_balance += $general_balance;
@@ -55,6 +61,7 @@
                 <td class="priceStyle">{{ $row->name }}</td>
                 <td class="priceStyle">{{ number_format($loan_balance,2) }}</td>       <!--  قرضه -->
                 <td class="priceStyle">{{ number_format($talab_balance,2) }}</td>      <!--  طلبات -->
+                <td class="priceStyle">{{ number_format($row->expense,2) }}</td>
                 <td class="priceStyle">{{ number_format($general_balance,2) }}</td>
                 <td class="priceStyle"> {{ $general_balance == 0 ? __('reports.clear') : ($general_balance < 0 ? __('reports.baqi') : __('reports.talab')) }} </td>
             </tr>
@@ -64,6 +71,7 @@
                 <td class="priceStyle" colspan="2">{{__('common.total')}}</td>
                 <td class="priceStyle" style="color:green;font-weight:bolder;">{{ number_format($total_loan_recieved,2) }}</td>   <!--  قرضه -->
                 <td class="priceStyle" style="color:red;font-weight:bolder;">{{ number_format($total_loan_paid,2) }}</td>       <!--  طلبات -->
+                <td class="priceStyle" style="color:blue;font-weight:bolder;">{{ number_format($total_expense,2) }}</td>
                 <td class="priceStyle" style="color:blue;font-weight:bolder;">{{ number_format($general_total_balance,2) }}</td>
                 <td class="priceStyle"></td>
             </tr>

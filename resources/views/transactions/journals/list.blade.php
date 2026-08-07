@@ -125,7 +125,7 @@
                                             <th> {{__('journal.recieved_loan')}}</th>
                                             <th> {{__('journal.paid_loan')}} <br>/ {{__('journal.talab')}}  </th>
                                             
-                                            <th>{{__('journal.unit')}}</th>
+                                            <th>{{__('common.expense')}}</th>
                                             <!-- <th>  نوع معامله  </th> -->
                                             <th>{{__('journal.date')}}</th>
                                             <th>{{__('common.details')}}</th>
@@ -218,7 +218,7 @@ $(document).ready(function() {
             { data: 'cachePaid', name: 'cachePaid' },
             { data: 'loanRecieved', name: 'loanRecieved' },
             { data: 'loanPaid', name: 'loanPaid' },
-            { data: 'currency', name: 'currency' },
+            { data: 'expense', name: 'expense' },
             { data: 'idate', name: 'idate' },
             { data: 'actions', name: 'actions', orderable: false, searchable: false }
         ],
@@ -234,41 +234,48 @@ $(document).ready(function() {
                 return parseFloat(val) || 0;
             }
             
-            // Calculate column totals (columns 4,5,6,7)
-            var totals = [0, 0, 0, 0];
-            var columnIndices = [4, 5, 6, 7];
+            // Calculate column totals with explicit variables
+            var totalCacheRecieved = 0; // column 4
+            var totalCachePaid = 0;      // column 5
+            var totalLoanRecieved = 0;   // column 6
+            var totalLoanPaid = 0;       // column 7
+            var totalExpense = 0;        // column 8
             
             api.rows({ page: 'current' }).data().each(function(rowData) {
-                columnIndices.forEach(function(idx, i) {
-                    totals[i] += getNumber(rowData[api.column(idx).dataSrc()]);
-                });
+                totalCacheRecieved += getNumber(rowData[api.column(4).dataSrc()]);
+                totalCachePaid += getNumber(rowData[api.column(5).dataSrc()]);
+                totalLoanRecieved += getNumber(rowData[api.column(6).dataSrc()]);
+                totalLoanPaid += getNumber(rowData[api.column(7).dataSrc()]);
+                totalExpense += getNumber(rowData[api.column(8).dataSrc()]);
             });
             
-            // Update footer for columns 4, 5, 6, 7
-            columnIndices.forEach(function(idx, i) {
-                $(api.column(idx).footer()).html(
-                    totals[i].toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    })
-                );
-            });
+            // Update footer for columns 4, 5, 6, 7, 8
+            $(api.column(4).footer()).html(totalCacheRecieved.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $(api.column(5).footer()).html(totalCachePaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $(api.column(6).footer()).html(totalLoanRecieved.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $(api.column(7).footer()).html(totalLoanPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $(api.column(8).footer()).html(totalExpense.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
             
             // Calculate and display balance only if an account is selected
             if (accountId > 0) {
                 var balance = isCompanyAccount 
-                    ? (totals[0] + totals[2]) - (totals[1] + totals[3]) 
-                    : (totals[1] + totals[3]) - (totals[0] + totals[2]);
+                    ? (totalCacheRecieved + totalLoanRecieved) - (totalCachePaid + totalLoanPaid) 
+                    : (totalCachePaid + totalLoanPaid + totalExpense) - (totalCacheRecieved + totalLoanRecieved);
                 
-                $(api.column(8).footer()).html(
-                    balance.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    })
+                // Determine badge class based on balance
+                var badgeClass = balance >= 0 ? 'badge-success' : 'badge-danger';
+                var sign = balance >= 0 ? '+' : '';
+                
+                $(api.column(9).footer()).html(
+                    '<span class="badge ' + badgeClass + '" style="font-size: 14px; padding: 5px 10px;">' +
+                        sign + balance.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) +
+                    '</span>'
                 );
             } else {
-                // Clear balance when no account is selected
-                $(api.column(8).footer()).html('');
+                $(api.column(9).footer()).html('');
             }
         }
     });

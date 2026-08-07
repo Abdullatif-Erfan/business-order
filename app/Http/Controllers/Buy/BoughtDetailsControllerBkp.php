@@ -13,133 +13,209 @@ use App\Models\Setting\Unit;
 use App\Models\Buy\BuyPreList;
 use App\Models\Buy\BuyInvoice;
 use App\Models\Buy\BuyInvoiceItem;
+use App\Models\Buy\BoughtBillPayment;
 use App\Models\Buy\BuyInvoicePayment;
 use App\Models\Buy\BoughtItem;
+use App\Models\Order\Order;
+use App\Models\Order\OrderItem;
 use App\Models\Setting\Currency;
+use App\Models\Setting\Car;
+use App\Models\Setting\Category;
 use App\Models\Buy\BoughtItemDetails; 
 use App\Models\Transaction\Journal;
 use App\Models\Setting\Warehouse;
 use App\Models\Warehouse\WarehouseItem;
 use Carbon\Carbon;
 use App\Models\Setting\Account;
+use App\Services\TaxCalculationService;
 use Yajra\DataTables\Facades\DataTables;
 
 
 class BoughtDetailsController extends Controller
 {
-    protected  $isAdmin;
-    public function __construct()
+    protected $isAdmin, $customerIds, $carIds, $userId, $userName;
+    protected TaxCalculationService $taxService;
+    public function __construct(TaxCalculationService $taxService)
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->customerIds = session('customerIds', []);
+            $this->carIds = session('carIds', []);
+            $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
         } else {
             $this->isAdmin = false;
+            $this->customerIds = [];
+            $this->carIds = [];
+            $this->userId = 0;
+            $this->userName ='';
         }
+        $this->taxService = $taxService;
     }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
-        // return response()->json($boughtItems);
-
-        // $insertedData = BoughtItemDetails::with(['preListRelation','unitRelation'])->get();
-        // return response()->json(['insertedData' => $insertedData]); 
-        // return view('buy.bought.curlist',compact('insertedData'));
-        
-        // return response()->json(auth()->user());
-        // return response()->json(auth()->user());
-
-        // $boughtItems = BoughtItem::with(['currencyRelation','customerRelation'])->orderBy('id', 'DESC')->get();
-        // return response()->json($boughtItems);
-
-
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
-
+    
         return view('buy.bought.list',compact('currencies','todaysDate','orgbios'));
     }
 
 
     public function getData(Request $request)
     {
-            $tax_activation = $request->input('tax_activation');
-            $boughtItems = BoughtItem::with(['currencyRelation', 'customerRelation'])->orderBy('id', 'DESC');
-            
-              // Apply filters if provided
-              if ($request->customer_name) {
-                $boughtItems->whereHas('customerRelation', function ($query) use ($request) {
-                    $query->where('name', 'LIKE', DB::raw('?'), ["%{$request->customer_name}%"]);
-                });
-            }
-            
-            if ($request->currency_id) {
-                $boughtItems->where('currency_id', $request->currency_id);
-            }
-            
-            if ($request->start_date && $request->end_date) {
-                $boughtItems->whereBetween('idate', [$request->start_date, $request->end_date]);
-            } elseif ($request->start_date) {
-                $boughtItems->whereDate('idate', '=', $request->start_date);
-            } elseif ($request->end_date) {
-                $boughtItems->whereDate('idate', '<=', $request->end_date); // Until today
-            }
-            
-            if ($request->bill_number) {
-                $boughtItems->where('billno', $request->bill_number);
-            }
-            
-            return DataTables::of($boughtItems->get())
-            
+        $tax_activation = $request->input('tax_activation');
+        // $boughtItems = BoughtItem::with(['customerRelation'])->orderBy('id', 'DESC');
 
+        if($this->isAdmin) {
+            $boughtItems = BoughtItem::with(['customerRelation'])->orderBy('id', 'DESC');
+        } else {
+            $boughtItems = BoughtItem::with(['customerRelation'])
+            ->whereIn('bought_items.car_id', $this->carIds)
+            ->orderBy('id', 'DESC');
+        }
+
+        
+        // Apply filters if provided
+        if ($request->customer_name) {
+            $boughtItems->whereHas('customerRelation', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->customer_name . '%');
+            });
+        }
+        
+
+         if ($request->user_name) {
+             $boughtItems->where('bought_items.user_name', 'LIKE', '%' . $request->user_name . '%');
+        }
+        
+        
+        if ($request->start_date && $request->end_date) {
+            $boughtItems->whereBetween('idate', [$request->start_date, $request->end_date]);
+        } elseif ($request->start_date) {
+            $boughtItems->whereDate('idate', '=', $request->start_date);
+        } elseif ($request->end_date) {
+            $boughtItems->whereDate('idate', '<=', $request->end_date);
+        }
+        
+        if ($request->bill_number) {
+            $boughtItems->where('billno', $request->bill_number);
+        }
+        
+        return DataTables::of($boughtItems)
             ->addIndexColumn()
-            // ->addColumn('branch', function($buyPreList) {
-            //     return $buyPreList->branchRelation->name;
-            // })
-
+            
             ->addColumn('billno', function($boughtItem) {
                 $checkIcon = $boughtItem->is_cleared == 1 ? '<i class="fas fa-check-circle success"></i>' : '';
-                return $boughtItem->billno ? $checkIcon.' '.'BUY_'.$boughtItem->billno: 0;
+                return $boughtItem->billno ? $checkIcon . ' ' . 'BUY_' . $boughtItem->billno : 0;
             })
 
-             ->addColumn('total', function ($boughtItem) use ($tax_activation) {
-                 return (int)$tax_activation === 1 
-                ? number_format($boughtItem->total_vat ?? 0, 2) 
-                : number_format($boughtItem->total_price ?? 0, 2);
+            ->addColumn('total', function ($boughtItem) use ($tax_activation) {
+                return number_format($boughtItem->total ?? 0, 2);
             })
 
             ->addColumn('cur_pay', function ($boughtItem) {
-                $cur_pay = $boughtItem->cur_pay;
-                return (fmod($cur_pay, 1) == 0) ? number_format($cur_pay, 0) : number_format($cur_pay, 2);
+                return number_format($boughtItem->cur_pay ?? 0, 2);
             })
 
             ->addColumn('remained', function ($boughtItem) use ($tax_activation) {
-                return (int)$tax_activation === 1 
-                ? number_format($boughtItem->remained_vat ?? 0, 2) 
-                : number_format($boughtItem->remained ?? 0, 2);
+                return number_format($boughtItem->remained ?? 0, 2);
             })
 
-            ->addColumn('currencyRelation', function ($boughtItem) {
-                return $boughtItem->currencyRelation->name ? $boughtItem->currencyRelation->name : '';
-            })
         
-            ->addColumn('view', function ($boughtItem) {
-                return '<a href="boughtList/details/'.$boughtItem->times.'" class="hidden-print"><i class="fas fa-eye viewItems" 
-                data-id="' . $boughtItem->details_id . '" style="font-size:20px;"></i></a>';
+            // ->addColumn('view', function ($boughtItem) {
+            //     return '<a href="boughtList/details/' . $boughtItem->times . '" class="hidden-print">
+            //                 <i class="fas fa-eye viewItems" 
+            //                 data-id="' . $boughtItem->details_id . '" 
+            //                 style="font-size:20px;">
+            //                 </i>
+            //             </a>';
+            // })
+
+            // ->addColumn('setprofit', function ($boughtItem) {
+            //     return '<i class="fas fa-money-bill setProfit" 
+            //                 data-id="' . $boughtItem->billno . '" data-id2="'.$boughtItem->isEditable.'" 
+            //                 data-id3="'.$boughtItem->has_invoice.'"
+            //                 style="font-size:20px; color: #0d8dc1">
+            //                 </i>';
+            // })
+
+             ->addColumn('action', function ($boughtItem) {
+                return '
+                <div class="dropdown dropend">
+                    <button class="btn btn-primary btn-sm dropdown-toggle"
+                        type="button"  data-toggle="dropdown">
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" target="_blank" href="' . route('boughtList.bill', $boughtItem->billno) . '">' . __('buy.bought_bill') . '</a>
+                        <a class="dropdown-item billPayment" href="#" data-id="'.$boughtItem->billno.'"  data-id2="'.$boughtItem->remained.'" >' . __('sales.bill_payment') . '</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item itemList" href="#" data-id="'.$boughtItem->billno.'">' . __('sales.item_lists') . '</a>
+                        <a class="dropdown-item" target="_blank" href="' . route('boughtList.edit', $boughtItem->times) . '">' . __('common.edit') . '</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" target="_blank" href="' . route('boughtList.details', $boughtItem->times) . '">' . __('common.details') . '</a>
+                    </div>
+                </div>';
             })
 
-            ->rawColumns(['billno','view'])
+            ->rawColumns(['billno', 'action'])
             ->make(true);
-
     }
 
+    public function testingTax()
+    {
+         $amount = 5;
+         $buy_up = 40;
+         $tax_per = 15;
+         $sell_up = 45;
+         $sell_tax_per = $tax_per;
+         $total = 200;
+         $buyingTax = $this->taxService->calculateBuyingTax($amount, $buy_up, $tax_per);
+         $fullTax   = $this->taxService->calculateFullTax($amount, $buy_up, $tax_per, $sell_up, $sell_tax_per);
+         $sellingTax   = $this->taxService->calculateSellingTax($amount, $sell_up, $sell_tax_per);
+         $findTaxPrice = $this->taxService->calculateVATAmount($total, $tax_per);
 
+         return response()->json(['buyingTax' => $buyingTax, 'fullTax' =>$fullTax, 'sellingTax' => $sellingTax,
+         'findTaxPrice' => $findTaxPrice,
+         ]);
+
+        //  ============= RESULT =================
+        // {
+        //     "buyingTax": {
+        //         "buy_tax_price": 30,
+        //         "buy_up_vat": 70,
+        //         "total_vat": 350,
+        //         "buy_total_without_tax": 200,
+        //         "buy_tax_percentage": 15
+        //     },
+        //     "fullTax": {
+        //         "buy_tax_price": 30,
+        //         "buy_up_vat": 70,
+        //         "total_vat": 350,
+        //         "buy_total_without_tax": 200,
+        //         "buy_tax_percentage": 15,
+        //         "sell_tax_price": 33.75,
+        //         "sell_up_vat": 78.75,
+        //         "total_sales_with_tax": 393.75,
+        //         "sell_total_without_tax": 225,
+        //         "sell_tax_percentage": 15
+        //     },
+        //     "sellingTax": {
+        //         "sell_tax_price": 33.75,
+        //         "sell_up_vat": 78.75,
+        //         "total_sales_with_tax": 393.75,
+        //         "sell_total_without_tax": 225,
+        //         "sell_tax_percentage": 15
+        //     },
+        //     "findTaxPrice": 33.75
+        // }
+    }
     /**
-     * Show the form for creating a new resource.
+     * This function is used to test tax 
      */
-    public function create()
+    public function create2()
     {
         // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
         $currencies = Currency::select('id','name')->get();
@@ -148,279 +224,611 @@ class BoughtDetailsController extends Controller
         $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
         $billno =  BoughtItem::max('billno') + 1;
     
-        $preLists = BuyPreList::select('id','name','code')->get();
+        $preLists = BuyPreList::select('id','name')->get();
         $todaysDate = Carbon::now()->format('Y-m-d');
         $units = Unit::select('id','name')->get();
         $newJournalCode =  Journal::max('code') + 1;
-        $tax = OrgBio::select('tax_activation')->first();
+        $tax = OrgBio::select('tax_activation','tax_per')->first();
 
         $times = time();
 
         // return response()->json($preLists);
-        return view('buy.bought.create',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
+        return view('buy.test_tax.list',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
     }
 
     /**
-     * Store a newly created resource in storage.
-    */
-    public function store(Request $request)
+     * Create Belongs to V2
+     * Currently used
+     */
+    public function create()
     {
-        // return response()->json(['data' => $request->all()]); 
-
-        // $insertedData = BoughtItemDetails::where('times','1739588540')->get();
-        // return view('buy.bought.curlist',compact('insertedData'));
-
-        $this->validateRequest($request);
-
-        $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
-        $date = Carbon::parse($short_date);
-        $time = $request->times ?? '00:00:00';
-        $full_date = $date->format('Y-m-d') . ' ' . $time;
-        $times = $request->times; 
         
+        if($this->isAdmin)
+        {
+            $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+            $cars = Car::select('id','name')->get();
 
-        // Start the transaction
-        DB::beginTransaction();
-   
+            $orders = Order::select(
+                'id',
+                'ord_num',
+                'supplier_id',
+                'category_id',
+                'idate',
+                'state',
+                'user_name',
+                'times'
+            )
+            ->with([
+                'supplierRelation:id,name',
+                'categoryRelation:id,name',
+                'items:id,order_id,pre_list_id,unit_id,amount,category_id',
+                'items.preList:id,name',      // Load pre_list name
+                'items.unit:id,name'          // Load unit name
+            ])
+            ->where('orders.state', 1)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+            // Get supplier IDs that have orders (state = 1)
+            $supplierIdsWithOrders = $orders->pluck('supplier_id')->unique()->toArray();
+        } 
+        else 
+        {
+            $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+            $cars = Car::select('id','name')->whereIn('id', $this->carIds ?? [])->get();
+
+            $orders = Order::select(
+                'id',
+                'ord_num',
+                'supplier_id',
+                'category_id',
+                'idate',
+                'state',
+                'user_name',
+                'times'
+            )
+            ->with([
+                'supplierRelation:id,name',
+                'categoryRelation:id,name',
+                'items:id,order_id,pre_list_id,unit_id,amount,category_id',
+                'items.preList:id,name',      // Load pre_list name
+                'items.unit:id,name'          // Load unit name
+            ])
+            ->where('orders.state', 1)
+            ->where('orders.user_id', $this->userId)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+            // Get supplier IDs that have orders (state = 1)
+            // $supplierIdsWithOrders = $orders->where('user_id', $this->userId)->pluck('supplier_id')->unique()->toArray();
+            $supplierIdsWithOrders = $orders->pluck('supplier_id')->unique()->toArray();
+
+        }
+        $preLists = BuyPreList::select('id','name','unit_id','category_id','unit_name')->get();
+        $categories = Category::select('id','name')->get(); 
+        $units = Unit::select('id','name')->get();
+
+        
+        $currencies = Currency::select('id','name')->get();
+        $warehouses = Warehouse::select('id','name')->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,7])->orderBy('is_pre_select','DESC')->get();
+        $billno =  BoughtItem::max('billno') + 1;
+    
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $tax = OrgBio::select('tax_per','tax_activation')->first();
+        $times = time();
+        // گروپ ساختن سپلایر با آیتم هایکه سفارش داده شده است و باید علامت تیک مارک نشان داده شود
+        // Add has_order flag to suppliers
+        $suppliersWithStatus = $suppliers->map(function ($supplier) use ($supplierIdsWithOrders) {
+            $hasOrder = in_array($supplier->id, $supplierIdsWithOrders);
+            
+            return (object) [
+                'id' => $supplier->id,
+                'name' => $supplier->name,
+                'has_order' => $hasOrder,
+            ];
+        });
+
+        // Sort suppliers: those with orders first, then by name
+        $suppliersWithStatus = $suppliersWithStatus->sortByDesc('has_order')->values();
+
+        // return response()->json($orders);
+        // return response()->json($supplierIdsWithOrders);
+        // return response()->json($orders);
+        
+         // return response()->json($preLists);
+        if((int)$tax->tax_activation === 1) 
+        {
+           return view('buy.v2.bought.create_with_tax',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
+        } else {
+           return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
+        }
+    }
+    
+    public function getToUpdateProfit(string $billno)
+    {
         try {
+            // Validate input
+            if (!is_numeric($billno) || $billno <= 0) {
+                return $this->errorResponse('Invalid bill number provided', 400);
+            }
 
-        // 1: insert in to bought_items table
-        $BoughtItemId = $this->createOrUpdateBoughtItem($request, $short_date, $times);
+            // Use a transaction for consistency
+            return DB::transaction(function () use ($billno) {
+                // Check if bill exists and get editable status in one query
+                $boughtItem = BoughtItem::select('billno', 'isEditable')
+                    ->where('billno', $billno)
+                    ->lockForUpdate() // Prevent race conditions
+                    ->first();
 
-        // 2: insert in to bought_item_details table
-        $this->storeBoughtItemDetails($request, $BoughtItemId,  $times);
+                if (!$boughtItem) {
+                    return $this->errorResponse('Bill not found', 404);
+                }
 
-        // 3: insert or update warehouse_items
-        $this->createOrUpdateWarehouseItems($request);
+                // Check if any items have been sold (out_amount > 0)
+                $hasSoldItems = WarehouseItem::where('billno', $billno)
+                    ->where('out_amount', '>', 0)
+                    ->exists();
 
-        DB::commit();
+                // Determine if editable
+                $boughtItemIsEditable = $hasSoldItems ? 1 : 0;
 
-        // 4: fetch inserted data from bought_item_details
-        $insertedData = BoughtItemDetails::with(['preListRelation','unitRelation'])->where('times',$times)->get();
-             
-        //  return response()->json(['insertedData' => $insertedData]); 
-           return view('buy.bought.curlist',compact('insertedData'));
+                // If editable status changed, update it
+                if ($boughtItem->isEditable != $boughtItemIsEditable) {
+                    $boughtItem->update(['isEditable' => $boughtItemIsEditable]);
+                }
+
+                // Get details with relations - only select needed columns
+                $boughtItemDetails = BoughtItemDetails::with([
+                    'preListRelation:id,name', 
+                    'unitRelation:id,name'
+                ])
+                ->where('billno', $billno)
+                ->select('id', 'billno', 'pre_list_id', 'unit_id', 'amount', 'buy_up','buy_tax_per', 'sell_up', 'expected_profit')
+                ->get();
+
+                $saved_with_tax = $boughtItemDetails->contains(function($item) {
+                    return $item->buy_tax_per > 0;
+                }) ? true : false;
+            
+                if ($boughtItemDetails->isEmpty()) {
+                    return $this->errorResponse('No items found for this bill', 404);
+                }
+
+                if($saved_with_tax) {
+                    return view('buy.bought.setProfitModalContentWithTax', compact(
+                        'boughtItemDetails',
+                        'boughtItemIsEditable',
+                        'billno',
+                    ));
+                } else {
+                      return view('buy.bought.setProfitModalContent', compact(
+                        'boughtItemDetails',
+                        'boughtItemIsEditable',
+                        'billno',
+                    ));
+                }
+              
+            });
 
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
-            // Optionally, log the error for debugging
-            \Log::error('Error storing BoughtDetailsController', ['error' => $e]);
-
-            return response()->json(['status' => 'failed'], 404);
-        }        
-    }
-    
-   
-    private function createOrUpdateBoughtItem($request, $short_date, $times)
-    {
-        $date = Carbon::parse($request->todays_date);
-        $year = $date->year;   
-        $month = $date->month; 
-        $day = $date->day;     
-        
-        // Check if a record with the same billno exists
-        $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
-
-        if ($BoughtItem) {
-            // \Log::info('updating BoughtItem');
-            // ✅ Update existing record
-            $BoughtItem->update([
-                'total_price'         => $request->total_price ?? 0,
-                'total_vat'           => $request->total_vat ?? 0,
-                'cur_pay'             => $request->cur_pay ?? 0,
-                'remained'            => $request->remained ?? 0,
-                'currency_id'         => $request->currency_id ?? 0,
-                'account_id'          => $request->from_account_id,
-                'supplier_account_id' => $request->supplier_account_id,
-                'tax_activation'      => $request->tax_activation ?? 0,
-                'note'                => $request->note ?? '',
+            \Log::error('getToUpdateProfit error: ' . $e->getMessage(), [
+                'billno' => $billno,
+                'trace' => $e->getTraceAsString()
             ]);
-        } else {
-            // \Log::info('Inserting BoughtItem');
-            $BoughtItem = BoughtItem::create([
-                'factor'              => $request->factor ?? 0,
-                'billno'              => $request->billno,
-                'journal_code'        => $request->journal_code ?? 0,
-                'total_price'         => $request->total_price ?? 0,
-                'total_vat'           => $request->total_vat ?? 0,
-                'cur_pay'             => $request->cur_pay ?? 0,
-                'remained'            => $request->remained ?? 0,
-                'account_id'          => $request->from_account_id,
-                'supplier_account_id' => $request->supplier_account_id,
-                'currency_id'         => $request->currency_id,
-                'tax_activation'      => $request->tax_activation ?? 0,
-                'note'                => $request->note ?? '',
-                'idate'               => $short_date,
-                'year'                => $year,
-                'month'               => $month,
-                'day'                 => $day,
-                'times'               => $times,
-                'user_id'             => auth()->user()->id ?? '',
-                'user_name'           => auth()->user()->full_name ?? '',
-                'has_invoice'         => 0,
-
-            ]);
+                
+            return $this->errorResponse('An error occurred while processing your request', 500);
         }
-
-        return $BoughtItem->id;
     }
-
-
-    private function storeBoughtItemDetails($request, $boughtItemId, $times)
-    {
-        // If not exists, create new record
-        $flag = $request->tax_activation == 1 ? true : false;
-        return BoughtItemDetails::create([
-            'billno' => $request->billno,
-            'bought_item_id' => $boughtItemId,
-            'supplier_account_id' => $request->supplier_account_id,
-            'pre_list_id' => $request->pre_list_id,
-            'amount' => $request->amount,
-            'unit_id' => $request->unit_id,
-            'buy_up' => $request->buy_up,
-            'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
-            'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
-            'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
-            'total' => $request->total_price,   
-            // 'total_vat' => $flag ? $request->total_vat : NULL, 
-            'total_vat' => $flag ? ($request->buy_up_vat ?? 0) * $request->amount : NULL, 
-            'sell_up' => $request->sell_up,
-            'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
-            'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
-            'sell_up_vat' =>  $flag ? $request->sell_up_vat : NULL,
-            'is_moved' => 1,
-            'times' => $times,
-            'user_id'             => auth()->user()->id ?? '',
-            'user_name'           => auth()->user()->full_name ?? '',
-        ]);
-        return true;
-    }    
-
-    private function createOrUpdateWarehouseItems($request)
-    {
-        $flag = $request->tax_activation == 1 ? true : false;
-        $date = Carbon::parse($request->todays_date);
-        $year = $date->year;   
-        $month = $date->month; 
-        $day = $date->day;   
-
-        // Prepare bulk insert data
-        $warehouseItemsToInsert = [];
-
-        $default_warehouse_id = 1;
-        $new_total = $request->buy_up * $request->amount; // Cost of new stock   
-        // Insert new warehouse item
-        $warehouseItemsToInsert[] = [
-            'warehouse_id' => $default_warehouse_id,
-            'buy_pre_id' => $request->pre_list_id,
-            'name' => $request->item_name ?? '',
-            'in_amount' => $request->amount,
-            'out_amount' => 0.00,
-            'available_amount' => $request->amount,
-            'unit_id' => $request->unit_id,
-            'buy_up' => $request->buy_up,
-            'buy_tax_per' => $flag ? $request->buy_tax_per : NULL, 
-            'buy_tax_price' => $flag ? $request->buy_tax_price : NULL, 
-            'buy_up_vat' =>  $flag ? $request->buy_up_vat : NULL, 
-            'total' => $request->total_price,
-            // 'total_vat' => $flag ? $request->total_vat : NULL, 
-            'total_vat' => $flag ? ($request->buy_up_vat ?? 0) * $request->amount : NULL, 
-            'sell_up' => $request->sell_up,
-            'sell_tax_per' =>  $flag ? $request->sell_tax_per : NULL, 
-            'sell_tax_price' =>  $flag ? $request->sell_tax_price : NULL, 
-            'sell_up_vat' =>  $flag ? $request->sell_up_vat : NULL,
-            'currency_id' => $request->currency_id,
-            'category_id' => $request->category_id,
-            'idate' => $request->todays_date ?? Carbon::now()->format('Y-m-d'),
-            'user_id' => auth()->user()->id ?? 0,
-            'year' => $year,
-            'month' => $month,
-            'day' => $day,
-            'times' => $request->times,
-            'is_cleared' => 0,
-        ];
-    
-        // Bulk insert new records
-        if (!empty($warehouseItemsToInsert)) {
-            WarehouseItem::insert($warehouseItemsToInsert);
-        }
-    
-        return true;
-    }
-    
 
     /**
-    * final submit in creation form
-    * in this function update bought_items based on billno and create journal reacord
-    */
-     public function submit(Request $request)
+     * Helper method for error responses
+     */
+    private function errorResponse(string $message, int $statusCode = 400)
     {
-        // return ['data' => $request->all()];
+        if (request()->expectsJson()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $message
+            ], $statusCode);
+        }
 
+        return back()->with('error', $message);
+    }
+
+    /**
+     * update sales by setting profit values
+     */
+    public function updateProfit(Request $request)
+    {
+        // return response()->json($request->all());
         $validated = $request->validate([
-            'billno'    => 'required|numeric',
-            'total_vat' => 'required', // VAT = Value Added Tax
-            'cur_pay'   => 'required',
-            'remained'  => 'required',
+            'billno' => 'required|exists:bought_item_details,billno',
+            'times' => 'nullable|integer',
+            'items' => 'required|array|min:1',
+            'items.*.sell_tax_per' => 'nullable|numeric|min:0',
+            'items.*.sell_tax_price' => 'nullable|numeric|min:0',
+            'items.*.sell_up_vat' => 'nullable|numeric|min:0',
+            'items.*.id' => 'required|exists:bought_item_details,id',
+            'items.*.profit' => 'nullable|numeric|min:0',
+            'items.*.sell_up' => 'nullable|numeric|min:0',
+            'items.*.pre_list_id' => 'nullable|exists:bought_item_pre_lists,id',
+            'items.*.unit_id' => 'nullable|exists:units,id',
+            'items.*.buy_up' => 'nullable|numeric|min:0',
         ]);
 
-        DB::beginTransaction(); // transaction start
-
+        DB::beginTransaction();
         try {
-            // Get sum of total and total_vat
-            $boughtItemDetails = BoughtItemDetails::where('billno', $validated['billno'])
-                ->selectRaw('SUM(total) as total_sum, SUM(total_vat) as total_vat_sum')
-                ->first();
+            foreach ($validated['items'] as $itemData) {
+                // Update BoughtItemDetails with lock
+                $boughtItemDetail = BoughtItemDetails::where('id', $itemData['id'])
+                    ->lockForUpdate()
+                    ->first();
+                
+                if (!$boughtItemDetail) {
+                    continue;
+                }
+                
+                // Get values from request
+                $profit = isset($itemData['profit']) && $itemData['profit'] !== '' 
+                    ? (float)$itemData['profit'] 
+                    : null;
+                
+                $sellUp = isset($itemData['sell_up']) && $itemData['sell_up'] !== '' 
+                    ? (float)$itemData['sell_up'] 
+                    : null;
+                
+                // If sell_up is not provided, calculate it from buy_up + profit
+                if ($sellUp === null && $profit !== null) {
+                    $sellUp = $boughtItemDetail->buy_up + $profit;
+                }
+                
+                // If sell_up is still null, use the existing value
+                if ($sellUp === null) {
+                    $sellUp = $boughtItemDetail->sell_up;
+                }
+                
+                // Check if tax is active for selling
+                $flag = (float)$boughtItemDetail->buy_tax_per > 0 ? true: false;
+                
+                if ($flag) {
+                    // Calculate selling tax using TaxCalculationService and tax related fields
+                    // $sellingTax = $this->taxService->calculateSellingTax(
+                    //     $boughtItemDetail->amount, 
+                    //     $sellUp, 
+                    //     $boughtItemDetail->buy_tax_per
+                    // );
+                    // // \Log::info('sellingTax: ' . json_encode($sellingTax));
+                    // $boughtItemDetail->update([
+                    //     'expected_profit' => $profit,
+                    //     'sell_up' => $sellUp,
+                    //     'sell_tax_per' => $boughtItemDetail->buy_tax_per, // Keep existing tax percentage
+                    //     'sell_tax_price' => $sellingTax['sell_tax_price'] ?? 0,
+                    //     'sell_up_vat' => $sellingTax['sell_up_vat'] ?? 0,
+                    // ]);
 
-            if (!$boughtItemDetails) {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' => __('common.add_failed'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('boughtList.index');
+                    $boughtItemDetail->update([
+                        'expected_profit' => $profit,
+                        'sell_up' => $sellUp,
+                        'sell_tax_per' => $itemData['sell_tax_per'], // Keep existing tax percentage
+                        'sell_tax_price' => $itemData['sell_tax_price'] ?? 0,
+                        'sell_up_vat' => $itemData['sell_up_vat'] ?? 0,
+                    ]);
+
+                } else {
+                    // Update without tax
+                    $boughtItemDetail->update([
+                        'expected_profit' => $profit,
+                        'sell_up' => $sellUp,
+                    ]);
+                }
+                
+                // Update WarehouseItem sell_up with lock
+                $warehouseItem = WarehouseItem::where('buy_pre_id', $boughtItemDetail->pre_list_id)
+                    ->where('billno', $boughtItemDetail->billno)
+                    ->where('unit_id', $boughtItemDetail->unit_id)
+                    ->where('user_id', $this->userId ?? $boughtItemDetail->user_id)
+                    ->lockForUpdate()
+                    ->first();
+                
+                
+                if ($warehouseItem) {
+                    // Update sell_up in warehouse_items
+
+                    if($flag) 
+                    { 
+                        $warehouseItem->update([
+                          'sell_up' => $sellUp,
+                          'sell_tax_per' => $itemData['sell_tax_per'], 
+                          'sell_tax_price' => $itemData['sell_tax_price'] ?? 0,
+                          'sell_up_vat' => $itemData['sell_up_vat'] ?? 0,
+                        ]);
+                    } 
+                    else 
+                    {
+                        $warehouseItem->update([
+                          'sell_up' => $sellUp,
+                        ]);
+                    }
+                    
+                }
             }
 
-            $total_price = $boughtItemDetails->total_sum ?? 0;
-            $total_vat = $boughtItemDetails->total_vat_sum ?? 0;
-            
-            $cur_pay = (float) $request->cur_pay;
-            $remained = $total_price - $cur_pay;
+            DB::commit();
 
-            // Calculate remained_vat 
-            if ((int) $request->tax_activation === 1) {
-                $remained_vat = $total_vat - $cur_pay; 
-                // If you have separate vat payment, use: $remained_vat = $total_vat - $request->cur_pay_vat;
-            } else {
-                $remained_vat = null;
-            }
-
-            $BoughtItem = BoughtItem::where('billno', $request->billno)->first();
-
-            if (!$BoughtItem) {
-                DB::rollBack();
-                Session::put('notification', [
-                    'message' => __('common.record_not_found'),
-                    'type' => 'danger',
-                ]);
-                return redirect()->route('boughtList.index');
-            }
-
-            // Update BoughtItem record
-            $BoughtItem->update([
-                'journal_code' => $request->journal_code,
-                'total_price' => $total_price,
-                'total_vat' => $total_vat,
-                'cur_pay' => $cur_pay,
-                'remained' => $remained,
-                'remained_vat' => $remained_vat,
-                'note' => $request->note ?? '',
-                'times' => $request->times,
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.updated_successfully')
             ]);
 
-            // Log::info('Start inserting into Journal');
-            // Insert into journal
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Profit Update Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create Or Update warehouse items from bought items
+    */
+    private function createOrUpdateWarehouseItems($request)
+    {
+        $date  = Carbon::parse($request->todays_date);
+        $year  = $date->year;
+        $month = $date->month;
+        $day   = $date->day;
+        
+        $default_warehouse_id = 1; // You can make this dynamic
+        $flag = (bool)$request->tax_activation;
+        
+        DB::beginTransaction();
+        try {
+            // Loop through each item
+            foreach ($request->items as $item) {
+                $total = $flag ?  $item['total_vat'] : $item['total'];
+                // Prepare the data
+                $data = [
+                    'warehouse_id' => $default_warehouse_id,
+                    'buy_pre_id' => $item['pre_list_id'],
+                    'billno' => $request->billno,
+                    'in_amount' => $item['amount'],
+                    'out_amount' => 0.00,
+                    'available_amount' => $item['amount'],
+                    'unit_id' => $item['unit_id'],
+                    'buy_up'  => $item['buy_up'],
+                    'buy_tax_per' => $flag ? $item['buy_tax_per'] : 0,
+                    'buy_tax_price' => $flag ? $item['buy_tax_price'] : 0,
+                    'buy_up_vat' => $flag ? $item['buy_up_vat'] : 0,
+                    'total' => $total,
+                    'available_total' => $total,
+                    'sell_up' => $item['sell_up'],
+                    'sell_tax_per' => $flag ? $item['buy_tax_per'] : 0,
+                    'sell_tax_price' => $flag ? $item['sell_tax_price'] : 0,
+                    'sell_up_vat' => $flag ? $item['sell_up_vat'] : 0,
+                    'currency_id' => $request->currency_id,
+                    'category_id' => $item['category_id'] ?? null,
+                    'car_id' => $request->car_id ?? null,
+                    'supplier_id' => $request->supplier_account_id,
+                    'idate' => $request->todays_date,
+                    'user_id' => $this->userId ?? auth()->id(),
+                    'year' => $year,
+                    'month' => $month,
+                    'day' => $day,
+                    'times' => $request->times,
+                    'is_cleared' => 0,
+                ];
+
+                // Check if the record exists
+                $existing = WarehouseItem::where('buy_pre_id', $item['pre_list_id'])
+                    ->where('unit_id', $item['unit_id'])
+                    // ->where('times', $request->times)
+                    ->where('user_id', $this->userId ?? auth()->id())
+                    ->first();
+
+                if ($existing) // UPDATE: If exists, update it
+                {
+                    $currentInAmount = (float) $existing->in_amount;
+                    $currentAvailableAmount = (float) $existing->available_amount;
+                    $amount = (float) $item['amount'];
+
+                    $in_amount = $currentInAmount + $amount;
+                    $available_amount = $currentAvailableAmount + $amount;
+
+                    if ($flag) {
+                        // When tax is active, use VAT prices
+                        $new_total = $in_amount * $item['buy_up_vat'];
+                        $available_total = $available_amount * $item['buy_up_vat'];
+                    } else {
+                        // When tax is not active, use base prices
+                        $new_total = $in_amount * $item['buy_up'];
+                        $available_total = $available_amount * $item['buy_up'];
+                    }
+
+                    $existing->update([
+                        'warehouse_id' => $default_warehouse_id,
+                        'in_amount' => $in_amount,
+                        'available_amount' => $available_amount,
+                        'buy_up' => $item['buy_up'],
+                        'total' => $new_total,
+                        'available_total' => $available_total,
+                        'sell_up' => $item['sell_up'],
+
+                        'buy_tax_per' => $flag ? $item['buy_tax_per'] : 0,
+                        'buy_tax_price' => $flag ? $item['buy_tax_price'] : 0,
+                        'buy_up_vat' => $flag ? $item['buy_up_vat'] : 0,
+                    
+                        'sell_tax_per' => $flag ? $item['buy_tax_per'] : 0,
+                        'sell_tax_price' => $flag ? $item['sell_tax_price'] : 0,
+                        'sell_up_vat' => $flag ? $item['sell_up_vat'] : 0,
+
+                        'currency_id' => $request->currency_id,
+                        'category_id' => $item['category_id'] ?? null,
+                        'car_id' => $request->car_id ?? null,
+                        'supplier_id' => $request->supplier_account_id,
+                        'idate' => $request->todays_date,
+                        'year' => $year,
+                        'month' => $month,
+                        'day' => $day,
+                    ]);
+                } else {
+                    // INSERT: If not exists, create new
+                    WarehouseItem::create($data);
+                }
+            }
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to process warehouse items: ' . $e->getMessage());
+        }
+    }
+        
+
+    /**
+    * Insert once all items of ordered list
+    */
+    public function submit(Request $request)
+    {
+        // return ['data' => $request->all()];
+        // Validate the request
+        $validated = $request->validate([
+            'supplier_account_id' => 'required|exists:accounts,id',
+            'from_account_id' => 'required|exists:accounts,id',
+            'todays_date' => 'required|date',
+            'tax_activation' => 'required|numeric|min:0',
+            'tax_per'        => 'required|numeric|min:0',
+            // 'billno' => 'required|numeric|unique:bought_items,billno',
+            'billno' => 'required|numeric',
+            'factor' => 'nullable|string|max:255',
+            'total_price' => 'required|numeric|min:0',
+            'cur_pay' => 'required|numeric|min:0',
+            'remained' => 'required|numeric|min:0',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:1000',
+            // 'category_id'   => 'required|exists:categories,id',
+            // 'tax_activation' => 'nullable|integer',
+            'times' => 'required|integer',
+            'items' => 'required|array|min:1',
+            'items.*.pre_list_id' => 'required|exists:bought_item_pre_lists,id',
+            'items.*.unit_id' => 'required|exists:units,id',
+            'items.*.amount' => 'required|numeric|min:0.01',
+            'items.*.buy_up' => 'required|numeric|min:0',
+            'items.*.profit_amount' => 'nullable|numeric',
+            'items.*.sell_up' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
+            'items.*.category_id' => 'required|exists:categories,id',
+            'car_id' => 'required|exists:cars,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Parse date
+            $date = Carbon::parse($validated['todays_date']);
+
+            /**
+             * برای اینکه چند کاربر همزمان ثبت نکند و  بل نمبر یکسان نباشد باید 
+             * اینجا چک شود اگر ثبت نبود همان بل نمبر اوکی است و اگر ثبت شده بود بل نمبر جدید بیگیرد
+             */
+            
+             /**
+             * FIXED: Use lockForUpdate() to prevent race conditions
+             * Multiple users can't get the same billno anymore
+             */
+            $times = time();
+            $billno = null;
+            
+            // Lock the table to prevent concurrent access
+            // Check if billno exists with lock
+            $existingBill = BoughtItem::where('billno', $validated['billno'])
+                ->lockForUpdate()
+                ->first();
+
+            $journalCode =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journal_code = $journalCode + 1;
+                
+            if ($existingBill) {
+                // Get max billno with lock to prevent duplicates
+                $maxBill = BoughtItem::lockForUpdate()->max('billno') ?? 0;
+                $billno = $maxBill + 1;
+                $times = time();
+            } else {
+                $billno = $validated['billno'];
+            }
+
+             $flag  = (bool)$validated['tax_activation'];
+
+            // ADD TO REQUEST: Merge the new values into the request
+            $request->merge([
+                'billno' => $billno,
+                'journal_code' => $journal_code,
+                'times' => $times,
+            ]);
+           
+            // Create BoughtItem (main record)
+            $boughtItem = BoughtItem::create([
+                'billno' => $billno,
+                'factor' => $validated['factor'] ?? null,
+                'journal_code' => $journal_code ?? null,
+                'total' => $validated['total_price'],
+                'cur_pay' => $validated['cur_pay'],
+                'category_id' => $validated['category_id'] ?? 0,
+                'remained' => $validated['remained'],
+                'account_id' => $validated['from_account_id'],
+                'supplier_account_id' => $validated['supplier_account_id'],
+                'currency_id' => $validated['currency_id'],
+                'car_id' => $validated['car_id'],
+                'note'   => $validated['note'] ?? null,
+                'idate'  => $date->format('Y-m-d'),
+                'year'   => $date->year,
+                'month'  => $date->month,
+                'day'    => $date->day,
+                'tax_activation' => $validated['tax_activation'] ?? 0,
+                'times' => $times,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName ?? 'System',
+                'has_invoice' => 0,
+                'invoice_id' => null,
+            ]);
+
+           
+            // Create BoughtItemDetails (items)
+            foreach ($validated['items'] as $item) {
+                BoughtItemDetails::create([
+                    'billno' => $billno,
+                    'bought_item_id' => $boughtItem->id,
+                    'supplier_account_id' => $validated['supplier_account_id'],
+                    'pre_list_id' => $item['pre_list_id'],
+                    'category_id' => $item['category_id'],
+                    'amount'  => $item['amount'],
+                    'unit_id' => $item['unit_id'],
+                    'buy_up'  => $item['buy_up'],
+
+                    // tax related fields
+                    'buy_tax_per'    => 0, 
+                    'buy_tax_price'  => 0,
+                    'buy_up_vat'     => 0,
+                    'total_vat'      => 0,
+                    'sell_tax_per'   => 0, 
+                    'sell_tax_price' => 0,
+                    'sell_up_vat'    => 0,
+                     
+                    'total'            => $item['total'],
+                    'expected_profit'  => $item['profit_amount'],
+                    'sell_up'          => $item['sell_up'],
+                    'is_moved'         => 0,
+                    'times'            => $times,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName ?? 'System',
+                ]);
+            }
+
+            // Create Journal entries if needed
             $check = $this->handleJournalEntry($request);
             if (!$check) {
                 DB::rollBack();
@@ -431,35 +839,252 @@ class BoughtDetailsController extends Controller
                 return redirect()->route('boughtList.index');
             }
 
-            DB::commit(); // Commit transaction
+            
+            $this->createOrUpdateWarehouseItems($request);
 
-            // Flash success message
-            Session::put('notification', [
+
+            // update Order state to progress
+            $categoryId = $validated['items'][0]['category_id'] ?? null;
+
+            if ($categoryId) {
+                Order::where('state', 1)
+                    ->where('category_id', $categoryId)
+                    ->where('bill_no', 0)
+                    ->where('user_id', $this->userId)
+                    ->update(['state' => 3, 'bill_no' => $billno]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
                 'message' => __('common.added_successfully'),
-                'type' => 'success',
+                'data' => [
+                    'bought_item_id' => $boughtItem->id,
+                    'billno' => $boughtItem->billno,
+                ]
             ]);
-
-            return redirect()->route('boughtList.index');
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Rollback on error
+            DB::rollBack();
+            Log::error('Bought Item Creation Error: ' . $e->getMessage());
+            // Log::error('Request Data: ', $request->all());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
-            // Log the error
-            \Log::error('Error occurred during the transaction', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+    /**
+     * Insert Once all items with calculated taxes
+     */
+    public function submitWithTax(Request $request)
+    {
+        // return ['data' => $request->all()];
+
+        // Validate the request
+        $validated = $request->validate([
+            'supplier_account_id' => 'required|exists:accounts,id',
+            'from_account_id' => 'required|exists:accounts,id',
+            'todays_date' => 'required|date',
+            'tax_activation' => 'required|numeric|min:0',
+            'tax_per'        => 'required|numeric|min:0',
+            // 'billno' => 'required|numeric|unique:bought_items,billno',
+            'billno' => 'required|numeric',
+            'factor' => 'nullable|string|max:255',
+            'total_price' => 'required|numeric|min:0',
+            'cur_pay' => 'required|numeric|min:0',
+            'remained' => 'required|numeric|min:0',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:1000',
+            'times' => 'required|integer',
+            'items' => 'required|array|min:1',
+            'items.*.pre_list_id' => 'required|exists:bought_item_pre_lists,id',
+            'items.*.unit_id' => 'required|exists:units,id',
+            'items.*.amount' => 'required|numeric|min:0.01',
+            'items.*.buy_up' => 'required|numeric|min:1',
+            'items.*.buy_up_vat' => 'required|numeric|min:1',
+            'items.*.buy_tax_price' => 'required|numeric|min:1',
+            'items.*.buy_tax_per' => 'required|numeric|min:1',
+            'items.*.sell_up'     => 'required|numeric|min:1',
+            'items.*.sell_up_vat'    => 'required|numeric|min:1',
+            'items.*.sell_tax_price' => 'required|numeric|min:1',
+            'items.*.total_vat' => 'required|numeric|min:1',
+            'items.*.profit_amount' => 'nullable|numeric',
+            'items.*.total' => 'required|numeric|min:0',
+            'items.*.category_id' => 'required|exists:categories,id',
+            'car_id' => 'required|exists:cars,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Parse date
+            $date = Carbon::parse($validated['todays_date']);
+
+            /**
+             * برای اینکه چند کاربر همزمان ثبت نکند و  بل نمبر یکسان نباشد باید 
+             * اینجا چک شود اگر ثبت نبود همان بل نمبر اوکی است و اگر ثبت شده بود بل نمبر جدید بیگیرد
+             */
+            
+             /**
+             * FIXED: Use lockForUpdate() to prevent race conditions
+             * Multiple users can't get the same billno anymore
+             */
+            $times = time();
+            $billno = null;
+            
+            // Lock the table to prevent concurrent access
+            // Check if billno exists with lock
+            $existingBill = BoughtItem::where('billno', $validated['billno'])
+                ->lockForUpdate()
+                ->first();
+
+            $journalCode =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journal_code = $journalCode + 1;
+                
+            if ($existingBill) {
+                // Get max billno with lock to prevent duplicates
+                $maxBill = BoughtItem::lockForUpdate()->max('billno') ?? 0;
+                $billno = $maxBill + 1;
+                $times = time();
+            } else {
+                $billno = $validated['billno'];
+            }
+
+             $flag  = (bool)$validated['tax_activation'];
+
+            // ADD TO REQUEST: Merge the new values into the request
+            if($flag) {
+                $request->merge([
+                    'billno' => $billno,
+                    'journal_code' => $journal_code,
+                    'times' => $times,
+                ]);
+            } else {
+                 $request->merge([
+                    'billno' => $billno,
+                    'journal_code' => $journal_code,
+                    'times' => $times,
+                ]);
+            }
+           
+            // Create BoughtItem (main record)
+            $boughtItem = BoughtItem::create([
+                'billno' => $billno,
+                'factor' => $validated['factor'] ?? null,
+                'journal_code' => $journal_code ?? null,
+                'total' => $validated['total_price'],
+                'cur_pay' => $validated['cur_pay'],
+                'category_id' => $validated['category_id'] ?? 0,
+                'remained' => $validated['remained'],
+                'account_id' => $validated['from_account_id'],
+                'supplier_account_id' => $validated['supplier_account_id'],
+                'currency_id' => $validated['currency_id'],
+                'car_id' => $validated['car_id'],
+                'note'   => $validated['note'] ?? null,
+                'idate'  => $date->format('Y-m-d'),
+                'year'   => $date->year,
+                'month'  => $date->month,
+                'day'    => $date->day,
+                'tax_activation' => $validated['tax_activation'] ?? 0,
+                'times' => $times,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName ?? 'System',
+                'has_invoice' => 0,
+                'invoice_id' => null,
             ]);
 
-            // Flash error message
-            Session::put('notification', [
-                'message' => __('common.add_failed') . ': ' . $e->getMessage(),
-                'type' => 'danger',
+           
+            // Create BoughtItemDetails (items)
+            foreach ($validated['items'] as $item) 
+            {
+                $buy_tax_per   =  $item['buy_tax_per'] ?? 0; 
+                $buy_tax_price = $item['buy_tax_price'] ?? 0;;
+                $buy_up_vat    = $item['buy_up_vat'] ?? 0;
+                $total_vat     = $item['total_vat'] ?? 0;
+                $sell_tax_per  = $item['buy_tax_per'] ?? 0;
+                $sell_tax_price = $item['sell_tax_price'] ?? 0;
+                $sell_up_vat    = $item['sell_up_vat'] ?? 0;
+
+                BoughtItemDetails::create([
+                    'billno' => $billno,
+                    'bought_item_id' => $boughtItem->id,
+                    'supplier_account_id' => $validated['supplier_account_id'],
+                    'pre_list_id' => $item['pre_list_id'],
+                    'category_id' => $item['category_id'],
+                    'amount'    => $item['amount'],
+                    'unit_id' => $item['unit_id'],
+                    'buy_up'  => $item['buy_up'],
+
+                    // tax related fields
+                    'buy_tax_per'    => $buy_tax_per, 
+                    'buy_tax_price'  => $buy_tax_price,
+                    'buy_up_vat'     => $buy_up_vat,
+                    'total_vat'      => $total_vat,
+                    'sell_tax_per'   => $sell_tax_per, 
+                    'sell_tax_price' => $sell_tax_price,
+                    'sell_up_vat'    => $sell_up_vat,
+                    
+                    'total'            => $item['total'],
+                    'expected_profit'  => $item['profit_amount'],
+                    'sell_up'          => $item['sell_up'],
+                    'is_moved' => 0,
+                    'times' => $times,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName ?? 'System',
+                ]);
+            }
+
+            // Create Journal entries if needed
+            $check = $this->handleJournalEntry($request);
+            if (!$check) {
+                DB::rollBack();
+                Session::put('notification', [
+                    'message' => __('common.add_failed'),
+                    'type' => 'danger',
+                ]);
+                return redirect()->route('boughtList.index');
+            }
+
+            
+            $this->createOrUpdateWarehouseItems($request);
+
+
+            // update Order state to progress
+            $categoryId = $validated['items'][0]['category_id'] ?? null;
+
+            if ($categoryId) {
+                Order::where('state', 1)
+                    ->where('category_id', $categoryId)
+                    ->where('bill_no', 0)
+                    ->where('user_id', $this->userId)
+                    ->update(['state' => 3, 'bill_no' => $billno]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'bought_item_id' => $boughtItem->id,
+                    'billno' => $boughtItem->billno,
+                ]
             ]);
 
-            return redirect()->route('boughtList.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Bought Item Creation Error: ' . $e->getMessage());
+            // Log::error('Request Data: ', $request->all());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
         }
     }
     
+
     private function deleteBoughtRecords($request)
     {
          // Optionally delete or revert other records here as per your requirements
@@ -551,10 +1176,12 @@ class BoughtDetailsController extends Controller
            
              /**
              * ================================== insert in to journal ========================
-             * status: 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:other
+             * status => 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:clearance, 10:other
              * transaction_type: 1:recieved   2:paid
              * payment_type:     1: cache,    2: loan
              */
+
+             
             
             DB::beginTransaction();
             try {
@@ -564,7 +1191,7 @@ class BoughtDetailsController extends Controller
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
 
-            if(intval($request->cur_pay) === 0 && intval($request->remained) === intval($request->total_price))
+            if ((float)$request->cur_pay === 0.00 && (float)$request->remained === (float)$request->total_price) 
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
@@ -579,7 +1206,7 @@ class BoughtDetailsController extends Controller
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
-            else if(intval($request->remained) > 0 && intval($request->cur_pay) > 0) 
+            else if ((float)$request->remained > 0 && (float)$request->cur_pay > 0) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details = __('validate.pkbill').' BUY_'.$request->billno;
@@ -600,8 +1227,8 @@ class BoughtDetailsController extends Controller
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
-             // تنها از حساب خزانه کم شود
-            else if(intval($request->remained) === 0 && intval($request->cur_pay) === intval($request->total_price)) 
+             // تنها از حساب خزانه کم شود 
+            else if ((float)$request->remained === 0.00 && (float)$request->cur_pay === (float)$request->total_price) 
             {
                 // ثبت پرداخت نقدی خزانه = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
@@ -627,7 +1254,7 @@ class BoughtDetailsController extends Controller
         }
     }
 
-   private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details, $dynamic_type, $dt_comment, $status = 7)
+     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details,    $dynamic_type, $dt_comment, $status = 7)
     {
         try {
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
@@ -651,7 +1278,7 @@ class BoughtDetailsController extends Controller
                 'user_name' => auth()->user()->full_name ?? '',
                 'year' =>  $year,
                 'month' => $month,
-                'day' =>  $year,
+                'day' =>  $day,
                 'idate' => $request->todays_date,
                 'details' => $details,
                 'status' => $status,  
@@ -675,30 +1302,75 @@ class BoughtDetailsController extends Controller
     {
         $orgbios = OrgBio::all();
         $short_date = Carbon::now()->format('Y-m-d');
+        // FIX: Proper variable naming
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
+            ->where('times', $times)
+            ->get();
 
-            $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])
-            ->where('times',$times)->get();
-   
-            $boughtItems = BoughtItem::with(['account' => function($query) {
+        $boughtItems = BoughtItem::with([
+            'account' => function($query) {
                 $query->select('id', 'name');
-            }, 'currencyRelation' => function ($query){
-                $query->select('id','name','symbols');
-            }])->where('times', $times)->get();
+            }, 
+            'currencyRelation' => function ($query) {
+                $query->select('id', 'name', 'symbols');
+            }
+        ])->where('times', $times)->get();
 
-            $jexists = Journal::where('times', $times)->exists();
+        $jexists = Journal::where('times', $times)->exists();
 
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-        // return response()->json(['jexists' => $jexists]);
+        // $supplier_account_id = $boughtItemDetails->isNotEmpty() ? $boughtItemDetails->first()->supplier_account_id ?? 0 : 0;
+        // $currency_id = $boughtItems->isNotEmpty() && $boughtItems->first()->currencyRelation ? $boughtItems->first()->currencyRelation->id : 1;
 
-        return view('buy.bought.details',compact('boughtItemDetails','boughtItems','short_date','orgbios','jexists'));
+        // get previous balances
+        // $supplier_balance = $this->getSupplierBalance($supplier_account_id, $currency_id);
+        // return ['supplier_account_id' =>  $supplier_account_id,'currency_id' =>  $currency_id,'times' =>  $times,];
+        // return ['supplier_balance' => $supplier_balance];
 
+        return view('buy.bought.details', compact('boughtItemDetails', 'boughtItems', 'short_date', 'orgbios', 'jexists'));
     }
 
-    public function checkBillNoDuplication(Request $request)
+      /**
+     * Get Customer balance by supplier_account_id
+     */
+    private function getSupplierBalance($supplier_account_id, $currency_id)
     {
-        $exists = BoughtItem::where('billno', $request->billno)->exists();
-        return response()->json(['exists' => $exists]);
+        $journal = DB::table('journals')
+            ->select([
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as cache_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 1 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_recieved"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 2 
+                            AND journals.payment_type = 2 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as loan_paid"),
+            ])
+            ->where('currency_id', $currency_id)
+            ->where('account_id', $supplier_account_id)
+            ->first();
+
+            // balance = (CachePaid + LoanPaid) - (CacheRecieved + LoanRecieved); 
+    
+        // Calculate the balance
+        $talabat = ($journal->cache_paid + $journal->loan_paid);
+        $loans = ($journal->cache_recieved + $journal->loan_recieved);
+
+        // return $balance;
+        return ['talabat' => $talabat , 'loans' => $loans];
     }
+    
 
     /**
      * Show Edit Form
@@ -706,28 +1378,45 @@ class BoughtDetailsController extends Controller
      */
     public function edit(string $times)
     {
-        $billno =  BoughtItem::max('billno') + 1;   
-        $currencies = Currency::select('id','name')->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
-        $journal_code = Journal::select('code')->where('times',$times)->first();
+        // Check if any items have been sold (out_amount > 0)
+        $hasSoldItems = WarehouseItem::where('times', $times)
+            ->where('out_amount', '>', 0)
+            ->exists();
 
-        if(!$journal_code)
-        {
-            echo "Journal Code and Branch Id not found";
-            die();
+        // Determine if editable
+        if($hasSoldItems) {
+             Session::put('notification', [
+                    'message' => __('common.not_editable'),
+                    'type' => 'danger',
+            ]);
+            return redirect()->route('boughtList.details', ['times' => $times]);
+        }
+
+        $billno = BoughtItem::max('billno') + 1;   
+        $currencies = Currency::select('id', 'name')->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->orderBy('is_pre_select', 'DESC')->get();
+        $journal_code = Journal::select('code')->where('times', $times)->first();
+
+        if (!$journal_code) {
+            Session::put('notification', [
+                'message' => __('common.record_not_found'),
+                'type' => 'danger',
+            ]);
+            return redirect()->route('boughtList.index');
         }
 
         $orgbios = OrgBio::all();
-        $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])
-        ->where('times',$times)->get();
-        $boughtItems = BoughtItem::select('id','billno','times','idate','account_id','currency_id','cur_pay','note')->where('times', $times)->get();
+        
+        // FIX: Proper variable naming
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
+            ->where('times', $times)
+            ->get();
+            
+        $boughtItems = BoughtItem::select('id', 'billno', 'times', 'idate', 'account_id', 'currency_id', 'cur_pay', 'note')
+            ->where('times', $times)
+            ->get();
 
-        // return response()->json(['boughtItemDetails' => $boughtItemDetails]);
-        // return response()->json(['boughtItems' => $boughtItems]);
-        // echo $journal_code;
-        // die();
-
-        return view('buy.bought.edit',compact('boughtItemDetails','boughtItems','orgbios','currencies','ownBanks','journal_code'));
+        return view('buy.bought.edit', compact('boughtItemDetails', 'boughtItems', 'orgbios', 'currencies', 'ownBanks', 'journal_code'));
     }
 
     /**
@@ -765,15 +1454,9 @@ class BoughtDetailsController extends Controller
             }
 
             // Update bought item
-            if ((int)$request->tax_activation === 1) {
-                $boughtItem->total_vat = $request->total_price ?? 0;
-                $boughtItem->cur_pay = $request->cur_pay ?? 0;
-                $boughtItem->remained_vat = $request->remained ?? 0;
-            } else {
-                $boughtItem->total_price = $request->total_price ?? 0;
-                $boughtItem->cur_pay = $request->cur_pay ?? 0;
-                $boughtItem->remained = $request->remained ?? 0;
-            }
+            $boughtItem->total = $request->total_price ?? 0;
+            $boughtItem->cur_pay = $request->cur_pay ?? 0;
+            $boughtItem->remained = $request->remained ?? 0;
             $boughtItem->account_id = $request->from_account_id;
             $boughtItem->note = $request->note ?? '';
             $boughtItem->save();
@@ -809,7 +1492,7 @@ class BoughtDetailsController extends Controller
             // Log the error
             \Log::error('Error occurred during the journal update', ['error' => $e]);
     
-            // Flash error message
+            // Flash error message   
             Session::put('notification', [
                 'message' => __('common.update_failed'),
                 'type' => 'danger',
@@ -828,14 +1511,16 @@ class BoughtDetailsController extends Controller
     public function getSingleRecordForEdit(string $id)
     {
         $units = Unit::select('id','name')->get();
-        $tax_activation = OrgBio::select('tax_activation')->first();
-        $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])->where('id', $id)->first();
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation','preListRelation','unitRelation'])
+        ->where('id', $id)
+        ->sharedLock()
+        ->first();
 
         if (!$boughtItemDetails) {
             return response()->json(['error' => 'Bought Item Details not found'], 404);
         }
 
-        return view('buy.bought.editModalContent', compact('boughtItemDetails', 'units','tax_activation'));
+        return view('buy.bought.editModalContent', compact('boughtItemDetails', 'units'));
     }
 
 
@@ -845,134 +1530,127 @@ class BoughtDetailsController extends Controller
     */
     public function updateItemAndWarehouseItems(Request $request)
     {
-        // return response()->json(['formData' => $request->all()]);
-
         // Validate input data
         $validated = $request->validate([
             'id'                    => 'required|exists:bought_item_details,id',
-            'amount'                => 'required|numeric|min:0',
-            'buy_up'                => 'required|numeric|min:0',
+            'billno'                => 'required|numeric|exists:bought_item_details,billno',
+            'amount'                => 'required|numeric|min:1',
+            'old_amount'            => 'required|numeric|min:1',
+            'buy_up'                => 'required|numeric|min:1',
+            'buy_tax_per'           => 'required|numeric|min:0',
+            'buy_tax_price'         => 'nullable|numeric|min:0',
+            'buy_up_vat'            => 'nullable|numeric|min:0',
+            'total_vat'             => 'nullable|numeric|min:0',
             'unit_id'               => 'required|exists:units,id',
             'pre_list_id'           => 'required',
             'times'                 => 'required|string',
             "total"                 => 'required|numeric|',
+            'note'                  => 'nullable|string',
         ]);
         
-
         DB::beginTransaction();
         try {
             // Update BoughtItemDetails
-            $boughtItemDetails = BoughtItemDetails::findOrFail($validated['id']);
-            // $boughtItemDetails->update([
-            //     'amount' => $validated['amount'],
-            //     'buy_up' => $validated['buy_up'],
-            //     'pre_list_id' => $validated['pre_list_id'],
-            //     'unit_id' => $validated['unit_id'],
-            //     'total' => $validated['total'],
-            //     "buy_tax_per"  =>  $request->buy_tax_per ?? NULL,
-            //     "buy_tax_price" =>  $request->buy_tax_price ?? NULL,
-            //     "buy_up_vat" =>  $request->buy_up_vat ?? NULL,
-            //     "total_vat" =>  $request->total_vat ?? NULL,
-            //     "note"  =>  $request->note ?? '',
-            //     "sell_up" =>  $request->sell_up ?? NULL,
-            //     "sell_tax_per" =>  $request->sell_tax_per ?? NULL,
-            //     "sell_tax_price" =>  $request->sell_tax_price ?? NULL, 
-            //     "sell_up_vat" =>  $request->sell_up_vat ?? NULL,
-            // ]);
+            $boughtItemDetails = BoughtItemDetails::where('id', $validated['id'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            $boughtItemData['amount'] = $validated['amount'];
-            $boughtItemData['buy_up'] = $validated['buy_up'];
-            $boughtItemData['pre_list_id'] = $validated['pre_list_id'];
-            $boughtItemData['unit_id'] = $validated['unit_id'];
-            $boughtItemData['total'] = $validated['total'];
-            // Add fields only if they exist in the request
-            if ($request->has('buy_tax_per')) { $boughtItemData['buy_tax_per'] = $request->buy_tax_per; }
-            if ($request->has('buy_tax_price')) { $boughtItemData['buy_tax_price'] = $request->buy_tax_price; }
-            if ($request->has('buy_up_vat')) {  $boughtItemData['buy_up_vat'] = $request->buy_up_vat; }
-            if ($request->has('total_vat')) {  $boughtItemData['total_vat'] = $request->total_vat; }
-            if ($request->has('note')) {  $boughtItemData['note'] = $request->note; }
-            if ($request->has('sell_up')) { $boughtItemData['sell_up'] = $request->sell_up; }
-            if ($request->has('sell_tax_per')) { $boughtItemData['sell_tax_per'] = $request->sell_tax_per; }
-            if ($request->has('sell_tax_price')) {  $boughtItemData['sell_tax_price'] = $request->sell_tax_price; }
-            if ($request->has('sell_up_vat')) { $boughtItemData['sell_up_vat'] = $request->sell_up_vat; }
+            if(!$boughtItemDetails) {
+                throw new \Exception('جنس یافت نشد');
+            }
 
-            $boughtItemDetails->update($boughtItemData);
+            $flag = (int)$validated['buy_tax_per'] > 0 ? true : false;
 
-            // Refresh the model to get the updated value
+            if($flag) {
+                $boughtItemDetails->update([
+                    'amount'         => $validated['amount'],
+                    'buy_up'         => $validated['buy_up'],
+                    'unit_id'        => $validated['unit_id'],
+                    'total'          => $validated['total'],
+                    'buy_tax_per'    => $validated['buy_tax_per'],
+                    'buy_tax_price'  => $validated['buy_tax_price'],
+                    'buy_up_vat'     => $validated['buy_up_vat'],
+                    'total_vat'      => $validated['total_vat'],
+                    'note'           => $validated['note'],
+                ]);
+            } else {
+                $boughtItemDetails->update([
+                    'amount'   => $validated['amount'],
+                    'buy_up'   => $validated['buy_up'],
+                    'unit_id'  => $validated['unit_id'],
+                    'total'    => $validated['total'],
+                    'note'     => $validated['note'],
+                ]);
+            }
+
             $boughtItemDetails->refresh();
             
-                /**
-                 * If multiple users are updating warehouseItems simultaneously, one update might override another.
-                 * Solution: Use optimistic locking with a version column or locking queries:
-                 */
-                $WarehouseItem = WarehouseItem::where('times', $validated['times'])
+            // FIRST: Find Warehouse Item
+            if($this->isAdmin) {
+                $warehouseItem = WarehouseItem::where('billno', $validated['billno'])
                     ->where('buy_pre_id', $validated['pre_list_id'])
                     ->where('unit_id', $validated['unit_id'])
-                    ->lockForUpdate() // Prevents race conditions
+                    ->lockForUpdate()
                     ->first();
+            } else {
+                $warehouseItem = WarehouseItem::where('billno', $validated['billno'])
+                    ->where('buy_pre_id', $validated['pre_list_id'])
+                    ->where('unit_id', $validated['unit_id'])
+                    ->where('user_id', $this->userId)
+                    ->lockForUpdate()
+                    ->first();
+            }
 
-                if (!$WarehouseItem) {
-                    throw new \Exception('Warehouse item not found');
+            // SECOND: Check if warehouse item exists
+            if (!$warehouseItem) {
+                throw new \Exception('این جنس در گدام یافت نشد');
+            }
+
+            // THIRD: Now access $warehouseItem safely
+            $oldAmount = (float) $validated['old_amount'];
+            $newAmount = (float) $validated['amount'];
+            $diff = abs($newAmount - $oldAmount);
+
+            if($flag) {
+                $valuationPrice = $validated['buy_up_vat'] ?? $warehouseItem->buy_up ?? 0;
+                $warehouseItem->buy_tax_per = $validated['buy_tax_per'];
+                $warehouseItem->buy_tax_price = $validated['buy_tax_price'];
+                $warehouseItem->buy_up_vat = $validated['buy_up_vat'];
+                $warehouseItem->total = $validated['total_vat'];
+            } else {
+                $valuationPrice = $validated['buy_up'] ?? $warehouseItem->buy_up;
+                $warehouseItem->total = $validated['total'];
+            }
+
+            // Update warehouse quantities based on difference
+            if ($oldAmount > $newAmount) {
+                $warehouseItem->available_amount -= $diff;
+                if ($warehouseItem->in_amount >= $diff) {
+                    $warehouseItem->in_amount -= $diff;
                 }
+            } elseif ($newAmount > $oldAmount) {
+                $warehouseItem->available_amount += $diff;  
+                $warehouseItem->in_amount += $diff;   
+            }
 
-                $old_amount = (float) $request->old_amount;
-                $amount = (float) $request->amount;
-                $diff = $amount - $old_amount;
-    
-                // out_amount: amount that has been sold/used
-                // in_amount: total purchased amount
-                // available_amount: current stock
-                $in_amount = $WarehouseItem->in_amount + $diff;
-                $available_amount = $WarehouseItem->available_amount + $diff;
-                $out_amount = $WarehouseItem->out_amount; // Keep out_amount as is unless sold
-                
-                 // Prevent negative values
-                if (!$WarehouseItem || $available_amount < 0) {
-                   
+            // Calculate available_total = available_amount × valuation_price
+            $warehouseItem->available_total = round($warehouseItem->available_amount * $valuationPrice, 2);
+
+            // Ensure in_amount is never negative
+            if ($warehouseItem->in_amount < 0) {
+                $warehouseItem->in_amount = 0;
+                $warehouseItem->total = 0;
+            }
+
+            // Ensure available_amount is never negative
+            if ($warehouseItem->available_amount < 0) {
+                $warehouseItem->available_amount = 0;
+                $warehouseItem->available_total = 0;
+            }
+
+            $warehouseItem->buy_up = $validated['buy_up'];
+            $warehouseItem->save();
             
-                    Session::put('notification', [
-                        'message' => __('common.update_failed'),
-                        'type' => 'danger',
-                    ]);
-                     return redirect()->route('boughtList.edit', ['times' => $validated['times']]);
-                }
-
-                // $WarehouseItem->update([
-                //     'in_amount' => $in_amount , 
-                //     "out_amount" => $out_amount,
-                //     "available_amount" => $available_amount,
-                //     'buy_up' => $validated['buy_up'],
-                //     'unit_id' => $validated['unit_id'],
-                //     'total' => $validated['total'],
-                //     "buy_tax_per"  =>  $request->buy_tax_per ?? NULL,
-                //     "buy_tax_price" =>  $request->buy_tax_price ?? NULL,
-                //     "buy_up_vat" =>  $request->buy_up_vat ?? NULL,
-                //     "total_vat" =>  $request->total_vat ?? NULL,
-                //     "note"  =>  $request->note,
-                //     "sell_up" =>  $request->sell_up ?? NULL,
-                //     "sell_tax_per" =>  $request->sell_tax_per ?? NULL,
-                //     "sell_tax_price" =>  $request->sell_tax_price ?? NULL,
-                //     "sell_up_vat" =>  $request->sell_up_vat ?? NULL,
-                // ]);
-
-            $WarehouseData['in_amount'] = $in_amount;
-            $WarehouseData['out_amount'] = $out_amount;
-            $WarehouseData['available_amount'] = $available_amount;
-            $WarehouseData['buy_up'] = $validated['buy_up'];
-            $WarehouseData['unit_id'] = $validated['unit_id'];
-            $WarehouseData['total'] = $validated['total'];
-            // Add fields only if they exist in the request
-            if ($request->has('buy_tax_per')) { $WarehouseData['buy_tax_per'] = $request->buy_tax_per; }
-            if ($request->has('buy_tax_price')) { $WarehouseData['buy_tax_price'] = $request->buy_tax_price; }
-            if ($request->has('buy_up_vat')) {  $WarehouseData['buy_up_vat'] = $request->buy_up_vat; }
-            if ($request->has('total_vat')) {  $WarehouseData['total_vat'] = $request->total_vat; }
-            if ($request->has('note')) {  $WarehouseData['note'] = $request->note; }
-            if ($request->has('sell_up')) { $WarehouseData['sell_up'] = $request->sell_up; }
-            if ($request->has('sell_tax_per')) { $WarehouseData['sell_tax_per'] = $request->sell_tax_per; }
-            if ($request->has('sell_tax_price')) {  $WarehouseData['sell_tax_price'] = $request->sell_tax_price; }
-            if ($request->has('sell_up_vat')) { $WarehouseData['sell_up_vat'] = $request->sell_up_vat; }
-            $WarehouseItem->update($WarehouseData);
-
             DB::commit();
             Session::put('notification', [
                 'message' => __('common.updated_successfully'),
@@ -983,19 +1661,16 @@ class BoughtDetailsController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error in updateItemAndWarehouseItems: ' . $e->getMessage());
+            \Log::error('Error in updateItemAndWarehouseItems: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
 
             Session::put('notification', [
-                'message' => __('common.update_failed'),
+                'message' => __('common.update_failed') . ': ' . $e->getMessage(),
                 'type' => 'danger',
             ]);
 
             return redirect()->route('boughtList.edit', ['times' => $validated['times']]);
         }
     }
-
-    
-
 
     /**
      * delete a single item during buying form
@@ -1111,17 +1786,13 @@ class BoughtDetailsController extends Controller
                 return $invoice->supplier ? $invoice->supplier->name : '-';
             })
             ->addColumn('total', function($invoice) use ($tax_activation) {
-                return (int)$tax_activation === 1 
-                    ? number_format($invoice->total_vat ?? 0, 2) 
-                    : number_format($invoice->total ?? 0, 2);
+                return  number_format($invoice->total ?? 0, 2);
             })
             ->addColumn('paid_amount', function($invoice) {
                 return number_format($invoice->paid_amount, 2);
             })
             ->addColumn('remaining', function($invoice) use ($tax_activation) {
-                 return (int)$tax_activation === 1 
-                    ? number_format($invoice->remaining_vat ?? 0, 2) 
-                    : number_format($invoice->remaining ?? 0, 2);
+                 return number_format($invoice->remaining ?? 0, 2);
             })
             ->addColumn('status', function($invoice) {
                 $statusClasses = [
@@ -1198,23 +1869,20 @@ class BoughtDetailsController extends Controller
             $invoiceNumber = 'INV-' . date('Ymd') . '-' . (BuyInvoice::count() + 1);
 
             // Calculate totals
-            $totalAmount = $boughtItems->sum('total_price');
-            $totalAmountVat = $boughtItems->sum('total_vat');
+            $totalAmount = $boughtItems->sum('total');
             $paidAmount = $boughtItems->sum('cur_pay');
             $remainingAmount = $boughtItems->sum('remained');
-            $remainingAmountVat = $boughtItems->sum('remained_vat');
 
             // Create invoice
             $invoice = BuyInvoice::create([
                 'invoice_number' => $invoiceNumber,
                 'supplier_id' => $supplierId,
                 'total' => $totalAmount,
-                'total_vat' => $totalAmountVat,
                 'paid_amount' => $paidAmount,
                 'remaining' => $remainingAmount,
-                'remaining_vat' => $remainingAmountVat,
                 'currency_id' => $boughtItems->first()->currency_id,
-                'status' => ($remainingAmount || ($remainingAmountVat > 0)) ? 1 : 3, // 0: draft, 1: pending, 2: partial, 3: paid
+                'status' =>   1, // 0: draft, 1: in progress, 2: partial, 3: paid
+                'tax_activation' => $boughtItems->first()->tax_activation ?? 0,
                 'invoice_date' => now(),
                 'due_date' => now()->addDays(30),
                 'notes' => __('buy.invoice_generated_from_bought_items'),
@@ -1286,416 +1954,7 @@ class BoughtDetailsController extends Controller
         return view('buy.invoice.invoice_details', compact('invoice','orgbios','suppliers','ownBanks','newJournalCode','times','currencies'));
     }
 
-        /**
-         * Add payment to invoice
-         */
-        // public function addPayment(Request $request)
-        // {
-        //     // return ['data' => $request->all()];
-        //     //     {
-        //     //     "data": {
-        //     //         "_token": "0RzZ329CcNdYkiVo6DuJ0274As9B4o5JlmMi9xUA",
-        //     //         "invoice_id": "3",
-        //                 // "tax_activation": "1",
-        //     //         "times": "1782532169",
-        //     //         "newJournalCode": "4",
-        //     //         "supplier_account_id": "91",
-        //     //         "account_id": "33",
-        //     //         "payment_date": "2026-06-27",
-        //     //         "amount": "1000",
-        //     //         "payment_method": "1",
-        //     //         "currency_id": "1",
-        //     //         "reference_number": "123",
-        //     //         "notes": "wwwwwwwwww"
-        //     //     }
-        //     // }
-     
-
-        //     try {
-        //           $validated = $request->validate([
-        //             'invoice_id' => 'required|exists:buy_invoices,id',
-        //             'amount' => 'required|numeric|min:0.01',
-        //             'payment_method' => 'required|in:1,2,3',
-        //             'account_id' => 'required|exists:accounts,id',
-        //             'supplier_account_id' => 'required|exists:accounts,id',
-        //             'payment_date' => 'required|date',
-        //             'reference_number' => 'nullable|string|max:100',
-        //             'notes' => 'nullable|string|max:255',
-        //             'tax_activation' => 'nullable|in:0,1',
-        //             'journal_code' => 'nullable|string',
-        //             'times' => 'nullable|string'
-        //         ]);
-
-        //         DB::beginTransaction();
-
-        //         $invoice = BuyInvoice::findOrFail($validated['invoice_id']);
-                
-        //         // Create payment record
-        //         $payment = BuyInvoicePayment::create([
-        //             'invoice_id' => $invoice->id,
-        //             'payment_date' => $validated['payment_date'],
-        //             'amount' => $validated['amount'],
-        //             'payment_method' => $validated['payment_method'], // 1: cash, 2: bank, 3: loan
-        //             'account_id' => $validated['account_id'],
-        //             'supplier_account_id' => $validated['supplier_account_id'],
-        //             'reference_number' => $validated['reference_number'],
-        //             'notes' => $validated['notes'],
-        //             'created_by' => auth()->id(),
-        //             'times' => time()
-        //         ]);
-
-        //         $total_price = $boughtItemDetails->total_sum ?? 0;
-        //         $total_vat = $boughtItemDetails->total_vat_sum ?? 0;
-                
-        //         $cur_pay = (float) $request->cur_pay;
-        //         $remained = $total_price - $cur_pay;
-
-        //         // Calculate remained_vat 
-        //         if ((int) $request->tax_activation === 1) {
-        //             $remained_vat = $total_vat - $cur_pay; 
-        //             // If you have separate vat payment, use: $remained_vat = $total_vat - $request->cur_pay_vat;
-        //         } else {
-        //             $remained_vat = null;
-        //         }
-
-        //         // ========================= Update invoice paid amount =================================
-        //         $newPaidAmount = $invoice->paid_amount + $validated['amount'];
-        //         $newRemainingAmount = $invoice->total - $newPaidAmount;
-        //         $status = 0;
-        //         if ((int) $request->tax_activation === 1) {
-        //             $newRemainingAmountVat = $invoice->total_vat - $newPaidAmount;
-        //             $status = $newRemainingAmountVat;
-        //         } else {
-        //             $newRemainingAmountVat = $invoice->remaining_vat;
-        //             $status = $newRemainingAmount;
-        //         }
-                
-        //         $invoice->update([
-        //             'paid_amount' => $newPaidAmount,
-        //             'remaining' => $newRemainingAmount,
-        //             'remaining_vat' => $newRemainingAmountVat,
-        //             'status' => $status <= 0 ? 3 : 2 // 3: paid, 2: partial
-        //         ]);
-
-        //         // ============================ Update bought_items ======================================
-
-        //          // Get all bought items associated with this invoice
-        //         $boughtItems = BoughtItem::where('invoice_id', $invoice->id)->get();
-                
-        //         if ($boughtItems->isEmpty()) {
-        //             DB::rollBack();
-        //             return response()->json([
-        //                 'status' => 'error',
-        //                 'message' => __('common.record_not_found')
-        //             ], 404);
-        //         }
-
-
-        //          // Create invoice items
-        //         foreach ($BoughtItem as $boughtItem) {
-        //             //  check if total_paid_amount yet is less than cur_pay amount
-        //             // if($newPaidAmount <= $boughtItem->cur_pay) {
-        //             //     $cur_pay = $boughtItem->cur_pay - $newPaidAmount;
-        //             // }
-        //             //  $cur_pay = $boughtItem->cur_pay
-        //              $BoughtItem->update([
-        //                 'journal_code' => $request->journal_code,
-        //                 'total_price' => $total_price,
-        //                 'total_vat' => $total_vat,
-        //                 'cur_pay' => $cur_pay,
-        //                 'remained' => $remained,
-        //                 'remained_vat' => $remained_vat,
-        //                 'note' => $request->note ?? '',
-        //                 'times' => $request->times,
-        //            ]);
-        //         }
-               
-
-        //         // Also update the bought_items cur_pay and remained
-        //         // You can update the related bought_items here
-
-        //          $check = $this->handleJournalEntry($request);
-        //         if (!$check) {
-        //             DB::rollBack();
-        //             Session::put('notification', [
-        //                 'message' => __('common.add_failed'),
-        //                 'type' => 'danger',
-        //             ]);
-        //             return redirect()->route('boughtList.index');
-        //         }
-
-
-        //         DB::commit();
-
-        //         return response()->json([
-        //             'status' => 'success',
-        //             'message' => __('buy.payment_added_successfully'),
-        //             'data' => $payment
-        //         ]);
-
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
-        //         \Log::error('Add Payment Error: ' . $e->getMessage());
-        //         return response()->json([
-        //             'status' => 'error',
-        //             'message' => __('common.error_occurred') . ': ' . $e->getMessage()
-        //         ], 500);
-        //     }
-        // }
-
-        public function addPayment(Request $request)
-        {
-            try 
-            {
-                $validated = $request->validate([
-                    'invoice_id' => 'required|exists:buy_invoices,id',
-                    'amount' => 'required|numeric|min:0.01',
-                    'payment_method' => 'required|in:1,2,3',
-                    'account_id' => 'required|exists:accounts,id',
-                    'supplier_account_id' => 'required|exists:accounts,id',
-                    'payment_date' => 'required|date',
-                    'reference_number' => 'nullable|string|max:100',
-                    'notes' => 'nullable|string|max:255',
-                    'journal_code' => 'required',
-                    'times' => 'required',
-                    'currency_id' => 'required',
-                    'tax_activation' => 'nullable|in:0,1'
-                ]);
-
-                DB::beginTransaction();
-
-                $invoice = BuyInvoice::findOrFail($validated['invoice_id']);
-                $taxActivation = (int) ($request->tax_activation ?? 0);
-                $amount = (float) $validated['amount'];
-                $invoice_id = substr($invoice->invoice_number, strrpos($invoice->invoice_number, '-') + 1);
-                
-                // ========================= Update Invoice =================================
-                $newPaidAmount = $invoice->paid_amount + $amount;
-                $status = 2;
-
-                if ($taxActivation === 1) 
-                {
-                    $newRemainingVat = $invoice->total_vat - $newPaidAmount;
-                    $newRemaining = $invoice->total - $newPaidAmount;
-
-                    if ($invoice->total_vat > $newPaidAmount) 
-                    {
-                      $status = 2; // partial
-                    } else if($invoice->total_vat === $newPaidAmount) {
-                         $status = 3; // complete pay
-                    }
-
-                } else {
-                    $newRemainingVat = null;
-                    $newRemaining = $invoice->total - $newPaidAmount;
-                    if ($invoice->total > $newPaidAmount) 
-                    {
-                      $status = 2; // partial
-                    } else if($invoice->total === $newPaidAmount) {
-                         $status = 3; // complete pay
-                    }
-                }
-                
-                $invoice->update([
-                    'paid_amount' => $newPaidAmount,
-                    'remaining' => $newRemaining,
-                    'remaining_vat' => $newRemainingVat,
-                    'status' => $status
-                ]);
-
-                // ========================= Create Payment Record =================================
-                $payment = BuyInvoicePayment::create([
-                    'invoice_id' => $invoice->id,
-                    'payment_date' => $validated['payment_date'],
-                    'amount' => $amount,
-                    'payment_method' => $validated['payment_method'],
-                    'account_id' => $validated['account_id'],
-                    'supplier_account_id' => $validated['supplier_account_id'],
-                    'reference_number' => $validated['reference_number'],
-                    'notes' => $validated['notes'],
-                    'created_by' => auth()->id(),
-                    'times' => time()
-                ]);
-
-                 // ========================= Update Bought Items =================================
-                /**
-                 * Example
-                 * id       total_price       total_vat       cur_pay           remained          remained_vat
-                 * 1        25                  27.5            0                25                 27.5
-                 * 2        350                 423.5           0                350               423.5
-                 * 
-                 * first payment: if new_pay = 20
-                 * id       total_price       total_vat       cur_pay           remained          remained_vat
-                 * 1        25                  27.5            20                5                 7.5
-                 * 2        350                 423.5           0                 350               423.5
-                 * 
-                 * second payment: if new_pay = 25
-                 * id       total_price       total_vat       cur_pay           remained          remained_vat
-                 * 1        25                  27.5            25                0                 0             5 decrease, 20 move
-                 * 2        350                 423.5           20                330               403.5
-                 * 
-                 * Formula:  total_price - cur_pay = remained;    total_vat - cur_pay = remained_vat
-                 * 
-                 * 
-                 * 
-                 * third payment: if new_pay = 330
-                 * id       total_price       total_vat       cur_pay           remained          remained_vat
-                 * 1        25                  27.5            25                0                 0             
-                 * 2        350                 423.5           350               0                73.5
-                 * 
-                 * 
-                 */
-                     $boughtItems = BoughtItem::where('invoice_id', $invoice->id)
-                        ->orderBy('id', 'ASC')
-                        ->get();
-
-                    if ($boughtItems->isEmpty()) {
-                        DB::rollBack();
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => __('common.record_not_found')
-                        ], 404);
-                    }
-
-                    $remainingToDistribute = (float) $amount;
-                    $totalDistributed = 0;
-
-                    // Calculate total remaining for all items first
-                    $totalRemaining = 0;
-                    foreach ($boughtItems as $item) {
-                        $itemRemaining = (float) ($item->total_price ?? 0) - (float) ($item->cur_pay ?? 0);
-                        $totalRemaining += $itemRemaining;
-                    }
-
-                    // If payment amount exceeds total remaining, cap it
-                    if ($remainingToDistribute > $totalRemaining) {
-                        $remainingToDistribute = $totalRemaining;
-                        // Optionally: create a notification that overpayment is not allowed
-                    }
-
-                    // Distribute payment across bought items
-                    foreach ($boughtItems as $boughtItem) {
-                        if ($remainingToDistribute <= 0) {
-                            break;
-                        }
-
-                        // Get current values
-                        $itemTotalPrice = (float) ($boughtItem->total_price ?? 0);
-                        $itemTotalVat = (float) ($boughtItem->total_vat ?? 0);
-                        $itemCurrentPaid = (float) ($boughtItem->cur_pay ?? 0);
-                        
-                        // Calculate remaining amounts for this item
-                        $itemRemainingPrice = $itemTotalPrice - $itemCurrentPaid;
-                        $itemRemainingVat = $itemTotalVat - $itemCurrentPaid;
-
-                        // Skip if item is fully paid
-                        if ($itemRemainingPrice <= 0) {
-                            continue;
-                        }
-
-                        // Calculate amount to allocate to this item
-                        $allocatedAmount = 0;
-                        if ($remainingToDistribute >= $itemRemainingPrice) {
-                            // Full payment for this item
-                            $allocatedAmount = $itemRemainingPrice;
-                            $remainingToDistribute -= $itemRemainingPrice;
-                        } else {
-                            // Partial payment for this item
-                            $allocatedAmount = $remainingToDistribute;
-                            $remainingToDistribute = 0;
-                        }
-
-                        // Calculate new values
-                        $newCurPay = $itemCurrentPaid + $allocatedAmount;
-                        $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
-                        $newRemainingVat = max(0, $itemTotalVat - $newCurPay);
-
-                        // Update ONLY these fields: cur_pay, remained, remained_vat
-                        $boughtItem->cur_pay = $newCurPay;
-                        $boughtItem->remained = $newRemainingPrice;
-                        $boughtItem->remained_vat = $taxActivation === 1 ? $newRemainingVat : null;
-                        $boughtItem->save();
-
-                        $totalDistributed += $allocatedAmount;
-
-                        // Log for debugging
-                        // \Log::info('Payment Distribution:', [
-                        //     'item_id' => $boughtItem->id,
-                        //     'total_price' => $itemTotalPrice,
-                        //     'total_vat' => $itemTotalVat,
-                        //     'old_cur_pay' => $itemCurrentPaid,
-                        //     'allocated' => $allocatedAmount,
-                        //     'new_cur_pay' => $newCurPay,
-                        //     'new_remained' => $newRemainingPrice,
-                        //     'new_remained_vat' => $newRemainingVat,
-                        //     'remaining_to_distribute' => $remainingToDistribute
-                        // ]);
-                    }
-
-                    // After distribution, verify if any amount remains undistributed
-                    if ($remainingToDistribute > 0) {
-                        \Log::warning('Payment amount not fully distributed', [
-                            'remaining' => $remainingToDistribute,
-                            'total_paid' => $amount,
-                            'distributed' => $totalDistributed
-                        ]);
-                    }
-                
-
-                $date = $request->payment_date 
-                    ? Carbon::parse($request->payment_date) 
-                    : Carbon::now();
-
-                $time = $request->times ?? '00:00:00';
-                $full_date = $date->format('Y-m-d') . ' ' . $time;
-
-                $request->merge([
-                    'bill_no' => 0,
-                    'idate' => $date,
-                ]);
-
-                // ثبت پرداخت توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
-                $details =  __('validate.cache_payment_invoice').' INV_'.$invoice_id;
-                $status = 9; // buy invoice
-                $optionLabel = __('validate.inv_pay'); $dynamic_type = 2; $dt_comment = 'Invoice';
-                $check1 = $this->createJournalEntry($request,  $optionLabel, $request->account_id,  $amount, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status);
-
-                // ثبت دریافت توسط دریافت کننده = recieved(ttype=1) cache(ptype=1)
-                $details2 =  __('validate.cache_recieved_invoice').' INV_'.$invoice_id;
-                $optionLabel = __('validate.inv_rec'); $dynamic_type2 = 2; $dt_comment = 'Invoice';
-                $check12 = $this->createJournalEntry($request,  $optionLabel, $request->supplier_account_id,  $amount, $ttype = "1", $ptype="1", $date, $full_date, $details2, $dynamic_type2, $dt_comment, $status);
-
-                if (!$check1 || !$check12) {
-                    DB::rollBack();
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => __('common.add_failed')
-                    ], 500);
-                }
-
-                DB::commit();
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => __('buy.payment_added_successfully'),
-                    'data' => $payment
-                ]);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error('Add Payment Error: ' . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString()
-                ]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('common.error_occurred') . ': ' . $e->getMessage()
-                ], 500);
-            }
-        }
-
-
-
-        public function addPaymentNew(Request $request)
+    public function addPayment(Request $request)
     {
         try 
         {
@@ -1723,17 +1982,9 @@ class BoughtDetailsController extends Controller
             
             // ========================= Update Invoice =================================
             $newPaidAmount = $invoice->paid_amount + $amount;
-            
-            if ($taxActivation === 1) {
-                $newRemainingVat = $invoice->total_vat - $newPaidAmount;
-                $newRemaining = $invoice->total - $newPaidAmount;
-            } else {
-                $newRemainingVat = null;
-                $newRemaining = $invoice->total - $newPaidAmount;
-            }
-            
+            $newRemaining = $invoice->total - $newPaidAmount;
             // Determine status
-            if ($newPaidAmount >= $invoice->total && ($taxActivation !== 1 || $newPaidAmount >= $invoice->total_vat)) {
+            if ($newPaidAmount >= $invoice->total) {
                 $status = 3; // Fully paid
             } elseif ($newPaidAmount > 0) {
                 $status = 2; // Partial
@@ -1744,7 +1995,6 @@ class BoughtDetailsController extends Controller
             $invoice->update([
                 'paid_amount' => $newPaidAmount,
                 'remaining' => max(0, $newRemaining),
-                'remaining_vat' => $taxActivation === 1 ? max(0, $newRemainingVat) : null,
                 'status' => $status
             ]);
 
@@ -1779,115 +2029,137 @@ class BoughtDetailsController extends Controller
             $itemsCount = $boughtItems->count();
             $remainingPayment = (float) $amount;
 
-            if ($itemsCount === 1) {
+            if ($itemsCount === 1) 
+            {
                 // =============================================
                 // SINGLE RECORD - Apply payment directly
                 // =============================================
                 $boughtItem = $boughtItems->first();
                 
-                $itemTotalPrice = (float) $boughtItem->total_price;
-                $itemTotalVat = (float) $boughtItem->total_vat;
+                $itemTotalPrice = (float) $boughtItem->total;
                 $itemCurrentPaid = (float) $boughtItem->cur_pay;
                 
                 // Calculate new values
                 $newCurPay = $itemCurrentPaid + $amount;
                 $newRemainingPrice = max(0, $itemTotalPrice - $newCurPay);
-                $newRemainingVat = $taxActivation === 1 
-                    ? max(0, $itemTotalVat - $newCurPay) 
-                    : null;
                 
                 // Update single item
                 $boughtItem->update([
                     'cur_pay' => $newCurPay,
                     'remained' => $newRemainingPrice,
-                    'remained_vat' => $newRemainingVat !== null ? $newRemainingVat : null,
-                    'status' => $newRemainingPrice <= 0.01 ? 3 : 2
+                    'status' => $newRemainingPrice <= 0 ? 3 : 2
                 ]);
-            } 
+            }  
             else 
             {
+                /**
+                * 
+                * Initial State:
+                * Item 1: total=480, cur_pay=0, remained=480
+                * Item 2: total=200, cur_pay=0, remained=200
+
+                * Payment 1: 50
+                * → Item 1: allocated=50, cur_pay=50, remained=430, remaining_payment=0
+                * Result: Item 1 = 50/480, Item 2 = 0/200
+
+                * Payment 2: 350
+                * → Item 1: itemRemainingPrice = 480 - 50 = 430
+                * → allocated=350 (partial), cur_pay=400, remained=80, remaining_payment=0
+                * Result: Item 1 = 400/480, Item 2 = 0/200
+
+                * Payment 3: 100
+                * → Item 1: itemRemainingPrice = 480 - 400 = 80
+                * → allocated=80, cur_pay=480, remained=0, remaining_payment=20
+                * → Item 2: itemRemainingPrice = 200 - 0 = 200
+                * → allocated=20, cur_pay=20, remained=180, remaining_payment=0
+                * Result: Item 1 = 480/480 (PAID), Item 2 = 20/200 (PARTIAL)
+                *
+                */
                 // =============================================
                 // MULTIPLE RECORDS - Distribute payment sequentially
                 // =============================================
-                    $totalDistributed = 0;
-                    $distributionLog = [];
+                
+                // Calculate total remaining for validation
+                $totalRemaining = 0;
+                foreach ($boughtItems as $item) {
+                    $totalRemaining += max(0, (float) $item->total - (float) $item->cur_pay);
+                }
 
-                    // Calculate total remaining for validation
-                    $totalRemaining = $boughtItems->sum(function ($item) {
-                        return max(0, (float) $item->total_price - (float) $item->cur_pay);
-                    });
+                if ($remainingPayment > $totalRemaining) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => __('buy.payment_exceeds_remaining', [
+                            'remaining' => number_format($totalRemaining, 2)
+                        ])
+                    ], 422);
+                }
 
-                    if ($remainingPayment > $totalRemaining) {
-                        DB::rollBack();
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => __('buy.payment_exceeds_remaining', [
-                                'remaining' => number_format($totalRemaining, 2)
-                            ])
-                        ], 422);
+                // Distribute payment sequentially across items
+                foreach ($boughtItems as $index => $boughtItem) {
+                    // Stop if no more payment to distribute
+                    if ($remainingPayment <= 0.01) {
+                        break;
                     }
-
-                    foreach ($boughtItems as $index => $boughtItem) 
-                    {
-                        if ($remainingPayment <= 0) {
-                            break;
-                        }
-                        
-                        $itemTotalPrice = (float) ($boughtItem->total_price ?? 0);
-                        $itemTotalVat = (float) ($boughtItem->total_vat ?? 0);
-                        $itemCurrentPaid = (float) ($boughtItem->cur_pay ?? 0);
-                        $itemRemainingPrice = max(0, $itemTotalPrice - $itemCurrentPaid);
-                        
-                        if ($itemRemainingPrice <= 0.01) {
-                            continue;
-                        }
-                        
-                        // Calculate allocation
-                        $allocatedAmount = min($remainingPayment, $itemRemainingPrice);
-                        $remainingPayment -= $allocatedAmount;
-                        $totalDistributed += $allocatedAmount;
-                        
-                        // Calculate new values
-                        $newCurPay = round($itemCurrentPaid + $allocatedAmount, 2);
-                        $newRemainingPrice = round($itemTotalPrice - $newCurPay, 2);
-                        $newRemainingVat = $taxActivation === 1 
-                            ? round($itemTotalVat - $newCurPay, 2) 
-                            : null;
                     
-
-                        if ($newCurPay <= 0) {
-                            $status = 1;       // unpaid
-                        } elseif ($newRemainingPrice <= 0) {
-                            $status = 3;       // paid
-                        } else {
-                            $status = 2;       // partial
-                        }
-
-                        $boughtItem->update([
-                            'cur_pay'       => $newCurPay,
-                            'remained'      => max(0, $newRemainingPrice),
-                            'remained_vat'  => $taxActivation ? max(0, $newRemainingVat) : null,
-                            'status'        => $status,
-                        ]);
-
-                        
-                        // Log distribution
-                        $distributionLog[] = [
-                            'item_id' => $boughtItem->id,
-                            'allocated' => $allocatedAmount,
-                            'new_cur_pay' => $newCurPay,
-                            'new_remained' => $newRemainingPrice
-                        ];
+                    $itemTotalPrice = (float) ($boughtItem->total ?? 0);
+                    $itemCurrentPaid = (float) ($boughtItem->cur_pay ?? 0);
+                    $itemRemainingPrice = max(0, $itemTotalPrice - $itemCurrentPaid);
+                    
+                    // Skip if item is already fully paid
+                    if ($itemRemainingPrice <= 0.01) {
+                        continue;
                     }
-
-                    // Verify all payment was distributed
-                    // if ($remainingPayment > 0.01) {
-                    //     \Log::warning('Payment not fully distributed', [
-                    //         'amount' => $amount,
-                    //         'distributed' => $totalDistributed,
-                    //         'remaining' => $remainingPayment
-                    //     ]);
-                    // }
+                    
+                    // Determine how much to allocate to this item
+                    $allocatedAmount = 0;
+                    if ($remainingPayment >= $itemRemainingPrice) {
+                        // Pay the FULL remaining amount of this item
+                        $allocatedAmount = $itemRemainingPrice;
+                        $remainingPayment -= $itemRemainingPrice;
+                    } else {
+                        // Pay PARTIAL amount to this item (remainingPayment will become 0)
+                        $allocatedAmount = $remainingPayment;
+                        $remainingPayment = 0;
+                    }
+                    
+                    // Calculate new values
+                    $newCurPay = round($itemCurrentPaid + $allocatedAmount, 2);
+                    $newRemainingPrice = round($itemTotalPrice - $newCurPay, 2);
+                   
+                    
+                    // Determine status
+                    if ($newCurPay <= 0) {
+                        $status = 1;       // unpaid
+                    } elseif ($newRemainingPrice <= 0.01) {
+                        $status = 3;       // paid
+                    } else {
+                        $status = 2;       // partial
+                    }
+                    
+                    // Log before update
+                    // \Log::info('Before Update - Item ' . $boughtItem->id, [
+                    //     'total_price' => $itemTotalPrice,
+                    //     'current_paid' => $itemCurrentPaid,
+                    //     'remaining' => $itemRemainingPrice,
+                    //     'allocated' => $allocatedAmount,
+                    //     'new_paid' => $newCurPay,
+                    //     'new_remaining' => $newRemainingPrice
+                    // ]);
+                    
+                    // Update the item
+                    $boughtItem->update([
+                        'cur_pay' => $newCurPay,
+                        'remained' => max(0, $newRemainingPrice),
+                        'status' => $status,
+                    ]);
+                    
+                    // Log after update
+                    // \Log::info('After Update - Item ' . $boughtItem->id, [
+                    //     'cur_pay' => $boughtItem->fresh()->cur_pay,
+                    //     'remained' => $boughtItem->fresh()->remained
+                    // ]);
+                }
             }
 
             // ========================= Journal Entries =================================
@@ -1905,7 +2177,7 @@ class BoughtDetailsController extends Controller
 
             // Payment from account (Paid)
             $details = __('validate.cache_payment_invoice') . ' INV_' . $invoice_id;
-            $status = 9; // buy invoice
+            $status = 9; // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:buy invoice,  10:sales invoice, 11:other
             $optionLabel = __('validate.inv_pay');
             $dynamic_type = 2;
             $dt_comment = 'Invoice';
@@ -1960,4 +2232,247 @@ class BoughtDetailsController extends Controller
 
 
 
+    // =================================== BILL =====================================
+
+    public function bill(string $billno)
+    {
+        $orgbios = OrgBio::all();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+
+        $boughtItemDetails = BoughtItemDetails::with(['accountRelation', 'preListRelation', 'unitRelation'])
+            ->where('billno', $billno)
+            ->get();
+
+        $boughtItems = BoughtItem::with([
+            'account' => function($query) {
+                $query->select('id', 'name');
+            }, 
+            'currencyRelation' => function ($query) {
+                $query->select('id', 'name', 'symbols');
+            },
+            'account' => function ($query) {
+                $query->select('id', 'name');
+            }
+        ])->where('billno', $billno)->get();
+
+        $saved_with_tax = $boughtItemDetails->contains(function($item) {
+            return $item->buy_tax_per > 0;
+        }) ? true : false;
+
+        $customer_account_id = $boughtItems->first()->customer_account_id ?? 0;
+        $currency_id = $boughtItems->first()->currency_id ?? 1;
+        $times = $boughtItems->first()->times ?? 1;
+
+        // Get Bill Payments
+        $boughtBillPayments = BoughtBillPayment::where('billno', $billno)->get();
+
+        return view('buy.bill.list', compact(
+            'boughtItems',
+            'boughtItemDetails',
+            'orgbios',
+            'todaysDate',
+            'saved_with_tax',
+            'boughtBillPayments'
+        ));
     }
+
+    public function billPayment(string $billno)
+    {
+        $boughtItems = DB::table('bought_items')
+            ->join('accounts', 'accounts.id', '=', 'bought_items.supplier_account_id')
+            ->join('currencies', 'currencies.id', '=', 'bought_items.currency_id')
+            ->select(
+                'bought_items.id',
+                'billno',
+                'factor',
+                'journal_code',
+                'accounts.id as supplier_account_id',
+                'accounts.name as customer_name',
+                'total',
+                'cur_pay',
+                'remained',
+                'currencies.id as currency_id',
+                'currencies.name as currency_name',
+                'idate',
+                'user_name',
+                'bought_items.invoice_id',
+                'bought_items.has_invoice'
+            )
+            ->where('bought_items.billno', $billno)
+            ->first();
+
+        if (!$boughtItems) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sale not found'
+            ], 404);
+        }
+
+        // Get own banks (company accounts)
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+
+        return view('buy.bill.payment', compact('boughtItems', 'ownBanks'));
+    }
+
+
+    // store bill payments
+    public function storePayment(Request $request)
+    {
+        // return response()->json($request->all());
+
+        $validated = $request->validate([
+            'billno' => 'required|exists:bought_items,billno',
+            'bought_item_id' => 'required|exists:bought_items,id',
+            'payment_amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'account_id' => 'required|exists:accounts,id',
+            'currency_id' => 'required|exists:currencies,id',
+            'note' => 'nullable|string|max:500',
+            'current_remained' => 'required|numeric|min:0',
+            'supplier_account_id' => 'required|exists:accounts,id',
+        ]);
+
+        // Check if payment amount exceeds remained
+        if ($validated['payment_amount'] > $validated['current_remained']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('sales.payment_cannot_exceed_remained')
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Find the sale
+            $bought = BoughtItem::find($validated['bought_item_id']);
+            
+            if (!$bought) {
+                throw new \Exception('Item not found');
+            }
+
+            // Calculate new values
+            $newCurPay = $bought->cur_pay + $validated['payment_amount'];
+            $newRemained = $bought->remained - $validated['payment_amount'];
+
+            $company_account_type_id = Account::where('id', $request->account_id)->value('account_type_id');
+            $supplier_account_type_id = Account::where('id', $request->supplier_account_id)->value('account_type_id');
+
+            // Generate journal code
+            $journal_code =  Journal::lockForUpdate()->max('code') ?? 0;
+            $journalCode = $journal_code + 1;
+
+            $date = Carbon::parse($validated['payment_date']);
+            $year = $date->year;
+            $month = $date->month;
+            $day = $date->day;
+            $times = time();
+
+             /**
+             * خزانه نقد پرداخت میکند
+             * مشتری نقد دریافت میکند
+             */
+            
+            // خزانه نقد پرداخت میکند
+            // Create journal entry for payment
+            $journal = new Journal();
+            $journal->code = $journalCode;
+            $journal->bill_no = $validated['billno'];
+            $journal->account_type_id = $company_account_type_id;
+            $journal->account_id = $validated['account_id'];
+            $journal->amount = $validated['payment_amount'];
+            $journal->currency_id = $validated['currency_id'];
+            $journal->details =  __('buy.payment_for_bill').' BUY_'.$validated['billno'];  
+            $journal->transaction_type = 2; // Paid
+            $journal->payment_type = 1; // Cash
+            $journal->option_label = __('validate.salary_payment');
+            $journal->status = 7; // Buy
+            $journal->idate = $validated['payment_date'];
+            $journal->year = $year;
+            $journal->month = $month;
+            $journal->day = $day;
+            $journal->user_id =  $this->userId;
+            $journal->user_name = $this->userName ?? 'System';
+            $journal->times = $times;
+            $journal->is_cleared = 0;
+            $journal->save();
+
+            // Create customer journal entry
+            // دریافت نقد مشتری
+            $customerJournal = new Journal();
+            $customerJournal->code = $journalCode;
+            $customerJournal->bill_no = $validated['billno'];
+            $customerJournal->account_type_id = $supplier_account_type_id;
+            $customerJournal->account_id = $validated['supplier_account_id'];
+            $customerJournal->amount = $validated['payment_amount'];
+            $customerJournal->currency_id = $validated['currency_id'];
+            $customerJournal->details = __('buy.recieved_of_bill').' BUY_'.$validated['billno'];
+            $customerJournal->transaction_type = 1; // Recieved
+            $customerJournal->payment_type = 1; // Cash
+            $customerJournal->status = 7; // Buy
+            $customerJournal->idate = $validated['payment_date'];
+            $customerJournal->year = $year;
+            $customerJournal->month = $month;
+            $customerJournal->day = $day;
+            $customerJournal->user_id =  $this->userId;
+            $customerJournal->user_name = $this->userName ?? 'System';
+            $customerJournal->times = $times;
+            $customerJournal->is_cleared = 0;
+            $customerJournal->save();
+
+            // =========================================
+            // STORE PAYMENT IN BOUGHT_BILL_PAYMENTS TABLE
+            // =========================================
+            $payment = BoughtBillPayment::create([
+                'bought_item_id' => $bought->id,
+                'billno' => $validated['billno'],
+                'supplier_account_id' => $validated['supplier_account_id'],
+                'account_id' => $validated['account_id'],
+                'currency_id' => $validated['currency_id'],
+                'cur_pay' => $validated['payment_amount'],
+                'remained' => $newRemained,
+                'payment_date' => $validated['payment_date'],
+                'note' => $validated['note'] ?? null,
+                'journal_code' => $journalCode,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName ?? 'System',
+                'times' => $times,
+            ]);
+
+            // Update sale
+            $bought->cur_pay = $newCurPay;
+            $bought->remained = $newRemained;
+            $bought->save();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('common.added_successfully'),
+                'data' => [
+                    'bought_id' => $bought->id,
+                    // 'payment_id' => $salePayment->id,
+                    // 'new_remained' => $newRemained,
+                    // 'new_cur_pay' => $newCurPay,
+                    // 'journal_code' => $journalCode,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Payment Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getListOfItemsToShowInModal(string $billno)
+    {
+        $boughtDetails = BoughtItemDetails::with(['preListRelation','unitRelation'])->where('billno',$billno)->get();
+        $saved_with_tax = $boughtDetails->contains(function($item) {
+            return $item->buy_tax_per > 0;
+        }) ? true : false;
+        return view('buy.bought.item_list_in_modal',compact('boughtDetails','saved_with_tax'));
+    }
+}

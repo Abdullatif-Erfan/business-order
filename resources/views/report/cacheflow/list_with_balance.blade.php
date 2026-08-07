@@ -88,13 +88,12 @@
                                 <table id="journalTable" class="display responsive nowrap table table-bordered" width="100%">
                                     <thead>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="13">
                                               <img src="{{ asset($orgbios[0]->header)  }}" alt="navbar brand" class="navbar-brand" style="width: 100% !important;">
                                             </td>
-                                            
                                         </tr>
                                         <tr class="d-none" style="width:100%; background-color:#fff !important;color:#000 !important;">
-                                            <td colspan="12">
+                                            <td colspan="13">
                                                 <center>
                                                    {{__('reports.cash_flow_print_title')}}  
                                                 </center>
@@ -109,11 +108,11 @@
                                             <!-- <th> {{__('reports.cache_in')}}</th>
                                             <th> {{__('reports.cache_out')}}</th> -->
                                             <th> {{__('journal.recieved')}} <br> {{__('journal.cache')}} (+)</th>
-                                            <th>{{__('journal.paid')}} <br> {{__('journal.cache')}} (-)</th>
+                                            <th> {{__('journal.paid')}} <br> {{__('journal.cache')}} (-)</th>
                                             <th> {{__('reports.loan')}}</th>
                                             <th> {{__('reports.talab')}}</th>
-                                            
-                                            <th>  {{__('reports.balance')}}  </th>
+                                            <th> {{__('common.expense')}} </th>
+                                            <th> {{__('reports.balance')}}  </th>
                                             <th>{{__('common.unit')}}</th>
                                             <th>{{__('common.date')}}</th>
                                             <th>{{__('common.user')}}</th>
@@ -122,6 +121,7 @@
                                     <tfoot>
                                         <tr style="background:#eefcff">
                                             <td colspan="4">{{__('common.total')}}</td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -192,8 +192,8 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 { data: 'cachePaid', name: 'cachePaid' },
                 { data: 'loanRecieved', name: 'loanRecieved' },
                 { data: 'loanPaid', name: 'loanPaid' },
-
-                { data: 'belance', name: 'belance' },
+                { data: 'expense', name: 'expense' },
+                { data: 'balance', name: 'balance' },
                 { data: 'currency', name: 'currency' },
                 { data: 'idate', name: 'idate' },
                 { data: 'full_name', name: 'full_name'}
@@ -227,6 +227,7 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 var sumLoanRecieved = settings.json.sumLoanRecieved || '0';
                 var sumLoanPaid = settings.json.sumLoanPaid || '0';
 
+
                 /**
                  * اگر خزانه انتخاب شده باشد باید
                  * ۱: طلبات مشتری در قرضه خزانه نشان داده شود
@@ -247,11 +248,12 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 let cachePaid = sumColumn(5);
                 let loanRecieved =  sumColumn(6);
                 let loanPaid =  sumColumn(7);
+                let expense =  sumColumn(8);
 
 
                     // let finalResult = (cacheRecieved +  loanRecieved) - (cachePaid + loanPaid);
                     let finalResult = isCompanyAccount ? (cacheRecieved +  loanPaid) - (cachePaid + loanRecieved) : 
-                    (cachePaid + loanPaid) - (cacheRecieved + loanRecieved);
+                    (cacheRecieved + loanRecieved + expense) - (cachePaid + loanPaid ) ;
 
                     // Format the final result properly
                     let finalResultFormatted = Number.isInteger(finalResult)
@@ -268,7 +270,8 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 $(api.column(5).footer()).html(sumColumn(5).toLocaleString());
                 $(api.column(6).footer()).html(sumColumn(6).toLocaleString());
                 $(api.column(7).footer()).html(sumColumn(7).toLocaleString());
-                $(api.column(8).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
+                $(api.column(8).footer()).html(sumColumn(8).toLocaleString());
+                $(api.column(9).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
             }
         });
 

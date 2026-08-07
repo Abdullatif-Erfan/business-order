@@ -52,7 +52,7 @@
                             <form action="{{ route('sales.update') }}"  method="POST">
                              @csrf
                              <input type="hidden" name="billno" value="{{ $warehouseSales->first()->billno }}">
-                             <input type="hidden" name="todays_date" value="{{ $warehouseSales->first()->short_date ?? '' }}">
+                             <input type="hidden" name="todays_date" value="{{ $warehouseSales->first()->idate ?? '' }}">
                              <input type="hidden" name="times" value="{{ $warehouseSales->first()->times ?? '' }}">
 
 

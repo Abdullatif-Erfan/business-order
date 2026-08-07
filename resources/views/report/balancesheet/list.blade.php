@@ -108,8 +108,8 @@
                                             <th> پرداخت نقد </th>
                                             <th> {{__('reports.loan')}}</th>
                                             <th> {{__('reports.talab')}}</th>
-                                            <th> {{__('reports.balance')}} </th>
                                             <th> مصارف </th>
+                                            <th> {{__('reports.balance')}} </th>
                                             <th>{{__('common.unit')}}</th>
                                             <th>{{__('reports.specify')}}</th>
                                         </tr>
@@ -180,58 +180,68 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 { data: 'cache_paid', name: 'cache_paid' },
                 { data: 'loan_recieved', name: 'loan_recieved' },
                 { data: 'loan_paid', name: 'loan_paid' },
-                { data: 'currency', name: 'currency' },
+                { data: 'expense', name: 'expense' },
                 { data: 'balance', name: 'balance' },
                 { data: 'currency', name: 'currency' },
                 { data: 'result_label', name: 'result_label' },
             ],
             drawCallback: function (settings) {
-                var api = this.api();
-
-                // Handle case where no records exist
-                if (api.rows().data().length === 0) {
-                    $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
-                    
-                    // Clear the footer when no records are available
-                    $(api.column(2).footer()).html('');
-                    $(api.column(3).footer()).html('');
-                    $(api.column(4).footer()).html('');
-                    $(api.column(5).footer()).html('');
-                    $(api.column(6).footer()).html('');
-                    
-                    return; // Exit early to avoid unnecessary calculations
-                }
-
-                // Function to sum columns and return raw numbers
-                function sumColumn(index) {
-                    return api
-                        .column(index, { page: 'current' })
-                        .data()
-                        .reduce(function (a, b) {
-                            // Make sure to parse floats and handle commas correctly
-                            var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
-                            var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
-                            var sum = numA + numB;
-                            return sum;
-                        }, 0);
-                }
-
-                // Calculate the sum for the 6th column (index 6)
-                let sum6 = sumColumn(6);
-
-                // Check if the sum is NaN or invalid and handle it accordingly
-                sum6 = isNaN(sum6) ? 0 : sum6;
-
-                // Determine badge type based on sum value
-                let badgeType = sum6 >= 0 ? 'badge-info' : 'badge-danger';
-
-                // Update footer with sums for columns 2, 3, 4, 5, and 6
-                $(api.column(2).footer()).html(sumColumn(2).toLocaleString());
-                $(api.column(3).footer()).html(sumColumn(3).toLocaleString());
-                $(api.column(4).footer()).html(sumColumn(4).toLocaleString());
-                $(api.column(5).footer()).html(sumColumn(5).toLocaleString());
-                $(api.column(6).footer()).html(`<span class="badge ${badgeType}">${sum6.toLocaleString()}</span>`);
+            var api = this.api();
+            
+            // Handle case where no records exist
+            if (api.rows().data().length === 0) {
+                $('#journalTable tbody').html('<tr><td colspan="12" class="text-center">No records found</td></tr>');
+                
+                // Clear ALL footer columns (including column 7)
+                $(api.column(2).footer()).html('0');
+                $(api.column(3).footer()).html('0');
+                $(api.column(4).footer()).html('0');
+                $(api.column(5).footer()).html('0');
+                $(api.column(6).footer()).html('0');
+                $(api.column(7).footer()).html('0'); // Clear column 7
+                
+                return; // Exit early to avoid unnecessary calculations
             }
+
+            // Function to sum columns and return raw numbers
+            function sumColumn(index) {
+                return api
+                    .column(index, { page: 'current' })
+                    .data()
+                    .reduce(function (a, b) {
+                        var numA = parseFloat((a || '0').toString().replace(/,/g, '')) || 0;
+                        var numB = parseFloat((b || '0').toString().replace(/,/g, '')) || 0;
+                        return numA + numB;
+                    }, 0);
+            }
+
+            // Calculate the sum for each column
+            let sum2 = sumColumn(2);
+            let sum3 = sumColumn(3);
+            let sum4 = sumColumn(4);
+            let sum5 = sumColumn(5);
+            let sum6 = sumColumn(6);
+            let sum7 = sumColumn(7);
+
+            // Handle NaN values
+            sum2 = isNaN(sum2) ? 0 : sum2;
+            sum3 = isNaN(sum3) ? 0 : sum3;
+            sum4 = isNaN(sum4) ? 0 : sum4;
+            sum5 = isNaN(sum5) ? 0 : sum5;
+            sum6 = isNaN(sum6) ? 0 : sum6;
+            sum7 = isNaN(sum7) ? 0 : sum7;
+
+            // Determine badge type based on sum value
+            let badgeType = sum7 >= 0 ? 'badge-info' : 'badge-danger';
+
+            // Update footer with sums
+            $(api.column(2).footer()).html(sum2.toLocaleString());
+            $(api.column(3).footer()).html(sum3.toLocaleString());
+            $(api.column(4).footer()).html(sum4.toLocaleString());
+            $(api.column(5).footer()).html(sum5.toLocaleString());
+            $(api.column(6).footer()).html(sum6.toLocaleString());
+            $(api.column(7).footer()).html(`<span class="badge ${badgeType}">${sum7.toLocaleString()}</span>`);
+        }
 
 
 

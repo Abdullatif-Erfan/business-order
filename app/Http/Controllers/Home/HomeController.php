@@ -380,14 +380,15 @@ class HomeController extends Controller
                     DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
                     DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
                     DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanRecieved'),
-                    DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanPaid')
+                    DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanPaid'),
+                    DB::raw('SUM(CASE WHEN transaction_type = 3 AND payment_type = 1 THEN amount ELSE 0 END) as sumExpense')
                 )
                 ->where('journals.account_id', $accountId)
                 ->where('journals.currency_id', $currencyId)
                 ->where('is_cleared', '=', 0)
                 ->first();
             
-            $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid) - 
+            $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid + $totalBalance->sumExpense) - 
                 ($totalBalance->sumCachePaid + $totalBalance->sumLoanRecieved));
         }
 

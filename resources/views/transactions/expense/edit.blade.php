@@ -54,6 +54,21 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <div class="form-group">
+                                                <label for="currency_id">{{ __('common.currency') }}</label>
+                                                <select class="form-control select2" name="currency_id" id="currency_id" required>
+                                                    @foreach($currencies as $currency)
+                                                        <option value="{{ $currency->id }}" 
+                                                            {{ old('currency_id', $expense->currency_id) == $currency->id ? 'selected' : '' }}>
+                                                            {{ $currency->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                            </div> 
+                                        </div>
+
                                         <!-- Row 2: Expense Type & Amount -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
@@ -81,35 +96,18 @@
                                             </div> 
                                         </div>
 
-                                        <!-- Row 3: Currency & Account -->
-                                        <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <div class="form-group">
-                                                <label for="currency_id">{{ __('common.currency') }}</label>
-                                                <select class="form-control select2" name="currency_id" id="currency_id" required>
-                                                    @foreach($currencies as $currency)
-                                                        <option value="{{ $currency->id }}" 
-                                                            {{ old('currency_id', $expense->currency_id) == $currency->id ? 'selected' : '' }}>
-                                                            {{ $currency->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('currency_id')<span class="text-danger">{{ $message }}</span>@enderror
-                                            </div> 
-                                        </div>
-
+                                        <!-- Row 3: Account -->
                                         <div class="col-md-4 col-sm-6 col-xs-12">
                                             <div class="form-group">
                                                 <label for="reciever_account_id">{{ __('journal.account') }}</label>
                                                 <select class="form-control select2" name="reciever_account_id" id="reciever_account_id" required>
                                                     <option value=""> {{ __('journal.select_account') }}</option>
-                                                    @if(isset($ownBanks))
-                                                        @foreach($ownBanks as $account)
-                                                            <option value="{{ $account->id }}" 
-                                                                {{ old('reciever_account_id', $expense->account_id) == $account->id ? 'selected' : '' }}>
-                                                                {{ $account->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    @endif
+                                                    @foreach($accounts as $account)
+                                                        <option value="{{ $account->id }}" 
+                                                            {{ old('reciever_account_id', $expense->account_id) == $account->id ? 'selected' : '' }}>
+                                                            {{ $account->name }}
+                                                        </option>
+                                                    @endforeach
                                                 </select>
                                                 @error('reciever_account_id')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
@@ -119,8 +117,8 @@
                                         <div class="col-md-6 col-sm-12 col-xs-12">
                                             <div class="form-group">
                                                 <label for="details">{{ __('common.details') }}</label>
-                                                <input class="form-control" id="details" name="details" type="text" 
-                                                    placeholder="{{ __('common.details') }}" required 
+                                                <input class="form-control" id="details" name="details" type="text" required
+                                                    placeholder="{{ __('common.details') }}" 
                                                     value="{{ old('details', $expense->details) }}">
                                                 @error('details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
@@ -132,10 +130,19 @@
                                                 <input type="file" class="form-control" name="doc" id="doc" 
                                                     accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
                                                 @if($expense->doc)
-                                                    <small class="text-muted">
-                                                        <a href="{{ asset('storage/' . $expense->doc) }}" target="_blank">
-                                                            <i class="fas fa-file"></i> {{ __('common.current_document') }}
+                                                     <small class="text-muted d-block mt-2">
+                                                        <a href="{{ asset('storage/' . $expense->doc) }}" target="_blank" class="text-primary">
+                                                            <i class="fas fa-file"></i> <strong>{{ __('common.current_document') }}:</strong>
                                                         </a>
+                                                        <span class="badge badge-info ml-2">
+                                                            <i class="far fa-clock"></i> 
+                                                            {{ \Carbon\Carbon::parse($expense->updated_at)->diffForHumans() }}
+                                                        </span>
+                                                    </small>
+                                                @else
+                                                    <small class="text-muted d-block mt-2">
+                                                        <i class="fas fa-info-circle"></i> 
+                                                        
                                                     </small>
                                                 @endif
                                                 @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
@@ -147,7 +154,7 @@
                                             <div class="row">
                                                 <div class="col-md-3 col-sm-4 col-xs-6">
                                                     <button type="submit" id="submit_button" class="btn btn-success btn-block">
-                                                        <i class="fas fa-save"></i> {{ __('common.save') }}
+                                                        <i class="fas fa-save"></i> {{ __('common.edit') }}
                                                     </button>
                                                 </div>
                                                 <div class="col-md-3 col-sm-4 col-xs-6">
@@ -174,6 +181,13 @@
         // Select2 initialization
         $('.select2').select2({
             width: '100%'
+        });
+
+        // Datepicker initialization
+        $('#datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
         });
 
         // Amount input validation
@@ -208,6 +222,8 @@
                 } else if (file.size > maxSize) {
                     showNotification('{{ __("common.file_too_large") }}', 'danger');
                     $(this).val('');
+                } else {
+                    // showNotification('{{ __("common.file_uploaded_successfully") }}', 'success');
                 }
             }
         });
@@ -230,6 +246,22 @@
                 return false;
             }
             
+            var dynamicType = $('#dynamic_type').val();
+            if (!dynamicType) {
+                e.preventDefault();
+                showNotification('{{ __("common.select_expense_type") }}', 'danger');
+                $('#dynamic_type').focus();
+                return false;
+            }
+            
+            var account = $('#reciever_account_id').val();
+            if (!account) {
+                e.preventDefault();
+                showNotification('{{ __("common.select_account") }}', 'danger');
+                $('#reciever_account_id').focus();
+                return false;
+            }
+            
             return true;
         });
     });
@@ -249,6 +281,9 @@
                 },
                 time: 3000
             });
+        } else {
+            // Fallback notification
+            alert(message);
         }
     }
 </script>

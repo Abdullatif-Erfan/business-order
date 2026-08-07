@@ -128,5 +128,12 @@ return [
     'viewItems' => 'نمایش لیست',
     'buy' => 'خرید',
     'sell' => 'فروش',
+    'file_uploaded_successfully' => 'فایل موفقانه آپلود گردید',
+    'invalid_file_type' => 'فایل درست نمی باشد',
+    'file_too_large' => 'حجم فایل بزرگ میباشد ',
+    'no_document_uploaded' => 'فایل آپلود نشده است',
+    'expense' => 'مصارف',
+    'filter' => 'جستجو',
+    'reset' => 'پاک',
 
 ];

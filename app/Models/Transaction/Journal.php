@@ -13,7 +13,7 @@ use App\Models\User;
 
 class Journal extends Model
 {
-    protected $fillable = ['code','bill_no','account_type_id','account_id','amount','currency_id','transaction_type','payment_type','options','option_label','user_name','user_id','category_id','year','month','day','idate','doc','details','status','dynamic_type','dt_comment','times','is_single_record','belongsToMe','profit','is_cleared','cleared_round'];
+    protected $fillable = ['code','bill_no','account_type_id','account_id','amount','currency_id','transaction_type','payment_type','options','option_label','user_name','user_id','category_id','year','month','day','idate','doc','details','status','dynamic_type','dt_comment','times','is_single_record','belongsToMe','profit','is_cleared','cleared_round','counted'];
     
     // A journal belongs to one currency
     public function currencyRelation()

@@ -84,5 +84,6 @@ return [
     'expense_create_title' => 'فورم ثبت عواید',
     'expense_type_selection' => 'انتخاب نوع مصارف',
     'store_expense_option_label' => 'پرداخت مصارف',
+    'receiver_account' => 'حساب دریافت کننده',
 
 ];

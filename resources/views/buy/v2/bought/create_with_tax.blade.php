@@ -237,6 +237,7 @@ td:has(.buy-up) {
                                         <div class="col-md-2 col-sm-4 col-xs-6">
                                             <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>
                                             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" required>
+                                                 <option value="">انتخاب موتر</option>
                                                 @foreach($cars as $car)
                                                     <option value="{{ $car->id }}">{{ $car->name }}</option>
                                                 @endforeach
@@ -341,7 +342,8 @@ td:has(.buy-up) {
                                                         <td><strong>{{__('journal.payer_account')}}</strong></td>
                                                         <td>
                                                             <select class="form-control select2" style="width:100%; background-color:#ddd;" name="from_account_id" required>
-                                                                @foreach($ownBanks as $acc)
+                                                                <option value="">انتخاب حساب</option>  
+                                                            @foreach($ownBanks as $acc)
                                                                     <option value="{{ $acc->id }}">{{ $acc->name }}</option>
                                                                 @endforeach
                                                             </select>

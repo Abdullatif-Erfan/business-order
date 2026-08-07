@@ -311,7 +311,7 @@ class BoughtDetailsController extends Controller
         
         $currencies = Currency::select('id','name')->get();
         $warehouses = Warehouse::select('id','name')->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,7])->orderBy('is_pre_select','DESC')->get();
         $billno =  BoughtItem::max('billno') + 1;
     
         $todaysDate = Carbon::now()->format('Y-m-d');
@@ -1191,49 +1191,80 @@ class BoughtDetailsController extends Controller
              * مشتری باید طلب ثبت گردد = paid Loan 
              */
 
+            $companyAccount = Account::select('id','account_type_id')
+                    ->where('account_type_id',1)
+                    ->where('is_pre_select',1)
+                    ->first();
+
+            $khazana_account_id = $companyAccount->id ?? $request->from_account_id;
+            $counted = 0;
+
+            if((int)$khazana_account_id === (int)$request->from_account_id) 
+            {
+                // $payer_account_id = $request->from_account_id;
+                $counted = 0;
+            } 
+            else 
+            {
+                // $payer_account_id = $khazana_account_id;
+                $counted = 1; // disable count of this transation in chart_of_account for khazana
+            }
+
             if ((float)$request->cur_pay === 0.00 && (float)$request->remained === (float)$request->total_price) 
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $request->from_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $optionLabel, $khazana_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
                 
-                // ثبت طلب مشتری = paid(ttype=2), loan(ptype=2) 
+                // ثبت طلب تهیه کننده = paid(ttype=2), loan(ptype=2) 
                 $details = __('validate.tkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total_price,
-                 $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                 $ttype = "2", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
             else if ((float)$request->remained > 0 && (float)$request->cur_pay > 0) 
             {
-                // ثبت پرداخت نقدی خزانه = Cache paid
+                /**
+                 * 1: First check payer account (from_account_id), if it is belongs to khazana, do this
+                 *  1.1. Cache Paid by Khazana = ثبت پرداخت نقدی توسط خزانه
+                 *  1.2. Loan Recieved by Khazana = ثبت قرضه برای خزانه
+                 *  1.3. Loain Paid by Supplier  =  ثبت طلب تهیه کننده
+                 * 
+                 * 2. If payer is not khazana 
+                 *  2.1. Cache Paid by Car = ثبت پرداخت نقدی توسط موتر
+                 *  2.2. Loan Recieved by Khazana = ثبت قرضه برای خزانه
+                 *  2.3. Loan Paid by Supplier = ثبت طلب تهیه کننده
+                 * 
+                 */
+                // ثبت پرداخت نقدی  خزانه / ویا موتر = Cache paid
                 $details = __('validate.pkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.cpayment'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $counted, $details, $dynamic_type, $dt_comment);
 
                 // ثبت قرضه خزانه = Loan Recieved 
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->remained,  
-                $ttype = "1", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $khazana_account_id, $request->remained,  
+                $ttype = "1", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
                
-                // ثبت طلب مشتری = Paid Loan
+                // ثبت طلب تهیه کننده = Paid Loan
                 $details =  __('validate.tkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
                 $this->createJournalEntry($request, $optionLabel,  $request->supplier_account_id, $request->remained,
-                $ttype = "2", $ptype="2", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $ttype = "2", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
              // تنها از حساب خزانه کم شود 
             else if ((float)$request->remained === 0.00 && (float)$request->cur_pay === (float)$request->total_price) 
             {
-                // ثبت پرداخت نقدی خزانه = Cache paid
+                // ثبت پرداخت نقدی پرداخت کننده = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
                 $optionLabel = __('validate.cpayment'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $full_date, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $counted, $details, $dynamic_type, $dt_comment);
             }
 
             DB::commit();
@@ -1254,7 +1285,7 @@ class BoughtDetailsController extends Controller
         }
     }
 
-     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $full_date, $details,    $dynamic_type, $dt_comment, $status = 7)
+     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $counted=0, $details,    $dynamic_type, $dt_comment, $status = 7)
     {
         try {
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
@@ -1284,6 +1315,7 @@ class BoughtDetailsController extends Controller
                 'status' => $status,  
                 'times' => $request->times,
                 'is_single_record' => 1, 
+                'counted' => $counted,
             ]);
             
             return true; 
@@ -1394,7 +1426,7 @@ class BoughtDetailsController extends Controller
 
         $billno = BoughtItem::max('billno') + 1;   
         $currencies = Currency::select('id', 'name')->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->orderBy('is_pre_select', 'DESC')->get();
+        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 7])->orderBy('is_pre_select', 'DESC')->get();
         $journal_code = Journal::select('code')->where('times', $times)->first();
 
         if (!$journal_code) {
@@ -1412,7 +1444,7 @@ class BoughtDetailsController extends Controller
             ->where('times', $times)
             ->get();
             
-        $boughtItems = BoughtItem::select('id', 'billno', 'times', 'idate', 'account_id', 'currency_id', 'cur_pay', 'note')
+        $boughtItems = BoughtItem::select('id', 'billno', 'times', 'idate', 'account_id','supplier_account_id', 'currency_id', 'cur_pay', 'note')
             ->where('times', $times)
             ->get();
 

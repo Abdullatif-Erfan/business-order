@@ -8,7 +8,7 @@
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="card" style="min-height: 400px">
                         <div class="card-header" style="padding: 10px;">
-                            <h4 class="card-title">{{__('journal.expense_create_title')}}  
+                            <h4 class="card-title">فورم ثبت مصارف  
                                 <span class="pull-left">
                                     <a href="{{  route('expense.index') }}">
                                         <button class="btn mybtn bg-default">  {{__('common.back')}}  </button>
@@ -20,8 +20,6 @@
                             <form action="{{ route('expense.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
 
-                                <!-- <input type="hidden" name="reciever_account_id" value="{{ $ownBanks->first()->id }}"> -->
-                                <input type="hidden" name="reciever_account_name" value="{{ $ownBanks->first()->name }}">
                                               
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
@@ -29,6 +27,7 @@
                                         <!-- Row:1 - Col:2  -->
                                         <div class="col-md-4">
                                            <div class="form-group">
+                                                <label for="">بل نمبر (در صورت ضرورت)</label>
                                                 <input class="form-control" id="bill_no" name="bill_no" type="number"
                                                  placeholder="{{ __('journal.bill_no') }}" >
                                                 @error('bill_no')<span class="text-danger">{{ $message }}</span>@enderror
@@ -39,6 +38,7 @@
                                         <!-- Row:1 - Col:3  -->
 
                                         <div class="col-md-4 col-sm-4 col-xs-6 m-t-10">
+                                            <label for="">تاریخ </label>
                                             <div class="input-group date" id="datepicker">
                                                 <input type="text" class="form-control" name="todays_date" required
                                                     value="{{ date('Y-m-d') }}" placeholder="{{__('order.date')}} ">
@@ -56,6 +56,7 @@
                                         <!-- Row:2 - Col:1  -->
                                         <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group form-floating-label">
+                                                <label for="">واحد پولی</label>
                                                 <select class="form-control select2" name="currency_id" required>
                                                     @foreach($currencies as $currency)
                                                         <option value="{{ $currency->id }}">{{ $currency->name }}</option>
@@ -68,7 +69,7 @@
                                        
                                           <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group">
-                                                <span class="typing-effect" id="dynamic_type"></span>
+                                                <label for="">نوع مصارف </label>
                                                 <select class="form-control select2" name="dynamic_type" required>
                                                     <option value=""> {{ __('journal.expense_type_selection')}}</option>
                                                     @foreach($expenseTypes as $type)
@@ -83,7 +84,9 @@
                                         <!-- Row:2 - Col:2  -->
                                         <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group">
-                                                <input class="form-control" id="amount" name="amount" type="number" step="0.01" required placeholder="{{__('common.amount')}}">
+                                                <label for="">مبلغ</label>
+                                                <input class="form-control" id="amount" name="amount" type="number" step="0.01" required 
+                                                placeholder="مبلغ به عدد">
                                                 @error('amount')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div> 
                                         </div>
@@ -92,6 +95,7 @@
                                         <!-- Row:2 - Col:3  -->
                                          <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group">
+                                                <label for="">آپلود سند ( در صورت ضرورت)</label>
                                                 <input type="file" class="form-control" name="doc" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx">
                                                 @error('doc')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
@@ -101,9 +105,10 @@
                                         <!-- Row:3 - Col:1  -->
                                         <div class="col-md-4  col-sm-4 col-xs-6">
                                             <div class="form-group form-floating-label">
+                                                <label for="">مصارف از کدام حساب محاسبه شود ؟</label>
                                                 <select class="form-control select2" name="reciever_account_id" required>
-                                                    @foreach($ownBanks as $bank)
-                                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                                    @foreach($accounts as $account)
+                                                        <option value="{{ $account->id }}">{{ $account->name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('reciever_account_id')<span class="text-danger">{{ $message }}</span>@enderror
@@ -112,8 +117,9 @@
 
                                         <div class="col-md-4 col-sm-4 col-xs-6">
                                             <div class="form-group">
+                                                <label for="">نوت</label>
                                                 <input class="form-control" id="details" name="details" type="text" 
-                                                placeholder="{{__('common.details')}} " required>
+                                                placeholder="نوت مختصر ..." required >
                                                 @error('details')<span class="text-danger">{{ $message }}</span>@enderror
                                             </div>
                                         </div>

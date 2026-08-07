@@ -106,10 +106,14 @@ class BalanceSheetController extends Controller
                             AND journals.payment_type = 2 
                             AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid"),
+                DB::raw("SUM(CASE 
+                            WHEN journals.transaction_type = 3 
+                            AND journals.payment_type = 1 
+                            AND journals.is_cleared = 0 
+                            THEN journals.amount ELSE 0 END) as expense"),
             ])
             ->groupBy('accounts.id', 'accounts.name')
             ->orderBy('accounts.account_type_id','ASC');
-
 
             // \Log::info($accounts->toSql());
             // \Log::info($accounts->getBindings());
@@ -159,11 +163,15 @@ class BalanceSheetController extends Controller
             })
 
             // مصارف
+            ->addColumn('expense', function ($account) 
+            {
+               return $account->expense ? number_format($account->expense,2) : null;
+            })
 
             // بیلانس
             ->addColumn('balance', function ($account) use ($account_type_id, $total_loans, $total_talabat) 
             {
-                $balance =  ($account->cache_paid + $account->loan_paid) - ($account->cache_recieved + $account->loan_recieved);
+                $balance =  ($account->cache_paid + $account->loan_paid + $account->expense) - ($account->cache_recieved + $account->loan_recieved);
                 $account->computed_balance = $balance; // Store it in the object
                 return number_format($balance,2);
             })

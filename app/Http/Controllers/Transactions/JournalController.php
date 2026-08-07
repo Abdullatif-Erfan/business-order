@@ -136,6 +136,10 @@ class JournalController extends Controller
                if (($journal->transaction_type == 2 && $journal->payment_type == 2)) {  return number_format($journal->amount,2); }
            })
             
+          //  t3 = مصارف
+            ->addColumn('expense', function ($journal) {
+               if (($journal->transaction_type == 3)) {  return number_format($journal->amount,2); }
+           })
 
             ->addColumn('currency', function ($journal) {
                 return '<i style="font-size:14px;color:'.optional($journal->currencyRelation)->color.'">'.optional($journal->currencyRelation)->symbols.'</i>';

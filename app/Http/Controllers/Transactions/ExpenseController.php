@@ -118,14 +118,15 @@ class ExpenseController extends Controller
                 $symbol = $expense->currencyRelation->symbols ?? '';
                 return '<i style="font-size:14px;color:' . $color . '">' . $symbol . '</i>';
             })
-            ->addColumn('doc', function ($expense) {
-                if ($expense->doc) {
-                    $url = asset('storage/' . $expense->doc);
-                    return '<a href="' . $url . '" target="_blank" title="Download Document">
-                                <i class="fa fa-file-pdf" style="font-size:18px;color:#dc3545;"></i>
-                            </a>';
-                }
-                return '-';
+           ->addColumn('doc', function ($expense) {
+                    if ($expense->doc) {
+                        // Use storage URL for files stored with Storage facade
+                        $url = asset('storage/' . $expense->doc);
+                        return '<a href="' . $url . '" target="_blank" title="Download Document">
+                                    <i class="fa fa-file-pdf" style="font-size:18px;color:#dc3545;"></i>
+                                </a>';
+                    }
+                    return '-';
             })
             ->addColumn('edit', function ($expense) {
                 return '<a href="' . route('expense.edit', $expense->id) . '" class="hidden-print">
@@ -148,11 +149,11 @@ class ExpenseController extends Controller
     public function create()
     {
         $expenseTypes = ExpenseType::all();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])
+        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])
             ->orderBy('is_pre_select', 'DESC')
             ->get();
 
-        if ($ownBanks->isEmpty()) {
+        if ($accounts->isEmpty()) {
             Session::put('notification', [
                 'message' => __('journal.default_account'),
                 'type' => 'warning',
@@ -163,7 +164,7 @@ class ExpenseController extends Controller
         $currencies = Currency::all();
         $todaysDate = Carbon::now()->format('Y-m-d');
 
-        return view('transactions.expense.create', compact('ownBanks', 'currencies', 'todaysDate', 'expenseTypes'));
+        return view('transactions.expense.create', compact('accounts', 'currencies', 'todaysDate', 'expenseTypes'));
     }
 
     /**
@@ -178,19 +179,19 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'currency_id' => 'required|exists:currencies,id',
             'dynamic_type' => 'required|numeric|exists:expense_types,id',
-            'details' => 'required|string|max:255',
+            'details' => 'nullable|string|max:255',
             'todays_date' => 'required|date',
             'doc' => 'nullable|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:2048',
         ]);
 
-        $todaysDate = $request->todays_date;
-        $date = explode('-', $todaysDate);
-        $year = $date[0] ?? date('Y');
-        $month = $date[1] ?? date('m');
-        $day = $date[2] ?? date('d');
-        $full_date = $year . '-' . $month . '-' . $day . ' ' . date('h:i:s A');
+        $todaysDate = $request->todays_date ?? Carbon::now()->format('Y-m-d');
+        $date = Carbon::parse($todaysDate);
+        $year = $date->year;
+        $month = $date->month;
+        $day = $date->day;
 
-        $newJournalCode = Journal::max('code') + 1;
+        $new_journal_code = Journal::lockForUpdate()->max('code');
+        $newJournalCode = $new_journal_code + 1;
         $times = time();
 
         DB::beginTransaction();
@@ -201,7 +202,6 @@ class ExpenseController extends Controller
             $journal = new Journal();
             $journal->bill_no = $validated['bill_no'] ?? 0;
             $journal->code = $newJournalCode;
-            $journal->idate = $full_date;
             $journal->idate = $todaysDate;
             $journal->dynamic_type = $validated['dynamic_type'];
             $journal->user_name = auth()->user()->full_name ?? '';
@@ -217,14 +217,32 @@ class ExpenseController extends Controller
             $journal->amount = $validated['amount'];
             $journal->currency_id = $validated['currency_id'];
             $journal->details = $validated['details'];
-            $journal->transaction_type = 2; // Paid
-            $journal->payment_type = 1; // Cash
-            $journal->option_label = __('journal.store_expense_option_label');
+           
+             if((int)$account_type_id === 1 || (int)$account_type_id === 6) 
+            {
+                $journal->transaction_type = 2; // Paid
+                $journal->payment_type = 1; // Cash
+                $journal->option_label = __('journal.store_expense_option_label');
+            } 
+            else 
+            {
+                $journal->transaction_type = 3; // Expense for just cars and employees
+                $journal->payment_type = 1; // Cash
+                $journal->option_label = __('journal.store_expense_option_label');
+            }
 
             // Handle file upload
+            // if ($request->hasFile('doc')) {
+            //     $docPath = $request->file('doc')->store('documents', 'public');
+            //     $journal->doc = $docPath;
+            // }
+
+            $filePath = null;
             if ($request->hasFile('doc')) {
-                $docPath = $request->file('doc')->store('documents', 'public');
-                $journal->doc = $docPath;
+                $file = $request->file('doc');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('documents', $fileName, 'public');
+                $journal->doc = $filePath;
             }
 
             $journal->save();
@@ -270,12 +288,9 @@ class ExpenseController extends Controller
 
         $expenseTypes = ExpenseType::all();
         $currencies = Currency::all();
-        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [3, 4])->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])
-            ->orderBy('is_pre_select', 'DESC')
-            ->get();
+        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])->get();
 
-        return view('transactions.expense.edit', compact('currencies', 'expense', 'expenseTypes', 'accounts', 'ownBanks'));
+        return view('transactions.expense.edit', compact('currencies', 'expense', 'expenseTypes', 'accounts'));
     }
 
     /**
@@ -283,19 +298,30 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // ✅ FIX: Add DB::beginTransaction()
-        DB::beginTransaction();
-
-        try {
-            $validated = $request->validate([
+        
+         $validated = $request->validate([
                 'bill_no' => 'nullable|numeric|min:0',
                 'amount' => 'required|numeric|min:0.01',
+                'reciever_account_id' => 'required|exists:accounts,id',
                 'currency_id' => 'required|exists:currencies,id',
                 'dynamic_type' => 'required|numeric|exists:expense_types,id',
                 'details' => 'required|string|max:255',
                 'todays_date' => 'required|date',
                 'doc' => 'nullable|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:2048',
             ]);
+
+            $todaysDate = $request->todays_date ?? Carbon::now()->format('Y-m-d');
+            $date = Carbon::parse($todaysDate);
+            $year = $date->year;
+            $month = $date->month;
+            $day = $date->day;
+
+        
+        DB::beginTransaction();
+        
+        try {
+            $account_type_id = Account::where('id', $validated['reciever_account_id'])->value('account_type_id');
+           
 
             $journal = Journal::find($id);
 
@@ -308,16 +334,9 @@ class ExpenseController extends Controller
                 return redirect()->route('expense.index');
             }
 
-            $todaysDate = $request->todays_date;
-            $date = explode('-', $todaysDate);
-            $year = $date[0] ?? date('Y');
-            $month = $date[1] ?? date('m');
-            $day = $date[2] ?? date('d');
-            $full_date = $year . '-' . $month . '-' . $day . ' ' . date('h:i:s A');
 
             // Update journal entry
             $journal->bill_no = $validated['bill_no'] ?? 0;
-            $journal->idate = $full_date;
             $journal->idate = $todaysDate;
             $journal->user_name = auth()->user()->full_name ?? '';
             $journal->user_id = auth()->user()->id ?? '';
@@ -327,7 +346,21 @@ class ExpenseController extends Controller
             $journal->day = $day;
             $journal->amount = $validated['amount'];
             $journal->currency_id = $validated['currency_id'];
+            $journal->account_id = $validated['reciever_account_id'];
             $journal->details = $validated['details'];
+
+             if((int)$account_type_id === 1 || (int)$account_type_id === 6) 
+            {
+                $journal->transaction_type = 2; // Paid
+                $journal->payment_type = 1; // Cash
+                $journal->option_label = __('journal.store_expense_option_label');
+            } 
+            else 
+            {
+                $journal->transaction_type = 3; // Expense for just cars and employees
+                $journal->payment_type = 1; // Cash
+                $journal->option_label = __('journal.store_expense_option_label');
+            }
 
             // Handle file upload - delete old if new uploaded
             if ($request->hasFile('doc')) {
@@ -335,7 +368,11 @@ class ExpenseController extends Controller
                 if ($journal->doc && Storage::disk('public')->exists($journal->doc)) {
                     Storage::disk('public')->delete($journal->doc);
                 }
-                $docPath = $request->file('doc')->store('documents', 'public');
+                
+                // Upload new file
+                $file = $request->file('doc');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $docPath = $file->storeAs('documents', $fileName, 'public');
                 $journal->doc = $docPath;
             }
 

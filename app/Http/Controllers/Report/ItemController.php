@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Setting\OrgBio;
 
-
 class ItemController extends Controller
 {
-    protected  $isAdmin;
+    protected $isAdmin;
+    
     public function __construct()
     {
         if (auth()->check()) {
@@ -21,6 +21,7 @@ class ItemController extends Controller
             $this->isAdmin = false;
         }
     }
+    
     /**
      * Display a listing of the resource.
      */
@@ -34,393 +35,172 @@ class ItemController extends Controller
      */
     public function daily(Request $request)
     {
-         $months = array(
-                1  => 'جنوری',    // January
-                2  => 'فبروری',    // February
-                3  => 'مارچ',    // March
-                4  => 'اپریل',    // April
-                5  => 'می',    // May
-                6  => 'جون',   // June
-                7  => 'جولای',  // July
-                8  => 'اگست',    // August
-                9  => 'سپتمبر',  // September
-                10 => 'اکتوبر',  // October
-                11 => 'نومبر',   // November
-                12 => 'دسمبر',    // December
-            );
+        $orgbios = OrgBio::all();
+        $currencies = Currency::select('id', 'name')->orderBy('id', 'ASC')->get();
+        
+        // ✅ Set default date range to last 7 days
+        $endDate = Carbon::now();
+        $startDate = Carbon::now()->subDays(6); // Last 7 days (including today)
+        
+        $data['start_date'] = $request->input('start_date') ?? $startDate->format('Y-m-d');
+        $data['end_date'] = $request->input('end_date') ?? $endDate->format('Y-m-d');
+        $data['currency_id'] = $request->input('currency_id') ?? $currencies->first()->id ?? 1;
+        
+        // Get currency name
+        $currency = Currency::find($data['currency_id']);
+        $data['currency_name'] = $currency->name ?? '';
 
-        $orgbios = OrgBio::all();
-        $data['year'] = $request->input('year') ?? Carbon::now()->format('Y');
-        $data['month'] = $request->input('month') ?? Carbon::now()->format('n');
-        $data['day'] = Carbon::now()->format('d');
-        $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
-    
-        if ($request->has('currency_id')) 
-        {
-            $data['currency_id'] = $request->input('currency_id');
-    
-            $cur_currency = Currency::select('id', 'name')
-                ->where('id', $data['currency_id'])
-                ->orderBy('id', 'ASC')
-                ->first(); // Use first() instead of get()->toArray()
-    
-            $data['currency_name'] = $cur_currency->name ?? null;
-            $data['currency_id'] = $cur_currency->id ?? null;
-        } 
-        else 
-        {
-            $data['currency_id'] = $data['currency'][0]['id'] ?? null;
-            $data['currency_name'] = $data['currency'][0]['name'] ?? null;
-        }
-    
-        $dailyReport = $this->getDailyReports($data['currency_id'],$data['year'],$data['month']);
-        // return ['dailyReport', $dailyReport];
-        
-        return view('report.items.daily', compact('data','dailyReport','orgbios','months'));
-    }
-    
-    /**
-     * Show daily reports from bought_items and warehouse_sales
-     */
-    public function monthly(Request $request)
-    {
-        $orgbios = OrgBio::all();
-        $data['year'] = $request->input('year') ?? Carbon::now()->format('Y');
-        $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
-        if ($request->has('currency_id')) {
-            $data['currency_id'] = $request->input('currency_id');
-    
-            $cur_currency = Currency::select('id', 'name')
-                ->where('id', $data['currency_id'])
-                ->orderBy('id', 'ASC')
-                ->first(); // Use first() instead of get()->toArray()
-    
-            $data['currency_name'] = $cur_currency->name ?? null;
-            $data['currency_id'] = $cur_currency->id ?? null;
-        } else {
-            $data['currency_id'] = $data['currency'][0]['id'] ?? null;
-            $data['currency_name'] = $data['currency'][0]['name'] ?? null;
-        }
-    
-        $monthlyReport = $this->getMonthlyReports($data['currency_id'],$data['year']);
-        // return ['monthlyReport', $monthlyReport];
-        
-        return view('report.items.monthly', compact('data','monthlyReport','orgbios'));
+        return view('report.items.daily', compact('data', 'orgbios', 'currencies'));
     }
 
     /**
-     * Show Yearly reports from bought_items and warehouse_sales
+     * Get daily report data via AJAX
      */
-    public function yearly(Request $request)
+    public function getDailyData(Request $request)
     {
-        $orgbios = OrgBio::all();
-        $data['currency'] = Currency::select('id', 'name')->orderBy('id', 'ASC')->get()->toArray();
-        if ($request->has('currency_id')) {
-            $data['currency_id'] = $request->input('currency_id');
-    
-            $cur_currency = Currency::select('id', 'name')
-                ->where('id', $data['currency_id'])
-                ->orderBy('id', 'ASC')
-                ->first(); // Use first() instead of get()->toArray()
-    
-            $data['currency_name'] = $cur_currency->name ?? null;
-            $data['currency_id'] = $cur_currency->id ?? null;
-        } else {
-            $data['currency_id'] = $data['currency'][0]['id'] ?? null;
-            $data['currency_name'] = $data['currency'][0]['name'] ?? null;
+        $currency_id = $request->input('currency_id');
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+
+        // ✅ If no date range provided, use default (last 7 days)
+        if (!$start_date || !$end_date) {
+            $endDate = Carbon::now();
+            $startDate = Carbon::now()->subDays(6);
+            $start_date = $startDate->format('Y-m-d');
+            $end_date = $endDate->format('Y-m-d');
         }
-    
-        $yearlyReport = $this->getYearlyReports($data['currency_id']);
-        // return ['yearlyReport', $yearlyReport];
+
+        // ✅ If no currency selected, use default (first currency)
+        if (!$currency_id) {
+            $firstCurrency = Currency::first();
+            $currency_id = $firstCurrency->id ?? 1;
+        }
+
+        // Validate dates
+        if ($start_date > $end_date) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('reports.start_date_cannot_be_after_end_date')
+            ], 400);
+        }
+
+        $dailyReport = $this->getDailyReports($currency_id, $start_date, $end_date);
         
-        return view('report.items.yearly', compact('data','yearlyReport','orgbios'));
+        // Calculate totals
+        $totals = [
+            'total_sales_payable' => 0,
+            'total_sales_curpay' => 0,
+            'total_sales_remained' => 0,
+            'total_sales_profit' => 0,
+            'total_bought_payable' => 0,
+            'total_bought_curpay' => 0,
+            'total_bought_remained' => 0,
+        ];
+
+        foreach ($dailyReport as $row) {
+            $totals['total_sales_payable'] += $row->total_sales_payable ?? 0;
+            $totals['total_sales_curpay'] += $row->total_sales_curpay ?? 0;
+            $totals['total_sales_remained'] += $row->total_sales_remained ?? 0;
+            $totals['total_sales_profit'] += $row->total_sales_profit ?? 0;
+            $totals['total_bought_payable'] += $row->total_bought_payable ?? 0;
+            $totals['total_bought_curpay'] += $row->total_bought_curpay ?? 0;
+            $totals['total_bought_remained'] += $row->total_bought_remained ?? 0;
+        }
+
+        // Format data for DataTable
+        $formattedData = $dailyReport->map(function ($row) {
+            $date = Carbon::parse($row->report_date);
+            $dayName = $date->format('Y-m-d') . ' - ' . $date->format('l');
+            
+            return [
+                'report_date' => $row->report_date,
+                'day_name' => $dayName,
+                'is_today' => ($row->report_date == Carbon::now()->format('Y-m-d')) ? true : false,
+                'total_bought_payable' => number_format($row->total_bought_payable ?? 0, 2),
+                'total_bought_curpay' => number_format($row->total_bought_curpay ?? 0, 2),
+                'total_bought_remained' => number_format($row->total_bought_remained ?? 0, 2),
+                'total_sales_payable' => number_format($row->total_sales_payable ?? 0, 2),
+                'total_sales_curpay' => number_format($row->total_sales_curpay ?? 0, 2),
+                'total_sales_remained' => number_format($row->total_sales_remained ?? 0, 2),
+                'total_sales_profit' => number_format($row->total_sales_profit ?? 0, 2),
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $formattedData,
+            'totals' => $totals,
+            'total_days' => $dailyReport->count(),
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'currency_id' => $currency_id,
+        ]);
     }
 
-
-    /**
-     * Get Daily Reports
-     */
-    // private function getDailyReportsBkp($currencyId,$year,$month)
-    // {
-    //     $query1 = DB::table('warehouse_items')
-    //         ->selectRaw("
-    //             day AS report_day,
-    //             SUM(available_total) AS total_warehouse_value,
-    //             SUM(wastage_total) AS total_warehouse_wastage,
-    //             NULL AS total_sales_payable, NULL AS total_sales_curpay, NULL AS total_sales_remained, NULL AS total_sales_profit,
-    //             NULL AS total_bought_payable, NULL AS total_bought_curpay, NULL AS total_bought_remained, NULL AS total_bought_transport
-    //         ")
-    //         ->where('year', $year)
-    //         ->where('month', $month)
-    //         ->where('currency_id', $currencyId)
-    //         ->groupBy('day');
-
-    //     $query2 = DB::table('warehouse_sales')
-    //         ->selectRaw("
-    //             day AS report_day,
-    //             NULL AS total_warehouse_value, NULL AS total_warehouse_wastage,
-    //             SUM(payable) AS total_sales_payable,
-    //             SUM(cur_pay) AS total_sales_curpay,
-    //             SUM(remained) AS total_sales_remained,
-    //             (SELECT SUM(profit) FROM sales_details WHERE sales_details.billno = warehouse_sales.billno) AS total_sales_profit,
-    //             NULL AS total_bought_payable, NULL AS total_bought_curpay, NULL AS total_bought_remained, NULL AS total_bought_transport
-    //         ")
-    //         ->where('year', $year)
-    //         ->where('month', $month)
-    //         ->where('currency_id', $currencyId)
-    //         ->groupBy('day', 'billno');
-
-    //     $query3 = DB::table('bought_items')
-    //         ->selectRaw("
-    //             day AS report_day,
-    //             NULL AS total_warehouse_value, NULL AS total_warehouse_wastage,
-    //             NULL AS total_sales_payable, NULL AS total_sales_curpay, NULL AS total_sales_remained, NULL AS total_sales_profit,
-    //             SUM(payable) AS total_bought_payable,
-    //             SUM(cur_pay) AS total_bought_curpay,
-    //             SUM(remained) AS total_bought_remained,
-    //             SUM(trans_spend) AS total_bought_transport
-    //         ")
-    //         ->where('year', $year)
-    //         ->where('month', $month)
-    //         ->where('currency_id', $currencyId)
-    //         ->groupBy('day');
-
-    //     // Combine using UNION
-    //     $finalQuery = $query1->union($query2)->union($query3);
-
-    //     // Execute query
-    //     $results = DB::table(DB::raw("({$finalQuery->toSql()}) as combined_reports"))
-    //         ->mergeBindings($finalQuery)
-    //         ->get();
-
-    //     return $results;
-
-    // }
-
-
-    public function getDailyReports($currency_id, $year, $month)
+    public function getDailyReports($currency_id, $startDate, $endDate)
     {
-        // Get all unique days from multiple sources
+        // Get all unique days from multiple sources within date range
         $subQueryAllDays = DB::table('warehouse_items')
-            ->select('day as report_day')
-            ->where('year', $year)
-            ->where('month', $month)
+            ->select(DB::raw("DATE(idate) as report_date"))
             ->where('currency_id', $currency_id)
+            ->whereBetween('idate', [$startDate, $endDate])
             ->union(
                 DB::table('warehouse_sales')
-                    ->select('day')
-                    ->where('year', $year)
-                    ->where('month', $month)
+                    ->select(DB::raw("DATE(idate) as report_date"))
                     ->where('currency_id', $currency_id)
+                    ->whereBetween('idate', [$startDate, $endDate])
             )
             ->union(
                 DB::table('bought_items')
-                    ->select('day')
-                    ->where('year', $year)
-                    ->where('month', $month)
+                    ->select(DB::raw("DATE(idate) as report_date"))
                     ->where('currency_id', $currency_id)
+                    ->whereBetween('idate', [$startDate, $endDate])
             );
 
-        $combinedQuery = DB::table('warehouse_sales AS ws')
-        ->leftJoin('sales_details AS sd', 'ws.id', '=', 'sd.warehouse_sales_id')
-        ->select(
-            'ws.day',
-            DB::raw('SUM(ws.total) AS total_sales_payable'),
-            DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
-            DB::raw('SUM(ws.remained) AS total_sales_remained'),
-            DB::raw('COALESCE(SUM(sd.profit), 0) AS total_sales_profit') // Include profit calculation
-        )
-        ->where('ws.year', $year)
-        ->where('ws.month', $month)
-        ->where('ws.currency_id', $currency_id)
-        ->groupBy('ws.day');
-    
+        // Get sales data per day
+        $salesQuery = DB::table('warehouse_sales AS ws')
+            ->leftJoin('sales_details AS sd', 'ws.id', '=', 'sd.warehouse_sales_id')
+            ->select(
+                DB::raw("DATE(ws.idate) as report_date"),
+                DB::raw('SUM(ws.total) AS total_sales_payable'),
+                DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
+                DB::raw('SUM(ws.remained) AS total_sales_remained'),
+                DB::raw('COALESCE(SUM(sd.profit), 0) AS total_sales_profit')
+            )
+            ->where('ws.currency_id', $currency_id)
+            ->whereBetween('ws.idate', [$startDate, $endDate])
+            ->groupBy(DB::raw("DATE(ws.idate)"));
 
         // Get bought data per day
         $boughtQuery = DB::table('bought_items')
             ->select(
-                'day',
+                DB::raw("DATE(idate) as report_date"),
                 DB::raw('SUM(total) AS total_bought_payable'),
                 DB::raw('SUM(cur_pay) AS total_bought_curpay'),
-                DB::raw('SUM(remained) AS total_bought_remained'),
+                DB::raw('SUM(remained) AS total_bought_remained')
             )
-            ->where('year', $year)
-            ->where('month', $month)
             ->where('currency_id', $currency_id)
-            ->groupBy('day');
+            ->whereBetween('idate', [$startDate, $endDate])
+            ->groupBy(DB::raw("DATE(idate)"));
 
         // Final Query: Combine all data sources
         return DB::table(DB::raw("({$subQueryAllDays->toSql()}) as all_days"))
             ->mergeBindings($subQueryAllDays)
-
-            ->leftJoin(DB::raw("({$combinedQuery->toSql()}) as s"), 'all_days.report_day', '=', 's.day')
-            ->mergeBindings($combinedQuery)
-
-
-            ->leftJoin(DB::raw("({$boughtQuery->toSql()}) as b"), 'all_days.report_day', '=', 'b.day')
-            ->mergeBindings($boughtQuery)
-            ->select(
-                'all_days.report_day',
-                DB::raw('COALESCE(s.total_sales_payable, 0) AS total_sales_payable'),
-                DB::raw('COALESCE(s.total_sales_curpay, 0) AS total_sales_curpay'),
-                DB::raw('COALESCE(s.total_sales_remained, 0) AS total_sales_remained'),
-                DB::raw('COALESCE(s.total_sales_profit, 0) AS total_sales_profit'), // Use profit query separately
-                DB::raw('COALESCE(b.total_bought_payable, 0) AS total_bought_payable'),
-                DB::raw('COALESCE(b.total_bought_curpay, 0) AS total_bought_curpay'),
-                DB::raw('COALESCE(b.total_bought_remained, 0) AS total_bought_remained'),
-            )
-            ->orderBy('all_days.report_day')
-            ->get();
-    }
-
-
-    function getMonthsName($monthNumber)
-    {
-         $months = [
-            1 => 'جنوری', 2 => 'فبروری', 3 => 'مارچ',
-            4 => 'اپریل', 5 => 'می', 6 => 'جون',
-            7 => 'جولای', 8 => 'اگست', 9 => 'سپتمبر',
-            10 => 'اکتوبر', 11 => 'نومبر', 12 => 'دسیمبر',
-        ];
-        return $months[$monthNumber] ?? '';
-    }
-
-
-    /**
-    * Get Monthly Reports
-    */
-    public function getMonthlyReports($currency_id, $year)
-    {
-        $salesQuery = DB::table('warehouse_sales AS ws')
-            ->leftJoin('sales_details AS sd', 'ws.billno', '=', 'sd.billno')
-            ->select(
-                'ws.month',
-                DB::raw('SUM(ws.total) AS total_sales_payable'),
-                DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
-                DB::raw('SUM(ws.remained) AS total_sales_remained'),
-                DB::raw('SUM(sd.profit) AS total_sales_profit')
-            )
-            ->where('ws.year', $year)
-            ->where('ws.currency_id', $currency_id)
-            ->groupBy('ws.month');
-
-        $boughtQuery = DB::table('bought_items')
-            ->select(
-                'month',
-                DB::raw('SUM(total) AS total_bought_payable'),
-                DB::raw('SUM(cur_pay) AS total_bought_curpay'),
-                DB::raw('SUM(remained) AS total_bought_remained'),
-            )
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->groupBy('month');
-
-        // Get all months with data using UNION
-        $allMonthsQuery = DB::table('warehouse_sales')
-            ->select('month')
-            ->where('year', $year)
-            ->where('currency_id', $currency_id)
-            ->union(
-                DB::table('bought_items')
-                    ->select('month')
-                    ->where('year', $year)
-                    ->where('currency_id', $currency_id)
-            );
-
-        $allMonths = $allMonthsQuery->get()->pluck('month')->unique()->sort();
-
-        // If no data, return all months with zero values
-        if ($allMonths->isEmpty()) {
-            return collect(range(1, 12))->map(function($month) {
-                return (object) [
-                    'month' => $month,
-                    'total_sales_payable' => 0,
-                    'total_sales_curpay' => 0,
-                    'total_sales_remained' => 0,
-                    'total_sales_profit' => 0,
-                    'total_bought_payable' => 0,
-                    'total_bought_curpay' => 0,
-                    'total_bought_remained' => 0,
-                ];
-            });
-        }
-
-        $salesData = $salesQuery->get()->keyBy('month');
-        $boughtData = $boughtQuery->get()->keyBy('month');
-
-        return $allMonths->map(function($month) use ($salesData, $boughtData) {
-            $sales = $salesData->get($month);
-            $bought = $boughtData->get($month);
-            
-            return (object) [
-                'month' => $month,
-                'month_name' => $this->getMonthsName($month),
-                'total_sales_payable' => $sales->total_sales_payable ?? 0,
-                'total_sales_curpay' => $sales->total_sales_curpay ?? 0,
-                'total_sales_remained' => $sales->total_sales_remained ?? 0,
-                'total_sales_profit' => $sales->total_sales_profit ?? 0,
-                'total_bought_payable' => $bought->total_bought_payable ?? 0,
-                'total_bought_curpay' => $bought->total_bought_curpay ?? 0,
-                'total_bought_remained' => $bought->total_bought_remained ?? 0,
-            ];
-        })->values();
-    }
-
-    /**
-    * Get yearly Reports
-    */
-    public function getYearlyReports($currency_id)
-    {
-        $warehouseQuery = DB::table('warehouse_items')
-            ->select(
-                'year',
-                DB::raw('SUM(available_total) AS total_warehouse_value'),
-            )
-            ->where('currency_id', $currency_id)
-            ->groupBy('year');
-
-        $salesQuery = DB::table('warehouse_sales AS ws')
-            ->leftJoin('sales_details AS sd', 'ws.billno', '=', 'sd.billno') // Join sales_details to aggregate profit
-            ->select(
-                'ws.year',
-                DB::raw('SUM(ws.total) AS total_sales_payable'),
-                DB::raw('SUM(ws.cur_pay) AS total_sales_curpay'),
-                DB::raw('SUM(ws.remained) AS total_sales_remained'),
-                DB::raw('SUM(sd.profit) AS total_sales_profit') 
-            )
-            ->where('ws.currency_id', $currency_id)
-            ->groupBy('ws.year'); 
-
-        $boughtQuery = DB::table('bought_items')
-            ->select(
-                'year',
-                DB::raw('SUM(total) AS total_bought_payable'),
-                DB::raw('SUM(cur_pay) AS total_bought_curpay'),
-                DB::raw('SUM(remained) AS total_bought_remained'),
-            )
-            ->where('currency_id', $currency_id)
-            ->groupBy('year');
-
-        return DB::table(DB::raw("({$warehouseQuery->toSql()}) as w"))
-            ->mergeBindings($warehouseQuery)
-            ->leftJoin(DB::raw("({$salesQuery->toSql()}) as s"), 'w.year', '=', 's.year')
+            ->leftJoin(DB::raw("({$salesQuery->toSql()}) as s"), 'all_days.report_date', '=', 's.report_date')
             ->mergeBindings($salesQuery)
-            ->leftJoin(DB::raw("({$boughtQuery->toSql()}) as b"), 'w.year', '=', 'b.year')
+            ->leftJoin(DB::raw("({$boughtQuery->toSql()}) as b"), 'all_days.report_date', '=', 'b.report_date')
             ->mergeBindings($boughtQuery)
             ->select(
-                'w.year',
-                DB::raw('COALESCE(w.total_warehouse_value, 0) AS total_warehouse_value'),
+                'all_days.report_date',
                 DB::raw('COALESCE(s.total_sales_payable, 0) AS total_sales_payable'),
                 DB::raw('COALESCE(s.total_sales_curpay, 0) AS total_sales_curpay'),
                 DB::raw('COALESCE(s.total_sales_remained, 0) AS total_sales_remained'),
                 DB::raw('COALESCE(s.total_sales_profit, 0) AS total_sales_profit'),
                 DB::raw('COALESCE(b.total_bought_payable, 0) AS total_bought_payable'),
                 DB::raw('COALESCE(b.total_bought_curpay, 0) AS total_bought_curpay'),
-                DB::raw('COALESCE(b.total_bought_remained, 0) AS total_bought_remained'),
+                DB::raw('COALESCE(b.total_bought_remained, 0) AS total_bought_remained')
             )
-            ->orderBy('w.year')
+            ->orderBy('all_days.report_date')
             ->get();
     }
-
-    
 }

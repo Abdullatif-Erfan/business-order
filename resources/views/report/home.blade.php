@@ -42,16 +42,8 @@
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item">
-                                                    <a href="#" onclick="submitReportForm(event, '{{ route('reports.daily') }}')">📅 
-                                                    {{__('reports.daily')}}</a>
-                                                </li>
-                                                <li class="list-group-item">
-                                                    <a href="#" onclick="submitReportForm(event, '{{ route('reports.monthly') }}')">📆 
-                                                    {{__('reports.monthly')}}</a>
-                                                </li>
-                                                <li class="list-group-item">
-                                                    <a href="#" onclick="submitReportForm(event, '{{ route('reports.yearly') }}')">📊 
-                                                    {{__('reports.yearly')}}</a>
+                                                    <a href="{{ route('reports.daily') }}" >📅 
+                                                    گزارش خرید و فروش</a>
                                                 </li>
                                             </ul>
                                         </div>

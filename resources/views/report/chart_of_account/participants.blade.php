@@ -20,7 +20,7 @@
             <th>{{__('common.number')}}</th>
             <th>{{__('reports.account')}}</th>
             <th>{{__('reports.loan')}}</th>
-            <th>{{__('reports.talabat')}}</th>
+            <th>{{__('reports.talab')}}</th>
             <th>{{__('reports.balance')}} </th>
             <th>{{__('reports.specify')}}</th>
         </tr>
