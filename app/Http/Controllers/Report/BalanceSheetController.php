@@ -57,7 +57,7 @@ class BalanceSheetController extends Controller
     public function getData(Request $request)
     {
         // Retrieve request values
-        $currency_id = $request->currency_id ?? 0;
+        $currency_id = $request->currency_id ?? 1;
         $account_type_id = $request->account_type_id ?? 0;
         $balance = 0 ;
 
@@ -149,7 +149,7 @@ class BalanceSheetController extends Controller
             ->addColumn('cache_paid', function ($account) {
                  return $account->cache_paid ? number_format($account->cache_paid,2) : null;
             })
-
+        
             // قرض
             ->addColumn('loan_recieved', function ($account)  
             {

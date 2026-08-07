@@ -17,9 +17,12 @@
                         <div class="card-header" style="padding: 11px 20px !important;">
                             <strong> {{__('reports.cash_flow_title')}}   </strong>
                              <!-- Responsive Filter Toggle Button - Visible only on XS -->
-                            <div class="pull-left" style="width:90px">
+                            <div class="pull-left" style="width:80px; margin-left:50px">
+                                <a href="{{ route('reports.home') }}">
+                                    <button class="btn btn-sm pull-left"><i class="fas fa-arrow-left"></i></button>
+                                </a>
                                 <button type="button" class="responsive_button btn btn-sm  visible-xs"
-                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-top:2px;">
                                    <i class="fas fa-filter"></i>
                                  </button>
                                  <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
@@ -28,22 +31,15 @@
 
                         {{-- Filter Form --}}
                          <div class="filter-section no-print" id="searchWrapper"> 
+                            <input type="hidden" id="currency_id" value="{{$currencies->first()->id}}">
                             <div class="col-md-12">
                                 <div class="row">
-                                    <div class="col-md-2 col-sm-6 col-xs-6">
+                                    <div class="col-md-4 col-sm-6 col-xs-6">
                                         <select class="form-control select2" id="account_id" style="width:100%">
                                             <option value=""> {{__('reports.account')}} </option>
                                               @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}">{{ $account->name }}</option>
                                               @endforeach
-                                        </select> 
-                                    </div>
-                                    <div class="col-md-2  col-sm-6 col-xs-6">
-                                        <select class="form-control select2" id="currency_id" style="width:100%">
-                                            <!-- <option value=""> واحد پولی </option> -->
-                                            @foreach($currencies as $currency)
-                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
-                                            @endforeach
                                         </select> 
                                     </div>
 
@@ -104,7 +100,6 @@
                                             <th> {{__('common.code')}} </th>
                                             <th> {{__('reports.account')}} </th>
                                             <th> {{__('common.details')}} </th>
-                                            
                                             <!-- <th> {{__('reports.cache_in')}}</th>
                                             <th> {{__('reports.cache_out')}}</th> -->
                                             <th> {{__('journal.recieved')}} <br> {{__('journal.cache')}} (+)</th>
@@ -253,16 +248,21 @@ $(document).on('click', '.datepicker-icon', function(e) {
 
                     // let finalResult = (cacheRecieved +  loanRecieved) - (cachePaid + loanPaid);
                     let finalResult = isCompanyAccount ? (cacheRecieved +  loanPaid) - (cachePaid + loanRecieved) : 
-                    (cacheRecieved + loanRecieved + expense) - (cachePaid + loanPaid ) ;
+                    (cachePaid + loanPaid + expense) - (cacheRecieved + loanRecieved ) ;
+
+
 
                     // Format the final result properly
                     let finalResultFormatted = Number.isInteger(finalResult)
                         ? finalResult.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
                         : finalResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
                 
 
                 // Determine badge type
                 let badgeType = finalResult >= 0 ? 'badge-info' : 'badge-danger';
+                let badgeLabel = finalResult > 0 ? 'طلب است' : (finalResult < 0 ? 'باقی است' : 'تصفیه');
+
 
                 
 
@@ -272,6 +272,7 @@ $(document).on('click', '.datepicker-icon', function(e) {
                 $(api.column(7).footer()).html(sumColumn(7).toLocaleString());
                 $(api.column(8).footer()).html(sumColumn(8).toLocaleString());
                 $(api.column(9).footer()).html(`<span class="badge ${badgeType}">${finalResultFormatted}</span>`);
+                $(api.column(10).footer()).html(badgeLabel);
             }
         });
 

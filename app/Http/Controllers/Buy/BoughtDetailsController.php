@@ -124,27 +124,9 @@ class BoughtDetailsController extends Controller
                 return number_format($boughtItem->remained ?? 0, 2);
             })
 
-        
-            // ->addColumn('view', function ($boughtItem) {
-            //     return '<a href="boughtList/details/' . $boughtItem->times . '" class="hidden-print">
-            //                 <i class="fas fa-eye viewItems" 
-            //                 data-id="' . $boughtItem->details_id . '" 
-            //                 style="font-size:20px;">
-            //                 </i>
-            //             </a>';
-            // })
-
-            // ->addColumn('setprofit', function ($boughtItem) {
-            //     return '<i class="fas fa-money-bill setProfit" 
-            //                 data-id="' . $boughtItem->billno . '" data-id2="'.$boughtItem->isEditable.'" 
-            //                 data-id3="'.$boughtItem->has_invoice.'"
-            //                 style="font-size:20px; color: #0d8dc1">
-            //                 </i>';
-            // })
-
              ->addColumn('action', function ($boughtItem) {
                 return '
-                <div class="dropdown dropend">
+                <div class="dropdown detailsDropdown dropend">
                     <button class="btn btn-primary btn-sm dropdown-toggle"
                         type="button"  data-toggle="dropdown">
                     </button>

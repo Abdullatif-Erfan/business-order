@@ -56,9 +56,15 @@
                 <div class="col-md-12 mt-3">
                     <div class="card">
                         <div class="card-header" style="padding:10px">
-                            <h4 class="card-title"> {{__('reports.chart_of_account_title')}} 
-                            <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
-                            </h4>
+
+                            <div class="pull-left" style="width:80px; margin-left:50px">
+                                <a href="{{ route('reports.home') }}">
+                                    <button class="btn btn-sm pull-left"><i class="fas fa-arrow-left"></i></button>
+                                </a>
+                                  
+                                <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>
+                              
+                            </div> <h4 class="card-title"> {{__('reports.chart_of_account_title')}} </h4>
                         </div>
 
                         <div class="card-body">

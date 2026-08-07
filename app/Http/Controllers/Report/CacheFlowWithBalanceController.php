@@ -156,8 +156,8 @@ class CacheFlowWithBalanceController extends Controller
             } else {
                 // Non-Company Account (Customer, Supplier, etc.)
                 // For these accounts, the perspective is reversed
-                $cacheRecieved = ($journal->transaction_type == 2 && $journal->payment_type == 1) ? $journal->amount : 0;
-                $cachePaid = ($journal->transaction_type == 1 && $journal->payment_type == 1) ? $journal->amount : 0;
+                $cacheRecieved = ($journal->transaction_type == 1 && $journal->payment_type == 1) ? $journal->amount : 0;
+                $cachePaid = ($journal->transaction_type == 2 && $journal->payment_type == 1) ? $journal->amount : 0;
                 $loanRecieved = ($journal->transaction_type == 1 && $journal->payment_type == 2) ? $journal->amount : 0;
                 $loanPaid = ($journal->transaction_type == 2 && $journal->payment_type == 2) ? $journal->amount : 0;
                 $expense = ($journal->transaction_type == 3 && $journal->payment_type == 1) ? $journal->amount : 0;
@@ -165,8 +165,9 @@ class CacheFlowWithBalanceController extends Controller
 
             // Calculate balance change
             // Positive = Money coming in, Negative = Money going out
-            $balanceChange = ($cacheRecieved + $loanPaid + $expense) - ($cachePaid + $loanRecieved);
+            $balanceChange = ($cachePaid + $loanPaid + $expense) - ($cacheRecieved + $loanRecieved);
             $runningBalance += $balanceChange;
+
 
             // Attach calculated balance to journal
             $journal->calculated_balance = number_format($runningBalance, 2);

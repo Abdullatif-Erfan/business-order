@@ -8,13 +8,14 @@
                 <div class="col-md-12 col-sm-12 col-xs-12 mt-2">
                     <div class="card">
                         <div class="card-header" style="padding: 11px 20px !important;">
-                            
                             <strong>  {{__('reports.belance_sheet_title')}}  </strong>
                             
-                             <!-- Responsive Filter Toggle Button - Visible only on XS -->
-                            <div class="pull-left" style="width:90px">
+                            <div class="pull-left" style="width:80px; margin-left:50px">
+                                <a href="{{ route('reports.home') }}">
+                                    <button class="btn btn-sm pull-left"><i class="fas fa-arrow-left"></i></button>
+                                </a>
                                 <button type="button" class="responsive_button btn btn-sm  visible-xs"
-                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-left:2px; margin-top:2px;">
+                                  id="filterToggleBtn" onclick="toggleFilterForm()"  style="margin-top:2px;">
                                    <i class="fas fa-filter"></i>
                                  </button>
                                  <button class="printBtn" onclick="print_page_with_image()"><i class="fas fa-print"></i></button>

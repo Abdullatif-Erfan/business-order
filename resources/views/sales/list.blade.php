@@ -1,6 +1,158 @@
 @extends('layouts.app')
 @section('content')
 
+<style>
+    /* ========================================= */
+/* DROPDOWN FIX FOR DATATABLE */
+/* ========================================= */
+
+/* Allow dropdown to overflow */
+.dataTables_wrapper {
+    overflow: visible !important;
+}
+
+.dataTables_scroll {
+    overflow: visible !important;
+}
+
+.dataTables_scrollBody {
+    overflow: visible !important;
+    min-height: 200px;
+}
+
+/* Dropdown container */
+.btn-group {
+    position: relative;
+    z-index: 100;
+}
+
+.detailsDropdown {
+    position: relative;
+}
+
+/* Dropdown menu - ensure it appears above everything */
+.detailsDropdown .dropdown-menu {
+    z-index: 9999 !important;
+    position: absolute !important;
+    min-width: 140px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+/* For RTL support - open to the right */
+.detailsDropdown .dropdown-menu {
+    right: -120px;
+    left: auto !important;
+}
+
+/* If you want to force right alignment */
+.detailsDropdown .dropdown-menu-right {
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* For LTR support - open to the left */
+/* .dropdown-menu {
+    left: 0;
+    right: auto !important;
+} */
+
+/* Fix for table row */
+tr {
+    position: relative;
+}
+
+td {
+    position: relative;
+}
+
+/* Ensure dropdown doesn't get cut off */
+.table-responsive {
+    overflow: visible !important;
+    padding-bottom: 50px;
+}
+
+.card-body {
+    overflow: visible !important;
+}
+
+/* Fix for DataTables responsive */
+table.dataTable {
+    overflow: visible !important;
+}
+
+table.dataTable tbody tr {
+    overflow: visible !important;
+}
+
+table.dataTable tbody td {
+    overflow: visible !important;
+}
+
+/* Dropup support */
+.dropup .dropdown-menu {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-bottom: 2px;
+}
+
+/* Make dropdown toggle button more visible */
+.detailsDropdown .dropdown-toggle::after {
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: middle;
+    content: "";
+    border-top: 4px solid;
+    border-right: 4px solid transparent;
+    border-bottom: 0;
+    border-left: 4px solid transparent;
+}
+
+/* Button styling */
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.detailsDropdown .dropdown-toggle {
+    min-width: 32px;
+    text-align: center;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .detailsDropdown .dropdown-menu {
+        min-width: 150px;
+        font-size: 12px;
+    }
+    .detailsDropdown .dropdown-item {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Fix for dropdown being cut off */
+.main-panel>.content {
+    overflow: visible !important;
+}
+
+/* Also fix any parent containers */
+.page-inner {
+    overflow: visible !important;
+}
+
+.card {
+    overflow: visible !important;
+}
+
+.card-body {
+    overflow: visible !important;
+}
+
+.table-responsive {
+    overflow: visible !important;
+    padding-bottom: 50px !important;
+}
+</style>
 
 <!-- main content -->
 <div class="main-panel">

@@ -58,20 +58,24 @@
                                         </div>
                                         <div class="card-body">
                                             <ul class="list-group list-group-flush">
-                                                <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('cacheflow.index')}}">💰  {{__('reports.customer_accounts')}} </a>
+                                                <!-- <li class="list-group-item">
+                                                    <a  href="{{ route('cacheflow.index')}}">💰  جریان حساب نقده </a>
                                                 </li>
                                                  <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('cacheflowWithBalance.index')}}">💰 {{__('reports.customer_accounts_with_balance')}}</a>
+                                                    <a  href="{{ route('cacheflowWithBalance.index')}}">💰 جریان حساب نقده  با بیلانس</a>
+                                                </li> -->
+
+                                                <li class="list-group-item">
+                                                    <a  href="{{ route('cacheflowWithBalance.index')}}">💰  جریان حساب نقده </a>
                                                 </li>
 
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('balancesheet.index') }}">📑 
+                                                    <a  href="{{ route('balancesheet.index') }}">📑 
                                                     {{__('reports.balance_sheet')}}</a>
                                                 </li>
-                                                <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('chartOfAccount.index')}}">📌 {{__('reports.chart_of_account')}}</a>
-                                                </li>
+                                                <!-- <li class="list-group-item">
+                                                    <a  href="{{ route('chartOfAccount.index')}}">📌 {{__('reports.chart_of_account')}}</a>
+                                                </li> -->
                                             </ul>
                                         </div>
                                     </div>

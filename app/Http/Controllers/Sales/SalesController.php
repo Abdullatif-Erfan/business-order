@@ -117,7 +117,7 @@ class SalesController extends Controller
             // })
            ->addColumn('action', function ($soldItem) {
                 return '
-                <div class="dropdown dropend">
+                <div class="dropdown detailsDropdown dropend">
                     <button class="btn btn-primary btn-sm dropdown-toggle"
                         type="button"  data-toggle="dropdown">
                     </button>

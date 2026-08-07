@@ -75,9 +75,9 @@
                                             <div class="form-group form-floating-label">
                                                 <select  class="form-control select2 " style="width: 100%; border:none !important; background-color:#ddd;" aria-hidden="true" name="options" id="options" required 
                                                 onchange="selectAccountsLabel(this.value)" > 
-                                                    <!-- <option value=""> {{ __('journal.transaction_type') }} </option> -->
+                                                    <option value=""> {{ __('journal.transaction_type') }} </option>
                                                     <option value="1">{{ __('journal.cash_transaction') }}</option>
-                                                    <!-- <option value="2">{{ __('journal.credit_transaction') }}</option> -->
+                                                    <option value="2">{{ __('journal.credit_transaction') }}</option>
                                                  </select> 
                                             </div> 
                                         </div>
