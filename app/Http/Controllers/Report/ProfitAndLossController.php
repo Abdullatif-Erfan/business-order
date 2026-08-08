@@ -15,6 +15,7 @@ use App\Models\Setting\Account;
 use App\Models\Journal\Journal;
 use App\Models\Warehouse\SalesDetails;
 use App\Models\Setting\OrgBio;
+use Illuminate\Support\Facades\Log;
 
 class ProfitAndLossController extends Controller
 {
@@ -34,218 +35,265 @@ class ProfitAndLossController extends Controller
         $orgbios = OrgBio::all();
         $currencies = Currency::all();
         
-        // Get all data
-        $transactionSummary = $this->getTransactionSummary();
-        // $warehouseValue = $this->getWarehouseValue();
-        $salesProfit = $this->getSalesProfit();
-        // $talabat = $this->getTalabat();
-        
-        $participant_account_type_id = 5;
-        $base_currency = 1;
-        // $participant_accounts = $this->getSellersAndCustomersReport($base_currency, $participant_account_type_id, 0);
+        // Set default date range to null (no filter)
+        $data['start_date'] = "";
+        $data['end_date'] = "";
+        $data['currency_id'] = $currencies->first()->id ?? 1;
+        $data['currency_name'] = $currencies->first()->name ?? 'AFN';
+        $data['currency_symbol'] = $currencies->first()->symbol ?? 'AFN';
 
         return view('report.profitAndLoss.list', compact(
-            'transactionSummary',
-            'currencies',
-            'salesProfit',
             'orgbios',
+            'currencies',
+            'data'
         ));
-
-        // return ['transactionSummary' => $transactionSummary,
-        //     'currencies' => $currencies,
-        //     'warehouseValue' => $warehouseValue,
-        //     'salesProfit' => $salesProfit,
-        //     'orgbios' =>$orgbios,
-        //     'talabat' => $talabat,
-        //     'participant_accounts' => $participant_accounts
-        // ];
     }
 
     /**
-     * Get Sales Profit (Single Currency)
+     * Get Profit and Loss Data via AJAX
      */
-    private function getSalesProfit()
+    public function getData(Request $request)
     {
-        $profitData = DB::table('sales_details')
-            ->join('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
-            ->selectRaw('SUM(sales_details.profit) as total_profit')
-            ->first();
+        try {
+            $currency_id = $request->input('currency_id');
+            $start_date = $request->input('start_date');
+            $end_date = $request->input('end_date');
 
-        return (object) [
-            'total_profit' => $profitData->total_profit ?? 0,
-        ];
+            // Set defaults if not provided
+            if (!$currency_id) {
+                $currency = Currency::first();
+                $currency_id = $currency->id ?? 1;
+            }
+
+            // Only set default dates if both are empty
+            // If one is empty and the other has value, use the provided one
+            if (empty($start_date) && empty($end_date)) {
+                // No date filter - get all data
+                $start_date = null;
+                $end_date = null;
+            } elseif (empty($start_date)) {
+                // Only end_date provided, set start_date to beginning of time or a very old date
+                $start_date = '1970-01-01';
+            } elseif (empty($end_date)) {
+                // Only start_date provided, set end_date to today
+                $end_date = Carbon::now()->format('Y-m-d');
+            }
+
+            // Log the request for debugging
+            Log::info('ProfitAndLoss getData called', [
+                'currency_id' => $currency_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ]);
+
+            // Get all data with date filters
+            $transactionSummary = $this->getTransactionSummary($currency_id, $start_date, $end_date);
+            $salesProfit = $this->getSalesProfit($currency_id, $start_date, $end_date);
+            $khazanaReport = $this->getKhazanaReport($currency_id, $start_date, $end_date);
+
+            // Calculate totals
+            $totalIncome = ($transactionSummary->total_income ?? 0) + ($salesProfit->total_profit ?? 0);
+            $totalExpense = ($transactionSummary->total_salary ?? 0) + ($transactionSummary->total_expense ?? 0);
+            $finalNetIncome = $totalIncome - $totalExpense;
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data retrieved successfully',
+                'data' => [
+                    'transaction_summary' => $transactionSummary,
+                    'sales_profit' => $salesProfit,
+                    'khazanaReport' => $khazanaReport,
+                    'total_income' => $totalIncome,
+                    'total_expense' => $totalExpense,
+                    'final_net_income' => $finalNetIncome,
+                    'start_date' => $start_date ?? 'All Time',
+                    'end_date' => $end_date ?? 'All Time',
+                    'currency_id' => $currency_id
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('ProfitAndLoss getData error: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while fetching data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Get Warehouse Value (Single Currency)
+     * Get Sales Profit with optional Date Range
      */
-    private function getWarehouseValue()
+    private function getSalesProfit($currency_id, $start_date, $end_date)
     {
-        $warehouseData = DB::table('warehouse_items')
-            ->selectRaw('SUM(available_total) as total_value')
-            ->first();
+        try {
+            $query = DB::table('sales_details')
+                ->join('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
+                ->where('warehouse_sales.currency_id', $currency_id);
+            
+            // Apply date filters only if provided
+            if ($start_date && $end_date) {
+                $query->whereBetween('warehouse_sales.idate', [$start_date, $end_date]);
+            } elseif ($start_date) {
+                $query->where('warehouse_sales.idate', '>=', $start_date);
+            } elseif ($end_date) {
+                $query->where('warehouse_sales.idate', '<=', $end_date);
+            }
+            
+            $profitData = $query->selectRaw('COALESCE(SUM(sales_details.profit), 0) as total_profit')
+                ->first();
 
-        $totalValue = ($warehouseData->total_value ?? 0);
-
-        return (object) [
-            'total_warehouse_value' => $totalValue,
-        ];
+            return (object) [
+                'total_profit' => $profitData->total_profit ?? 0,
+            ];
+        } catch (\Exception $e) {
+            Log::error('getSalesProfit error: ' . $e->getMessage());
+            return (object) ['total_profit' => 0];
+        }
     }
 
     /**
-     * Get Talabat (Receivables) and Loans (Single Currency)
+     * Get Khazana Report with optional Date Range
      */
-    private function getTalabat()
+    private function getKhazanaReport($currency_id, $start_date, $end_date)
     {
-        $talabatData = DB::table('journals')
-            ->selectRaw("
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as cache_recieved,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as cache_paid,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as loan_paid,
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as loan_recieved
-            ")
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->whereIn('accounts.account_type_id', [3, 4])
-            ->where('journals.is_cleared', 0)
-            ->first();
+        try {
+            $query = DB::table('journals')
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END), 0) as cache_recieved,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END), 0) as cache_paid,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END), 0) as loan_paid,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END), 0) as loan_recieved
+                ")
+                ->join('accounts', 'accounts.id', '=', 'journals.account_id')
+                ->whereIn('accounts.account_type_id', [1, 6])
+                ->where('journals.currency_id', $currency_id)
+                ->where('journals.is_cleared', 0);
+            
+            // Apply date filters only if provided
+            if ($start_date && $end_date) {
+                $query->whereBetween('journals.idate', [$start_date, $end_date]);
+            } elseif ($start_date) {
+                $query->where('journals.idate', '>=', $start_date);
+            } elseif ($end_date) {
+                $query->where('journals.idate', '<=', $end_date);
+            }
+            
+            $bankReport = $query->first();
 
-        return (object) [
-            'total_talabat' => ($talabatData->cache_recieved ?? 0) + ($talabatData->loan_recieved ?? 0),
-            'total_loan' => ($talabatData->cache_paid ?? 0) + ($talabatData->loan_paid ?? 0),
-        ];
+            // Calculate individual values
+            $cashReceived = (float)($bankReport->cache_recieved ?? 0);
+            $cashPaid = (float)($bankReport->cache_paid ?? 0);
+            $loanPaid = (float)($bankReport->loan_paid ?? 0);
+            $loanReceived = (float)($bankReport->loan_recieved ?? 0);
+
+            return (object) [
+                'totalIncome' => $cashReceived,
+                'totalOutcome' => $cashPaid,
+                'cashBalance' => $cashReceived - $cashPaid,
+                'totalTalab' => $loanPaid,
+                'totalLoan' => $loanReceived,
+                'loanTalabBalance' => $loanPaid - $loanReceived,
+                'finalBalance' => ($cashReceived - $cashPaid) + ($loanPaid - $loanReceived),
+            ];
+        } catch (\Exception $e) {
+            Log::error('getKhazanaReport error: ' . $e->getMessage());
+            return (object) [
+                'totalIncome' => 0,
+                'totalOutcome' => 0,
+                'cashBalance' => 0,
+                'totalTalab' => 0,
+                'totalLoan' => 0,
+                'loanTalabBalance' => 0,
+                'finalBalance' => 0,
+            ];
+        }
     }
 
     /**
-     * Get Transaction Summary (Single Currency)
+     * Get Transaction Summary with optional Date Range
      */
-    private function getTransactionSummary()
+    private function getTransactionSummary($currency_id, $start_date, $end_date)
     {
-        $company_account_type_id = 1; // Company treasury
-        $banks_account_type_id = 6;   // Banks and exchanges
+        try {
+            $company_account_type_id = 1;
+            $banks_account_type_id = 6;
 
-        $transactionData = DB::table('journals')
-            ->selectRaw("
-                SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
-                SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
-                SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END) as total_salary,
-                SUM(CASE WHEN journals.status = 7 THEN amount ELSE 0 END) as total_bought,
-                SUM(CASE WHEN journals.status = 8 THEN amount ELSE 0 END) as total_sold,
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_cache_in,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_cache_out,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat,
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
-            ")
-            ->whereIn('journals.account_type_id', [$company_account_type_id, $banks_account_type_id])
-            ->where('journals.is_cleared', 0)
-            ->first();
+            // Others Expense Query
+            $othersExpenseQuery = DB::table('journals')
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 3 AND payment_type = 1 AND status = 4 THEN amount ELSE 0 END), 0) as total_expense
+                ")
+                ->where('journals.currency_id', $currency_id)
+                ->where('journals.is_cleared', 0);
+            
+            // Apply date filters only if provided
+            if ($start_date && $end_date) {
+                $othersExpenseQuery->whereBetween('journals.idate', [$start_date, $end_date]);
+            } elseif ($start_date) {
+                $othersExpenseQuery->where('journals.idate', '>=', $start_date);
+            } elseif ($end_date) {
+                $othersExpenseQuery->where('journals.idate', '<=', $end_date);
+            }
+            
+            $othersExpense = $othersExpenseQuery->first();
 
-        return (object) [
-            'total_expense' => $transactionData->total_expense ?? 0,
-            'total_income' => $transactionData->total_income ?? 0,
-            'total_salary' => $transactionData->total_salary ?? 0,
-            'total_bought' => $transactionData->total_bought ?? 0,
-            'total_sold' => $transactionData->total_sold ?? 0,
-            'total_cache_in' => $transactionData->total_cache_in ?? 0,
-            'total_cache_out' => $transactionData->total_cache_out ?? 0,
-            'total_talabat' => $transactionData->total_talabat ?? 0,
-            'total_loan' => $transactionData->total_loan ?? 0,
-        ];
-    }
-
-    /**
-     * Get Income Section Data (Single Currency)
-     */
-    private function getIncomeSection()
-    {
-        $company_account_type_id = 1; // Company treasury
-        $banks_account_type_id = 6;   // Banks and exchanges
-
-        // Total Goods in Warehouse
-        $total_warehouse_value = DB::table('warehouse_items')
-            ->selectRaw('
-                SUM(available_total) as total_value,
-                SUM(wastage_total) as total_wastage
-            ')
-            ->where('is_cleared', 0)
-            ->first();
-
-        $totalWarehouseValue = ($total_warehouse_value->total_value ?? 0) - ($total_warehouse_value->total_wastage ?? 0);
-
-        // Transaction Summary
-        $result = DB::table('journals')
-            ->selectRaw("
-                SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END) as total_expense,
-                SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END) as total_income,
-                SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END) as total_salary,
-                SUM(CASE WHEN journals.status = 7 THEN amount ELSE 0 END) as total_bought,
-                SUM(CASE WHEN journals.status = 8 THEN amount ELSE 0 END) as total_sold,
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as total_cache_in,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as total_cache_out,
-                SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as total_talabat,
-                SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as total_loan
-            ")
-            ->join('accounts', 'accounts.id', '=', 'journals.account_id')
-            ->whereIn('accounts.account_type_id', [$company_account_type_id, $banks_account_type_id])
-            ->where('journals.is_cleared', 0)
-            ->first();
-
-        // Sold Profits
-        $sold_profits = SalesDetails::selectRaw('SUM(profit) as total_profit')
-            ->join('warehouse_sales', 'warehouse_sales.id', '=', 'sales_details.warehouse_sales_id')
-            ->where('warehouse_sales.is_cleared', 0)
-            ->first();
-
-        return (object) [
-            'transaction_summary' => $result,
-            'total_warehouse_value' => $totalWarehouseValue,
-            'sold_profits' => $sold_profits->total_profit ?? 0,
-        ];
-    }
-
-    /**
-     * Get Customer Accounts Report (Single Currency)
-     */
-    private function getSellersAndCustomersReport($currencyId = null, $account_type_id, $banks_account_type_id)
-    {
-        $currency_id = $currencyId ?? 1;
-        
-        $accounts = DB::table('accounts')
-            ->leftJoin('journals', function ($join) use ($currency_id) { 
-                $join->on('accounts.id', '=', 'journals.account_id')
-                    ->where('journals.currency_id', $currency_id);
-            })
-            ->where('accounts.account_type_id', $account_type_id)
-            ->when($banks_account_type_id > 0, function ($query) use ($banks_account_type_id) {
-                return $query->orWhere('accounts.account_type_id', $banks_account_type_id);
-            })
-            ->select([
-                'accounts.id as accountId',
-                'accounts.name',
-                'accounts.percent',
-                DB::raw("SUM(CASE 
-                            WHEN journals.transaction_type = 1 
-                            AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as cache_recieved"),
-                DB::raw("SUM(CASE 
-                            WHEN journals.transaction_type = 2 
-                            AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as cache_paid"),
-                DB::raw("SUM(CASE 
-                            WHEN journals.transaction_type = 1 
-                            AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as loan_recieved"),
-                DB::raw("SUM(CASE 
-                            WHEN journals.transaction_type = 2 
-                            AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
-                            THEN journals.amount ELSE 0 END) as loan_paid"),
-            ])
-            ->groupBy('accounts.id', 'accounts.name', 'accounts.percent')
-            ->get();
-    
-        return $accounts;
+            // Transaction Data Query
+            $transactionQuery = DB::table('journals')
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN journals.status = 4 THEN amount ELSE 0 END), 0) as total_expense,
+                    COALESCE(SUM(CASE WHEN journals.status = 3 THEN amount ELSE 0 END), 0) as total_income,
+                    COALESCE(SUM(CASE WHEN journals.status = 5 THEN amount ELSE 0 END), 0) as total_salary,
+                    COALESCE(SUM(CASE WHEN journals.status = 7 THEN amount ELSE 0 END), 0) as total_bought,
+                    COALESCE(SUM(CASE WHEN journals.status = 8 THEN amount ELSE 0 END), 0) as total_sold,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END), 0) as total_cache_in,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END), 0) as total_cache_out,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END), 0) as total_talabat,
+                    COALESCE(SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END), 0) as total_loan
+                ")
+                ->whereIn('journals.account_type_id', [$company_account_type_id, $banks_account_type_id])
+                ->where('journals.currency_id', $currency_id)
+                ->where('journals.is_cleared', 0);
+            
+            // Apply date filters only if provided
+            if ($start_date && $end_date) {
+                $transactionQuery->whereBetween('journals.idate', [$start_date, $end_date]);
+            } elseif ($start_date) {
+                $transactionQuery->where('journals.idate', '>=', $start_date);
+            } elseif ($end_date) {
+                $transactionQuery->where('journals.idate', '<=', $end_date);
+            }
+            
+            $transactionData = $transactionQuery->first();
+            
+            $finalExpense = (float)($transactionData->total_expense ?? 0) + (float)($othersExpense->total_expense ?? 0);
+            
+            return (object) [
+                'total_expense' => $finalExpense,
+                'total_income' => $transactionData->total_income ?? 0,
+                'total_salary' => $transactionData->total_salary ?? 0,
+                'total_bought' => $transactionData->total_bought ?? 0,
+                'total_sold' => $transactionData->total_sold ?? 0,
+                'total_cache_in' => $transactionData->total_cache_in ?? 0,
+                'total_cache_out' => $transactionData->total_cache_out ?? 0,
+                'total_talabat' => $transactionData->total_talabat ?? 0,
+                'total_loan' => $transactionData->total_loan ?? 0,
+            ];
+        } catch (\Exception $e) {
+            Log::error('getTransactionSummary error: ' . $e->getMessage());
+            return (object) [
+                'total_expense' => 0,
+                'total_income' => 0,
+                'total_salary' => 0,
+                'total_bought' => 0,
+                'total_sold' => 0,
+                'total_cache_in' => 0,
+                'total_cache_out' => 0,
+                'total_talabat' => 0,
+                'total_loan' => 0,
+            ];
+        }
     }
 }

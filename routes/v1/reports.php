@@ -31,7 +31,11 @@ Route::get('/cacheflowWithBalance/data',[CacheFlowWithBalanceController::class, 
 Route::get('/balancesheet',[BalanceSheetController::class,'index'])->name('balancesheet.index')->middleware('access:reports,list');
 Route::get('/balancesheet/data',[BalanceSheetController::class,'getData'])->name('balancesheet.data');
 Route::get('/laws',[LawController::class,'index'])->name('laws.index')->middleware('access:reports,list');
+
+
+// Profit and Loss
 Route::get('/profitloss',[ProfitAndLossController::class,'index'])->name('profitloss.index')->middleware('access:reports,list');
+Route::post('/profitloss-data', [ProfitAndLossController::class, 'getData'])->name('profitloss.data')->middleware('access:reports,list');
 
 
 

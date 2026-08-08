@@ -117,12 +117,12 @@
                                         <span class="sub-item">{{ __('menu.salary') }}</span>
                                     </a>
                                 </li>
-                                <li class="{{ request()->routeIs('salary.report.*') ? 'active' : '' }}">
+                                <!-- <li class="{{ request()->routeIs('salary.report.*') ? 'active' : '' }}">
                                     <a href="{{ route('salary.report.index') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
                                         <span class="sub-item">{{ __('menu.report') }}</span>
                                     </a>
-                                </li>
+                                </li> -->
                             </ul>
                         </div>
                     </li>
