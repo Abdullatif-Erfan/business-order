@@ -395,6 +395,75 @@ class HomeController extends Controller
         return response()->json(['cur_balance' => $finalBalance]);  
     }
 
+    // ____ BALANCE WITH LOAN LIMIT _______________________________________
+    public function getBalanceWithLoanLimit(Request $request)
+    {
+        $request->validate([
+            'account_id' => 'required|integer',
+        ]);
+
+        $accountId = $request->input('account_id');
+
+        if(empty($accountId)) {
+            return response()->json(['cur_balance' => 0 ,'loan_limit' => 0, 'allowed_Limit' => 0, 'shouldCheck' => false]);  
+        }
+        
+        $finalBalance = 0;
+        $isCompanyAccount = Account::whereIn('account_type_id', [1,6])->where('id', $accountId)->exists();
+
+        if($isCompanyAccount) {
+            $totalBalance = DB::table('journals')
+                ->select(
+                    DB::raw('SUM(CASE WHEN journals.transaction_type = 2 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_paid'),
+                    DB::raw('SUM(CASE WHEN journals.transaction_type = 1 AND journals.payment_type = 1 THEN amount ELSE 0 END) as total_recieved')
+                )
+                ->where('journals.account_id', $accountId)
+                // ->where('journals.currency_id', $currencyId)
+                ->where('is_cleared', '=', 0)
+                ->first();
+            $finalBalance = $totalBalance->total_recieved - $totalBalance->total_paid;
+        } else {
+            $totalBalance = DB::table('journals')
+                ->select(
+                    DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
+                    DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
+                    DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanRecieved'),
+                    DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 2 THEN amount ELSE 0 END) as sumLoanPaid'),
+                    DB::raw('SUM(CASE WHEN transaction_type = 3 AND payment_type = 1 THEN amount ELSE 0 END) as sumExpense')
+                )
+                ->where('journals.account_id', $accountId)
+                // ->where('journals.currency_id', $currencyId)
+                ->where('is_cleared', '=', 0)
+                ->first();
+            
+            $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid + $totalBalance->sumExpense) - 
+                ($totalBalance->sumCachePaid + $totalBalance->sumLoanRecieved));
+        }
+        // check loan limit option
+        $loanLimitOption = Account::select('loan_limit','loan_limit_option')->where('id',$accountId)->first();
+        $allowedLimit = $finalBalance + $loanLimitOption->loan_limit;
+        $loanLimit = $loanLimitOption->loan_limit;
+        $shouldCheck=true;
+        if((int)$loanLimitOption->loan_limit_option ===0) {  // loan limit is de-active
+            $loanLimit = 0;
+            $allowedLimit= 0;
+            $shouldCheck=false;
+        }
+        // if($finalBalance < 0) {
+        //     $positiveFinalBalance = $finalBalance * (-1);
+        //      $allowedLimit= $positiveFinalBalance + $loanLimitOption->loan_limit;
+        // } else {
+        //      $allowedLimit= $finalBalance + $loanLimitOption->loan_limit;
+        // }
+        
+        return response()->json([
+                'cur_balance'   => $finalBalance, 
+                'loan_limit'    => $loanLimit, 
+                'allowed_Limit' => $allowedLimit, 
+                'shouldCheck'   => $shouldCheck,
+                ]);  
+    }
+
     public function cleanAll()
     {
         $tables = [

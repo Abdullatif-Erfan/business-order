@@ -110,7 +110,7 @@
                                             <th> {{__('reports.loan')}}</th>
                                             <th> {{__('reports.talab')}}</th>
                                             <th> مصارف </th>
-                                            <th> {{__('reports.balance')}} </th>
+                                            <th>{{__('reports.balance')}} </th>
                                             <th>{{__('common.unit')}}</th>
                                             <th>{{__('reports.specify')}}</th>
                                         </tr>

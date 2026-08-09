@@ -65,11 +65,12 @@
                             <input type="hidden" name="conversion_flag" id="conversion_flag" value="0" >
                             <input type="hidden" id="default_currency_id" name="default_currency" value="{{ $default_currency->id }}" >
                             <input type="hidden" name="default_currency_symbol" value="{{ $default_currency->symbols }}">
+                            <input type="hidden" name="alloweLimitValue" id="alloweLimitValue">
+                            <input type="hidden" name="shouldCheck" id="shouldCheck">
                             
                                 @csrf
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
                                     <div class="row" style="padding: 10px 20px;margin-top:10px;">
-
 
                                         <div class="col-md-6 col-sm-6 col-xs-12">
                                             <div class="form-group form-floating-label">
@@ -130,6 +131,15 @@
                                                     @endforeach
                                                 </select>
                                                 @error('to_account_id')<span class="text-danger">{{ $message }}</span>@enderror
+                                                <small style="font-size:10px; border:1px solid #ddd; border-radius:10px;padding: 2px 5px;">
+                                                        سقف قرض  : 
+                                                    <label style="font-size:10px !important;" id="loanLimitLabel"></label>
+                                                </small>
+
+                                                <span id="loadingIndicator" style="display:none; text-align: center; padding: 20px;">
+                                                    <i class="fa fa-spinner fa-spin"></i>
+                                                </span>
+
                                             </div>
                                         </div>
                               
@@ -165,6 +175,11 @@
                                                     <div class="col-md-6 col-sm-6 col-xs-12">
                                                        <div class="form-group">                                                          <input class="form-control" id="to_amount" name="to_amount" type="text" required placeholder="{{__('journal.receiver_amount')}}">
                                                            @error('to_amount')<span class="text-danger">{{ $message }}</span>@enderror
+
+                                                           <small style="font-size:10px; border:1px solid #ddd; border-radius:10px;padding: 2px 5px;">
+                                                                    حد اکثر قرض  : 
+                                                                <label style="font-size:10px !important;" id="alloweLimitlabel"></label>
+                                                            </small>
                                                         </div>                                                        
 
                                                         <div class="form-group"> 
@@ -235,6 +250,65 @@
         </div>
     </div>
 </div>
+<script>
+
+    // =========================================
+    // Check Loan Limit
+    // =========================================
+    function checkBalance(to_mount) 
+    {
+        var loanLimit = parseFloat($('#alloweLimitValue').val()) || 0;
+        if(to_mount > loanLimit) {
+            $('#submit_button').fadeOut(1);
+            showNotification('بالاتر از سقف قرض مجاز نیست', 'warning');
+            return;
+        } else {
+            $('#submit_button').fadeIn(1);
+        }
+    }
+
+     // check balance
+  function getBalanceWithLimitation(account_id)
+  {
+    //  $('#'+balanceLabel).text(value);
+     $('#loadingIndicator').show();
+    if (account_id > 0) 
+    {
+            let formData = {
+                account_id: account_id,
+                _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
+            };
+
+            $.ajax({
+            url: '/home/getBalanceWithLoanLimit',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function (result) {
+                $('#loadingIndicator').hide();
+                if (result.cur_balance !== undefined) {
+                    // $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
+                    // $('#rate').text(' نرخ  ' + result.exchangeRate.toFixed(2));
+                    // $('#newRate').val(result.exchangeRate.toFixed(2));
+                    $('#shouldCheck').val(result.shouldCheck ? 1 : 0);
+                    $('#alloweLimitValue').val(result.allowed_Limit ?? 0);
+                    $('#curBalanceLabel').text(parseFloat(result.cur_balance));
+                    $('#loanLimitLabel').text(parseFloat(result.loan_limit ?? 0));
+                    $('#alloweLimitlabel').text(parseFloat(result.allowed_Limit ?? 0));
+                    console.log('alloweLimitlabel');
+
+                } else {
+                    alert('Getting Balance failed. Invalid response.');
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#curBalanceLabel').text('Not found');
+                $('#loadingIndicator').hide();
+            },
+        });
+    }
+  }
+</script>
 
 <script>
     $(document).on('click', '.datepicker-icon', function(e) {
@@ -315,9 +389,13 @@
 <script>
     document.getElementById('to_amount').addEventListener('input', function() {
         let to_amount = this.value.replace(/,/g, ''); // Remove existing commas
-        to_amount = to_amount.replace(/[^\d.,]/g, ''); // Remove non-numeric characters except commas and decimal points
-        to_amount = to_amount.replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas as thousands separator
+        toAmount = to_amount.replace(/[^\d.,]/g, ''); // Remove non-numeric characters except commas and decimal points
+        to_amount = toAmount.replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas as thousands separator
         this.value = to_amount;
+        var shouldCheckFlag = parseFloat($('#shouldCheck').val()) || 0; 
+        if(parseInt(shouldCheckFlag) === 1) {
+            checkBalance(toAmount);
+        }
     });
 
     // Function to format a number with commas  
@@ -340,9 +418,14 @@
 <script>
     document.getElementById('from_amount').addEventListener('input', function() {
         let from_amount = this.value.replace(/,/g, ''); // Remove existing commas
-        from_amount = from_amount.replace(/[^\d.,]/g, ''); // Remove non-numeric characters except commas and decimal points
-        from_amount = from_amount.replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas as thousands separator
+        fromAmount = from_amount.replace(/[^\d.,]/g, ''); // Remove non-numeric characters except commas and decimal points
+        from_amount = fromAmount.replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas as thousands separator
         this.value = from_amount;
+
+        var shouldCheckFlag = parseFloat($('#shouldCheck').val()) || 0; 
+        if(parseInt(shouldCheckFlag) === 1) {
+            checkBalance(fromAmount);
+        }
     });
 
     function currencyConverter(flag=0) 
@@ -432,12 +515,14 @@
   {
      let currency_id = parseFloat($('#from_currency_id').val()) || 0;
      getBalance(currency_id,balanceLabel,account_id);
+    //  getBalanceWithLimitation(account_id);
   }
 
   function getToBalance(balanceLabel,account_id)
   {
      let currency_id = parseFloat($('#to_currency_id').val()) || 0;
      getBalance(currency_id,balanceLabel,account_id);
+     getBalanceWithLimitation(account_id);
   }
 
   // check balance

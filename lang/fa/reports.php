@@ -84,5 +84,5 @@ return [
     "company_net_profit" => "مفاد خالص شرکت",
     "cars" => "موترها",
     "employee_report" => "گزارش کارمندان",
-    "" => "",
+    "no_data_found_for_date_range" => "ریکارد یافت نشد",
 ];

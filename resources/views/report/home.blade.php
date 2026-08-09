@@ -66,13 +66,14 @@
                                                 </li> -->
 
                                                 <li class="list-group-item">
-                                                    <a  href="{{ route('cacheflowWithBalance.index')}}">💰  جریان حساب نقده </a>
-                                                </li>
-
-                                                <li class="list-group-item">
                                                     <a  href="{{ route('balancesheet.index') }}">📑 
                                                     {{__('reports.balance_sheet')}}</a>
                                                 </li>
+
+                                                <li class="list-group-item">
+                                                    <a  href="{{ route('cacheflowWithBalance.index')}}">💰 صورت حسابات با جزییات </a>
+                                                </li>
+
                                                 <!-- <li class="list-group-item">
                                                     <a  href="{{ route('chartOfAccount.index')}}">📌 {{__('reports.chart_of_account')}}</a>
                                                 </li> -->

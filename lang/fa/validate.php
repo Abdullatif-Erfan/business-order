@@ -274,6 +274,8 @@ return [
     "clear" => "تصفیه",
     "talab" => "طلب",
     "baqi" => "باقی",
+    "talab_ast" => "طلب است",
+    "baqi_ast" => "باقی است",
 
     "added_by_participants" => " پول نقد اضافه گردید توسط  ",
     "" => "",

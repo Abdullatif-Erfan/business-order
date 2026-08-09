@@ -199,6 +199,9 @@
                             <input type="hidden" name="tax_activation" id="tax_activation" value="{{ $tax->tax_activation ?? 0 }}">
                             <input type="hidden" name="tax_per" id="tax_per" value="{{ $tax->tax_per ?? 0 }}">
                             <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
+                            <input type="hidden" name="alloweLimitValue" id="alloweLimitValue">
+                            <input type="hidden" name="shouldCheck" id="shouldCheck">
+
                             
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">
                                 <div class="form-body" style="padding: 0px 0px 15px !important;">
@@ -222,7 +225,7 @@
                                         <!-- First Row -->
                                         <div class="col-md-3 col-sm-4 col-xs-6">
                                             <label for="customer_account_id">{{__('order.customer_selection')}} <span class="danger">*</span></label>
-                                            <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
+                                            <select class="form-control select2" onchange="getBalance(this.value)" style="width: 100%; background-color:#ddd;" name="customer_account_id" id="customer_account_id" required>
                                                 <option value="">{{__('buy.customer')}}</option>
                                                 @foreach($customersWithStatus as $customer)
                                                     <option value="{{ $customer->id }}" 
@@ -331,6 +334,10 @@
                                                         <td style="width:10%"><strong>{{__('buy.total_price')}}</strong></td>
                                                         <td style="width:15%">
                                                             <input type="number" name="total_vat_summary" id="total_price" value="0" class="form-control" step="0.01" readonly>
+                                                              <small style="font-size:10px; border:1px solid #ddd; border-radius:10px;padding: 2px 5px;">
+                                                                 سقف قرض  : 
+                                                                <label style="font-size:10px !important;" id="loanLimitLabel"></label>
+                                                            </small>
                                                         </td>
                                                         <td style="width:10%"  colspan="2"><strong>{{__('buy.total_buy_with_tax')}}</strong></td>
                                                         <td style="width:15%" colspan="2">
@@ -341,10 +348,18 @@
                                                         <td style="width:10%"><strong>{{__('buy.cur_pay')}}</strong></td>
                                                         <td style="width:15%">
                                                             <input type="number" name="cur_pay" id="cur_pay" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="any" min="0" required>
+                                                            <small style="font-size:10px; border:1px solid #ddd; border-radius:10px;padding: 2px 5px;">
+                                                                  بیلانس فعلی  : 
+                                                                <label style="font-size:10px !important;" id="curBalanceLabel"></label>
+                                                            </small>
                                                         </td>
                                                         <td style="width:10%"><strong>{{__('buy.remained')}}</strong></td>
                                                         <td style="width:15%">
                                                             <input type="number" name="remained" id="remained" class="form-control" step="0.01" readonly>
+                                                             <small style="font-size:10px; border:1px solid #ddd; border-radius:10px;padding: 2px 5px;">
+                                                                 حد اکثر قرض  : 
+                                                                <label style="font-size:10px !important;" id="alloweLimitlabel"></label>
+                                                            </small>
                                                         </td>
                                                         <td><strong>{{__('journal.payer_account')}}</strong></td>
                                                         <td>
@@ -399,7 +414,46 @@
         </div>
     </div>
 </div>
+<script>
+     // check balance
+  function getBalance(account_id)
+  {
+    //  $('#'+balanceLabel).text(value);
+    if (account_id > 0) 
+    {
+            let formData = {
+                account_id: account_id,
+                _token: $('meta[name="csrf-token"]').attr('content') // Get CSRF token dynamically
+            };
 
+            $.ajax({
+            url: '/home/getBalanceWithLoanLimit',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function (result) {
+                if (result.cur_balance !== undefined) {
+                    // $('#to_amount').val(number_format(parseFloat(result.convertedAmount), 2));
+                    // $('#rate').text(' نرخ  ' + result.exchangeRate.toFixed(2));
+                    // $('#newRate').val(result.exchangeRate.toFixed(2));
+                    $('#shouldCheck').val(result.shouldCheck ? 1 : 0);
+                    $('#alloweLimitValue').val(result.allowed_Limit ?? 0);
+                    $('#curBalanceLabel').text(parseFloat(result.cur_balance));
+                    $('#loanLimitLabel').text(parseFloat(result.loan_limit ?? 0));
+                    $('#alloweLimitlabel').text(parseFloat(result.allowed_Limit ?? 0));
+                    console.log('alloweLimitlabel');
+
+                } else {
+                    alert('Getting Balance failed. Invalid response.');
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#'+balanceLabel).text('Not found');
+            },
+        });
+    }
+  }
+</script>
 <script>
 $(document).ready(function () {
 
@@ -1164,11 +1218,24 @@ $(document).ready(function () {
             return;
         }
 
+
+           // check remained and loandLimit
+        var loanLimit = parseFloat($('#alloweLimitValue').val()) || 0;
+        var shouldCheckFlag = parseFloat($('#shouldCheck').val()) || 0; 
+        var remained =  parseFloat($('#remained').val()) || 0;
+        if(parseInt(shouldCheckFlag) === 1)  { // if option is active, check loan limit
+            if(remained > loanLimit) {
+                // $('#submit_button').fadeOut(1);
+                showNotification('بالاتر از سقف قرض مجاز نیست', 'warning');
+                return;
+            } 
+        }
         var $submitBtn = $('#submit_button');
         var originalText = $submitBtn.val();
         $submitBtn.prop('disabled', true).val('{{__("common.saving")}}...');
 
         var formData = $(this).serialize();
+    
 
         $.ajax({
             url: $(this).attr('action'),
