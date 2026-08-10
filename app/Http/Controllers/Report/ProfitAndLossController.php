@@ -170,7 +170,6 @@ class ProfitAndLossController extends Controller
                 ->join('accounts', 'accounts.id', '=', 'journals.account_id')
                 ->whereIn('accounts.account_type_id', [1, 6])
                 ->where('journals.currency_id', $currency_id)
-                ->where('journals.is_cleared', 0);
             
             // Apply date filters only if provided
             if ($start_date && $end_date) {
@@ -227,7 +226,6 @@ class ProfitAndLossController extends Controller
                     COALESCE(SUM(CASE WHEN journals.transaction_type = 3 AND payment_type = 1 AND status = 4 THEN amount ELSE 0 END), 0) as total_expense
                 ")
                 ->where('journals.currency_id', $currency_id)
-                ->where('journals.is_cleared', 0);
             
             // Apply date filters only if provided
             if ($start_date && $end_date) {
@@ -255,7 +253,6 @@ class ProfitAndLossController extends Controller
                 ")
                 ->whereIn('journals.account_type_id', [$company_account_type_id, $banks_account_type_id])
                 ->where('journals.currency_id', $currency_id)
-                ->where('journals.is_cleared', 0);
             
             // Apply date filters only if provided
             if ($start_date && $end_date) {

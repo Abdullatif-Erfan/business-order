@@ -118,8 +118,6 @@
                                             <th> {{__('journal.code')}} </th>
                                             <th> {{__('journal.account')}} </th>
                                             <th> {{__('journal.details')}} </th>
-                                            
-
                                             <th> {{__('journal.recieved')}} <br> {{__('journal.cache')}} (+)</th>
                                             <th>{{__('journal.paid')}} <br> {{__('journal.cache')}} (-)</th>
                                             <th> {{__('journal.recieved_loan')}}</th>

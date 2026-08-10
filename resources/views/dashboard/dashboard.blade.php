@@ -145,7 +145,7 @@
                             <div class="col-md-2 col-sm-4 col-xs-6">
                                 <div class="filter-group" style="min-width: 120px;">
                                     <div class="input-group">
-                                        <input type="text" class="form-control datepicker-input" value="{{ $search['start_date'] ?? '' }}" id="start_date" placeholder="YYYY-MM-DD">
+                                        <input type="text" class="form-control datepicker-input" value="{{ $search['start_date'] ?? '' }}" id="start_date" placeholder="تاریخ شروع">
                                         <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                     </div>
                                 </div>
@@ -154,7 +154,7 @@
                             <div class="col-md-2 col-sm-4 col-xs-6">
                                 <div class="filter-group" style="min-width: 120px;">
                                     <div class="input-group">
-                                        <input type="text" class="form-control datepicker-input"  id="end_date" placeholder="YYYY-MM-DD">
+                                        <input type="text" class="form-control datepicker-input"  id="end_date" placeholder="تاریخ ختم">
                                         <span class="input-group-text datepicker-icon"><i class="fas fa-calendar-alt"></i></span>
                                     </div>
                                 </div>

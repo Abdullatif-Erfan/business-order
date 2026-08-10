@@ -47,10 +47,10 @@
                                         </select> 
                                     </div>
                                     <div class="col-md-2 col-sm-6 col-xs-6">
-                                        <select class="form-control select2" id="currency_id">
-                                            <option value=""> {{ __('common.currency') }} </option>
-                                            @foreach($currencies as $currency)
-                                                <option value="{{ $currency->id }}">{{ $currency->name }}</option>
+                                        <select class="form-control select2" id="account_id">
+                                            <option value=""> {{ __('common.account') }} </option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->id }}">{{ $account->name }}</option>
                                             @endforeach
                                         </select> 
                                     </div>
@@ -195,7 +195,7 @@
                 data: function (d) 
                 {
                     d.type_id = $('#type_id').val();
-                    d.currency_id = $('#currency_id').val();
+                    d.account_id = $('#account_id').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
                     d.code_number = $('#code_number').val();

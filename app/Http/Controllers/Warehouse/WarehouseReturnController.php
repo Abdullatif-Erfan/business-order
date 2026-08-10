@@ -58,6 +58,10 @@ class WarehouseReturnController extends Controller
             'car',
             'warehouseItem',
         ])->orderBy('id', 'DESC');
+
+         if(!$this->isAdmin){
+            $returns->whereIn('warehouse_returns.car_id', $this->carIds);
+        }
         
         // Apply filters
         if ($request->return_number) {
@@ -191,7 +195,17 @@ class WarehouseReturnController extends Controller
         // $preLists = BuyPreList::select('id', 'name')->get();
         // $units = Unit::select('id', 'name')->get();
         // $currencies = Currency::select('id', 'name')->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id',  [1,6])->get();
+        if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->orderBy('is_pre_select','DESC')->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
         $suppliers = Account::select('id', 'name')->whereIn('account_type_id', [4])->get();
         
         return view('warehouseitem.return.edit', compact(
@@ -296,12 +310,9 @@ class WarehouseReturnController extends Controller
                 $payerJournal->idate = now()->format('Y-m-d');
                 $payerJournal->year = now()->year;
                 $payerJournal->month = now()->month;
-                $payerJournal->day = now()->day;
                 $payerJournal->user_id = $this->userId;
                 $payerJournal->user_name = $this->userName ?? 'System';
                 $payerJournal->times = $times;
-                $payerJournal->is_cleared = 0;
-                $payerJournal->is_single_record = 1;
                 $payerJournal->save();
                 
                 
@@ -312,12 +323,9 @@ class WarehouseReturnController extends Controller
                 $receiverJournal->idate = now()->format('Y-m-d');
                 $receiverJournal->year = now()->year;
                 $receiverJournal->month = now()->month;
-                $receiverJournal->day = now()->day;
                 $receiverJournal->user_id = $this->userId;
                 $receiverJournal->user_name = $this->userName ?? 'System';
                 $receiverJournal->times = $times;
-                $receiverJournal->is_cleared = 0;
-                $receiverJournal->is_single_record = 1;
                 $receiverJournal->save();
             }
 

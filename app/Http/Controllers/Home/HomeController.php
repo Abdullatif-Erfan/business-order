@@ -246,8 +246,6 @@ class HomeController extends Controller
             DB::raw("COALESCE(SUM(remained), 0) as total_remained"),   
             DB::raw("COUNT(CASE WHEN remained = 0 THEN 1 END) as fully_paid"),
             DB::raw("COUNT(CASE WHEN remained > 0 THEN 1 END) as partial_paid"),
-            DB::raw("COUNT(CASE WHEN is_cleared = 1 THEN 1 END) as cleared"),
-            DB::raw("COUNT(CASE WHEN is_cleared = 0 THEN 1 END) as not_cleared")
         )
         ->first();
 
@@ -370,7 +368,6 @@ class HomeController extends Controller
                 )
                 ->where('journals.account_id', $accountId)
                 ->where('journals.currency_id', $currencyId)
-                ->where('is_cleared', '=', 0)
                 ->first();
 
             $finalBalance = $totalBalance->total_recieved - $totalBalance->total_paid;
@@ -385,7 +382,6 @@ class HomeController extends Controller
                 )
                 ->where('journals.account_id', $accountId)
                 ->where('journals.currency_id', $currencyId)
-                ->where('is_cleared', '=', 0)
                 ->first();
             
             $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid + $totalBalance->sumExpense) - 
@@ -419,7 +415,6 @@ class HomeController extends Controller
                 )
                 ->where('journals.account_id', $accountId)
                 // ->where('journals.currency_id', $currencyId)
-                ->where('is_cleared', '=', 0)
                 ->first();
             $finalBalance = $totalBalance->total_recieved - $totalBalance->total_paid;
         } else {
@@ -433,7 +428,6 @@ class HomeController extends Controller
                 )
                 ->where('journals.account_id', $accountId)
                 // ->where('journals.currency_id', $currencyId)
-                ->where('is_cleared', '=', 0)
                 ->first();
             
             $finalBalance = (($totalBalance->sumCacheRecieved + $totalBalance->sumLoanPaid + $totalBalance->sumExpense) - 
@@ -457,7 +451,7 @@ class HomeController extends Controller
         // }
         
         return response()->json([
-                'cur_balance'   => $finalBalance, 
+                'cur_balance'   => number_format($finalBalance,2), 
                 'loan_limit'    => $loanLimit, 
                 'allowed_Limit' => $allowedLimit, 
                 'shouldCheck'   => $shouldCheck,

@@ -37,9 +37,21 @@ class ExpenseController extends Controller
     {
         $types = ExpenseType::all();
         // $accounts = Account::get();
-        $currencies = Currency::all();
+        // $currencies = Currency::all();
         $orgbios = OrgBio::all();
-        return view('transactions.expense.list', compact('currencies', 'orgbios', 'types'));
+        if($this->isAdmin) {
+            $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])->orderBy('is_pre_select','DESC')->get();
+        } else {
+           $accounts = Account::select('id', 'name', 'emp_car_id')
+            ->whereIn('emp_car_id', $this->carIds)
+            ->where('account_type_id', 7)
+            ->orWhere(function($query) {
+                $query->where('user_account_id', $this->userId)
+                    ->where('account_type_id', 2);
+            })
+            ->get();
+        }
+        return view('transactions.expense.list', compact('accounts','orgbios', 'types'));
     }
 
     /**
@@ -63,7 +75,7 @@ class ExpenseController extends Controller
         ])
         ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 
                 'payment_type', 'currency_id', 'details', 'idate', 'status', 'times', 
-                'is_single_record', 'dynamic_type', 'doc')
+                 'dynamic_type', 'doc')
         ->where('journals.status', '=', 4)
         // ->whereHas('accountRelation', function($query) {
         //     if(!$this->isAdmin) {
@@ -74,15 +86,15 @@ class ExpenseController extends Controller
 
           if(!$this->isAdmin) {
                 $expenses->where('user_id',$this->userId);
-        }
+          }
 
         // Apply filters if provided
         if ($request->type_id) {
             $expenses->where('dynamic_type', $request->type_id);
         }
         
-        if ($request->currency_id) {
-            $expenses->where('currency_id', $request->currency_id);
+        if ($request->account_id) {
+            $expenses->where('account_id', $request->account_id);
         }
        
         if ($request->start_date && $request->end_date) {
@@ -149,9 +161,25 @@ class ExpenseController extends Controller
     public function create()
     {
         $expenseTypes = ExpenseType::all();
-        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])
-            ->orderBy('is_pre_select', 'DESC')
+        // $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])
+        //     ->orderBy('is_pre_select', 'DESC')
+        //     ->get();
+        
+        if($this->isAdmin) {
+            $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])->orderBy('is_pre_select','DESC')->get();
+        } else {
+          $accounts = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                    ->where('account_type_id', 7);
+            })
+            ->orWhere(function($query) {
+                $query->where('user_account_id', $this->userId)
+                    ->where('account_type_id', 2);
+            })
             ->get();
+        }
 
         if ($accounts->isEmpty()) {
             Session::put('notification', [
@@ -208,10 +236,8 @@ class ExpenseController extends Controller
             $journal->user_id = auth()->user()->id ?? '';
             $journal->year = $year;
             $journal->month = $month;
-            $journal->day = $day;
             $journal->status = 4; // Expense
             $journal->times = $times;
-            $journal->is_single_record = 0;
             $journal->account_type_id = $account_type_id;
             $journal->account_id = $validated['reciever_account_id'];
             $journal->amount = $validated['amount'];
@@ -222,13 +248,11 @@ class ExpenseController extends Controller
             {
                 $journal->transaction_type = 2; // Paid
                 $journal->payment_type = 1; // Cash
-                $journal->option_label = __('journal.store_expense_option_label');
             } 
             else 
             {
                 $journal->transaction_type = 3; // Expense for just cars and employees
                 $journal->payment_type = 1; // Cash
-                $journal->option_label = __('journal.store_expense_option_label');
             }
 
             // Handle file upload
@@ -288,7 +312,21 @@ class ExpenseController extends Controller
 
         $expenseTypes = ExpenseType::all();
         $currencies = Currency::all();
-        $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])->get();
+         if($this->isAdmin) {
+            $accounts = Account::select('id', 'name')->whereIn('account_type_id', [1,2,7])->orderBy('is_pre_select','DESC')->get();
+        } else {
+          $accounts = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                    ->where('account_type_id', 7);
+            })
+            ->orWhere(function($query) {
+                $query->where('user_account_id', $this->userId)
+                    ->where('account_type_id', 2);
+            })
+            ->get();
+        }
 
         return view('transactions.expense.edit', compact('currencies', 'expense', 'expenseTypes', 'accounts'));
     }
@@ -343,7 +381,6 @@ class ExpenseController extends Controller
             $journal->dynamic_type = $validated['dynamic_type'];
             $journal->year = $year;
             $journal->month = $month;
-            $journal->day = $day;
             $journal->amount = $validated['amount'];
             $journal->currency_id = $validated['currency_id'];
             $journal->account_id = $validated['reciever_account_id'];
@@ -353,13 +390,11 @@ class ExpenseController extends Controller
             {
                 $journal->transaction_type = 2; // Paid
                 $journal->payment_type = 1; // Cash
-                $journal->option_label = __('journal.store_expense_option_label');
             } 
             else 
             {
                 $journal->transaction_type = 3; // Expense for just cars and employees
                 $journal->payment_type = 1; // Cash
-                $journal->option_label = __('journal.store_expense_option_label');
             }
 
             // Handle file upload - delete old if new uploaded

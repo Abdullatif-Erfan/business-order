@@ -66,6 +66,7 @@
                 <div class="form-group">
                     <label for="account_id">{{ __('journal.payer_account') }} <span class="text-danger">*</span></label>
                     <select class="form-control select2" name="account_id" id="account_id" required>
+                        <option value="">{{ __('journal.payer_account') }}</option>
                         @foreach($ownBanks ?? [] as $bank)
                             <option value="{{ $bank->id }}">{{ $bank->name }}</option>
                         @endforeach
@@ -149,6 +150,11 @@ $(document).ready(function() {
         
         var amount = parseFloat($('#payment_amount').val()) || 0;
         var maxAmount = parseFloat($('#payment_amount').attr('max')) || 0;
+        var accountId = parseFloat($('#account_id').val()) || 0;
+        if(!accountId) {
+            showNotification('انتخاب حساب ضروری است', 'danger');
+            return;
+        }
         
         if (amount <= 0) {
             showNotification('{{ __("sales.enter_valid_payment_amount") }}', 'danger');

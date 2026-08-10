@@ -18,15 +18,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SalaryController extends Controller
 {
-    protected $isAdmin, $userId;
+    protected $isAdmin, $userId, $userName;
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
             $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
         } else {
             $this->isAdmin = false;
             $this->userId = 0;
+            $this->userName = 'System';
         }
     }
 
@@ -110,7 +112,7 @@ class SalaryController extends Controller
             }
         ])
         ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'currency_id', 
-                'details', 'year', 'month', 'idate', 'status', 'times')
+                'details', 'idate', 'status','year','month', 'times')
         ->where('journals.status', '=', 5)
         ->where('journals.dynamic_type', '=', 1)
         ->whereHas('accountRelation', function($query) {
@@ -258,8 +260,6 @@ class SalaryController extends Controller
         $date = explode('-', $todaysDate);
         $year = $validated['year'];
         $month = $validated['month'];
-        $day = $date[2] ?? date('d');
-        $full_date = $year . '-' . $month . '-' . $day . ' ' . date('h:i:s A');
 
         $newJournalCode = Journal::max('code') + 1;
         $times = time();
@@ -282,14 +282,11 @@ class SalaryController extends Controller
                 $journal1->details = $validated['details'] ?? __('validate.salary_payment');
                 $journal1->transaction_type = 2; // Paid
                 $journal1->payment_type = 1; // Cash
-                $journal1->option_label = __('validate.salary_payment');
 
                 // دریافت نقد کارمند
                 $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
                 $journal2->transaction_type = 1; // Received
                 $journal2->payment_type = 1; // Cash
-                $journal2->option_label = __('validate.salary_recieve');
-
 
             } 
             else  
@@ -301,28 +298,25 @@ class SalaryController extends Controller
                 $journal1->details = $validated['details'] ?? __('validate.salary_loan');
                 $journal1->transaction_type = 1; // Received
                 $journal1->payment_type = 2; // Loan
-                $journal1->option_label = __('validate.salary_payment');
 
                 //  کارمند طلب ثبت شود
                 $journal2->details = $validated['details'] ?? __('validate.salary_talab');
                 $journal2->transaction_type = 2; // Paid
                 $journal2->payment_type = 2; // Loan
-                $journal2->option_label = __('validate.salary_recieve');
                
             }
             //  Journal 1 - Company account (Paid from bank)
             $journal1->bill_no = 0;
             $journal1->code = $newJournalCode;
             $journal1->idate = $todaysDate;
-            $journal1->user_name = auth()->user()->full_name ?? ''; 
-            $journal1->user_id = auth()->id() ?? 0; 
+            $journal1->user_name = $this->userName ?? ''; 
+            $journal1->user_id = $this->userId ?? 0; 
             $journal1->year = $year;
             $journal1->month = $month;
-            $journal1->day = $day;
             $journal1->status = 5;
             $journal1->times = $times;
-            $journal1->is_single_record = 1;
             $journal1->dynamic_type = 0;
+            $journal1->dt_comment = 'expense belongs to khazana';
             $journal1->options = $validated['payment_type'];
             $journal1->account_id = $validated['from_account_id'];
             $journal1->amount = $validated['amount'];
@@ -334,15 +328,14 @@ class SalaryController extends Controller
             $journal2->bill_no = 0;
             $journal2->code = $newJournalCode;
             $journal2->idate = $todaysDate;
-            $journal2->user_name = auth()->user()->full_name ?? '';
-            $journal2->user_id = auth()->id() ?? 0;
+            $journal2->user_name = $this->userName ?? '';
+            $journal2->user_id = $this->userId ?? 0;
             $journal2->year = $year;
             $journal2->month = $month;
-            $journal2->day = $day;
             $journal2->status = 5;
             $journal2->times = $times;
-            $journal2->is_single_record = 1;
-            $journal2->dynamic_type = 1; // For employee (shown in salary list)
+            $journal2->dynamic_type = 1;
+            $journal2->dt_comment = 'expense belongs to employee';
             $journal2->options = $validated['payment_type'];
             $journal2->account_id = $validated['to_account_id'];
             $journal2->amount = $validated['amount'];
@@ -450,13 +443,11 @@ class SalaryController extends Controller
                 $journal1->details = $validated['details'] ?? __('validate.salary_payment');
                 $journal1->transaction_type = 2; // Paid
                 $journal1->payment_type = 1; // Cash
-                $journal1->option_label = __('validate.salary_payment');
 
                 // دریافت نقد کارمند
                 $journal2->details = $validated['details'] ?? __('validate.salary_recieve');
                 $journal2->transaction_type = 1; // Received
                 $journal2->payment_type = 1; // Cash
-                $journal2->option_label = __('validate.salary_recieve');
 
 
             } 
@@ -469,22 +460,17 @@ class SalaryController extends Controller
                 $journal1->details = $validated['details'] ?? __('validate.salary_loan');
                 $journal1->transaction_type = 2; // Paid
                 $journal1->payment_type = 2; // Loan
-                $journal1->option_label = __('validate.salary_payment');
 
                 //  کارمند طلب ثبت شود
                 $journal2->details = $validated['details'] ?? __('validate.salary_talab');
                 $journal2->transaction_type = 1; // Received
                 $journal2->payment_type = 2; // Loan
-                $journal2->option_label = __('validate.salary_recieve');
                
             }
 
             $todaysDate = $request->todays_date;
-            $dateParts = explode('-', $todaysDate);
             $year = $validated['year'];
             $month = $validated['month'];
-            $day = $dateParts[2] ?? date('d');
-            $short_date = $year . '-' . $month . '-' . $day;
 
             // Update employee journal entry
             $journal1->options = $validated['payment_type'];
@@ -494,9 +480,8 @@ class SalaryController extends Controller
             $journal1->idate = $todaysDate;
             $journal1->year = $year;
             $journal1->month = $month;
-            $journal1->day = $day;
-            $journal1->user_name = auth()->user()->full_name ?? '';
-            $journal1->user_id = auth()->id() ?? 0;
+            $journal1->user_name = $this->userName ?? '';
+            $journal1->user_id = $this->userId ?? 0;
             $journal1->save();
 
             // Update company journal entry (same code, same times)
@@ -507,9 +492,8 @@ class SalaryController extends Controller
             $journal2->idate = $todaysDate;
             $journal2->year = $year;
             $journal2->month = $month;
-            $journal2->day = $day;
-            $journal2->user_name = auth()->user()->full_name ?? '';
-            $journal2->user_id = auth()->id() ?? 0;
+            $journal2->user_name = $this->userName ?? '';
+            $journal2->user_id = $this->userId ?? 0;
             $journal2->save();
            
             DB::commit();

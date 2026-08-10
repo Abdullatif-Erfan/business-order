@@ -144,12 +144,13 @@
                                 <div class="row">
                                     
                                     <!-- edit button -->
-                                    
+                                    @if($warehouseSales->first()->has_invoice ==0)
                                     <a href="{{ route('sales.edit', $warehouseSales->first()->billno) }}"   class="hidden-print">
                                         <button class="btn btn-primary btn-sm m-r-10">
                                         <i class="fas fa-pen"></i>  {{__('common.edit')}} 
                                         </button>
                                     </a>
+                                    @endif
 
                                     </div>
                                 </div>

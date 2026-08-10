@@ -2,6 +2,11 @@
 
 @section('content')
 
+@php 
+  $user = auth()->user();
+  $isAdmin = $user->isAdmin == 1;
+@endphp
+
 <style>
 .card .card-header, .card-light .card-header{
     padding: 10px 20px !important;
@@ -34,6 +39,7 @@
                             <div class="row m-t-20">
                         
                                 <!-- General Reports -->
+                                @if($isAdmin)
                                 <div class="col-md-4">
                                     <div class="card border-info shadow-sm">
                                         <div class="card-header bg-custom-grey">
@@ -49,6 +55,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
                                 <!-- Customer & Seller Reports -->
                                 <div class="col-md-4">
@@ -82,6 +89,7 @@
                                     </div>
                                 </div>
 
+                                @if($isAdmin)
                                 <!-- Treasury Reports -->
                                 <div class="col-md-4">
                                     <div class="card border-warning shadow-sm">
@@ -109,6 +117,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
 
                                   <!-- general low -->

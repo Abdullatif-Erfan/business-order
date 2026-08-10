@@ -45,7 +45,7 @@ class Account extends Model
 
      public function car()
     {
-        return $this->belongsTo(Car::class, 'emp_car_id');
+        return $this->hasMany(Car::class, 'emp_car_id');
     }
 
        //✅ Relationship with User (one-to-one)

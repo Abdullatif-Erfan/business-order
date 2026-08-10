@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 05, 2026 at 01:18 PM
+-- Generation Time: Aug 09, 2026 at 03:25 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -98,9 +98,9 @@ INSERT INTO `accounts` (`id`, `account_type_id`, `user_account_id`, `name`, `pho
 (94, 3, 0, 'مشتری قادر سبزی فروش موفق', NULL, NULL, NULL, 0, NULL, NULL, 1, NULL, 0, NULL, NULL, '2026-07-14 15:21:45', '2026-07-14 17:39:48'),
 (95, 4, 0, 'رحمت - نوشیدنی ها', NULL, NULL, NULL, 0, NULL, NULL, 1, NULL, 0, NULL, NULL, '2026-07-14 15:22:39', '2026-07-14 17:09:19'),
 (96, 4, 0, 'قمبر - خوراکه فروشی توفیق', NULL, NULL, NULL, 0, NULL, NULL, 1, NULL, 0, NULL, NULL, '2026-07-14 15:23:38', '2026-07-14 15:23:38'),
-(97, 3, 0, 'مشتری سبزی فروش بهار', NULL, NULL, NULL, 0, NULL, NULL, 1, 60000, 1, NULL, NULL, '2026-07-14 15:24:32', '2026-07-14 15:24:32'),
+(97, 3, 0, 'باقر', NULL, NULL, NULL, 0, NULL, NULL, 1, 50000, 1, NULL, NULL, '2026-07-14 15:24:32', '2026-08-08 09:52:15'),
 (98, 3, 0, 'مشتری الکوزی نوشیدنی باب', NULL, NULL, NULL, 0, NULL, NULL, 1, NULL, 0, NULL, NULL, '2026-07-14 15:25:08', '2026-07-14 15:25:08'),
-(99, 4, 0, 'سهراب - تهیه کننده سبزیجات', NULL, NULL, NULL, 0, NULL, NULL, 1, 60000, 1, NULL, NULL, '2026-07-14 17:07:23', '2026-07-14 17:07:23'),
+(99, 4, 0, 'نهله', NULL, NULL, NULL, 0, NULL, NULL, 1, 60000, 1, NULL, NULL, '2026-07-14 17:07:23', '2026-08-06 12:47:58'),
 (100, 2, 19, 'کارمند خان علی', NULL, NULL, NULL, 0, NULL, 5000, 1, NULL, 0, 19, '2026-07-14', '2026-07-15 04:27:44', '2026-07-28 07:48:03'),
 (103, 7, 0, 'حساب موتر 1150', NULL, NULL, NULL, 0, NULL, NULL, 1, NULL, 0, 19, NULL, '2026-07-20 15:01:33', '2026-07-20 15:08:24'),
 (104, 7, 0, 'حساب موتر 1120', NULL, NULL, NULL, 0, NULL, NULL, 1, NULL, 0, 20, NULL, '2026-07-20 15:13:39', '2026-07-20 15:13:39'),
@@ -157,10 +157,10 @@ CREATE TABLE `backups` (
 --
 
 INSERT INTO `backups` (`id`, `label`, `file_name`, `file_path`, `times`, `dates`, `created_by`, `created_at`, `updated_at`) VALUES
-(66, 'بک اپ تمیز', 'db-2026-07-28_11-58-56.sql', '/storage/backups/db-2026-07-28_11-58-56.sql', 1785223736, '2026-07-28 11:58:56', 'ادمین عمومی', '2026-07-28 07:28:56', '2026-07-28 07:28:56'),
-(67, 'بک اپ تمیز', 'db-2026-07-29_11-24-16.sql', '/storage/backups/db-2026-07-29_11-24-16.sql', 1785308057, '2026-07-29 11:24:17', 'ادمین عمومی', '2026-07-29 06:54:17', '2026-07-29 06:54:17'),
-(68, 'befor testing buy invoice', 'db-2026-07-29_15-58-29.sql', '/storage/backups/db-2026-07-29_15-58-29.sql', 1785324509, '2026-07-29 15:58:29', 'ادمین عمومی', '2026-07-29 11:28:29', '2026-07-29 11:28:29'),
-(69, 'قبل از ایجاد انوایس جدید فروشات', 'db-2026-08-03_18-55-48.sql', '/storage/backups/db-2026-08-03_18-55-48.sql', 1785767150, '2026-08-03 18:55:50', 'ادمین عمومی', '2026-08-03 14:25:50', '2026-08-03 14:25:50');
+(70, 'بک اپ تمیز', 'db-2026-08-05_15-57-25.sql', '/storage/backups/db-2026-08-05_15-57-25.sql', 1785929247, '2026-08-05 15:57:27', 'ادمین عمومی', '2026-08-05 11:27:27', '2026-08-05 11:27:27'),
+(71, 'قبل از خرید', 'db-2026-08-06_17-16-38.sql', '/storage/backups/db-2026-08-06_17-16-38.sql', 1786020399, '2026-08-06 17:16:39', 'ادمین عمومی', '2026-08-06 12:46:39', '2026-08-06 12:46:39'),
+(72, 'قبل از تصفیه حساب در ژورنال', 'db-2026-08-06_20-02-05.sql', '/storage/backups/db-2026-08-06_20-02-05.sql', 1786030325, '2026-08-06 20:02:05', 'ادمین عمومی', '2026-08-06 15:32:05', '2026-08-06 15:32:05'),
+(73, 'قبل از پرداخت از طریق بل', 'db-2026-08-07_21-12-04.sql', '/storage/backups/db-2026-08-07_21-12-04.sql', 1786120926, '2026-08-07 21:12:06', 'ادمین عمومی', '2026-08-07 16:42:06', '2026-08-07 16:42:06');
 
 -- --------------------------------------------------------
 
@@ -186,14 +186,6 @@ CREATE TABLE `bought_bill_payments` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `bought_bill_payments`
---
-
-INSERT INTO `bought_bill_payments` (`id`, `bought_item_id`, `billno`, `supplier_account_id`, `account_id`, `currency_id`, `cur_pay`, `remained`, `payment_date`, `note`, `journal_code`, `user_id`, `user_name`, `times`, `created_at`, `updated_at`) VALUES
-(1, 6, '6', 91, 33, 1, 10.00, 150.00, '2026-08-04', 'dasdasd', 24, 13, 'ادمین عمومی', 1785845573, '2026-08-04 12:12:53', '2026-08-04 12:12:53'),
-(2, 6, '6', 91, 33, 1, 20.00, 130.00, '2026-08-04', NULL, 25, 13, 'ادمین عمومی', 1785846306, '2026-08-04 12:25:06', '2026-08-04 12:25:06');
 
 -- --------------------------------------------------------
 
@@ -230,19 +222,6 @@ CREATE TABLE `bought_items` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `bought_items`
---
-
-INSERT INTO `bought_items` (`id`, `billno`, `factor`, `journal_code`, `category_id`, `total`, `cur_pay`, `remained`, `account_id`, `supplier_account_id`, `currency_id`, `car_id`, `tax_activation`, `note`, `idate`, `year`, `month`, `day`, `times`, `has_invoice`, `invoice_id`, `user_id`, `user_name`, `isEditable`, `created_at`, `updated_at`) VALUES
-(1, 1, NULL, 1, NULL, 260.00, 260.00, 0.00, 33, 86, 1, 20, 1, '', '2026-07-29', 2026, 7, 29, '1785309011', 1, 6, 13, 'ادمین عمومی', 1, '2026-07-29 07:10:11', '2026-08-03 05:32:43'),
-(2, 2, NULL, 2, NULL, 200.00, 0.00, 200.00, 33, 95, 1, 20, 0, '', '2026-07-29', 2026, 7, 29, '1785309072', 1, 5, 13, 'ادمین عمومی', 1, '2026-07-29 07:11:12', '2026-08-01 15:24:53'),
-(3, 3, NULL, 4, NULL, 14169.60, 0.00, 14169.60, 33, 86, 1, 20, 1, NULL, '2026-08-01', 2026, 8, 1, '1785558500', 0, NULL, 13, 'ادمین عمومی', 1, '2026-08-01 04:28:20', '2026-08-01 13:47:32'),
-(4, 4, NULL, 5, NULL, 65.00, 0.00, 65.00, 33, 95, 1, 20, 1, NULL, '2026-08-01', 2026, 8, 1, '1785558528', 0, NULL, 13, 'ادمین عمومی', 1, '2026-08-01 04:28:48', '2026-08-01 13:38:12'),
-(5, 5, NULL, 6, NULL, 195.00, 0.00, 195.00, 33, 95, 1, 20, 1, NULL, '2026-08-01', 2026, 8, 1, '1785558583', 0, NULL, 13, 'ادمین عمومی', 1, '2026-08-01 04:29:43', '2026-08-01 13:03:30'),
-(6, 6, NULL, 13, NULL, 160.00, 30.00, 130.00, 33, 91, 1, 20, 1, NULL, '2026-08-03', 2026, 8, 3, '1785761011', 0, NULL, 13, 'ادمین عمومی', 1, '2026-08-03 12:43:31', '2026-08-04 12:25:06'),
-(7, 7, NULL, 26, NULL, 200.00, 0.00, 200.00, 33, 86, 1, 20, 0, NULL, '2026-08-04', 2026, 8, 4, '1785847552', 0, NULL, 13, 'ادمین عمومی', 0, '2026-08-04 12:45:52', '2026-08-04 12:45:52');
-
 -- --------------------------------------------------------
 
 --
@@ -276,21 +255,6 @@ CREATE TABLE `bought_item_details` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `bought_item_details`
---
-
-INSERT INTO `bought_item_details` (`id`, `billno`, `bought_item_id`, `pre_list_id`, `category_id`, `supplier_account_id`, `amount`, `unit_id`, `buy_up`, `buy_tax_per`, `buy_tax_price`, `buy_up_vat`, `total`, `expected_profit`, `total_vat`, `sell_up`, `sell_tax_per`, `sell_tax_price`, `sell_up_vat`, `is_moved`, `times`, `user_id`, `user_name`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 85, 1, 86, 5, 7, 40, 6, 12, 52, 200, 10, 260, 50, 6, 15, 65, 0, '1785309011', 13, 'ادمین عمومی', '2026-07-29 07:10:11', '2026-07-29 13:30:55'),
-(2, 2, 2, 92, 4, 95, 5, 3, 40, 0, 0, 0, 200, 10, 0, 50, 0, 0, 0, 0, '1785309072', 13, 'ادمین عمومی', '2026-07-29 07:11:12', '2026-07-29 11:18:50'),
-(3, 3, 3, 88, 3, 86, 9, 6, 1000, 6, 540, 1540, 9000, 100, 13860, 1100, 6, 594, 1694, 0, '1785558500', 13, 'ادمین عمومی', '2026-08-01 04:28:20', '2026-08-01 04:28:20'),
-(4, 3, 3, 89, 3, 86, 5, 6, 40, 6, 12, 52, 200, 5, 260, 45, 6, 13.5, 58.5, 0, '1785558500', 13, 'ادمین عمومی', '2026-08-01 04:28:20', '2026-08-01 04:28:20'),
-(5, 3, 3, 95, 2, 86, 4, 18, 10, 6, 2.4, 12.4, 40, 3, 49.6, 13, 6, 3.12, 16.12, 0, '1785558500', 13, 'ادمین عمومی', '2026-08-01 04:28:20', '2026-08-01 04:28:20'),
-(6, 4, 4, 90, 4, 95, 5, 18, 10, 6, 3, 13, 50, 3, 65, 13, 6, 3.9, 16.9, 0, '1785558528', 13, 'ادمین عمومی', '2026-08-01 04:28:48', '2026-08-01 04:28:48'),
-(7, 5, 5, 112, 1, 95, 5, 7, 30, 6, 9, 39, 150, 5, 195, 35, 6, 10.5, 45.5, 0, '1785558583', 13, 'ادمین عمومی', '2026-08-01 04:29:43', '2026-08-01 04:29:43'),
-(8, 6, 6, 94, 2, 91, 10, 18, 10, 6, 6, 16, 100, 2, 160, 12, 6, 7.2, 19.2, 0, '1785761011', 13, 'ادمین عمومی', '2026-08-03 12:43:31', '2026-08-03 12:54:29'),
-(9, 7, 7, 85, 1, 86, 4, 7, 50, 0, 0, 0, 200, 20, 0, 70, 0, 0, 0, 0, '1785847552', 13, 'ادمین عمومی', '2026-08-04 12:45:52', '2026-08-04 12:45:52');
 
 -- --------------------------------------------------------
 
@@ -352,14 +316,6 @@ CREATE TABLE `buy_invoices` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `buy_invoices`
---
-
-INSERT INTO `buy_invoices` (`id`, `invoice_number`, `supplier_id`, `total`, `paid_amount`, `remaining`, `currency_id`, `tax_activation`, `status`, `invoice_date`, `due_date`, `notes`, `created_by`, `times`, `created_at`, `updated_at`) VALUES
-(5, 'INV-20260729-1', 95, 200.00, 0.00, 200.00, 1, 0, 1, '2026-07-29', '2026-08-28', 'انوایس توسط سیستم اتومات ایجاد گردید', 13, '1785324876', '2026-07-29 11:34:36', '2026-07-29 11:34:36'),
-(6, 'INV-20260729-2', 86, 260.00, 260.00, 0.00, 1, 1, 3, '2026-07-29', '2026-08-28', 'انوایس توسط سیستم اتومات ایجاد گردید', 13, '1785325303', '2026-07-29 11:41:43', '2026-07-29 11:42:36');
-
 -- --------------------------------------------------------
 
 --
@@ -386,14 +342,6 @@ CREATE TABLE `buy_invoice_items` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `buy_invoice_items`
---
-
-INSERT INTO `buy_invoice_items` (`id`, `invoice_id`, `bought_item_detail_id`, `bought_item_id`, `pre_list_id`, `amount`, `unit_id`, `unit_price`, `unit_price_vat`, `tax_percentage`, `tax_amount`, `buy_up_vat`, `total`, `total_vat`, `times`, `created_at`, `updated_at`) VALUES
-(7, 5, 2, 2, 92, 5.00, 3, 40.00, 0.00, 0, 0.00, 0.00, 200.00, 0.00, '1785324876', '2026-07-29 11:34:36', '2026-07-29 11:34:36'),
-(8, 6, 1, 1, 85, 5.00, 7, 40.00, 52.00, 6, 12.00, 52.00, 200.00, 260.00, '1785325303', '2026-07-29 11:41:43', '2026-07-29 11:41:43');
-
 -- --------------------------------------------------------
 
 --
@@ -415,13 +363,6 @@ CREATE TABLE `buy_invoice_payments` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `buy_invoice_payments`
---
-
-INSERT INTO `buy_invoice_payments` (`id`, `invoice_id`, `payment_date`, `amount`, `payment_method`, `account_id`, `supplier_account_id`, `reference_number`, `notes`, `created_by`, `times`, `created_at`, `updated_at`) VALUES
-(5, 6, '2026-07-29', 260.00, 1, 33, 86, NULL, NULL, 13, '1785325356', '2026-07-29 11:42:36', '2026-07-29 11:42:36');
 
 -- --------------------------------------------------------
 
@@ -540,18 +481,6 @@ CREATE TABLE `draft_orders` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `draft_orders`
---
-
-INSERT INTO `draft_orders` (`id`, `dord_num`, `customer_id`, `category_id`, `pre_list_id`, `amount`, `unit_id`, `iby`, `idate`, `user_name`, `state`, `times`, `created_at`, `updated_at`) VALUES
-(70, 1, 83, 3, 88, 4, 6, 13, '2026-08-01', 'ادمین عمومی', 3, '1785558284', '2026-08-01 04:24:44', '2026-08-01 13:03:30'),
-(71, 1, 83, 3, 89, 4, 6, 13, '2026-08-01', 'ادمین عمومی', 3, '1785558284', '2026-08-01 04:24:44', '2026-08-01 13:03:30'),
-(72, 1, 83, 1, 86, 4, 3, 13, '2026-08-01', 'ادمین عمومی', 3, '1785558284', '2026-08-01 04:24:44', '2026-08-01 13:03:30'),
-(73, 2, 85, 3, 88, 5, 6, 13, '2026-08-01', 'ادمین عمومی', 3, '1785558316', '2026-08-01 04:25:16', '2026-08-01 15:24:53'),
-(74, 2, 85, 4, 90, 5, 18, 13, '2026-08-01', 'ادمین عمومی', 3, '1785558316', '2026-08-01 04:25:16', '2026-08-01 15:24:53'),
-(75, 2, 85, 2, 93, 5, 7, 13, '2026-08-01', 'ادمین عمومی', 3, '1785558316', '2026-08-01 04:25:16', '2026-08-01 15:24:53');
-
 -- --------------------------------------------------------
 
 --
@@ -572,9 +501,11 @@ CREATE TABLE `expense_types` (
 
 INSERT INTO `expense_types` (`id`, `name`, `user_id`, `created_at`, `updated_at`) VALUES
 (1, 'کرایه دوکان', NULL, '2025-02-24 08:53:26', '2025-02-24 08:53:26'),
-(2, 'مصارفات دفتر', NULL, '2025-02-24 08:53:36', '2025-03-07 06:48:32'),
+(2, 'مصارف متفرقه', NULL, '2025-02-24 08:53:36', '2026-08-06 07:47:17'),
 (3, 'بل برق', NULL, '2025-02-24 08:53:47', '2025-02-24 08:53:47'),
-(6, 'مصارف روزانه جاغوری', 11, '2025-03-10 01:56:22', '2025-03-10 01:56:22');
+(6, 'مصارف روزانه', 11, '2025-03-10 01:56:22', '2026-08-06 07:47:06'),
+(8, 'مصارف موتر', 13, '2026-08-06 07:47:29', '2026-08-06 07:47:29'),
+(9, 'مصارف نان چاشت', 13, '2026-08-06 07:47:48', '2026-08-06 07:47:48');
 
 -- --------------------------------------------------------
 
@@ -641,7 +572,7 @@ CREATE TABLE `journals` (
   `bill_no` int(11) DEFAULT 0,
   `amount` double NOT NULL,
   `currency_id` bigint(20) UNSIGNED NOT NULL,
-  `transaction_type` int(11) NOT NULL COMMENT '1:recieved 2:paid',
+  `transaction_type` int(11) NOT NULL COMMENT '1:recieved 2:paid, 3:expense 4 cars & emps',
   `payment_type` int(11) NOT NULL COMMENT '1: cache, 2: loan',
   `options` int(11) DEFAULT NULL COMMENT '1: cache2cache, 2:loan2loan, 3:cache2loan, 4:loan2cache',
   `option_label` varchar(100) DEFAULT NULL,
@@ -664,6 +595,7 @@ CREATE TABLE `journals` (
   `times` varchar(255) NOT NULL DEFAULT '0',
   `is_single_record` int(11) DEFAULT 0 COMMENT '0:single, 1:pair',
   `belongsToMe` int(11) DEFAULT 0 COMMENT '0: object 1:subject (my record)',
+  `counted` int(11) DEFAULT 0 COMMENT '0: counted, 1:not counted because paid by car instead of khazana',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -770,16 +702,6 @@ CREATE TABLE `orders` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`id`, `ord_num`, `bill_no`, `category_id`, `supplier_id`, `car_id`, `user_id`, `user_name`, `idate`, `state`, `times`, `created_at`, `updated_at`) VALUES
-(139, 'ORD-2026-08-0001', 5, 1, 96, 19, 13, 'ادمین عمومی', '2026-08-01', 3, '1785558348', '2026-08-01 04:25:48', '2026-08-01 04:29:43'),
-(140, 'ORD-2026-08-0002', 6, 2, 99, 19, 13, 'ادمین عمومی', '2026-08-01', 3, '1785558348', '2026-08-01 04:25:48', '2026-08-03 12:43:31'),
-(141, 'ORD-2026-08-0003', 3, 3, 86, 19, 13, 'ادمین عمومی', '2026-08-01', 3, '1785558348', '2026-08-01 04:25:48', '2026-08-01 04:28:20'),
-(142, 'ORD-2026-08-0004', 4, 4, 95, 19, 13, 'ادمین عمومی', '2026-08-01', 3, '1785558348', '2026-08-01 04:25:48', '2026-08-01 04:28:48');
-
 -- --------------------------------------------------------
 
 --
@@ -796,17 +718,6 @@ CREATE TABLE `order_items` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `pre_list_id`, `category_id`, `unit_id`, `amount`, `created_at`, `updated_at`) VALUES
-(123, 139, 86, 1, 3, 4.00, '2026-08-01 04:25:48', '2026-08-01 04:25:48'),
-(124, 140, 93, 2, 7, 5.00, '2026-08-01 04:25:48', '2026-08-01 04:25:48'),
-(125, 141, 88, 3, 6, 9.00, '2026-08-01 04:25:48', '2026-08-01 04:25:48'),
-(126, 141, 89, 3, 6, 4.00, '2026-08-01 04:25:48', '2026-08-01 04:25:48'),
-(127, 142, 90, 4, 18, 5.00, '2026-08-01 04:25:48', '2026-08-01 04:25:48');
 
 -- --------------------------------------------------------
 
@@ -836,7 +747,7 @@ CREATE TABLE `org_bios` (
 --
 
 INSERT INTO `org_bios` (`id`, `name`, `address`, `phone`, `header`, `logos`, `tax_activation`, `tax_per`, `is_active`, `note_for_print`, `is_expired`, `expired_date`, `created_at`, `updated_at`) VALUES
-(2, 'سیستم مدیریتی سفارشات آسان ارسال', 'مرکز تجارتی داودزی - کابل - افغانستان', '0729010123', 'headers/1783682766_header.jpg', 'logos/1783675724_sm-logo.jpeg', 0, 6, 1, 'اجناس فروخته شده پس گرفته نمیشود. و قرض هم داده نمیشود', 0, '2027-04-12', NULL, '2026-08-04 12:45:11');
+(2, 'سیستم مدیریتی سفارشات آسان ارسال', 'مرکز تجارتی داودزی - کابل - افغانستان', '0729010123', 'headers/1783682766_header.jpg', 'logos/1783675724_sm-logo.jpeg', 1, 6, 1, 'اجناس فروخته شده پس گرفته نمیشود. و قرض هم داده نمیشود', 0, '2027-04-12', NULL, '2026-08-08 09:56:25');
 
 -- --------------------------------------------------------
 
@@ -919,18 +830,6 @@ CREATE TABLE `sales_bill_payments` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `sales_bill_payments`
---
-
-INSERT INTO `sales_bill_payments` (`id`, `warehouse_sales_id`, `billno`, `customer_account_id`, `account_id`, `currency_id`, `cur_pay`, `remained`, `payment_date`, `note`, `journal_code`, `user_id`, `user_name`, `times`, `created_at`, `updated_at`) VALUES
-(18, 5, '2', 83, 33, 1, 5.00, 11.32, '2026-08-01', 'پرداخت نقد فروش', '8', 13, 'ادمین عمومی', 1785591492, '2026-08-01 13:38:12', '2026-08-01 13:38:12'),
-(19, 7, '4', 85, 33, 1, 44.00, 140.00, '2026-08-01', 'پرداخت نقد فروش', '10', 13, 'ادمین عمومی', 1785597893, '2026-08-01 15:24:53', '2026-08-03 12:37:25'),
-(20, 8, '5', 94, 33, 1, 15.40, 50.00, '2026-08-03', 'پرداخت نقد فروش', '11', 13, 'ادمین عمومی', 1785735162, '2026-08-03 05:32:43', '2026-08-03 05:32:43'),
-(21, 9, '6', 84, 33, 1, 673.60, 3000.00, '2026-08-03', NULL, '15', 13, 'ادمین عمومی', 1785763295, '2026-08-03 13:21:35', '2026-08-03 13:21:35'),
-(22, 7, '4', 85, 33, 1, 40.00, 100.00, '2026-08-03', NULL, '16', 13, 'ادمین عمومی', 1785766743, '2026-08-03 14:19:03', '2026-08-03 14:19:03'),
-(23, 9, '6', 84, 33, 1, 500.00, 2500.00, '2026-08-03', NULL, '17', 13, 'ادمین عمومی', 1785767001, '2026-08-03 14:23:21', '2026-08-03 14:23:21');
-
 -- --------------------------------------------------------
 
 --
@@ -960,22 +859,6 @@ CREATE TABLE `sales_details` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `sales_details`
---
-
-INSERT INTO `sales_details` (`id`, `billno`, `category_id`, `warehouse_id`, `warehouse_sales_id`, `pre_list_id`, `unit_id`, `amount`, `buy_up`, `sell_up`, `sell_up_no_tax`, `sell_tax_per`, `sell_tax_price`, `expected_profit`, `profit`, `total`, `is_returned`, `todays_date`, `created_at`, `updated_at`) VALUES
-(1, 1, 3, 1, 4, 89, 6, 4, 52, 69.44, 56, 6, 13.44, 4.00, 16, 224, 0, '2026-08-01', '2026-08-01 13:03:30', '2026-08-01 13:03:30'),
-(2, 1, 3, 1, 4, 88, 6, 4, 1540, 1915.8, 1545, 6, 370.80, 5.00, 20, 6180, 0, '2026-08-01', '2026-08-01 13:03:30', '2026-08-01 13:03:30'),
-(3, 2, 2, 1, 5, 95, 18, 1, 12.4, 16.32, 15, 6, 0.92, 3.00, 3, 15.4, 0, '2026-08-01', '2026-08-01 13:38:12', '2026-08-01 13:38:12'),
-(4, 3, 4, 1, 6, 90, 18, 1, 13, 15.9, 15, 6, 0.90, 2.00, 2, 15.9, 0, '2026-08-01', '2026-08-01 13:47:32', '2026-08-01 13:47:32'),
-(5, 4, 4, 1, 7, 90, 18, 4, 13, 16, 16, 0, 0.00, 3.00, 12, 64, 0, '2026-08-01', '2026-08-01 15:24:53', '2026-08-01 15:24:53'),
-(6, 4, 1, 1, 7, 112, 7, 3, 39, 40, 40, 0, 0.00, 1.00, 3, 120, 0, '2026-08-01', '2026-08-01 15:24:53', '2026-08-03 12:37:20'),
-(7, 5, 2, 1, 8, 95, 18, 1, 12.4, 15.4, 15, 0, 0.00, 3.00, 3, 15.4, 0, '2026-08-03', '2026-08-03 05:32:43', '2026-08-03 05:32:43'),
-(8, 5, 1, 1, 8, 112, 7, 1, 39, 50, 50, 0, 0.00, 11.00, 11, 50, 0, '2026-08-03', '2026-08-03 05:32:43', '2026-08-03 05:32:43'),
-(9, 6, 3, 1, 9, 88, 6, 2, 1540, 1836.8, 1640, 6, 196.80, 100.00, 593.6, 3673.6, 0, '2026-08-03', '2026-08-03 05:54:45', '2026-08-03 12:53:10'),
-(10, 7, 2, 1, 10, 94, 18, 3, 16, 23.6, 20, 6, 3.60, 4.00, 12, 70.8, 0, '2026-08-03', '2026-08-03 12:55:35', '2026-08-03 12:55:35');
-
 -- --------------------------------------------------------
 
 --
@@ -1002,14 +885,6 @@ CREATE TABLE `sales_invoices` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `sales_invoices`
---
-
-INSERT INTO `sales_invoices` (`id`, `invoice_number`, `sales_bill_numbers`, `customer_id`, `total`, `paid_amount`, `remaining`, `currency_id`, `tax_activation`, `status`, `invoice_date`, `due_date`, `notes`, `created_by`, `times`, `created_at`, `updated_at`) VALUES
-(12, 'SINV-20260803-1', '\"[5]\"', 94, 65.40, 35.40, 30.00, 1, 0, 2, '2026-08-03', '2026-09-02', 'انوایس توسط سیستم اتومات ایجاد گردید', 13, '1785735627', '2026-08-03 05:40:28', '2026-08-04 05:23:09'),
-(16, 'SINV-20260804-2', '\"[3,6]\"', 84, 3689.50, 3689.50, 0.00, 1, 1, 3, '2026-08-04', '2026-09-03', 'انوایس توسط سیستم اتومات ایجاد گردید', 13, '1785818893', '2026-08-04 04:48:13', '2026-08-04 04:57:09');
-
 -- --------------------------------------------------------
 
 --
@@ -1029,14 +904,6 @@ CREATE TABLE `sales_invoice_items` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `sales_invoice_items`
---
-
-INSERT INTO `sales_invoice_items` (`id`, `billno`, `invoice_id`, `total`, `cur_pay`, `remained`, `times`, `invoice_date`, `user_name`, `created_at`, `updated_at`) VALUES
-(43, 3, 16, 15.90, 0.00, 15.90, '1785818893', '2026-08-04', 'ادمین عمومی', '2026-08-04 04:48:13', '2026-08-04 04:48:13'),
-(44, 6, 16, 3673.60, 1173.60, 2500.00, '1785818893', '2026-08-04', 'ادمین عمومی', '2026-08-04 04:48:13', '2026-08-04 04:48:13');
 
 -- --------------------------------------------------------
 
@@ -1060,18 +927,6 @@ CREATE TABLE `sales_invoice_payments` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `sales_invoice_payments`
---
-
-INSERT INTO `sales_invoice_payments` (`id`, `invoice_id`, `journal_code`, `payment_date`, `amount`, `payment_method`, `account_id`, `customer_account_id`, `reference_number`, `notes`, `created_by`, `times`, `created_at`, `updated_at`) VALUES
-(23, 16, 0, '2026-08-04', 10.00, 1, 33, 84, NULL, NULL, 13, '1785818968', '2026-08-04 04:49:28', '2026-08-04 04:49:28'),
-(24, 16, 0, '2026-08-04', 10.00, 1, 33, 84, NULL, NULL, 13, '1785819290', '2026-08-04 04:54:50', '2026-08-04 04:54:50'),
-(25, 16, 0, '2026-08-04', 2494.00, 1, 33, 84, NULL, NULL, 13, '1785819402', '2026-08-04 04:56:42', '2026-08-04 04:56:42'),
-(26, 16, 0, '2026-08-04', 1.90, 1, 33, 84, NULL, NULL, 13, '1785819429', '2026-08-04 04:57:09', '2026-08-04 04:57:09'),
-(27, 12, 22, '2026-08-04', 10.00, 1, 33, 94, NULL, NULL, 13, '1785820941', '2026-08-04 05:22:21', '2026-08-04 05:22:21'),
-(28, 12, 23, '2026-08-04', 10.00, 2, 33, 94, NULL, NULL, 13, '1785820989', '2026-08-04 05:23:09', '2026-08-04 05:23:09');
 
 -- --------------------------------------------------------
 
@@ -1235,21 +1090,6 @@ CREATE TABLE `warehouse_items` (
   `is_cleared` int(2) NOT NULL COMMENT '0: not cleared, 1:cleared'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `warehouse_items`
---
-
-INSERT INTO `warehouse_items` (`id`, `billno`, `warehouse_id`, `buy_pre_id`, `name`, `in_amount`, `out_amount`, `available_amount`, `unit_id`, `buy_up`, `buy_tax_per`, `buy_tax_price`, `buy_up_vat`, `total`, `available_total`, `sell_up`, `sell_tax_per`, `sell_tax_price`, `sell_up_vat`, `currency_id`, `category_id`, `supplier_id`, `car_id`, `user_id`, `idate`, `year`, `month`, `day`, `created_at`, `updated_at`, `times`, `is_cleared`) VALUES
-(1, 1, 1, 85, NULL, 6, 0, 6, 7, 50, 0, 0, 0, 300, 300.00, 70, 0, 0, 0, 1, 1, 86, 20, 13, '2026-08-04', 2026, 8, 4, '2026-07-29 07:10:11', '2026-08-04 12:45:52', NULL, 0),
-(2, 2, 1, 92, NULL, 0, 0, 0, 3, 40, 0, 0, 0, 0, 0.00, 50, 0, 0, 0, 1, 4, 95, 20, 13, '2026-07-29', 2026, 7, 29, '2026-07-29 07:11:12', '2026-07-29 14:34:01', NULL, 0),
-(3, 1, 1, 85, NULL, 0, 0, 0, 7, 40, 6, 12, 52, 0, 0.00, 50, 6, 15, 65, 1, 1, 86, 19, 13, '2026-07-29', 2026, 7, 29, '2026-07-29 14:12:40', '2026-07-29 14:25:17', NULL, 0),
-(4, 3, 1, 88, NULL, 9, 6, 3, 6, 1000, 6, 540, 1540, 13860, 4620.00, 1100, 6, 594, 1694, 1, 3, 86, 20, 13, '2026-08-01', 2026, 8, 1, '2026-08-01 04:28:20', '2026-08-03 12:53:10', NULL, 0),
-(5, 3, 1, 89, NULL, 5, 4, 1, 6, 40, 6, 12, 52, 260, 52.00, 45, 6, 13.5, 58.5, 1, 3, 86, 20, 13, '2026-08-01', 2026, 8, 1, '2026-08-01 04:28:20', '2026-08-01 13:03:30', NULL, 0),
-(6, 3, 1, 95, NULL, 4, 2, 2, 18, 10, 6, 2.4, 12.4, 49.6, 24.80, 13, 6, 3.12, 16.12, 1, 2, 86, 20, 13, '2026-08-01', 2026, 8, 1, '2026-08-01 04:28:20', '2026-08-03 05:32:43', NULL, 0),
-(7, 4, 1, 90, NULL, 5, 5, 0, 18, 10, 6, 3, 13, 65, 0.00, 13, 6, 3.9, 16.9, 1, 4, 95, 20, 13, '2026-08-01', 2026, 8, 1, '2026-08-01 04:28:48', '2026-08-01 15:24:53', NULL, 0),
-(8, 5, 1, 112, NULL, 5, 4, 1, 7, 30, 6, 9, 39, 195, 39.00, 35, 6, 10.5, 45.5, 1, 1, 95, 20, 13, '2026-08-01', 2026, 8, 1, '2026-08-01 04:29:43', '2026-08-03 12:37:20', NULL, 0),
-(9, 6, 1, 94, NULL, 10, 3, 7, 18, 10, 6, 6, 16, 160, 112.00, 12, 6, 7.2, 19.2, 1, 2, 91, 20, 13, '2026-08-03', 2026, 8, 3, '2026-08-03 12:43:31', '2026-08-03 12:55:35', NULL, 0);
-
 -- --------------------------------------------------------
 
 --
@@ -1280,14 +1120,6 @@ CREATE TABLE `warehouse_returns` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `warehouse_returns`
---
-
-INSERT INTO `warehouse_returns` (`id`, `return_number`, `warehouse_item_id`, `pre_list_id`, `unit_id`, `currency_id`, `billno`, `return_date`, `supplier_account_id`, `account_id`, `car_id`, `quantity`, `unit_price`, `total`, `paid_amount`, `remaining_amount`, `reason`, `status`, `user_id`, `user_name`, `created_at`, `updated_at`) VALUES
-(2, 'RET-2026-07-0001', 3, 85, 7, 1, '1', '2026-07-29', 86, 33, 19, 3.00, 40.00, 120.00, 0.00, 120.00, 'نخواستند', 0, 13, 'ادمین عمومی', '2026-07-29 14:25:17', '2026-07-29 14:25:17'),
-(3, 'RET-2026-07-0002', 2, 92, 3, 1, '2', '2026-07-29', 95, 33, 20, 5.00, 40.00, 200.00, 0.00, 200.00, 'نخواستند', 0, 13, 'ادمین عمومی', '2026-07-29 14:33:21', '2026-07-29 14:34:01');
 
 -- --------------------------------------------------------
 
@@ -1322,19 +1154,6 @@ CREATE TABLE `warehouse_sales` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `warehouse_sales`
---
-
-INSERT INTO `warehouse_sales` (`id`, `billno`, `journal_code`, `factor`, `account_id`, `customer_account_id`, `total`, `cur_pay`, `remained`, `currency_id`, `car_id`, `note`, `idate`, `user_id`, `user_name`, `year`, `month`, `day`, `times`, `has_invoice`, `invoice_id`, `tax_activation`, `is_cleared`, `created_at`, `updated_at`) VALUES
-(4, 1, 7, NULL, 33, 83, 7940.96, 0, 7940.96, 1, 20, NULL, '2026-08-01', 13, 'ادمین عمومی', 2026, 8, 1, 1785589410, 0, NULL, 1, 0, '2026-08-01 13:03:30', '2026-08-01 13:03:30'),
-(5, 2, 8, NULL, 33, 83, 16.32, 5, 11.32, 1, 20, NULL, '2026-08-01', 13, 'ادمین عمومی', 2026, 8, 1, 1785591492, 0, NULL, 1, 0, '2026-08-01 13:38:12', '2026-08-01 13:38:12'),
-(6, 3, 9, NULL, 33, 84, 15.90, 15.9, 0, 1, 20, NULL, '2026-08-01', 13, 'ادمین عمومی', 2026, 8, 1, 1785592052, 1, 16, 1, 0, '2026-08-01 13:47:32', '2026-08-04 04:54:50'),
-(7, 4, 10, NULL, 33, 85, 184.00, 84, 100, 1, 20, NULL, '2026-08-01', 13, 'ادمین عمومی', 2026, 8, 1, 1785597893, 0, NULL, 0, 0, '2026-08-01 15:24:53', '2026-08-03 14:19:03'),
-(8, 5, 11, NULL, 33, 94, 65.40, 35.4, 30, 1, 20, NULL, '2026-08-03', 13, 'ادمین عمومی', 2026, 8, 3, 1785735162, 1, 12, 0, 0, '2026-08-03 05:32:43', '2026-08-04 05:23:09'),
-(9, 6, 12, NULL, 33, 84, 3673.60, 3673.6, 0, 1, 20, NULL, '2026-08-03', 13, 'ادمین عمومی', 2026, 8, 3, 1785736484, 1, 16, 1, 0, '2026-08-03 05:54:44', '2026-08-04 04:57:09'),
-(10, 7, 14, NULL, 33, 98, 70.80, 0, 70.8, 1, 20, NULL, '2026-08-03', 13, 'ادمین عمومی', 2026, 8, 3, 1785761735, 0, NULL, 1, 0, '2026-08-03 12:55:35', '2026-08-03 12:55:35');
 
 --
 -- Indexes for dumped tables
@@ -1668,25 +1487,25 @@ ALTER TABLE `account_types`
 -- AUTO_INCREMENT for table `backups`
 --
 ALTER TABLE `backups`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `bought_bill_payments`
 --
 ALTER TABLE `bought_bill_payments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `bought_items`
 --
 ALTER TABLE `bought_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `bought_item_details`
 --
 ALTER TABLE `bought_item_details`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `bought_item_pre_lists`
@@ -1740,7 +1559,7 @@ ALTER TABLE `draft_orders`
 -- AUTO_INCREMENT for table `expense_types`
 --
 ALTER TABLE `expense_types`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -1806,13 +1625,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `sales_bill_payments`
 --
 ALTER TABLE `sales_bill_payments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `sales_details`
 --
 ALTER TABLE `sales_details`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `sales_invoices`
@@ -1860,7 +1679,7 @@ ALTER TABLE `warehouses`
 -- AUTO_INCREMENT for table `warehouse_items`
 --
 ALTER TABLE `warehouse_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `warehouse_returns`
@@ -1872,7 +1691,7 @@ ALTER TABLE `warehouse_returns`
 -- AUTO_INCREMENT for table `warehouse_sales`
 --
 ALTER TABLE `warehouse_sales`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Constraints for dumped tables

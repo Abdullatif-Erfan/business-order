@@ -64,7 +64,6 @@ class BoughtDetailsController extends Controller
         return view('buy.bought.list',compact('currencies','todaysDate','orgbios'));
     }
 
-
     public function getData(Request $request)
     {
         $tax_activation = $request->input('tax_activation');
@@ -194,30 +193,7 @@ class BoughtDetailsController extends Controller
         //     "findTaxPrice": 33.75
         // }
     }
-    /**
-     * This function is used to test tax 
-     */
-    public function create2()
-    {
-        // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
-        $currencies = Currency::select('id','name')->get();
-        $warehouses = Warehouse::select('id','name')->get();
-        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
-        $billno =  BoughtItem::max('billno') + 1;
-    
-        $preLists = BuyPreList::select('id','name')->get();
-        $todaysDate = Carbon::now()->format('Y-m-d');
-        $units = Unit::select('id','name')->get();
-        $newJournalCode =  Journal::max('code') + 1;
-        $tax = OrgBio::select('tax_activation','tax_per')->first();
-
-        $times = time();
-
-        // return response()->json($preLists);
-        return view('buy.test_tax.list',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
-    }
-
+  
     /**
      * Create Belongs to V2
      * Currently used
@@ -293,7 +269,17 @@ class BoughtDetailsController extends Controller
         
         $currencies = Currency::select('id','name')->get();
         $warehouses = Warehouse::select('id','name')->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,7])->orderBy('is_pre_select','DESC')->get();
+        if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->orderBy('is_pre_select','DESC')->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
         $billno =  BoughtItem::max('billno') + 1;
     
         $todaysDate = Carbon::now()->format('Y-m-d');
@@ -321,10 +307,32 @@ class BoughtDetailsController extends Controller
          // return response()->json($preLists);
         if((int)$tax->tax_activation === 1) 
         {
-           return view('buy.v2.bought.create_with_tax',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
+           return view('buy.bought.create.create_with_tax',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
         } else {
-           return view('buy.v2.bought.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
+           return view('buy.bought.create.create',compact('orders','currencies','todaysDate','ownBanks','warehouses','times','billno','tax','suppliersWithStatus','preLists','units','categories','cars'));
         }
+    }
+
+    // it is used for testing taxes
+    public function create2()
+    {
+        // $boughtList = BoughtItemDetails::with(['boughtItemRelation','preListRelation'])->get();
+        $currencies = Currency::select('id','name')->get();
+        $warehouses = Warehouse::select('id','name')->get();
+        $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
+        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        $billno =  BoughtItem::max('billno') + 1;
+    
+        $preLists = BuyPreList::select('id','name')->get();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $units = Unit::select('id','name')->get();
+        $newJournalCode =  Journal::max('code') + 1;
+        $tax = OrgBio::select('tax_activation','tax_per')->first();
+
+        $times = time();
+
+        // return response()->json($preLists);
+        return view('buy.test_tax.list',compact('currencies','suppliers','todaysDate','ownBanks','preLists','units','warehouses','times','newJournalCode','billno','tax'));
     }
     
     public function getToUpdateProfit(string $billno)
@@ -836,6 +844,28 @@ class BoughtDetailsController extends Controller
                     ->update(['state' => 3, 'bill_no' => $billno]);
             }
 
+             // ===========================================
+            // STORE PAYMENT IN BOUGHT_BILL_PAYMENTS TABLE
+            // ===========================================
+            if($validated['cur_pay'] > 0 && $validated['cur_pay'] <= $validated['total_price']) 
+            {
+                  $payment = BoughtBillPayment::create([
+                    'bought_item_id' => $boughtItem->id,
+                    'billno' => $validated['billno'],
+                    'supplier_account_id' => $validated['supplier_account_id'],
+                    'account_id' => $validated['from_account_id'],
+                    'currency_id' => $validated['currency_id'],
+                    'cur_pay' => $validated['cur_pay'],
+                    'remained' => $validated['remained'],
+                    'payment_date' => $validated['todays_date'],
+                    'note' => $validated['note'] ?? null,
+                    'journal_code' => $journal_code,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName ?? 'System',
+                    'times' => $times,
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([
@@ -1044,6 +1074,28 @@ class BoughtDetailsController extends Controller
                     ->update(['state' => 3, 'bill_no' => $billno]);
             }
 
+               // ===========================================
+            // STORE PAYMENT IN BOUGHT_BILL_PAYMENTS TABLE
+            // ===========================================
+            if($validated['cur_pay'] > 0 && $validated['cur_pay'] <= $validated['total_price']) 
+            {
+                 $payment = BoughtBillPayment::create([
+                    'bought_item_id' => $boughtItem->id,
+                    'billno' => $validated['billno'],
+                    'supplier_account_id' => $validated['supplier_account_id'],
+                    'account_id' => $validated['from_account_id'],
+                    'currency_id' => $validated['currency_id'],
+                    'cur_pay' => $validated['cur_pay'],
+                    'remained' => $validated['remained'],
+                    'payment_date' => $validated['todays_date'],
+                    'note' => $validated['note'] ?? null,
+                    'journal_code' => $journal_code,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName ?? 'System',
+                    'times' => $times,
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([
@@ -1179,31 +1231,30 @@ class BoughtDetailsController extends Controller
                     ->first();
 
             $khazana_account_id = $companyAccount->id ?? $request->from_account_id;
-            $counted = 0;
+            // $counted = 0;
 
-            if((int)$khazana_account_id === (int)$request->from_account_id) 
-            {
-                // $payer_account_id = $request->from_account_id;
-                $counted = 0;
-            } 
-            else 
-            {
-                // $payer_account_id = $khazana_account_id;
-                $counted = 1; // disable count of this transation in chart_of_account for khazana
-            }
+            // if((int)$khazana_account_id === (int)$request->from_account_id) 
+            // {
+            //     // $payer_account_id = $request->from_account_id;
+            //     // $counted = 0;
+            // } 
+            // else 
+            // {
+            //     // $payer_account_id = $khazana_account_id;
+            //     // $counted = 1; // disable count of this transation in chart_of_account for khazana
+            // }
 
             if ((float)$request->cur_pay === 0.00 && (float)$request->remained === (float)$request->total_price) 
             { 
                 // ثبت قرضه خزانه = recieved(ttype=1) loan(ptype=2)
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $khazana_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $khazana_account_id,  $request->total_price, $ttype = "1", $ptype="2", $date, $details);
+                
                 
                 // ثبت طلب تهیه کننده = paid(ttype=2), loan(ptype=2) 
                 $details = __('validate.tkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->supplier_account_id,  $request->total_price,
-                 $ttype = "2", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $request->supplier_account_id,  $request->total_price,
+                 $ttype = "2", $ptype="2", $date, $details);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
@@ -1223,20 +1274,17 @@ class BoughtDetailsController extends Controller
                  */
                 // ثبت پرداخت نقدی  خزانه / ویا موتر = Cache paid
                 $details = __('validate.pkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.cpayment'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $details);
 
                 // ثبت قرضه خزانه = Loan Recieved 
                 $details =  __('validate.qkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.qkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $khazana_account_id, $request->remained,  
-                $ttype = "1", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $khazana_account_id, $request->remained,  
+                $ttype = "1", $ptype="2", $date, $details);
                
                 // ثبت طلب تهیه کننده = Paid Loan
                 $details =  __('validate.tkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.tkharid'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel,  $request->supplier_account_id, $request->remained,
-                $ttype = "2", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $request->supplier_account_id, $request->remained,
+                $ttype = "2", $ptype="2", $date, $details);
             }
 
              // قرضدار نمانده است و مکمل پرداخت کرده است
@@ -1245,8 +1293,7 @@ class BoughtDetailsController extends Controller
             {
                 // ثبت پرداخت نقدی پرداخت کننده = Cache paid
                 $details =  __('validate.pkbill').' BUY_'.$request->billno;
-                $optionLabel = __('validate.cpayment'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $request->from_account_id, $request->cur_pay, $ttype = "2", $ptype="1", $date, $details);
             }
 
             DB::commit();
@@ -1267,11 +1314,10 @@ class BoughtDetailsController extends Controller
         }
     }
 
-     private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $counted=0, $details,    $dynamic_type, $dt_comment, $status = 7)
+     private function createJournalEntry($request, $account_id, $amount, $ttype, $ptype, $date, $details)
     {
         try {
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
-            $day = $date->day;
             $year = $date->year;
             $month = $date->month;
             
@@ -1282,22 +1328,17 @@ class BoughtDetailsController extends Controller
                 'account_id' => $account_id,
                 'amount' => $amount,
                 'currency_id' => $request->currency_id,
+                'car_id' => $request->car_id ?? 0,
                 'transaction_type' => $ttype,
                 'payment_type' => $ptype,
-                'option_label' => $optionLabel,
-                'dynamic_type' => $dynamic_type,
-                'dt_comment' => $dt_comment,
                 'user_id' => auth()->user()->id ?? '',
                 'user_name' => auth()->user()->full_name ?? '',
                 'year' =>  $year,
                 'month' => $month,
-                'day' =>  $day,
                 'idate' => $request->todays_date,
                 'details' => $details,
-                'status' => $status,  
+                'status' => 7,  
                 'times' => $request->times,
-                'is_single_record' => 1, 
-                'counted' => $counted,
             ]);
             
             return true; 
@@ -1353,22 +1394,18 @@ class BoughtDetailsController extends Controller
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid"),
             ])
             ->where('currency_id', $currency_id)
@@ -1408,7 +1445,19 @@ class BoughtDetailsController extends Controller
 
         $billno = BoughtItem::max('billno') + 1;   
         $currencies = Currency::select('id', 'name')->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 7])->orderBy('is_pre_select', 'DESC')->get();
+
+        if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->orderBy('is_pre_select', 'DESC')->get();
+        } else {
+             $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
+
         $journal_code = Journal::select('code')->where('times', $times)->first();
 
         if (!$journal_code) {
@@ -1610,7 +1659,7 @@ class BoughtDetailsController extends Controller
                 $warehouseItem = WarehouseItem::where('billno', $validated['billno'])
                     ->where('buy_pre_id', $validated['pre_list_id'])
                     ->where('unit_id', $validated['unit_id'])
-                    ->where('user_id', $this->userId)
+                    ->whereIn('car_id', $this->carIds)
                     ->lockForUpdate()
                     ->first();
             }
@@ -1960,7 +2009,17 @@ class BoughtDetailsController extends Controller
         $invoice = BuyInvoice::with(['supplier', 'items.unit', 'items.preList', 'payments', 'currency'])
             ->findOrFail($id);
         $suppliers = Account::select('id','name')->whereIn('account_type_id',[4])->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+        if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->orderBy('is_pre_select','DESC')->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
         $newJournalCode =  Journal::max('code') + 1;
         $currencies = Currency::select('id','name')->get();
         // return ['data' => $invoice];
@@ -2182,7 +2241,6 @@ class BoughtDetailsController extends Controller
                 : Carbon::now();
 
             $time = $request->times ?? '00:00:00';
-            $full_date = $date->format('Y-m-d') . ' ' . $time;
 
             $request->merge([
                 'bill_no' => 0,
@@ -2192,22 +2250,14 @@ class BoughtDetailsController extends Controller
             // Payment from account (Paid)
             $details = __('validate.cache_payment_invoice') . ' INV_' . $invoice_id;
             $status = 9; // 1: old journal, 2: journal, 3:income, 4:expense, 5:salary, 6:participants, 7:buy, 8:sales, 9:buy invoice,  10:sales invoice, 11:other
-            $optionLabel = __('validate.inv_pay');
-            $dynamic_type = 2;
-            $dt_comment = 'Invoice';
             
-            $check1 = $this->createJournalEntry( $request, $optionLabel, $request->account_id,  $amount, 
-                "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
-            );
+            $check1 = $this->createJournalEntry( $request, $request->account_id,  $amount, "2", "1", $date,  $details);
 
             // Received by supplier
             $details2 = __('validate.cache_recieved_invoice') . ' INV_' . $invoice_id;
-            $optionLabel = __('validate.inv_rec');
-            
-            $check2 = $this->createJournalEntry(
-                $request,  $optionLabel, $request->supplier_account_id, $amount, 
-                "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
-            );
+           
+     
+            $check2 = $this->createJournalEntry($request,  $request->supplier_account_id, $amount, "1", "1", $date, $details2);
 
             if (!$check1 || !$check2) {
                 DB::rollBack();
@@ -2258,13 +2308,10 @@ class BoughtDetailsController extends Controller
             ->get();
 
         $boughtItems = BoughtItem::with([
-            'account' => function($query) {
-                $query->select('id', 'name');
-            }, 
             'currencyRelation' => function ($query) {
                 $query->select('id', 'name', 'symbols');
             },
-            'account' => function ($query) {
+            'customerRelation' => function ($query) {
                 $query->select('id', 'name');
             }
         ])->where('billno', $billno)->get();
@@ -2278,7 +2325,7 @@ class BoughtDetailsController extends Controller
         $times = $boughtItems->first()->times ?? 1;
 
         // Get Bill Payments
-        $boughtBillPayments = BoughtBillPayment::where('billno', $billno)->get();
+        $boughtBillPayments = BoughtBillPayment::with('account:id,name')->where('billno', $billno)->get();
 
         return view('buy.bill.list', compact(
             'boughtItems',
@@ -2322,8 +2369,22 @@ class BoughtDetailsController extends Controller
             ], 404);
         }
 
+
         // Get own banks (company accounts)
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+        if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
+        // return ['carIds' => $this->carIds];
+        // return ['ownBanks' => $ownBanks];
+
 
         return view('buy.bill.payment', compact('boughtItems', 'ownBanks'));
     }
@@ -2397,16 +2458,13 @@ class BoughtDetailsController extends Controller
             $journal->details =  __('buy.payment_for_bill').' BUY_'.$validated['billno'];  
             $journal->transaction_type = 2; // Paid
             $journal->payment_type = 1; // Cash
-            $journal->option_label = __('validate.salary_payment');
             $journal->status = 7; // Buy
             $journal->idate = $validated['payment_date'];
             $journal->year = $year;
             $journal->month = $month;
-            $journal->day = $day;
             $journal->user_id =  $this->userId;
             $journal->user_name = $this->userName ?? 'System';
             $journal->times = $times;
-            $journal->is_cleared = 0;
             $journal->save();
 
             // Create customer journal entry
@@ -2425,11 +2483,9 @@ class BoughtDetailsController extends Controller
             $customerJournal->idate = $validated['payment_date'];
             $customerJournal->year = $year;
             $customerJournal->month = $month;
-            $customerJournal->day = $day;
             $customerJournal->user_id =  $this->userId;
             $customerJournal->user_name = $this->userName ?? 'System';
             $customerJournal->times = $times;
-            $customerJournal->is_cleared = 0;
             $customerJournal->save();
 
             // =========================================

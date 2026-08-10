@@ -78,7 +78,7 @@ class SalesController extends Controller
             ->orderBy('warehouse_sales.id','DESC');
 
             if(!$this->isAdmin){
-                $soldItems->where('warehouse_sales.user_id', $this->userId);
+                $soldItems->whereIn('warehouse_sales.car_id', $this->carIds);
             }
 
             // Apply filters if provided
@@ -116,7 +116,11 @@ class SalesController extends Controller
             //     </a>';
             // })
            ->addColumn('action', function ($soldItem) {
-                return '
+            $editLink = $soldItem->has_invoice 
+                ? '<span class="dropdown-item disabled text-muted">' . __('common.edit') . '</span>'
+                : '<a class="dropdown-item" target="_blank" href="' . route('sales.edit', $soldItem->billno) . '">' . __('common.edit') . '</a>';
+            
+            return '
                 <div class="dropdown detailsDropdown dropend">
                     <button class="btn btn-primary btn-sm dropdown-toggle"
                         type="button"  data-toggle="dropdown">
@@ -124,10 +128,11 @@ class SalesController extends Controller
 
                     <div class="dropdown-menu">
                         <a class="dropdown-item" target="_blank" href="' . route('sales.bill', $soldItem->billno) . '">' . __('sales.sales_bill') . '</a>
-                        <a class="dropdown-item billPayment" href="#" data-id="'.$soldItem->billno.'" data-id2="'.$soldItem->has_invoice.'" data-id3="'.$soldItem->remained.'" >' . __('sales.bill_payment') . '</a>
+                        <a class="dropdown-item billPayment" href="#" data-id="'.$soldItem->billno.'"
+                        data-id2="'.$soldItem->has_invoice.'" data-id3="'.$soldItem->remained.'" >' . 'دریافتی بل' . '</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item itemList" href="#" data-id="'.$soldItem->billno.'">' . __('sales.item_lists') . '</a>
-                        <a class="dropdown-item" target="_blank" href="' . route('sales.edit', $soldItem->billno) . '">' . __('common.edit') . '</a>
+                        ' . $editLink . '
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" target="_blank" href="' . route('sales.details', $soldItem->billno) . '">' . __('common.details') . '</a>
                     </div>
@@ -158,7 +163,7 @@ class SalesController extends Controller
 
         // get Bill Payments
 
-        $salesBillPayments = SalesBillPayment::where('billno',$billno)->get();
+        $salesBillPayments = SalesBillPayment::with('account:id,name')->where('billno',$billno)->get();
 
         // get previous balances
         $customer_balance = $this->getCustomerBalance($customer_account_id, $currency_id,  $times);
@@ -200,7 +205,17 @@ class SalesController extends Controller
         }
 
         // Get own banks (company accounts)
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
+         if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
 
         return view('sales.bill.payment', compact('soldItems', 'ownBanks'));
     }
@@ -273,16 +288,13 @@ class SalesController extends Controller
             $journal->details =  __('sales.payment_for_bill').' SALES_'.$validated['billno'];  
             $journal->transaction_type = 1; // Recieved
             $journal->payment_type = 1; // Cash
-            $journal->option_label = __('validate.salary_payment');
             $journal->status = 8; // Sales
             $journal->idate = $validated['payment_date'];
             $journal->year = $year;
             $journal->month = $month;
-            $journal->day = $day;
-            $journal->user_id = auth()->id();
-            $journal->user_name = auth()->user()->full_name ?? '';
+            $journal->user_id = $this->userId;
+            $journal->user_name = $this->userName ?? '';
             $journal->times = $times;
-            $journal->is_cleared = 0;
             $journal->save();
 
             // Create customer journal entry
@@ -301,11 +313,9 @@ class SalesController extends Controller
             $customerJournal->idate = $validated['payment_date'];
             $customerJournal->year = $year;
             $customerJournal->month = $month;
-            $customerJournal->day = $day;
-            $customerJournal->user_id = auth()->id();
-            $customerJournal->user_name = auth()->user()->full_name ?? ' ';
+            $customerJournal->user_id = $this->userId;
+            $customerJournal->user_name = $this->userName ?? ' ';
             $customerJournal->times = $times;
-            $customerJournal->is_cleared = 0;
             $customerJournal->save();
 
             // =========================================
@@ -322,8 +332,8 @@ class SalesController extends Controller
                 'payment_date' => $validated['payment_date'],
                 'note' => $validated['note'] ?? null,
                 'journal_code' => $journalCode,
-                'user_id' => auth()->id(),
-                'user_name' => auth()->user()->full_name ?? 'System',
+                'user_id' => $this->userId,
+                'user_name' => $this->userName ?? 'System',
                 'times' => $times,
             ]);
 
@@ -370,92 +380,12 @@ class SalesController extends Controller
         return view('sales.item_list_in_modal',compact('salesDetails','saved_with_tax'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-   
-    public function create_v2_backup()
-    {
-        $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
-        $currencies = Currency::select('id', 'name')->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 6])->get();
-        $tax = OrgBio::select('tax_activation')->first();
-        $units = Unit::select('id', 'name')->get();
-        $cars = Car::select('id', 'name')->get(); // later should be filtered based on driver
-        
-        // Get warehouse items with available stock > 0
-        $warehouseItems = DB::table('warehouse_items')
-            ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
-            ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
-            ->where('warehouse_items.available_amount', '>', 0)
-            ->select(
-                'warehouse_items.id',
-                'warehouse_items.unit_id',
-                DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
-                'warehouse_items.available_amount',
-                'units.name as unit_name',
-                'warehouse_items.warehouse_id',
-                'bought_item_pre_lists.name as item_name',
-                'bought_item_pre_lists.id as pre_list_id',
-                'bought_item_pre_lists.category_id as category_id'
-            )
-            ->get();
-
-        // Get draft orders with state = 2 (in progress) and only those with available stock
-        $draftOrders = DraftOrder::select(
-            'id',
-            'dord_num',
-            'customer_id',
-            'category_id',
-            'pre_list_id',
-            'unit_id',
-            'amount',
-            'idate',
-            'iby',
-            'user_name',
-            'state',
-            'times'
-        )
-        ->with([
-            'customerRelation:id,name',
-            'preListRelation:id,name,category_id',
-            'unitRelation:id,name',
-        ])
-        ->where('draft_orders.state', 2)
-        ->orderBy('id', 'DESC')
-        ->get();
-
-        // Filter draft orders: only keep items that exist in warehouse with available_amount > 0
-        $availablePreListIds = $warehouseItems->pluck('pre_list_id')->toArray();
-        $filteredDraftOrders = $draftOrders->filter(function ($order) use ($availablePreListIds) {
-            return in_array($order->pre_list_id, $availablePreListIds);
-        });
-
-        $billno = WarehouseSales::max('billno') + 1;
-        $times = time();
-        
-
-        return view('sales.v2.create.create', compact(
-            'customers',
-            'units',
-            'currencies',
-            'ownBanks',
-            'tax',
-            'warehouseItems',
-            'draftOrders',
-            'filteredDraftOrders',
-            'billno',
-            'times',
-            'journal_code',
-            'cars'
-        ));
-    }
-
     // SHOW CREATE FORM
     public function create()
     {
         if($this->isAdmin) 
         {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->get();
             $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
             $cars = Car::select('id', 'name')->get();
 
@@ -513,7 +443,7 @@ class SalesController extends Controller
                 ->join('bought_item_pre_lists', 'bought_item_pre_lists.id', '=', 'warehouse_items.buy_pre_id')
                 ->join('units', 'units.id', '=', 'warehouse_items.unit_id')
                 ->where('warehouse_items.available_amount', '>', 0)
-                ->where('warehouse_items.user_id', $this->userId)
+                ->whereIn('warehouse_items.car_id', $this->carIds)
                 ->select(
                     'warehouse_items.id as warehouse_item_id',
                     'warehouse_items.unit_id as warehouse_unit_id',
@@ -556,13 +486,17 @@ class SalesController extends Controller
 
         }
         $currencies = Currency::select('id', 'name')->get();
-        $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1, 7])->get();
+      
+        $ownBanks = Account::select('id', 'name', 'emp_car_id')->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        
         $tax = OrgBio::select('tax_activation','tax_per')->first();
         $units = Unit::select('id', 'name')->get();
        
-        
-       
-
         // Get customer IDs that have orders (state=2)
         $customerIdsWithOrders = $draftOrders->pluck('customer_id')->unique()->toArray();
 
@@ -643,11 +577,11 @@ class SalesController extends Controller
         // return ['warehouseItems' => $warehouseItems];
         if((int)$tax->tax_activation === 1) 
         {
-           return view('sales.v2.create.create_with_tax', compact('customers','units','currencies','ownBanks',
+           return view('sales.sales_create.create_with_tax', compact('customers','units','currencies','ownBanks',
             'tax','warehouseItems','combinedItems','customersWithStatus','billno','cars'
            ));
         } else {
-           return view('sales.v2.create.create', compact('customers','units','currencies','ownBanks',
+           return view('sales.sales_create.create', compact('customers','units','currencies','ownBanks',
             'tax','warehouseItems','combinedItems','customersWithStatus','billno','cars'
            ));
         }
@@ -1034,7 +968,7 @@ class SalesController extends Controller
     {
         $tax = OrgBio::select('tax_activation')->first();
         try {
-            $user_name = auth()->user()->full_name ?? '';
+            $user_name = $this->userName ?? '';
             $user_id = auth()->user()->id ?? '';
             
             // Fix: Properly parse the date
@@ -1239,29 +1173,27 @@ class SalesController extends Controller
 
             $khazana_account_id = $companyAccount->id ?? $request->account_id;
             $counted = 0;
-            if((int)$khazana_account_id === (int)$request->from_account_id) 
-            {
-                // $payer_account_id = $request->from_account_id;
-                $counted = 0;
-            } 
-            else 
-            {
-                // $payer_account_id = $khazana_account_id;
-                $counted = 1; // disable count of this transation in chart_of_account for khazana
-            }
+            // if((int)$khazana_account_id === (int)$request->from_account_id) 
+            // {
+            //     // $payer_account_id = $request->from_account_id;
+            //     // $counted = 0;
+            // } 
+            // else 
+            // {
+            //     // $payer_account_id = $khazana_account_id;
+            //     // $counted = 1; // disable count of this transation in chart_of_account for khazana
+            // }
 
             if(floatval($request->cur_pay) == 0 && floatval($request->remained) == floatval($request->total_price))
             { 
                 // ثبت طلب خزانه = paid(ttype=2), loan(ptype=2) 
                 $details =   __('validate.sales_talab_bill').' SALES_'.$request->billno;
-                $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request,  $optionLabel, $khazana_account_id,  $request->total_price, $ttype = "2", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $khazana_account_id,  $request->total_price, $ttype = "2", $ptype="2", $date,  $details);
                 
                 // ثبت قرضه مشتری = recieved(ttype=1) loan(ptype=2)
                 $details = __('validate.sales_loan_bill').' SALES_'.$request->billno;
-                $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id,  $request->total_price,
-                $ttype = "1", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request, $request->customer_account_id,  $request->total_price, 
+                $ttype = "1", $ptype="2", $date,  $details);
             }
 
             // کمی شانرا پرداخت کرده و متباقی شانرا قرض انتخاب کرده است
@@ -1269,20 +1201,17 @@ class SalesController extends Controller
             {
                 // ثبت دریافت نقدی توسط خزانه / موتر = Cache Recieved = t1p1
                 $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
-                $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $request->account_id, $request->cur_pay, $ttype = "1", $ptype="1", $date,  $details);
 
                 // ثبت قرضه مشتری = Loan Recieved = p2t1
                 $details =  __('validate.sales_loan_bill').' SALES_'.$request->billno;
-                $optionLabel = __('validate.sales_loan'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->customer_account_id, $request->remained,  
-                $ttype = "1", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $request->customer_account_id, $request->remained,  
+                $ttype = "1", $ptype="2", $date,  $details);
             
                 // ثبت طلب خزانه = Paid Loan = t2p2
                 $details =  __('validate.sales_talab_bill').' SALES_'.$request->billno;
-                $optionLabel = __('validate.sales_talab'); $dynamic_type = 2; $dt_comment = 'clearable';
-                $this->createJournalEntry($request, $optionLabel,  $khazana_account_id, $request->remained,
-                $ttype = "2", $ptype="2", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,   $khazana_account_id, $request->remained,
+                $ttype = "2", $ptype="2", $date,  $details);
             }
 
             // قرضدار نمانده است و مکمل پرداخت کرده است
@@ -1291,9 +1220,8 @@ class SalesController extends Controller
             {
                 // ثبت دریافت نقدی خزانه = Cache Recieved = t1p1
                 $details =  __('validate.sales_recieve_bill').' SALES_'.$request->billno;
-                $optionLabel = __('validate.sales_cache_recieved'); $dynamic_type = 0; $dt_comment = 'not clearable';
-                $this->createJournalEntry($request, $optionLabel, $request->account_id, $request->cur_pay,
-                $ttype = "1", $ptype="1", $date, $counted, $details, $dynamic_type, $dt_comment);
+                $this->createJournalEntry($request,  $request->account_id, $request->cur_pay,
+                $ttype = "1", $ptype="1", $date,  $details);
             }
         
             return true; 
@@ -1306,7 +1234,7 @@ class SalesController extends Controller
         }
     }
 
-    private function createJournalEntry($request, $optionLabel, $account_id, $amount, $ttype, $ptype, $date, $counted, $details, $dynamic_type, $dt_comment)
+    private function createJournalEntry($request, $account_id, $amount, $ttype, $ptype, $date, $details)
     {
         try 
         {
@@ -1318,22 +1246,17 @@ class SalesController extends Controller
                 'account_id' => $account_id,
                 'amount' => $amount,
                 'currency_id' => $request->currency_id,
+                'car_id' => $request->car_id ?? 0,
                 'transaction_type' => $ttype,
                 'payment_type' => $ptype,
-                'dynamic_type' => $dynamic_type,
-                'dt_comment' => $dt_comment,
-                'option_label' => $optionLabel,
-                'user_id' => auth()->user()->id ?? '',
-                'user_name' => auth()->user()->full_name ?? '',
+                'user_id' => $this->userId ?? '',
+                'user_name' => $this->userName ?? '',
                 'year' => $date->year,
                 'month' => $date->month,
-                'day' => $date->day,
                 'idate' => $request->todays_date,
                 'details' => $details,
                 'status' => 8,
                 'times' => $request->times,
-                'is_single_record' => 1,
-                'counted' => $counted,
             ]);
 
             return true;
@@ -1387,22 +1310,18 @@ class SalesController extends Controller
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid"),
             ])
             ->where('currency_id', $currency_id)
@@ -1441,7 +1360,17 @@ class SalesController extends Controller
         } else {
             $customers = Account::select('id','name')->whereIn('id',$this->customerIds)->get();
         }
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,7])->orderBy('is_pre_select','DESC')->get();
+        if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
 
         $currencies = Currency::select('id','name')->get();
         // return response()->json(['warehouseSales' => $warehouseSales,'salesDetails'=> $salesDetails]);
@@ -1477,7 +1406,7 @@ class SalesController extends Controller
                 $warehouseAmount = WarehouseItem::select('available_amount','buy_tax_per')->where('warehouse_id', $warehouse_id)
                     ->where('buy_pre_id', $pre_list_id)
                     ->where('unit_id', $unit_id)
-                    ->where('user_id', $this->userId)
+                    ->whereIn('car_id', $this->carIds)
                     // ->where('available_amount', '>', 0)
                     ->first();
             }
@@ -2075,7 +2004,7 @@ class SalesController extends Controller
                 'invoice_date' => now(),
                 'due_date' => now()->addDays(30),
                 'notes' => __('buy.invoice_generated_from_bought_items'),
-                'created_by' => auth()->id(),
+                'created_by' => $this->userId,
                 'times' => time()
             ]);
 
@@ -2196,7 +2125,7 @@ class SalesController extends Controller
                 'invoice_date' => $invoice_date,
                 'due_date' => now()->addDays(30),
                 'notes' => __('buy.invoice_generated_from_bought_items'),
-                'created_by' => auth()->id(),
+                'created_by' => $this->userId,
                 'times' => $times,
             ]);
 
@@ -2245,12 +2174,22 @@ class SalesController extends Controller
     {
         $orgbios = OrgBio::all();
         $times = time();
-        $invoice = SalesInvoice::with(['customer:id,name'])
+        $invoice = SalesInvoice::with(['customer:id,name','payments.account:id,name'])
             ->findOrFail($id);
         $invoiceItems = SalesInvoiceItem::select('id','billno','total','cur_pay','remained','invoice_date','user_name','created_at')
             ->where('invoice_id', $id)->get();
         $customers = Account::select('id','name')->whereIn('account_type_id',[3])->get();
-        $ownBanks = Account::select('id','name')->whereIn('account_type_id',[1,6])->orderBy('is_pre_select','DESC')->get();
+         if($this->isAdmin) {
+            $ownBanks = Account::select('id', 'name')->whereIn('account_type_id', [1,7])->get();
+        } else {
+           $ownBanks = Account::select('id', 'name', 'emp_car_id')
+            ->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
+        }
         $newJournalCode =  Journal::max('code') + 1;
         $currencies = Currency::select('id','name')->get();
         // return ['invoice' => $invoice];
@@ -2331,7 +2270,7 @@ class SalesController extends Controller
                 'reference_number' => $validated['reference_number'],
                 'notes' => $validated['notes'],
                 'journal_code' => $journalCode,
-                'created_by' => auth()->id(),
+                'created_by' => $this->userId,
                 'times' => time()
             ]);
 
@@ -2506,20 +2445,16 @@ class SalesController extends Controller
             $status = 10; 
             $optionLabel = __('validate.inv_pay');
             $dynamic_type = $invoice_id;
-            $dt_comment = 'Invoice';
+            $dt_comment = 'Invoice Id';
             
-            $check1 = $this->createJournalEntry($request, $optionLabel, $request->account_id,  $amount, 
-                "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
-            );
 
-            // Received by supplier
-            $details2 = __('validate.cache_recieved_invoice') . 'SINV_' . $invoice_id;
-            $optionLabel = __('validate.inv_rec');
-            
-            $check2 = $this->createJournalEntry(
-                $request,  $optionLabel, $request->customer_account_id, $amount, 
-                "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
-            );
+            // خزانه یا موتر دریافت کننده میباشد 
+            $check1 = $this->createJournalEntry($request,  $request->account_id,  $amount, "1", "1", $date, $details);
+
+
+            $details2 = __('validate.cache_recieved_invoice') . 'SINV_' . $invoice_id;    
+            // ثبت پرداخت نقد توسط مشتری
+            $check2 = $this->createJournalEntry($request,   $request->customer_account_id, $amount,"2", "1", $date, $details2);
 
             if (!$check1 || !$check2) {
                 DB::rollBack();
@@ -2556,7 +2491,7 @@ class SalesController extends Controller
         }
     }
 
-    public function addPayment2(Request $request)
+    public function addPaymentBkp(Request $request)
     {
         try 
         {
@@ -2643,7 +2578,7 @@ class SalesController extends Controller
                 'customer_account_id' => $validated['customer_account_id'],
                 'reference_number' => $validated['reference_number'],
                 'notes' => $validated['notes'],
-                'created_by' => auth()->id(),
+                'created_by' => $this->userId,
                 'times' => time()
             ]);
 
@@ -2896,7 +2831,7 @@ class SalesController extends Controller
                 'details' => $details
             ]);
             
-            $check1 = $this->createJournalEntry($request, $optionLabel, $request->account_id, $amount, 
+            $check1 = $this->createJournalEntry($request,  $request->account_id, $amount, 
                 "2", "1", $date, $full_date, $details, $dynamic_type, $dt_comment, $status
             );
 
@@ -2911,7 +2846,7 @@ class SalesController extends Controller
             ]);
             
             $check2 = $this->createJournalEntry(
-                $request, $optionLabel, $request->customer_account_id, $amount, 
+                $request,  $request->customer_account_id, $amount, 
                 "1", "1", $date, $full_date, $details2, $dynamic_type, $dt_comment, $status
             );
 

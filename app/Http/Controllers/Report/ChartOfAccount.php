@@ -141,12 +141,10 @@ class ChartOfAccount extends Controller
             DB::raw("SUM(CASE 
                         WHEN journals.transaction_type = 1 
                         AND journals.payment_type = 1 
-                        AND journals.is_cleared = 0 
                         THEN journals.amount ELSE 0 END) as cache_recieved"),
             DB::raw("SUM(CASE 
                         WHEN journals.transaction_type = 2 
                         AND journals.payment_type = 1 
-                        AND journals.is_cleared = 0 
                         THEN journals.amount ELSE 0 END) as cache_paid"),
            ])
         ->groupBy('accounts.id', 'accounts.name')
@@ -175,27 +173,22 @@ class ChartOfAccount extends Controller
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 3 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as expense"),
             ])
             ->groupBy('accounts.id', 'accounts.name')
@@ -216,79 +209,23 @@ class ChartOfAccount extends Controller
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid")
             ])
             ->first(); // Get a single row instead of a collection
 
         return $loanAndTalab;
     }    
-
-    // public function getTalabatAndLoansReport($currencyId = null)
-    // {
-    //     /**
-    //      * 1: حساب شرکت
-    //      * 2: کارمندان
-    //      * 3: مشتریان
-    //      * 4: تهیه کنندگان
-    //      * 5: سهم داران
-    //      * 6: صرافی و بانک
-    //      * 7: موتر
-    //      */
-    
-    //     $currency_id = $currencyId ?? 1;
-        
-    //      $loanAndTalab = DB::table('accounts')
-    //         ->leftJoin('journals', function ($join) use ($currency_id) { 
-    //             $join->on('accounts.id', '=', 'journals.account_id')
-    //                 ->where('journals.currency_id', $currency_id);
-    //         })
-    //         ->where(function($query) {
-    //             $query->whereIn('accounts.account_type_id', [2, 3, 4, 5,7]); // بجز از خزانه و صرافی و بانک همه را جمع کند
-    //         })
-    //         ->select([
-    //             DB::raw("SUM(CASE 
-    //                         WHEN journals.transaction_type = 1 
-    //                         AND journals.payment_type = 1 
-    //                         AND journals.is_cleared = 0 
-    //                          AND journals.counted = 0 
-    //                         THEN journals.amount ELSE 0 END) as cache_recieved"),
-    //             DB::raw("SUM(CASE 
-    //                         WHEN journals.transaction_type = 2 
-    //                         AND journals.payment_type = 1 
-    //                         AND journals.is_cleared = 0 
-    //                         AND journals.counted = 0 
-    //                         THEN journals.amount ELSE 0 END) as cache_paid"),
-    //             DB::raw("SUM(CASE 
-    //                         WHEN journals.transaction_type = 1 
-    //                         AND journals.payment_type = 2 
-    //                         AND journals.is_cleared = 0 
-    //                         THEN journals.amount ELSE 0 END) as loan_recieved"),
-    //             DB::raw("SUM(CASE 
-    //                         WHEN journals.transaction_type = 2 
-    //                         AND journals.payment_type = 2 
-    //                         AND journals.is_cleared = 0 
-    //                         THEN journals.amount ELSE 0 END) as loan_paid")
-    //         ])
-    //         ->first(); // Get a single row instead of a collection
-            
-    //     return $loanAndTalab;
-    // }
-    
     
 }

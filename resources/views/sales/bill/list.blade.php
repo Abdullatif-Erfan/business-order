@@ -195,6 +195,7 @@
                                                 <tr>
                                                     <th>  {{__('common.number')}}   </th>
                                                     <th>  {{__('sales.billno')}}      </th>
+                                                    <th>  {{__('journal.receiver_account')}}</th>
                                                     <th>  {{__('common.total_payment')}} </th>
                                                     <th>  {{__('common.date')}}</th>
                                                     <th class="hidden-print">  {{__('common.journal_code')}}</th>
@@ -210,6 +211,7 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ 'SALES_'.$pay->billno ?? ' '}}</td>
+                                                    <td>{{ $pay->account->name ?? '' }}</td>
                                                     <td>{{ number_format($pay->cur_pay,2)  }}</td>
                                                     <td>{{ $pay->payment_date }}</td>
                                                     <td class="hidden-print">{{ $pay->journal_code }}</td>
@@ -220,7 +222,7 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr style="background-color:#eee;">
-                                                    <td colspan="2">{{__('common.total')}}</td>
+                                                    <td colspan="3">{{__('common.total')}}</td>
                                                     <td>{{ number_format($paymentsTotal, 2) }}</td>
                                                     <td></td>
                                                     <td  class="hidden-print"></td>

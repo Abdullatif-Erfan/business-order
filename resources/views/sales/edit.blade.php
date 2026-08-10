@@ -54,8 +54,7 @@
                              <input type="hidden" name="billno" value="{{ $warehouseSales->first()->billno }}">
                              <input type="hidden" name="todays_date" value="{{ $warehouseSales->first()->idate ?? '' }}">
                              <input type="hidden" name="times" value="{{ $warehouseSales->first()->times ?? '' }}">
-
-
+                              
                                <div class="form-body" style="padding: 0px 0px 15px !important;">
                                 <div class="container col-md-12 col-sm-12 col-xs-12" style="padding: 10px 10px;">
                                    

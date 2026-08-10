@@ -32,7 +32,7 @@
                         <div class="card-header" style="padding: 10px;">
                             <h4 class="card-title"> {{__('sales.sales_details_title')}}
                                 <span class="pull-left">
-                                    <a href="{{ route('sales.index') }}">
+                                    <a href="{{ route('boughtList.index') }}">
                                         <button class="btn mybtn bg-default">{{__('common.back')}}</button>
                                     </a>
                                 </span>
@@ -61,7 +61,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>{{__('order.supplier_name')}} : {{ $boughtItems->first()->accountRelation->name ?? '' }}</td>
+                                            <td>{{__('order.supplier_name')}} : {{ $boughtItems->first()->customerRelation->name ?? '' }}</td>
                                             <td>{{__('common.user')}} : {{ $boughtItems->first()->user_name ?? '' }}</td>
                                         </tr>
                                     </table>
@@ -154,6 +154,7 @@
                                                     <tr>
                                                         <th>  {{__('common.number')}}   </th>
                                                         <th>  {{__('buy.billno')}}      </th>
+                                                        <th>  {{__('common.account_payer')}}</th>
                                                         <th>  {{__('common.total_payment')}} </th>
                                                         <th>  {{__('common.date')}}</th>
                                                         <th class="hidden-print">  {{__('common.journal_code')}}</th>
@@ -169,6 +170,7 @@
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ 'BUY_'.$pay->billno ?? ' '}}</td>
+                                                        <td>{{ $pay->account->name ?? '' }}</td>
                                                         <td>{{ number_format($pay->cur_pay,2)  }}</td>
                                                         <td>{{ $pay->payment_date }}</td>
                                                         <td class="hidden-print">{{ $pay->journal_code }}</td>
@@ -179,7 +181,7 @@
                                                 </tbody>
                                                 <tfoot>
                                                     <tr style="background-color:#eee;">
-                                                        <td colspan="2">{{__('common.total')}}</td>
+                                                        <td colspan="3">{{__('common.total')}}</td>
                                                         <td>{{ number_format($paymentsTotal, 2) }}</td>
                                                         <td></td>
                                                         <td  class="hidden-print"></td>

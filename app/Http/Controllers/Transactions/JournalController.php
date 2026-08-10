@@ -68,7 +68,7 @@ class JournalController extends Controller
     {
         $isCompanyAccount = false;
         $journals = Journal::with(['accountRelation', 'currencyRelation'])
-        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'option_label', 'currency_id', 'details', 'idate', 'status', 'times', 'is_single_record')
+        ->select('id', 'code', 'bill_no', 'amount', 'account_id', 'transaction_type', 'payment_type', 'options', 'currency_id', 'details', 'idate', 'status', 'times')
         ->orderBy('id', 'DESC');
 
         if(!$this->isAdmin) {
@@ -297,11 +297,7 @@ class JournalController extends Controller
     {
         $short_date = $request->todays_date ?? Carbon::now()->format('Y-m-d');
         $date = Carbon::parse($short_date);
-        $day = $date->day;
-        $year = $date->year;
-        $month = $date->month;
         $times = time();
-        $full_date = $date->format('Y-m-d') . ' ' . $times;
 
     
          /**
@@ -354,29 +350,25 @@ class JournalController extends Controller
              if(intval($request->options) === 1) 
              {
                 // ثبت پرداخت توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
-                $optionLable = __('validate.cache_payment');
-                $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                $this->createJournalEntry($request, $from_account_id, $from_currency, $from_amount,
+                                          $ttype = "2", $ptype="1", $date, $from_details, $newJournalCode, $times, $filePath);
                 
      
                  // ثبت دریافت توسط دریافت کننده = recieved(ttype=1) cache(ptype=1)
-                 $optionLable = __('validate.cache_recieved');
-                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
+                 $this->createJournalEntry($request, $to_account_id, $to_currency, $to_amount,
+                                          $ttype = "1", $ptype="1", $date, $to_details, $newJournalCode, $times, $filePath);
              } 
           
              // معاملات نسیه به نسیه
              else if(intval($request->options) === 2)
              {
                  // ثبت طلب توسط پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                $optionLable = __('validate.loan_paid');
-                $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                          $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                $this->createJournalEntry($request, $from_account_id, $from_currency, $from_amount,
+                                          $ttype = "2", $ptype="2", $date, $from_details, $newJournalCode, $times, $filePath);
                 
                  // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                 $optionLable = __('validate.loan_recieved');
-                 $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                          $ttype = "1", $ptype="2", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
+                 $this->createJournalEntry($request,  $to_account_id, $to_currency, $to_amount,
+                                          $ttype = "1", $ptype="2", $date, $to_details, $newJournalCode, $times, $filePath);
              }
              // معاملات نقد به نسیه
              else if(intval($request->options) === 3)
@@ -407,26 +399,22 @@ class JournalController extends Controller
                 if($isFromCompanyAccount) // خزانه خودش قرض میدهد
                 {
                     // ثبت پرداخت نقد توسط پرداخت کننده = paid(ttype=2), cache(ptype=1) 
-                    $optionLable = __('validate.cache_payment');
-                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                             $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request, $from_account_id, $from_currency, $from_amount,
+                                             $ttype = "2", $ptype="1", $date, $from_details, $newJournalCode, $times, $filePath);
     
                     // ثبت قرض توسط دریافت کننده = recieved(ttype=1) loan(ptype=2)
-                    $optionLable = __('validate.loan_recieved');
-                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                                            $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request,  $to_account_id, $to_currency, $to_amount,
+                                            $ttype = "1", $ptype="2", $date, $to_details,  $newJournalCode, $times, $filePath);
                 } 
                 else if($isToCompanyAccount)  // خزانه خودش قرض میگیرد
                 {
                     // دریافت نقد توسط خزانه بطور قرض  = Recieved(ttype=1), Caceh(ptype=1) 
-                    $optionLable = __('validate.loan_recieved');
-                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                    $ttype = "1", $ptype="1", $full_date, $date, $to_details, $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request, $to_account_id, $to_currency, $to_amount,
+                    $ttype = "1", $ptype="1", $date, $to_details, $newJournalCode, $times, $filePath);
                     
                     // ثبت طلب توسط  مشتری = Paid (ttype=2) loan(ptype=2)
-                    $optionLable = __('validate.talab_save');
-                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                                            $ttype = "2", $ptype="2", $full_date, $date, $from_details,  $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request,  $from_account_id, $from_currency, $from_amount,
+                                            $ttype = "2", $ptype="2", $date, $from_details,  $newJournalCode, $times, $filePath);
                 }
                 else
                 {
@@ -462,26 +450,22 @@ class JournalController extends Controller
                 if($isToCompanyAccount) // پرداخت کننده قرض مشتری میباشد
                 {
                     // بردگی نقد خزانه یا دریافت کننده = recieved(ttype=1) cache(ptype=1)
-                    $optionLable = __('validate.cache_recieved'); 
-                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                         $ttype = "1", $ptype="1", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request, $to_account_id, $to_currency, $to_amount,
+                         $ttype = "1", $ptype="1",  $date, $to_details,  $newJournalCode, $times, $filePath);
 
                     // ثبت رسیدگی قرض مشتری یا پرداخت کننده = paid(ttype=2), loan(ptype=2) 
-                    $optionLable = __('validate.loan_get');
-                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                             $ttype = "2", $ptype="2", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);    
+                    $this->createJournalEntry($request, $from_account_id, $from_currency, $from_amount,
+                             $ttype = "2", $ptype="2",  $date, $from_details, $newJournalCode, $times, $filePath);    
                 }
                 else if($isFromCompanyAccount)  // پرداخت کننده قرض خزانه میباشد
                 {
                     // پرداخت نقد از خزانه = paid(ttype=2), cache(ptype=1)
-                    $optionLable = __('validate.cache_payment'); 
-                    $this->createJournalEntry($request, $optionLable, $from_account_id, $from_currency, $from_amount,
-                              $ttype = "2", $ptype="1", $full_date, $date, $from_details, $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request, $from_account_id, $from_currency, $from_amount,
+                              $ttype = "2", $ptype="1",  $date, $from_details, $newJournalCode, $times, $filePath);
                     
                     //  دریافت قرض = Received (ttype=1), loan(ptype=2) 
-                    $optionLable = __('validate.loan_get');
-                    $this->createJournalEntry($request, $optionLable, $to_account_id, $to_currency, $to_amount,
-                           $ttype = "1", $ptype="2", $full_date, $date, $to_details,  $newJournalCode, $times, $filePath);
+                    $this->createJournalEntry($request, $to_account_id, $to_currency, $to_amount,
+                           $ttype = "1", $ptype="2",  $date, $to_details,  $newJournalCode, $times, $filePath);
                 } 
                 else 
                 {
@@ -502,25 +486,11 @@ class JournalController extends Controller
     }
       
 
-    private function createJournalEntry($request, $optionLable, $account_id, $currency_id, $amount, $ttype, $ptype,  
-        $full_date, $date, $details, $code, $times, $filePath = null)
+    private function createJournalEntry($request, $account_id, $currency_id, $amount, $ttype, $ptype,  
+         $date, $details, $code, $times, $filePath = null)
     {
-            $day = $date->day;
-            $year = $date->year;
-            $month = $date->month;
-
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
-            $new_details = $request->bijak_code > 0 ? $details.' BN_'.$request->bijak_code : $details;
-            /**
-             * if conversion_flag == 1, means that foreign currency conversion is done
-             *  check if $currency_id != $default_currency_id, means in this recrod should insert 
-             *                           (converted_currency,converted_amount,converted_curr_symbol)
-             */
-
-            $converted_currency = null;
-            $converted_amount   = null;
-            $converted_curr_symbol = null;
-
+            
             // Create the Journal entry
             Journal::create([
                 'bill_no' => $request->billno,
@@ -532,20 +502,16 @@ class JournalController extends Controller
                 'transaction_type' => $ttype,
                 'payment_type' => $ptype,
                 'options' => $request->options,
-                'option_label' => $optionLable,
                 'dynamic_type' => $request->prev_code ?? null,
-                'dt_comment' => $request->prev_code ? 'کد قبلی این معامله': null,
-                'user_name' => auth()->user()->full_name ?? '',
-                'user_id' => auth()->user()->id ?? '',
-                'year' => $year,
-                'month' => $month,
-                'day' => $day,
+                'dt_comment' => '',
+                'car_id' => 0,
+                'user_name' => $this->full_name ?? auth()->user()->full_name,
+                'user_id' => $this->userId ?? auth()->user()->id,
                 'idate' => $request->todays_date,
                 'details' => $details,
                 'status' => 2,  
                 'doc' => $filePath,
                 'times' => $times,
-                'is_single_record' => 1,
             ]);
 
             // Log::info('Journal entry created successfully.');
@@ -647,11 +613,7 @@ class JournalController extends Controller
 
             $todaysDate = $request->todays_date ?? Carbon::now()->format('Y-m-d');
             $date = Carbon::parse($todaysDate);
-            $day = $date->day;
-            $year = $date->year;
-            $month = $date->month;
             $time = $request->times ?? '00:00:00';
-            $full_date = $date->format('Y-m-d') . ' ' . $time;
 
 
             $from_amount = str_replace(',', '', $request->from_amount);
@@ -662,27 +624,21 @@ class JournalController extends Controller
             // Update the first journal entry ("paid cache")
             $journal1->bill_no = $request->bill_no ?? 0;
             $journal1->idate = $todaysDate;
-            $journal1->year = $year;
-            $journal1->month = $month;
-            $journal1->day = $day;
             $journal1->account_id = $request->from_account_id;
             $journal1->account_type_id = $from_account_type_id;
             $journal1->amount = $from_amount;
-            // $journal1->currency_id = $request->from_currency_id;
+            $journal1->user_name = $this->full_name ?? '';
+            $journal1->user_id = $this->userId ?? '';
             $journal1->currency_id = $from_currency;
             $journal1->details = $request->from_details;
-            $journal1->user_name = $this->full_name ?? '';
             $journal1->doc = $filePath;
-
             $journal1->save();
         
             // =========== Update the second journal entry ("received cache") ======================
             $journal2->bill_no = $request->bill_no;
             $journal2->idate = $todaysDate;
             $journal2->user_name = $this->full_name ?? '';
-            $journal2->year = $year;
-            $journal2->month = $month;
-            $journal2->day = $day;
+            $journal2->user_id = $this->userId ?? '';
             $journal2->account_type_id = $to_account_type_id;
             $journal2->account_id = $request->to_account_id;
             $journal2->amount = $to_amount;

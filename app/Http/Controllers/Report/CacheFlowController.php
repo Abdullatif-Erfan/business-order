@@ -126,7 +126,6 @@ class CacheFlowController extends Controller
             $sumsKhazana = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
-            ->where('is_cleared', 0)
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
@@ -143,22 +142,18 @@ class CacheFlowController extends Controller
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid")
             ])
             ->first(); // Get a single row instead of a collection
@@ -171,7 +166,6 @@ class CacheFlowController extends Controller
             $else_account = DB::table('journals')
             ->where('account_id', $request->account_id)
             ->where('currency_id', $request->currency_id)
-            ->where('is_cleared', 0)
             ->select(
                 DB::raw('SUM(CASE WHEN transaction_type = 1 AND payment_type = 1 THEN amount ELSE 0 END) as sumCachePaid'),
                 DB::raw('SUM(CASE WHEN transaction_type = 2 AND payment_type = 1 THEN amount ELSE 0 END) as sumCacheRecieved'),

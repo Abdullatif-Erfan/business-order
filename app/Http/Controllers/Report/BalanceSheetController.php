@@ -16,13 +16,21 @@ use Illuminate\Support\Facades\DB;
 class BalanceSheetController extends Controller
 {
     
-    protected $isAdmin;
+    protected $isAdmin, $customerIds, $carIds, $userId, $userName;
     public function __construct()
     {
-        if (auth()->check()) {
+          if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->customerIds = session('customerIds', []);
+            $this->carIds = session('carIds', []);
+            $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
         } else {
             $this->isAdmin = false;
+            $this->customerIds = [];
+            $this->carIds = [];
+            $this->userId = 0;
+            $this->userName ='';
         }
     }
       /**
@@ -30,8 +38,19 @@ class BalanceSheetController extends Controller
      */
     public function index()
     {
-        // بدون سهم داران همگی را نشان بدهد
-        $accounts = Account::whereIn('account_type_id',[2,3,4,7])->get();
+        if($this->isAdmin) {
+            // بدون سهم داران‌ ٬ خزانه ٬ حساب های بانکی شرکت همه را بیارد
+            $accounts = Account::whereIn('account_type_id',[2,3,4,7])->get();
+        } else {
+            $accounts = Account::select('id', 'name', 'emp_car_id')
+            ->whereIn('emp_car_id', $this->carIds)
+            ->where('account_type_id', 7)
+            ->orWhere(function($query) {
+                $query->where('user_account_id', $this->userId)
+                    ->where('account_type_id', 2);
+            })
+            ->get();
+        }
         $currencies = Currency::all();
         $orgbios = OrgBio::all();
         $accountTypes = AccountType::whereIn('id',[2,3,4,7])->get();
@@ -75,41 +94,45 @@ class BalanceSheetController extends Controller
                 'data' => [],
             ]);
         }
-
-    
+        
         $accounts = DB::table('accounts')
             ->join('journals', function ($join) use ($currency_id) {
                 $join->on('accounts.id', '=', 'journals.account_id')
                     ->where('journals.currency_id', $currency_id);  
             })
-            ->whereIn('accounts.account_type_id', [2,3,4,7])
+            ->where(function($query) {
+                if($this->isAdmin) {
+                    $query->whereIn('accounts.account_type_id', [2,3,4,7]);
+                } else {
+                    $query->where('accounts.account_type_id', 7)
+                        ->orWhere(function($sub) {
+                            $sub->where('accounts.user_account_id', $this->userId)
+                                ->where('accounts.account_type_id', 2);
+                        });
+                }
+            })
             ->select([
                 'accounts.id as accountId',
                 'accounts.name',
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as cache_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 1 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_recieved"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 2 
                             AND journals.payment_type = 2 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as loan_paid"),
                 DB::raw("SUM(CASE 
                             WHEN journals.transaction_type = 3 
                             AND journals.payment_type = 1 
-                            AND journals.is_cleared = 0 
                             THEN journals.amount ELSE 0 END) as expense"),
             ])
             ->groupBy('accounts.id', 'accounts.name')

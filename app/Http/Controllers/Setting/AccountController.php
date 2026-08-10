@@ -22,12 +22,18 @@ use App\Models\Warehouse\WarehouseSales;
 class AccountController extends Controller
 {
     
+   protected $isAdmin, $userId, $userName;
+    
     public function __construct()
     {
         if (auth()->check()) {
             $this->isAdmin = session('isAdmin', auth()->user()->isAdmin == 1);
+            $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
         } else {
             $this->isAdmin = false;
+            $this->userId = 0;
+             $this->userName = 'System';
         }
     }
     /**
@@ -188,12 +194,12 @@ class AccountController extends Controller
                         case 1:
                             if($validated['account_type_id']==5) // اگر سهم داران پول نقد علاوه نماید برای خزانه باید علاوه شود و سهم دار صرف نام شان در کمنت گرفته شود. 
                             {
-                                $this->createJournalEntry(__('validate.cache_in'), $from_account_id, $amount, "1", "1","1", 
-                                $full_date, $short_date, $details2, $newJournalCode, $times, 1, $currency_id);
+                                $this->createJournalEntry('belongsToMe', $from_account_id, $amount, "1", "1","1", 
+                                 $short_date, $details2, $newJournalCode, $times, 1, $currency_id);
                             } else 
                             {
-                                $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
-                                    $full_date, $short_date, $details, $newJournalCode, $times, 1, $currency_id);
+                                $this->createJournalEntry('belongsToMe', $to_account_id, $amount, "1", "1","1", 
+                                $short_date, $details, $newJournalCode, $times, 1, $currency_id);
                             }
                             break;
 
@@ -202,21 +208,21 @@ class AccountController extends Controller
                               * ثبت در بخش طلبات
                               */
                               // ثبت طلب مشتری = Paid Loan = t2p2
-                            $this->createJournalEntry(__('validate.talab_save'), $to_account_id, $amount, "2", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 2, $currency_id);
+                            $this->createJournalEntry('', $to_account_id, $amount, "2", "2","0", 
+                                $short_date, $details, $newJournalCode, $times, 2, $currency_id);
                            // ثبت قرض  خزانه = Recieved Loan = t1p2
-                            $this->createJournalEntry(__('validate.loan_save'), $from_account_id, $amount, "1", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 2, $currency_id);
+                            $this->createJournalEntry('', $from_account_id, $amount, "1", "2","0", 
+                                $short_date, $details, $newJournalCode, $times, 2, $currency_id);
                             break;
                         case 3:
                            // ثبت در بخش قرضه
                            // ثبت طلب خزانه = Paid Loan = t2p2
-                            $this->createJournalEntry(__('validate.talab_save'), $from_account_id, $amount, "2", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 3, $currency_id);
+                            $this->createJournalEntry('', $from_account_id, $amount, "2", "2","0", 
+                                $short_date, $details, $newJournalCode, $times, 3, $currency_id);
                             
                             // ثبت قرض  مشتری = Recieved Loan = t1p2
-                            $this->createJournalEntry(__('validate.loan_save'), $to_account_id, $amount, "1", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 3, $currency_id);
+                            $this->createJournalEntry('', $to_account_id, $amount, "1", "2","0", 
+                                $short_date, $details, $newJournalCode, $times, 3, $currency_id);
                             break;
                     }
                 }
@@ -235,14 +241,9 @@ class AccountController extends Controller
     }
 
   
-    private function createJournalEntry($optionLable, $account_id, $amount, $ttype, $ptype, $belongsToMe, $full_date, $short_date, 
+    private function createJournalEntry($dt_comment, $account_id, $amount, $ttype, $ptype, $dynamic_type, $short_date, 
     $details, $newJournalCode, $times, $options, $currency_id)
     {
-            $miladiDate = Carbon::now();
-            $year = $miladiDate->year;
-            $month = $miladiDate->month;
-            $day = $miladiDate->day;
-
             $account_type_id = Account::where('id', $account_id)->value('account_type_id');
 
             // Create the Journal entry
@@ -256,17 +257,14 @@ class AccountController extends Controller
                 'transaction_type' => $ttype,
                 'payment_type' => $ptype,
                 'options' => $options,
-                'option_label' => $optionLable,
-                'user' => auth()->user()->full_name ?? '',
-                'year' => $year,
-                'month' => $month,
-                'day' => $day,
+                'dynamic_type' => $dynamic_type,
+                'dt_comment' => $dt_comment,
+                'user_id' => $this->userId,
+                'user_name' => $this->userName,
                 'idate' => $short_date,
                 'details' => $details,
                 'status' => 1,  
                 'times' => $times,
-                'is_single_record' => 1,
-                'belongsToMe' => $belongsToMe
             ]);
 
             // Log::info('Journal entry created successfully.');
@@ -299,7 +297,7 @@ class AccountController extends Controller
 
         // Apply additional condition if default account matches
         if ($default_account_id == $id) {
-            $journals->where('belongsToMe', 1);
+            $journals->where('dynamic_type', 1);
         }
         $journals = $journals->where('status', 1)->get();
 
@@ -333,7 +331,7 @@ class AccountController extends Controller
 
         // Apply additional condition if default account matches
         if ($default_account_id == $id) {
-            $journals->where('belongsToMe', 1);
+            $journals->where('dynamic_type', 1);
         }
 
         $journals = $journals->where('status', 1)->get();
@@ -440,33 +438,33 @@ class AccountController extends Controller
                         case 1:
                             if($validated['account_type_id']==5) // اگر سهم داران پول نقد علاوه نماید برای خزانه باید علاوه شود و سهم دار صرف نام شان در کمنت گرفته شود. 
                             {
-                                $this->createJournalEntry(__('validate.cache_in'), $from_account_id, $amount, "1", "1","1", 
-                                $full_date, $short_date, $details2, $newJournalCode, $times, 1, $currency_id);
+                                $this->createJournalEntry('belongsToMe', $from_account_id, $amount, "1", "1","1", 
+                                 $short_date, $details2, $newJournalCode, $times, 1, $currency_id);
                             } else 
                             {
-                                $this->createJournalEntry(__('validate.cache_in'), $to_account_id, $amount, "1", "1","1", 
-                                    $full_date, $short_date, $details, $newJournalCode, $times, 1, $currency_id);
+                                $this->createJournalEntry('belongsToMe', $to_account_id, $amount, "1", "1","1", 
+                                     $short_date, $details, $newJournalCode, $times, 1, $currency_id);
                             }
                             break;
 
                         case 2:
                             // ثبت در بخش طلبات
                             // ثبت طلب مشتری = Paid Loan = t2p2
-                            $this->createJournalEntry(__('validate.talab_save'), $to_account_id, $amount, "2", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 2, $currency_id);
+                            $this->createJournalEntry('', $to_account_id, $amount, "2", "2","0", 
+                                 $short_date, $details, $newJournalCode, $times, 2, $currency_id);
                             // ثبت قرض  خزانه = Recieved Loan = t1p2
-                            $this->createJournalEntry(__('validate.loan_save'), $from_account_id, $amount, "1", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 2, $currency_id);
+                            $this->createJournalEntry('', $from_account_id, $amount, "1", "2","0", 
+                                 $short_date, $details, $newJournalCode, $times, 2, $currency_id);
                             break;
                         case 3:
                             // ثبت در بخش قرضه
                             // ثبت طلب خزانه = Paid Loan = t2p2
-                            $this->createJournalEntry(__('validate.talab_save'), $from_account_id, $amount, "2", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 3, $currency_id);
+                            $this->createJournalEntry('', $from_account_id, $amount, "2", "2","0", 
+                                 $short_date, $details, $newJournalCode, $times, 3, $currency_id);
                             
                             // ثبت قرض  مشتری = Recieved Loan = t1p2
-                            $this->createJournalEntry(__('validate.loan_save'), $to_account_id, $amount, "1", "2","0", 
-                                $full_date, $short_date, $details, $newJournalCode, $times, 3, $currency_id);
+                            $this->createJournalEntry('', $to_account_id, $amount, "1", "2","0", 
+                                 $short_date, $details, $newJournalCode, $times, 3, $currency_id);
                             break;
                     }
                 }
@@ -514,8 +512,8 @@ class AccountController extends Controller
             // Log::info('Deleting journal by created_at:', ['created_at' => $account->created_at->toDateTimeString()]);
 
             // Check if the account has related records
-            $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('supplier_account_id', $id)->exists();
-            $boughtItemDetailsExists = BoughtItemDetails::where('supplier_account_id', $id)->exists();
+            $boughtItemExists = BoughtItem::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
+            $boughtItemDetailsExists = BoughtItemDetails::where('customer_account_id', $id)->exists();
             $warehouseSalesExists = WarehouseSales::where('account_id', $id)->orWhere('customer_account_id', $id)->exists();
 
             // If any record exists, prevent deletion

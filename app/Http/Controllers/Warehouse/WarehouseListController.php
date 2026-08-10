@@ -76,7 +76,7 @@ class WarehouseListController extends Controller
             ->orderBy('id', 'DESC')
             ->orderBy('buy_pre_id', 'DESC');
         if(!$this->isAdmin){
-            $WarehouseItems->where('warehouse_items.user_id', $this->userId);
+            $WarehouseItems->whereIn('warehouse_items.car_id', $this->carIds);
         }
             
         if ($request->input('item_name')) {

@@ -135,5 +135,6 @@ return [
     'expense' => 'مصارف',
     'filter' => 'جستجو',
     'reset' => 'پاک',
+    'account' => 'حساب',
 
 ];

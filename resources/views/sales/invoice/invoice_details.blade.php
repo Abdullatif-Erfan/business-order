@@ -275,6 +275,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('common.date') }}</th>
+                                                    <th>دریافت کننده</th>
                                                     <th>{{ __('common.amount') }}</th>
                                                     <th>{{ __('buy.payment_method') }}</th>
                                                     <th>{{ __('buy.reference_number') }}</th>
@@ -286,6 +287,7 @@
                                                 @forelse($invoice->payments as $payment)
                                                 <tr>
                                                     <td>{{ $payment->payment_date }}</td>
+                                                    <td>{{ $payment->account->name ?? "" }}</td>
                                                     <td>{{ number_format($payment->amount, 2) }}</td>
                                                     <td>
                                                         @php
@@ -314,7 +316,7 @@
                                     @if($invoice->status != 3 && $invoice->status != 4)
                                     <div class="row no-print hidden-print">
                                         <div class="col-md-12">
-                                            <h6>{{ __('buy.add_payment') }}</h6>
+                                            <h6><strong>{{ __('buy.add_payment') }}</strong></h6>
                                             <form id="paymentForm">
                                                 @csrf
                                                 <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
