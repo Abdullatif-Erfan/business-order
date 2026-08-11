@@ -80,11 +80,11 @@ class ProfitAndLossController extends Controller
             }
 
             // Log the request for debugging
-            Log::info('ProfitAndLoss getData called', [
-                'currency_id' => $currency_id,
-                'start_date' => $start_date,
-                'end_date' => $end_date
-            ]);
+            // Log::info('ProfitAndLoss getData called', [
+            //     'currency_id' => $currency_id,
+            //     'start_date' => $start_date,
+            //     'end_date' => $end_date
+            // ]);
 
             // Get all data with date filters
             $transactionSummary = $this->getTransactionSummary($currency_id, $start_date, $end_date);
@@ -169,7 +169,7 @@ class ProfitAndLossController extends Controller
                 ")
                 ->join('accounts', 'accounts.id', '=', 'journals.account_id')
                 ->whereIn('accounts.account_type_id', [1, 6])
-                ->where('journals.currency_id', $currency_id)
+                ->where('journals.currency_id', $currency_id);
             
             // Apply date filters only if provided
             if ($start_date && $end_date) {
@@ -225,7 +225,7 @@ class ProfitAndLossController extends Controller
                 ->selectRaw("
                     COALESCE(SUM(CASE WHEN journals.transaction_type = 3 AND payment_type = 1 AND status = 4 THEN amount ELSE 0 END), 0) as total_expense
                 ")
-                ->where('journals.currency_id', $currency_id)
+                ->where('journals.currency_id', $currency_id);
             
             // Apply date filters only if provided
             if ($start_date && $end_date) {
@@ -252,7 +252,7 @@ class ProfitAndLossController extends Controller
                     COALESCE(SUM(CASE WHEN journals.transaction_type = 1 AND payment_type = 2 THEN amount ELSE 0 END), 0) as total_loan
                 ")
                 ->whereIn('journals.account_type_id', [$company_account_type_id, $banks_account_type_id])
-                ->where('journals.currency_id', $currency_id)
+                ->where('journals.currency_id', $currency_id);
             
             // Apply date filters only if provided
             if ($start_date && $end_date) {

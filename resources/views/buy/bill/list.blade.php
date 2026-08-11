@@ -101,7 +101,12 @@
                                                     @else
                                                     <td>{{ number_format($detail->buy_up, 2) }}</td>
                                                     @endif
-                                                    <td>{{ number_format($detail->total_vat ?? $detail->total, 2) }}</td>
+
+                                                    @if($saved_with_tax)
+                                                    <td>{{ number_format($detail->total_vat, 2) }}</td>
+                                                    @else 
+                                                    <td>{{ number_format($detail->total, 2) }}</td>
+                                                    @endif
                                                 </tr>
                                                 @endforeach
                                                 <tr>

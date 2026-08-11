@@ -88,6 +88,7 @@ return [
     'out' => 'رفت',
     'available' => 'موجود',
     'at_least_one_row' => 'حد اقل یک ریکارد موجود باشد',
+    'out_of_stock' => 'موجود نیست',
 
     // Accounts
     "account_payer" => 'حساب پرداخت کننده',

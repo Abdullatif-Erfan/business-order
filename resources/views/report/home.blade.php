@@ -102,7 +102,7 @@
                                                     <a target="_blank" href="#">📜 سهم سهامداران</a>
                                                 </li> -->
                                                 <li class="list-group-item">
-                                                    <a target="_blank" href="{{ route('profitloss.index') }}">💹  {{__('reports.company_net_profit')}}  </a>
+                                                    <a  href="{{ route('profitloss.index') }}">💹  {{__('reports.company_net_profit')}}  </a>
                                                 </li>
                                                 <li class="list-group-item">
                                                     .

@@ -436,6 +436,12 @@ class SalesController extends Controller
         } 
         else 
         {
+            $ownBanks = Account::select('id', 'name', 'emp_car_id')->where('account_type_id', 1)
+            ->orWhere(function($query) {
+                $query->whereIn('emp_car_id', $this->carIds)
+                       ->where('account_type_id', 7);
+            })
+            ->get();
             $customers = Account::select('id', 'name')->where('account_type_id', 3)->whereIn('id', $this->customerIds)->get();
             $cars = Car::select('id', 'name')->whereIn('id', $this->carIds)->get();
              // Get warehouse items with available stock > 0
@@ -487,12 +493,7 @@ class SalesController extends Controller
         }
         $currencies = Currency::select('id', 'name')->get();
       
-        $ownBanks = Account::select('id', 'name', 'emp_car_id')->where('account_type_id', 1)
-            ->orWhere(function($query) {
-                $query->whereIn('emp_car_id', $this->carIds)
-                       ->where('account_type_id', 7);
-            })
-            ->get();
+        
         
         $tax = OrgBio::select('tax_activation','tax_per')->first();
         $units = Unit::select('id', 'name')->get();
