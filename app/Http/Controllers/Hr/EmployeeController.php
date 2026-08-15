@@ -59,6 +59,9 @@ class EmployeeController extends Controller
 
             return DataTables::eloquent($accounts)
                 ->addIndexColumn()
+               ->addColumn('name', function ($account) {
+                    return $account->name ? $account->name : '';
+                })
 
                 ->addColumn('salaryCurrency', function ($account) {
                     return $account->salaryCurrency ? $account->salaryCurrency->name : '';
@@ -68,7 +71,7 @@ class EmployeeController extends Controller
                     return $account->net_salary ? number_format($account->net_salary,2) : '';
                 })
                 ->addColumn('emp_car_name', function ($account) {
-                    return $account->car->name ? $account->car->name : '';
+                    return $account->car?->name ?: '';
                 })
                 ->addColumn('emp_start_date', function ($account) {
                     return $account->emp_start_date ? $account->emp_start_date : '';
@@ -84,6 +87,16 @@ class EmployeeController extends Controller
                                 onclick="return doConfirm()">
                                 <i class="fas fa-trash-alt deleteAccount" style="font-size:20px; color:red;"></i>
                             </a>';
+                })
+
+                ->filterColumn('name', function ($query, $keyword) {
+                   $query->where('name', 'LIKE', "%{$keyword}%");
+                })
+                ->filterColumn('phone', function ($query, $keyword) {
+                    $query->where('phone', 'LIKE', "%{$keyword}%");
+                })
+                ->filterColumn('address', function ($query, $keyword) {
+                    $query->where('address', 'LIKE', "%{$keyword}%");
                 })
                 ->rawColumns(['edit', 'delete'])
                 ->make(true);

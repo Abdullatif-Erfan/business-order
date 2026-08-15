@@ -95,7 +95,7 @@
                 <!-- ============================================ -->
                 @if($permissions['hr'] || $isAdmin)
                     @php
-                        $hrActive = isSectionActive(['employee.', 'salary.', 'salary.report.']);
+                        $hrActive = isSectionActive(['employee.','customer.','supplier.','salary.', 'salary.report.']);
                     @endphp
                     <li class="nav-item {{ $hrActive ? 'active' : '' }}">
                         <a data-toggle="collapse" href="#hr-section" class="{{ $hrActive ? 'collapsed' : '' }}" aria-expanded="{{ $hrActive ? 'true' : 'false' }}">
@@ -111,10 +111,22 @@
                                         <span class="sub-item">{{ __('menu.employee_lists') }}</span>
                                     </a>
                                 </li>
+                                <li class="{{ request()->routeIs('customer.*') ? 'active' : '' }}">
+                                    <a href="{{ route('customer.index') }}">
+                                        <i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">{{ __('menu.customer_lists') }}</span>
+                                    </a>
+                                </li>
+                                <li class="{{ request()->routeIs('supplier.*') ? 'active' : '' }}">
+                                    <a href="{{ route('supplier.index') }}">
+                                        <i class="fa fa-arrow-left sidebar_arrow_size"></i>
+                                        <span class="sub-item">{{ __('menu.supplier_lists') }}</span>
+                                    </a>
+                                </li>
                                 <li class="{{ request()->routeIs('salary.*') ? 'active' : '' }}">
                                     <a href="{{ route('salary.index') }}">
                                         <i class="fa fa-arrow-left sidebar_arrow_size"></i>
-                                        <span class="sub-item">{{ __('menu.salary') }}</span>
+                                        <span class="sub-item">{{ __('menu.employee_salary') }}</span>
                                     </a>
                                 </li>
                                 <!-- <li class="{{ request()->routeIs('salary.report.*') ? 'active' : '' }}">
