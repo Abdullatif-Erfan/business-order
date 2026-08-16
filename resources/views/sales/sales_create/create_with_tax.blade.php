@@ -200,7 +200,7 @@
                             <input type="hidden" name="tax_per" id="tax_per" value="{{ $tax->tax_per ?? 0 }}">
                             <input type="hidden" name="currency_id" value="{{ $currencies->first()->id ?? 1 }}">
                             <input type="hidden" name="alloweLimitValue" id="alloweLimitValue">
-                            <input type="hidden" name="shouldCheck" id="shouldCheck">
+                            <input type="hidden2" name="shouldCheck" id="shouldCheck">
 
                             
                             <div class="box-body animated fadeInRight" style="border-top:2px solid #89b4ea;">

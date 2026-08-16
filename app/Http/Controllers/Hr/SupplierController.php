@@ -70,14 +70,12 @@ class SupplierController extends Controller
             ->addColumn('address', function ($account) {
                 return $account->address ?: '';
             })
-            ->addColumn('loan_limit', function ($account) {
-                if ((int)$account->loan_limit > 0) {
-                    $icon = $account->loan_limit_option == 1 
+           ->addColumn('loan_limit', function ($account) {
+                return ((int)$account->loan_limit > 0) 
+                    ? ($account->loan_limit_option == 1 
                         ? '<i class="fas fa-check-circle text-success"></i> ' 
-                        : '<i class="fas fa-times-circle text-danger"></i> ';
-                    return $icon . $account->loan_limit;
-                }
-                return '';
+                        : '<i class="fas fa-times-circle text-danger"></i> ') . $account->loan_limit
+                    : ($account->loan_limit_option == 1 ? '<i class="fas fa-check-circle text-success"></i> ' : '');
             })
             ->addColumn('edit', function ($account) {
                 return '<a href="' . route("supplier.edit", ["id" => $account->id]) . '">

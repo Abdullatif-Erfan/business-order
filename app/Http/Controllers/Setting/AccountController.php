@@ -61,7 +61,7 @@ class AccountController extends Controller
                     ? ($account->loan_limit_option == 1 
                         ? '<i class="fas fa-check-circle text-success"></i> ' 
                         : '<i class="fas fa-times-circle text-danger"></i> ') . $account->loan_limit
-                    : '';
+                    : ($account->loan_limit_option == 1 ? '<i class="fas fa-check-circle text-success"></i> ' : '');
             })
 
             ->addColumn('view', function ($account) {

@@ -1,4 +1,5 @@
 @extends('layouts.app')
+
 @php 
   $billNumbers = json_decode($invoice->sales_bill_numbers, true);
   $total = 0;
@@ -93,10 +94,121 @@
         font-size: 12px;
         text-transform: uppercase;
     }
+    
+    /* Receipt Print Styles - 80mm Thermal Printer */
     @media print {
         .no-print { display: none !important; }
         .invoice-container { box-shadow: none !important; padding: 10px !important; }
         .payment-section { border: none !important; }
+        
+        /* A4 Print Styles */
+        body.print-a4 .print-area-a4 {
+            display: block !important;
+        }
+        body.print-a4 .print-area-receipt {
+            display: none !important;
+        }
+        
+        /* Receipt Print Styles - 80mm */
+        body.print-receipt .print-area-receipt {
+            display: block !important;
+        }
+        body.print-receipt .print-area-a4 {
+            display: none !important;
+        }
+        
+        /* Receipt specific styling */
+        body.print-receipt {
+            direction: rtl !important;
+            text-align: right !important;
+            margin: 0mm !important;
+            padding: 2mm !important;
+        }
+        
+        body.print-receipt .receipt-content {
+            max-width: 80mm !important;
+            margin: 0 auto !important;
+            padding: 2mm !important;
+            font-family: 'Courier New', monospace !important;
+            font-size: 11px !important;
+            background: white !important;
+        }
+        
+        body.print-receipt table {
+            width: 100% !important;
+            font-size: 10px !important;
+            border-collapse: collapse !important;
+        }
+        
+        body.print-receipt table td, 
+        body.print-receipt table th {
+            padding: 2px 3px !important;
+            font-size: 10px !important;
+            border: none !important;
+            text-align: right !important;
+        }
+        
+        body.print-receipt .receipt-header {
+            text-align: center !important;
+            border-bottom: 1px dashed #000 !important;
+            padding-bottom: 8px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        body.print-receipt .receipt-footer {
+            text-align: center !important;
+            border-top: 1px dashed #000 !important;
+            padding-top: 8px !important;
+            margin-top: 8px !important;
+            font-size: 9px !important;
+        }
+        
+        body.print-receipt .receipt-divider {
+            border-top: 1px dashed #000 !important;
+            margin: 4px 0 !important;
+        }
+        
+        body.print-receipt .receipt-title {
+            font-size: 12px !important;
+            font-weight: bold !important;
+            margin: 3px 0 !important;
+        }
+        
+        body.print-receipt .receipt-logo {
+            max-width: 60mm !important;
+            height: auto !important;
+        }
+        
+        body.print-receipt .text-center { text-align: center !important; }
+        body.print-receipt .text-right { text-align: right !important; }
+        body.print-receipt .text-left { text-align: left !important; }
+        body.print-receipt .font-bold { font-weight: bold !important; }
+        
+        body.print-receipt .invoice-info-receipt {
+            background: none !important;
+            padding: 0 !important;
+            margin-bottom: 5px !important;
+        }
+        
+        body.print-receipt .summary-receipt {
+            background: none !important;
+            padding: 0 !important;
+            margin-top: 5px !important;
+        }
+        
+        body.print-receipt .status-badge {
+            display: none !important;
+        }
+        
+        * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+        
+        @page {
+            size: 80mm auto !important;
+            margin: 0mm !important;
+        }
     }
 </style>
 
@@ -111,8 +223,13 @@
                             <h4 class="card-title">
                                 {{ __('buy.invoice_details') }}
                                 <span class="pull-left">
+                                    <!-- A4 Print Button -->
                                     <button class="btn btn-success btn-sm no-print" onclick="print_page_with_image()">
-                                        <i class="fas fa-print"></i> 
+                                        <i class="fas fa-print"></i> A4
+                                    </button>
+                                    <!-- Receipt Print Button -->
+                                    <button class="btn btn-info btn-sm no-print" onclick="printReceipt()">
+                                        <i class="fas fa-receipt"></i> Receipt
                                     </button>
                                     <a href="{{ route('sales.invoices') }}">
                                         <button class="btn mybtn bg-default"> {{ __('common.back') }} </button>
@@ -122,7 +239,10 @@
                         </div>
 
                         <div class="card-body">
-                            <div class="invoice-container" id="print_area">
+                            <!-- ============================================ -->
+                            <!-- A4 PRINT AREA -->
+                            <!-- ============================================ -->
+                            <div class="invoice-container print-area-a4" id="print_area">
 
                                 <!-- Header -->
                                 <div class="invoice-header text-center border">
@@ -200,7 +320,6 @@
                                                 <th>{{ __('buy.paid_amount') }} {{ __('common.bill') }}</th>
                                                 <th>{{ __('buy.remaining_amount') }}</th>
                                                 <th>{{ __('common.user') }}</th>
-                                                
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -209,15 +328,14 @@
                                                 $total += $item->total;
                                                 $total_cur_pay += $item->cur_pay;
                                                 $total_remained += $item->remained;
-
                                             @endphp
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ 'SALES_'.$item->billno ?? '' }}</td>
                                                 <td>{{ $item->invoice_date ?? '' }}</td>
-                                                <td>{{ $item->total }}</td>
-                                                <td>{{ $item->cur_pay ?? '' }}</td>
-                                                <td>{{ $item->remained ?? '' }}</td>
+                                                <td>{{ number_format($item->total, 2) }}</td>
+                                                <td>{{ number_format($item->cur_pay ?? 0, 2) }}</td>
+                                                <td>{{ number_format($item->remained ?? 0, 2) }}</td>
                                                 <td>{{ $item->user_name ?? '' }}</td>
                                             </tr>
                                             @endforeach
@@ -247,7 +365,7 @@
                                                     <tr>
                                                         <td><strong>{{ __('common.total_price') }}</strong></td>
                                                         <td style="text-align:right">
-                                                            {{  number_format($invoice->total, 2) }}
+                                                            {{ number_format($invoice->total, 2) }}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -280,7 +398,7 @@
                                                     <th>{{ __('buy.payment_method') }}</th>
                                                     <th>{{ __('buy.reference_number') }}</th>
                                                     <th>{{ __('buy.notes') }}</th>
-                                                    <th  class="hidden-print">{{ __('common.journal_code') }}</th>
+                                                    <th class="hidden-print">{{ __('common.journal_code') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -305,7 +423,7 @@
                                                 </tr>
                                                 @empty
                                                 <tr>
-                                                    <td colspan="5" class="text-center">{{ __('buy.no_payments_recorded') }}</td>
+                                                    <td colspan="7" class="text-center">{{ __('buy.no_payments_recorded') }}</td>
                                                 </tr>
                                                 @endforelse
                                             </tbody>
@@ -324,7 +442,6 @@
                                                 <input type="hidden" name="code" value="{{ $newJournalCode }}">
                                                 <input type="hidden" name="tax_activation" value="{{ $orgbios[0]->tax_activation }}">
                                                 <input type="hidden" name="customer_account_id" value="{{ $invoice->customer->id }}">
-                                                
                                                 
                                                 <div class="row">
                                                     <div class="col-md-3 col-sm-6 col-xs-6 m-b-4">
@@ -352,7 +469,6 @@
                                                         <select class="form-control" name="payment_method" required>
                                                             <option value="1">{{ __('buy.cash') }}</option>
                                                             <option value="2">{{ __('buy.bank') }}</option>
-                                                            <!-- <option value="3">{{ __('buy.loan') }}</option> -->
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3 col-sm-6 col-xs-6  mt-2">
@@ -381,6 +497,129 @@
                                 </div>
 
                             </div>
+                            <!-- END A4 PRINT AREA -->
+
+                            <!-- ============================================ -->
+                            <!-- RECEIPT PRINT AREA - 80mm Thermal Printer -->
+                            <!-- ============================================ -->
+                            <div class="print-area-receipt" id="print_area_receipt" style="display: none;">
+                                <div class="receipt-content">
+                                    
+                                    <!-- Receipt Header -->
+                                    <div class="receipt-header">
+                                        <h3 class="receipt-title">{{ $orgbios[0]->name ?? 'Company Name' }}</h3>
+                                        <table style="width:100%;">
+                                            <tr>
+                                                <td style="width:50%;"><strong>تلفن:</strong> {{ $orgbios[0]->phone ?? '' }}</td>
+                                                <td style="width:50%; text-align:left;"><strong>{{__('common.print_date')}}:</strong> {{ $todaysDate ?? '' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Invoice Info -->
+                                    <div style="margin: 3px 0;">
+                                        <table style="width:100%;">
+                                            <tr>
+                                                <td style="width:50%;"><strong>{{__('buy.invoice_number')}}:</strong> {{ $invoice->invoice_number }}</td>
+                                                <td style="width:50%; text-align:left;"><strong>{{__('buy.invoice_date')}}:</strong> {{ $invoice->invoice_date->format('Y-m-d') }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{{__('buy.customer')}}:</strong> {{ $invoice->customer->name ?? '' }}</td>
+                                                <td style="text-align:left;">
+                                                    @php
+                                                        $statusLabels = [
+                                                            0 => __('order.draft'),
+                                                            1 => __('order.pending'),
+                                                            2 => __('order.partial'),
+                                                            3 => __('order.paid'),
+                                                            4 => __('order.cancelled')
+                                                        ];
+                                                    @endphp
+                                                    <strong>{{__('order.status')}}:</strong> {{ $statusLabels[$invoice->status] ?? __('order.unknown') }}
+                                                </td>
+                                            </tr>
+                                            @if($billNumbers && is_array($billNumbers))
+                                            <tr>
+                                                <td colspan="2"><strong>{{__('sales.billno')}}:</strong> 
+                                                    @foreach($billNumbers as $bill)
+                                                        SALES_{{ $bill }} &nbsp;
+                                                    @endforeach
+                                                </td>
+                                            </tr>
+                                            @endif
+                                        </table>
+                                    </div>
+
+                                    <div class="receipt-divider"></div>
+
+                                    <!-- Items Table -->
+                                    <table style="width:100%;">
+                                        <thead>
+                                            <tr style="border-bottom: 1px dashed #000;">
+                                                <th style="text-align:center; padding:2px;">#</th>
+                                                <th style="text-align:right; padding:2px;">{{__('sales.billno')}}</th>
+                                                <th style="text-align:right; padding:2px;">{{__('common.total_price')}}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($invoice->items as $item)
+                                            <tr>
+                                                <td style="text-align:center; padding:2px;">{{ $loop->iteration }}</td>
+                                                <td style="text-align:right; padding:2px;">SALES_{{ $item->billno ?? '' }}</td>
+                                                <td style="text-align:left; padding:2px;">{{ number_format($item->total, 2) }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+
+                                    <div class="receipt-divider"></div>
+
+                                    <!-- Summary -->
+                                    <table style="width:100%;">
+                                        <tr>
+                                            <td style="width:65%;"><strong>{{__('common.total_price')}}</strong></td>
+                                            <td style="width:35%; text-align:left;"><strong>{{ number_format($invoice->total, 2) }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{__('buy.paid_amount_bill_invoice')}}</td>
+                                            <td style="text-align:left;">{{ number_format($invoice->paid_amount, 2) }}</td>
+                                        </tr>
+                                        <tr style="border-top: 1px dashed #000;">
+                                            <td><strong>{{__('buy.remaining_amount')}}</strong></td>
+                                            <td style="text-align:left;"><strong>{{ number_format($invoice->remaining, 2) }}</strong></td>
+                                        </tr>
+                                    </table>
+
+                                    <div class="receipt-divider"></div>
+
+                                    <!-- Payments Section (compact) -->
+                                    @if($invoice->payments->count() > 0)
+                                    <table style="width:100%;">
+                                        <thead>
+                                            <tr style="border-bottom: 1px dashed #000;">
+                                                <th style="text-align:center; padding:2px;">#</th>
+                                                <th style="text-align:right; padding:2px;">{{__('common.amount')}}</th>
+                                                <th style="text-align:right; padding:2px;">{{__('common.date')}}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($invoice->payments as $payment)
+                                            <tr>
+                                                <td style="text-align:center; padding:2px;">{{ $loop->iteration }}</td>
+                                                <td style="text-align:right; padding:2px;">{{ number_format($payment->amount, 2) }}</td>
+                                                <td style="text-align:right; padding:2px;">{{ $payment->payment_date }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                    <div class="receipt-divider"></div>
+                                    @endif
+
+
+                                </div>
+                            </div>
+                            <!-- END RECEIPT PRINT AREA -->
+
                         </div>
                     </div>
                 </div>
@@ -390,32 +629,122 @@
 </div>
 
 <script>
- function checkRemaining(cur_pay) {
+function checkRemaining(cur_pay) {
     var remained = parseFloat($('#remained_amount_yet').val()) || 0;
     var curPay = parseFloat(cur_pay) || 0;
-    // Round to 2 decimal places to avoid floating point issues
     remained = Math.round(remained * 100) / 100;
     curPay = Math.round(curPay * 100) / 100;
     
-    // Check if payment exceeds remaining
     if (curPay > remained) {
         alert("{{__('buy.over_pay_invoice')}}");
-        $('#submit').hide(); // Or .fadeOut(300) for smooth animation
+        $('#submit').hide();
         return false;
-    } else if (curPay === remained) {
-        // Payment equals remaining - fully paid
-        $('#submit').show();
-        // Optionally show a message
-        // alert("Payment will fully clear the balance");
-        return true;
     } else if (curPay <= 0) {
         $('#submit').hide();
         alert("{{__('buy.empty_pay')}}");
     } else {
-        // Payment is less than remaining
         $('#submit').show();
         return true;
     }
+}
+
+/**
+ * Receipt Print Function - 80mm Thermal Printer
+ */
+function printReceipt() {
+    var receiptElement = document.getElementById("print_area_receipt");
+    var data = receiptElement.innerHTML;
+    
+    var printWindow = window.open("", "ReceiptPrintWindow", "width=400,height=600");
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Invoice Receipt</title>
+            <style>
+                body {
+                    direction: rtl !important;
+                    text-align: right !important;
+                    margin: 0mm !important;
+                    padding: 2mm !important;
+                    font-family: 'Courier New', monospace !important;
+                    background: white !important;
+                }
+                
+                .receipt-content {
+                    max-width: 80mm !important;
+                    margin: 0 auto !important;
+                    padding: 2mm !important;
+                    font-size: 11px !important;
+                }
+                
+                table {
+                    width: 100% !important;
+                    font-size: 10px !important;
+                    border-collapse: collapse !important;
+                }
+                
+                table td, table th {
+                    padding: 2px 3px !important;
+                    font-size: 10px !important;
+                    border: none !important;
+                    text-align: right !important;
+                }
+                
+                .receipt-header {
+                    text-align: center !important;
+                    border-bottom: 1px dashed #000 !important;
+                    padding-bottom: 8px !important;
+                    margin-bottom: 8px !important;
+                }
+                
+                .receipt-footer {
+                    text-align: center !important;
+                    border-top: 1px dashed #000 !important;
+                    padding-top: 8px !important;
+                    margin-top: 8px !important;
+                    font-size: 9px !important;
+                }
+                
+                .receipt-divider {
+                    border-top: 1px dashed #000 !important;
+                    margin: 4px 0 !important;
+                }
+                
+                .receipt-title {
+                    font-size: 12px !important;
+                    font-weight: bold !important;
+                    margin: 3px 0 !important;
+                }
+                
+                .text-center { text-align: center !important; }
+                .text-right { text-align: right !important; }
+                .text-left { text-align: left !important; }
+                
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
+                
+                @page {
+                    size: 80mm auto !important;
+                    margin: 0mm !important;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-content">${data}</div>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
 }
 
 $(document).ready(function() {
