@@ -182,7 +182,7 @@
                                         <div class="col-md-2 col-sm-4 col-xs-6">
                                             <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>
                                             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" required>
-                                                <option value="">انتخاب موتر</option>
+                                                <!-- <option value="">انتخاب موتر</option> -->
                                                 @foreach($cars as $car)
                                                     <option value="{{ $car->id }}">{{ $car->name }}</option>
                                                 @endforeach
@@ -272,7 +272,7 @@
                                                         </td>
                                                         <td style="width:10%"><strong>{{__('buy.cur_pay')}}</strong></td>
                                                         <td style="width:15%">
-                                                            <input type="number" name="cur_pay" id="cur_pay" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="0.01" required>
+                                                            <input type="number" name="cur_pay" id="cur_pay" value="0" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="0.01" required>
                                                         </td>
                                                         <td style="width:10%"><strong>{{__('buy.remained')}}</strong></td>
                                                         <td style="width:15%">
@@ -283,7 +283,7 @@
                                                         <td><strong>{{__('journal.payer_account')}}</strong></td>
                                                         <td>
                                                             <select class="form-control select2" style="width:100%; background-color:#ddd;" name="from_account_id" required>
-                                                                <option value="">انتخاب حساب</option>
+                                                                <!-- <option value="">انتخاب حساب</option> -->
                                                                 @foreach($ownBanks as $acc)
                                                                     <option value="{{ $acc->id }}">{{ $acc->name }}</option>
                                                                 @endforeach

@@ -250,7 +250,7 @@
                                         <div class="col-md-3 col-sm-4 col-xs-6">
                                             <label for="car_id">{{__('buy.car')}} <span class="danger">*</span></label>
                                             <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="car_id" id="car_id" required>
-                                             <option value="">{{__('sales.select_car')}}</option>   
+                                             <!-- <option value="">{{__('sales.select_car')}}</option>    -->
                                             @foreach($cars as $car)
                                                     <option value="{{ $car->id }}">{{ $car->name }}</option>
                                                 @endforeach
@@ -347,7 +347,7 @@
                                                     <tr>
                                                         <td style="width:10%"><strong>{{__('buy.cur_pay')}}</strong></td>
                                                         <td style="width:15%">
-                                                            <input type="number" name="cur_pay" id="cur_pay" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="any" min="0" required>
+                                                            <input type="number" name="cur_pay" id="cur_pay" value="0" oninput="updateRemainOnCurPay(this.value)" class="form-control" step="any" min="0" required>
                                                             <small style="font-size:10px; border:1px solid #ddd; border-radius:10px;padding: 2px 5px;">
                                                                   بیلانس فعلی  : 
                                                                 <label style="font-size:10px !important;" id="curBalanceLabel"></label>
@@ -364,7 +364,7 @@
                                                         <td><strong>{{__('journal.payer_account')}}</strong></td>
                                                         <td>
                                                             <select class="form-control select2" style="width:100%; background-color:#ddd;" name="account_id" required>
-                                                                <option value="">انتخاب حساب</option>   
+                                                                <!-- <option value="">انتخاب حساب</option>    -->
                                                                 @foreach($ownBanks as $acc)
                                                                     <option value="{{ $acc->id }}">{{ $acc->name }}</option>
                                                                 @endforeach

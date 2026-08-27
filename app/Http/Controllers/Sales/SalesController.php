@@ -399,6 +399,7 @@ class SalesController extends Controller
                     'warehouse_items.unit_id as warehouse_unit_id',
                     'units.name as warehouse_unit_name',
                     'warehouse_items.sell_up as sell_up', 
+                     'warehouse_items.user_id as user_id',
                     // DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
                     DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.buy_up_vat ELSE warehouse_items.buy_up END as buy_up"),
                     'warehouse_items.available_amount',
@@ -453,6 +454,7 @@ class SalesController extends Controller
                 ->select(
                     'warehouse_items.id as warehouse_item_id',
                     'warehouse_items.unit_id as warehouse_unit_id',
+                    'warehouse_items.user_id as user_id',
                     'units.name as warehouse_unit_name',
                     'warehouse_items.sell_up as sell_up', 
                     // DB::raw("CASE WHEN warehouse_items.buy_tax_per IS NOT NULL AND warehouse_items.buy_tax_per > 0 THEN warehouse_items.sell_up_vat ELSE warehouse_items.sell_up END as sell_up"),
@@ -639,7 +641,7 @@ class SalesController extends Controller
 
             // 'items.*.order_id' => 'required|exists:orders,id',
             'items.*.buy_up' => 'required|numeric|min:0',
-            'items.*.profit_amount' => 'required|numeric|min:1',
+            'items.*.profit_amount' => 'required|numeric|min:0',
             'items.*.sell_tax_per' => 'nullable|numeric',
             'items.*.sell_tax_price' => 'nullable|numeric',
             'items.*.sell_up_vat' => 'nullable|numeric',
