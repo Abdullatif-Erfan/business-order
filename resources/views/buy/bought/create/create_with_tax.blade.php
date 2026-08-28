@@ -289,7 +289,7 @@ td:has(.buy-up) {
                                                                     <th style="width:10%">{{__('common.category')}}</th>
                                                                     <th style="width:8%">{{__('common.unit')}}</th>
                                                                     <th style="width:15%">{{__('buy.buy_up')}}</th>
-                                                                    <th style="width:12%">{{__('buy.profit')}}</th>
+                                                                    <!-- <th style="width:12%">{{__('buy.profit')}}</th> -->
                                                                     <th style="width:12%">{{__('sales.sold_up')}}</th>
                                                                     <th style="width:17%">{{__('common.total')}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                                                                     <th style="width:5%">{{__('common.delete')}}</th>
@@ -534,10 +534,8 @@ $(document).ready(function () {
                      ${buyUpVatDisplay}
                 </td>
                 <td>
-                    <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="number" step="any" 
+                   <input name="items[${index}][profit_amount]" class="form-control profit-amount" type="hidden" step="any" 
                         value="${profitAmount !== '' ? profitAmount : ''}" placeholder="0.00">
-                </td>
-                <td>
                     <input name="items[${index}][sell_up]" class="form-control sell-up" type="number" step="any" min="0" 
                         value="${sellUp !== '' ? sellUp : ''}" readonly>
                     ${sellUpVatDisplay}
