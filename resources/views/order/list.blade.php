@@ -651,6 +651,32 @@
     </div>
 </div>
 
+<!-- ========================================= -->
+<!-- Move MODAL -->
+<!-- ========================================= -->
+<div class="modal fade" id="moveOrderModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-retweet"></i> {{ __('common.move') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="MoveFormWrapper"></div>
+                <div id="moveModalLoader" style="display:none; text-align: center;">
+                    <i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">{{ __('common.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- ========================================= -->
 <!-- STATE MODAL -->

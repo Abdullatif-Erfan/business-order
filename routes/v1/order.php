@@ -47,6 +47,8 @@ Route::prefix('orders')->name('orders.')->group(function(){
     Route::get('/edit/{order_id}', [OrderController::class, 'edit'])->name('edit')->middleware('access:order,edit_records');
     Route::put('/update/{id}', [OrderController::class, 'update'])->name('update')->middleware('access:order,edit_records');
     Route::put('/update-all', [OrderController::class, 'updateAll'])->name('updateAll')->middleware('access:order,edit_records');
+    Route::get('/getOrderItemForMove/{order_id}', [OrderController::class, 'getOrderItemForMove'])->name('getOrderItemForMove')->middleware('access:order,edit_records');
+    Route::post('/moveItem', [OrderController::class, 'moveItem'])->name('moveItem')->middleware('access:order,edit_records');
     
     // Delete
     Route::delete('/destroy/{ord_num}', [OrderController::class, 'destroy'])->name('destroy')->middleware('access:order,delete_records');

@@ -72,7 +72,7 @@ class DraftOrderController extends Controller
             'preListRelation:id,name,category_id',
             'unitRelation:id,name',
         ])
-        ->orderBy('id', 'DESC');
+        ->orderBy('dord_num', 'DESC');
 
         if (!$this->isAdmin) {
             $draftOrders->whereIn('draft_orders.customer_id', $this->customerIds);

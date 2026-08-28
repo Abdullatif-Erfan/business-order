@@ -94,6 +94,7 @@ return [
     'total_items' => 'تعداد اجناس',
     'item_type' => 'نوع جنس',
     'item_doesnot_exist' => ' سفارشات جدید موجود نیست',
+    'item_moved_successfully' => 'جنس موفقانه انتقال گردید',
     
 
     

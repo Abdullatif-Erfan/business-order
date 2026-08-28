@@ -22,7 +22,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
 {
-    protected $isAdmin, $customerIds, $carIds, $userId;
+    protected $isAdmin, $customerIds, $carIds, $userId, $userName;
     
     public function __construct()
     {
@@ -31,11 +31,13 @@ class OrderController extends Controller
             $this->customerIds = session('customerIds', []);
             $this->carIds = session('carIds', []);
             $this->userId = session('userId', auth()->user()->id);
+            $this->userName = auth()->user()->full_name;
         } else {
             $this->isAdmin = false;
             $this->customerIds = [];
             $this->carIds = [];
             $this->userId = 0;
+            $this->userName ='';
         }
     }
 
@@ -133,12 +135,13 @@ class OrderController extends Controller
             })
             ->addColumn('action', function ($order) {
 
-              // stop edit and delete when state is not 1:(new)   
+              // stop edit, move and delete when state is not 1:(new)   
                 if($order->state == 1) 
                 {
                         return '
                         <div class="action-icons">
                             <i class="fas fa-eye viewOrder" data-id="' . $order->id . '" title="' . __('common.view') . '"></i>
+                            <i class="fas fa-retweet moveOrderItem" data-id="' . $order->id . '" title="' . __('common.move') . '"></i>
                             <i class="fas fa-pen-square editOrder" data-id="' . $order->id . '" title="' . __('common.edit') . '"></i>
                             <i class="fas fa-trash-alt deleteOrder" data-id="' . $order->id . '" title="' . __('common.delete') . '"></i>
                         </div>
@@ -149,6 +152,7 @@ class OrderController extends Controller
                         return '
                         <div class="action-icons">
                             <i class="fas fa-eye viewOrder" data-id="' . $order->id . '" title="' . __('common.view') . '"></i>
+                             <i class="fas fa-retweet" title="' . __('common.move') . '"></i>
                             <i class="fas fa-pen-square" style="color:#ddd"  title="' . __('common.edit') . '"></i>
                             <i class="fas fa-trash-alt" style="color:#ddd"  title="' . __('common.delete') . '"></i>
                         </div>
@@ -182,7 +186,7 @@ class OrderController extends Controller
         return $badges[$state] ?? '<span class="badge badge-secondary">' . __('order.unknown') . '</span>';
     }
 
-   public function getCounts(Request $request)
+    public function getCounts(Request $request)
     {
         $query = Order::query();
         
@@ -288,154 +292,154 @@ class OrderController extends Controller
         // return response()->json($formattedData);
         // ================================ 1 ===================================
 
-    //     $preLists = BuyPreList::select('id', 'name', 'category_id')->orderBy('name')->get();
-    //     $units = Unit::select('id', 'name')->orderBy('name')->get();
-    //     $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
-    //     $categories = Category::select('id', 'name')->orderBy('name')->get();
-    //     $todaysDate = Carbon::now()->format('Y-m-d');
-    //     $times = time();
-        
-    //     // Get grouped items (for initial empty state)
-    //     $groupedItems = [];
+        //     $preLists = BuyPreList::select('id', 'name', 'category_id')->orderBy('name')->get();
+        //     $units = Unit::select('id', 'name')->orderBy('name')->get();
+        //     $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        //     $categories = Category::select('id', 'name')->orderBy('name')->get();
+        //     $todaysDate = Carbon::now()->format('Y-m-d');
+        //     $times = time();
+            
+        //     // Get grouped items (for initial empty state)
+        //     $groupedItems = [];
 
-    //     $draftOrders = DraftOrder::select(
-    //     'category_id',
-    //     'pre_list_id',
-    //     'unit_id',
-    //     'amount',
-    //     'idate',
-    //     'iby',
-    //     'user_name',
-    //     'state',
-    //     'times'
-    // )
-    // ->with([
-    //     'preListRelation:id,name,category_id',
-    //     'unitRelation:id,name',
-    //     'categoryRelation:id,name'
-    // ])
-    // ->where('draft_orders.state', 1)
-    // ->orderBy('category_id', 'ASC')
-    // ->get();
+        //     $draftOrders = DraftOrder::select(
+        //     'category_id',
+        //     'pre_list_id',
+        //     'unit_id',
+        //     'amount',
+        //     'idate',
+        //     'iby',
+        //     'user_name',
+        //     'state',
+        //     'times'
+        // )
+        // ->with([
+        //     'preListRelation:id,name,category_id',
+        //     'unitRelation:id,name',
+        //     'categoryRelation:id,name'
+        // ])
+        // ->where('draft_orders.state', 1)
+        // ->orderBy('category_id', 'ASC')
+        // ->get();
 
-    // // Group by category_id, then by pre_list_id and unit_id
-    // $formattedData = $draftOrders->groupBy('category_id')->map(function ($items, $categoryId) use ($categories) {
+        // // Group by category_id, then by pre_list_id and unit_id
+        // $formattedData = $draftOrders->groupBy('category_id')->map(function ($items, $categoryId) use ($categories) {
 
-    //      $categoryName = $categories->where('id', $categoryId)->first()->name ?? null;
-    //     // Group items by pre_list_id and unit_id combination
-    //     $groupedItems = $items->groupBy(function ($item) {
-    //         return $item->pre_list_id . '_' . $item->unit_id;
-    //     })->map(function ($group) {
-    //         $first = $group->first();
-    //         return [
-    //             'pre_list_id' => $first->pre_list_id,
-    //             'pre_list_name' => $first->preListRelation->name ?? null,
-    //             'unit_id' => $first->unit_id,
-    //             'unit_name' => $first->unitRelation->name ?? null,
-    //             'amount' => $group->sum('amount'), // Sum the amounts
-    //             'idate' => $first->idate,
-    //             'iby' => $first->iby,
-    //             'user_name' => $first->user_name,
-    //             'state' => $first->state,
-    //             'times' => $first->times,
-    //             'count' => $group->count() // Number of items grouped
-    //         ];
-    //     })->values(); // Reset keys
-        
-    //     return [
-    //         'category_id' =>  $categoryId,
-    //         'category_name' => $categoryName ?? null,
-    //         'total_items' =>  $items->count(),
-    //         'total_amount' => $items->sum('amount'),
-    //         'items' => $groupedItems
-    //     ];
-    // })->values();
+        //      $categoryName = $categories->where('id', $categoryId)->first()->name ?? null;
+        //     // Group items by pre_list_id and unit_id combination
+        //     $groupedItems = $items->groupBy(function ($item) {
+        //         return $item->pre_list_id . '_' . $item->unit_id;
+        //     })->map(function ($group) {
+        //         $first = $group->first();
+        //         return [
+        //             'pre_list_id' => $first->pre_list_id,
+        //             'pre_list_name' => $first->preListRelation->name ?? null,
+        //             'unit_id' => $first->unit_id,
+        //             'unit_name' => $first->unitRelation->name ?? null,
+        //             'amount' => $group->sum('amount'), // Sum the amounts
+        //             'idate' => $first->idate,
+        //             'iby' => $first->iby,
+        //             'user_name' => $first->user_name,
+        //             'state' => $first->state,
+        //             'times' => $first->times,
+        //             'count' => $group->count() // Number of items grouped
+        //         ];
+        //     })->values(); // Reset keys
+            
+        //     return [
+        //         'category_id' =>  $categoryId,
+        //         'category_name' => $categoryName ?? null,
+        //         'total_items' =>  $items->count(),
+        //         'total_amount' => $items->sum('amount'),
+        //         'items' => $groupedItems
+        //     ];
+        // })->values();
 
-    // // return view('order.create.form', compact('preLists', 'units', 'customers','categories','todaysDate','times','groupedItems'));
-    //     // return response()->json($formattedData);
-    //     return response()->json($formattedData);
+        // // return view('order.create.form', compact('preLists', 'units', 'customers','categories','todaysDate','times','groupedItems'));
+        //     // return response()->json($formattedData);
+        //     return response()->json($formattedData);
         // ============================= 2 ================================
     
-    $preLists = BuyPreList::select('id', 'name', 'category_id','supplier_id','unit_id','unit_name')->orderBy('name')->get();
-    $units = Unit::select('id', 'name')->orderBy('name')->get();
-    $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
-    $categories = Category::select('id', 'name')->orderBy('name')->get();
-    $todaysDate = Carbon::now()->format('Y-m-d');
-    $times = time();
+        $preLists = BuyPreList::select('id', 'name', 'category_id','supplier_id','unit_id','unit_name')->orderBy('name')->get();
+        $units = Unit::select('id', 'name')->orderBy('name')->get();
+        $customers = Account::select('id', 'name')->where('account_type_id', 3)->get();
+        $categories = Category::select('id', 'name')->orderBy('name')->get();
+        $todaysDate = Carbon::now()->format('Y-m-d');
+        $times = time();
 
 
 
-    if($this->isAdmin) {
-        $cars = Car::get();
-          // Get draft orders with state = 1
-        $draftOrders = DraftOrder::select(
-            'category_id',
-            'pre_list_id',
-            'unit_id',
-            'amount'
-        )
-        ->with([
-            'preListRelation:id,name,category_id,supplier_id',
-            'preListRelation.categoryRelation:id,name', // Load category through preListRelation
-            'unitRelation:id,name',
-        ])
-        ->where('draft_orders.state', 1) // get just new draft orders
-        ->get();
-    } 
-    else 
-    {
-        $cars = Car::whereIn('id', $this->carIds)->get();
-        $draftOrders = DraftOrder::select(
-            'category_id',
-            'pre_list_id',
-            'unit_id',
-            'amount'
-        )
-        ->with([
-            'preListRelation:id,name,category_id,supplier_id',
-            'preListRelation.categoryRelation:id,name', // Load category through preListRelation
-            'unitRelation:id,name',
-        ])
-        ->where('draft_orders.state', 1) // get just new draft orders
-        ->whereIn('draft_orders.customer_id', $this->customerIds)
-        ->get();
-    }
+        if($this->isAdmin) {
+            $cars = Car::get();
+            // Get draft orders with state = 1
+            $draftOrders = DraftOrder::select(
+                'category_id',
+                'pre_list_id',
+                'unit_id',
+                'amount'
+            )
+            ->with([
+                'preListRelation:id,name,category_id,supplier_id',
+                'preListRelation.categoryRelation:id,name', // Load category through preListRelation
+                'unitRelation:id,name',
+            ])
+            ->where('draft_orders.state', 1) // get just new draft orders
+            ->get();
+        } 
+        else 
+        {
+            $cars = Car::whereIn('id', $this->carIds)->get();
+            $draftOrders = DraftOrder::select(
+                'category_id',
+                'pre_list_id',
+                'unit_id',
+                'amount'
+            )
+            ->with([
+                'preListRelation:id,name,category_id,supplier_id',
+                'preListRelation.categoryRelation:id,name', // Load category through preListRelation
+                'unitRelation:id,name',
+            ])
+            ->where('draft_orders.state', 1) // get just new draft orders
+            ->whereIn('draft_orders.customer_id', $this->customerIds)
+            ->get();
+        }
    
 
-    // Group by category_id, then by pre_list_id and unit_id
-    $groupedItems = $draftOrders->groupBy('category_id')->map(function ($items, $categoryId) {
-        // Get category name from the first item's preListRelation->categoryRelation
-        $firstItem = $items->first();
-        $categoryName = $firstItem->preListRelation->categoryRelation->name ?? 'Unknown';
-        
-        return $items->groupBy(function ($item) {
-            return $item->pre_list_id . '_' . $item->unit_id;
-        })->map(function ($group) use ($categoryId, $categoryName) {
-            $first = $group->first();
-            return [
-                'category_id' => $categoryId,
-                'category_name' => $categoryName,
-                'pre_list_id' => $first->pre_list_id,
-                'supplier_id' => $first->preListRelation->supplier_id ?? null,
-                'pre_list_name' => $first->preListRelation->name ?? null,
-                'unit_id' => $first->unit_id,
-                'unit_name' => $first->unitRelation->name ?? null,
-                'amount' => $group->sum('amount'),
-                'count' => $group->count()
-            ];
-        })->values();
-    })->flatten(1)->values();
+        // Group by category_id, then by pre_list_id and unit_id
+        $groupedItems = $draftOrders->groupBy('category_id')->map(function ($items, $categoryId) {
+            // Get category name from the first item's preListRelation->categoryRelation
+            $firstItem = $items->first();
+            $categoryName = $firstItem->preListRelation->categoryRelation->name ?? 'Unknown';
+            
+            return $items->groupBy(function ($item) {
+                return $item->pre_list_id . '_' . $item->unit_id;
+            })->map(function ($group) use ($categoryId, $categoryName) {
+                $first = $group->first();
+                return [
+                    'category_id' => $categoryId,
+                    'category_name' => $categoryName,
+                    'pre_list_id' => $first->pre_list_id,
+                    'supplier_id' => $first->preListRelation->supplier_id ?? null,
+                    'pre_list_name' => $first->preListRelation->name ?? null,
+                    'unit_id' => $first->unit_id,
+                    'unit_name' => $first->unitRelation->name ?? null,
+                    'amount' => $group->sum('amount'),
+                    'count' => $group->count()
+                ];
+            })->values();
+        })->flatten(1)->values();
 
-    return view('order.create.form', compact(
-        'preLists', 
-        'units', 
-        'customers', 
-        'categories', 
-        'todaysDate', 
-        'times',
-        'groupedItems',
-        'cars'
-    ));
+        return view('order.create.form', compact(
+            'preLists', 
+            'units', 
+            'customers', 
+            'categories', 
+            'todaysDate', 
+            'times',
+            'groupedItems',
+            'cars'
+        ));
 
         // return response()->json($groupedItems);
 
@@ -613,7 +617,7 @@ class OrderController extends Controller
         
         // Group items by category
         $groupedItems = $orderItems->groupBy('category_id')->map(function ($items, $categoryId) {
-            $firstItem = $items->first();
+        $firstItem = $items->first();
             
             // Get category name from the relationship
             $categoryName = $firstItem->category->name ?? 
@@ -657,6 +661,7 @@ class OrderController extends Controller
             ], 404);
         }
 
+        // $suppliers = Account::select('id', 'name')->where('account_type_id', 4)->get();
         // Get all order items with this order_id
         $orderItems = OrderItem::select(
             'id',
@@ -705,7 +710,499 @@ class OrderController extends Controller
         return view('order.edit.edit', compact('order', 'groupedItems', 'orderItems'));
     }
 
-   
+    /**
+     * Get Order Item to move from one supplier to another supplier 
+     */
+    public function getOrderItemForMove($order_id) 
+    {
+
+       // Get the main order (assuming you have an Order model)
+        $order = Order::with('supplierRelation:id,name')->where('id', $order_id)->first();
+        
+        if (!$order) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => __('common.not_found')
+            ], 404);
+        }
+
+        $suppliers = Account::select('id', 'name')->where('account_type_id', 4)->get();
+        // Get all order items with this order_id
+        $orderItems = OrderItem::select(
+            'id',
+            'category_id',
+            'pre_list_id',
+            'unit_id',
+            'amount',
+            'order_id'
+        )
+        ->with([
+            'preList:id,name,category_id,supplier_id',
+            'unit:id,name',
+            'category:id,name',
+        ])
+        ->where('order_id', $order_id)
+        ->get();
+        return view('order.move', compact('suppliers', 'order', 'orderItems'));
+    }
+
+    /**
+    * Move items from one supplier to another
+    */
+    /**
+     * Move a single item to another supplier
+     */
+    public function moveItemOld(Request $request)
+    {
+        // return response()->json(['data' => $request->all()]);
+        // item_id: "177"
+        // move_amount: "2"
+        // order_id: "161"
+        // to_supplier_id: "98"
+
+        try {
+            $validated = $request->validate([
+                'order_id' => 'required|exists:orders,id',
+                'item_id' => 'required|exists:order_items,id',
+                'move_amount' => 'required|numeric|min:0.01',
+                'to_supplier_id' => 'required|exists:accounts,id',
+            ]);
+
+            $times = time();
+            $idate = Carbon::now()->format('Y-m-d');
+
+            DB::beginTransaction();
+
+            // Get the source order and item
+            $sourceOrder = Order::find($validated['order_id'])->where('user_id', $this->userId)->where('state', 1);
+            $sourceItem = OrderItem::where('order_id', $validated['order_id'])->find($validated['item_id']);
+
+            if (!$sourceOrder || !$sourceItem) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('common.not_found')
+                ], 404);
+            }
+
+            // Check if move amount is valid
+            if ($validated['move_amount'] > $sourceItem->amount) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('order.amount_cannot_exceed') . ': ' . $sourceItem->amount
+                ], 422);
+            }
+
+            // Check if target supplier is different from current
+            if ($validated['to_supplier_id'] == $sourceOrder->supplier_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'به عین تهیه کننده انتقال نمیکند'
+                ], 422);
+            }
+
+            /**
+             * Analyze
+             * 1: جنس که میخواهد انتقال نماید باید چک شود که آیا همین جنس از همین کتگوری مربوط همین یوزر در حالت جدید موجود است ؟
+             * 2: اگر موجود باشد باید مقدارش آپدیت شود و اگر نیست باید جدید ثبت شود 
+             * 3: از مقدار سفارش به تعداد انتقال شده باید کم شود و اگر صفر مانده بود باید حذف شود
+             */
+
+            // Check if target supplier already has an order with same category and state
+            $targetOrder = Order::where('supplier_id', $validated['to_supplier_id'])
+                ->where('category_id', $sourceOrder->category_id)
+                ->where('user_id', $this->userId)
+                // ->where('car_id', $sourceOrder->car_id)
+                ->where('state', 1) 
+                ->first();
+
+            if($targetOrder->count() > 0) // اگر قبلا نیز لیست خرید جدید داشته حالا باید آپدیت شود
+            {
+               // get prev order items to increase the amount 
+               $oldTargetOrderItem = OrderItem::where('order_id', $targetOrder->id)
+                ->where('category_id', $targetOrder->category_id)
+                ->where('pre_list_id', $sourceItem->pre_list_id)
+                ->where('unit_id', $sourceItem->unit_id)
+                ->first();
+
+                if($oldTargetOrderItem) // اگر از همان جنس در همان کتگوری در حالت جدید موجود باشد
+                {
+                    $oldTargetOrderItem->amount += $validated['move_amount'];
+                    $oldTargetOrderItem->save();
+                }
+                else // اگر موجود نباشد باید جنس جدید ثبت کند در آردر آیتم 
+                {
+                     OrderItem::create([
+                        'order_id' => $targetOrder->id,
+                        'pre_list_id' => $sourceItem->pre_list_id,
+                        'category_id' => $targetOrder->category_id,
+                        'unit_id' => $sourceItem->unit_id,
+                        'amount' => $validated['move_amount'],
+                    ]);
+                }
+
+                
+            }
+            else  // لیست خرید نداشته حالا باید سفارش جدید با آیتم هایش ایجاد شود
+            {
+                /**
+                 * ۱: ایجاد سفارش جدید در تیبل آردر
+                 * ۲: ایجاد آیتم های آردر
+                 */
+                // Create order for this category
+                $order = Order::create([
+                    'supplier_id' => $validated['to_supplier_id'],
+                    'category_id' => $sourceOrder->category_id,
+                    'idate' => $idate,
+                    'state' => 1,
+                    'car_id' => $sourceOrder->car_id,
+                    'user_id' => $this->userId,
+                    'user_name' => $this->userName,
+                    'times' => $times,
+                ]);
+
+                // Create order items for this order
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'pre_list_id' => $sourceItem->pre_list_id,
+                    'category_id' => $sourceItem->category_id,
+                    'unit_id' => $sourceItem->unit_id,
+                    'amount' => $validated['move_amount'],
+                ]);
+            }
+
+             // Update source item amount
+            $sourceItem->amount -= $validated['move_amount'];
+            
+            if ($sourceItem->amount == 0) {
+                $sourceItem->delete();
+                $remainingAmount = 0;
+                $isFullyMoved = true;
+            } else {
+                $sourceItem->save();
+                $remainingAmount = $sourceItem->amount;
+                $isFullyMoved = false;
+            }
+            
+            // Check if source order has no items left
+            $remainingItems = OrderItem::where('order_id', $sourceOrder->id)->count();
+            if ($remainingItems == 0) {
+                $sourceOrder->delete();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('order.item_moved_successfully'),
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Move Item Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function moveItem(Request $request)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | 1. Validate Request
+        |--------------------------------------------------------------------------
+        | One item is moved per request.
+        |
+        | If the user wants to move multiple items, this method can be called
+        | separately for each item.
+        */
+        $validated = $request->validate([
+            'order_id'       => 'required|exists:orders,id',
+            'item_id'        => 'required|exists:order_items,id',
+            'move_amount'    => 'required|numeric|min:0.01',
+            'to_supplier_id' => 'required|exists:accounts,id',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+
+            $times = time();
+            $idate = Carbon::now()->format('Y-m-d');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2. Get and Verify Source Order
+            |--------------------------------------------------------------------------
+            |
+            | The order must:
+            | - belong to the current user
+            | - be in active/new state
+            */
+            $sourceOrder = Order::where('id', $validated['order_id'])
+                ->where('user_id', $this->userId)
+                ->where('state', 1)
+                ->first();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3. Get and Verify Source Order Item
+            |--------------------------------------------------------------------------
+            |
+            | The item must belong to the selected source order.
+            |
+            | This is important because validating item_id separately does not
+            | guarantee that the item actually belongs to order_id.
+            */
+            $sourceItem = OrderItem::where('id', $validated['item_id'])
+                ->where('order_id', $validated['order_id'])
+                ->first();
+
+
+            if (!$sourceOrder || !$sourceItem) {
+
+                DB::rollBack();
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => __('common.not_found')
+                ], 404);
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 4. Prevent Moving to the Same Supplier
+            |--------------------------------------------------------------------------
+            */
+            if ((int) $validated['to_supplier_id'] === (int) $sourceOrder->supplier_id) {
+
+                DB::rollBack();
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'انتقال به همان تهیه کننده امکان پذیر نیست.'
+                ], 422);
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 5. Validate Move Amount
+            |--------------------------------------------------------------------------
+            |
+            | The user cannot move more than the available amount.
+            */
+            if ($validated['move_amount'] > $sourceItem->amount) {
+
+                DB::rollBack();
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => __('order.amount_cannot_exceed') . ': ' . $sourceItem->amount
+                ], 422);
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 6. Find Existing Target Order
+            |--------------------------------------------------------------------------
+            |
+            | Check whether the destination supplier already has an active order
+            | for the same:
+            |
+            | - supplier
+            | - category
+            | - user
+            | - state
+            |
+            | If it exists, we will add the item to that order.
+            | Otherwise, a new order will be created.
+            */
+            $targetOrder = Order::where('supplier_id', $validated['to_supplier_id'])
+                ->where('category_id', $sourceOrder->category_id)
+                ->where('user_id', $this->userId)
+                ->where('state', 1)
+                ->first();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 7. Target Order Already Exists
+            |--------------------------------------------------------------------------
+            */
+            if ($targetOrder) {
+
+                /*
+                | Check whether exactly the same item already exists in
+                | the destination order item list.
+                |
+                | Same item means:
+                | - same pre_list
+                | - same category
+                | - same unit
+                */
+                $targetOrderItem = OrderItem::where('order_id', $targetOrder->id)
+                    ->where('pre_list_id', $sourceItem->pre_list_id)
+                    ->where('category_id', $sourceItem->category_id)
+                    ->where('unit_id', $sourceItem->unit_id)
+                    ->first();
+
+
+                /*
+                | If the item already exists, increase its quantity.
+                */
+                if ($targetOrderItem) {
+
+                    $targetOrderItem->amount += $validated['move_amount'];
+
+                    $targetOrderItem->save();
+
+                } else {
+
+                    /*
+                    | The target order exists, but this specific item does not.
+                    | Create a new order item.
+                    */
+                    OrderItem::create([
+                        'order_id'   => $targetOrder->id,
+                        'pre_list_id'=> $sourceItem->pre_list_id,
+                        'category_id'=> $sourceItem->category_id,
+                        'unit_id'    => $sourceItem->unit_id,
+                        'amount'     => $validated['move_amount'],
+                    ]);
+                }
+
+            } else {
+
+                /*
+                |--------------------------------------------------------------------------
+                | 8. Create New Target Order
+                |--------------------------------------------------------------------------
+                |
+                | The destination supplier does not have an active order for
+                | this category, so create a new order first.
+                */
+                $targetOrder = Order::create([
+                    'supplier_id' => $validated['to_supplier_id'],
+                    'category_id' => $sourceOrder->category_id,
+                    'car_id'      => $sourceOrder->car_id,
+                    'user_id'     => $this->userId,
+                    'idate'       => $idate,
+                    'state'       => 1,
+                    'user_name'   => $this->userName,
+                    'times'       => $times,
+                ]);
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | 9. Create First Item for New Target Order
+                |--------------------------------------------------------------------------
+                */
+                OrderItem::create([
+                    'order_id'    => $targetOrder->id,
+                    'pre_list_id' => $sourceItem->pre_list_id,
+                    'category_id' => $sourceItem->category_id,
+                    'unit_id'     => $sourceItem->unit_id,
+                    'amount'      => $validated['move_amount'],
+                ]);
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 10. Reduce Amount from Source Item
+            |--------------------------------------------------------------------------
+            */
+            $sourceItem->amount -= $validated['move_amount'];
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 11. Delete Source Item if Fully Moved
+            |--------------------------------------------------------------------------
+            |
+            | If the entire amount was transferred, the item is no longer needed.
+            | Otherwise, save the remaining amount.
+            */
+            if ($sourceItem->amount <= 0) {
+
+                $sourceItem->delete();
+
+                $remainingAmount = 0;
+                $isFullyMoved = true;
+
+            } else {
+
+                $sourceItem->save();
+
+                $remainingAmount = $sourceItem->amount;
+                $isFullyMoved = false;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 12. Delete Source Order if It Has No Remaining Items
+            |--------------------------------------------------------------------------
+            */
+            $remainingItems = OrderItem::where(
+                'order_id',
+                $sourceOrder->id
+            )->count();
+
+
+            if ($remainingItems === 0) {
+
+                $sourceOrder->delete();
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | 13. Commit All Changes
+            |--------------------------------------------------------------------------
+            |
+            | Everything is successful:
+            | - target order updated/created
+            | - target item updated/created
+            | - source item reduced/deleted
+            | - empty source order deleted
+            */
+            DB::commit();
+
+
+            return response()->json([
+                'status'          => 'success',
+                'message'         => __('order.item_moved_successfully'),
+                'remaining_amount'=> $remainingAmount,
+                'is_fully_moved'  => $isFullyMoved,
+            ]);
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+
+            Log::error('Move Order Item Error', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ]);
+
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => __('common.error_occurred')
+            ], 500);
+        }
+    }
+
     // Update single item
     public function update(Request $request, $id)
     {
