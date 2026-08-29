@@ -747,165 +747,8 @@ class OrderController extends Controller
     }
 
     /**
-    * Move items from one supplier to another
-    */
-    /**
      * Move a single item to another supplier
      */
-    public function moveItemOld(Request $request)
-    {
-        // return response()->json(['data' => $request->all()]);
-        // item_id: "177"
-        // move_amount: "2"
-        // order_id: "161"
-        // to_supplier_id: "98"
-
-        try {
-            $validated = $request->validate([
-                'order_id' => 'required|exists:orders,id',
-                'item_id' => 'required|exists:order_items,id',
-                'move_amount' => 'required|numeric|min:0.01',
-                'to_supplier_id' => 'required|exists:accounts,id',
-            ]);
-
-            $times = time();
-            $idate = Carbon::now()->format('Y-m-d');
-
-            DB::beginTransaction();
-
-            // Get the source order and item
-            $sourceOrder = Order::find($validated['order_id'])->where('user_id', $this->userId)->where('state', 1);
-            $sourceItem = OrderItem::where('order_id', $validated['order_id'])->find($validated['item_id']);
-
-            if (!$sourceOrder || !$sourceItem) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('common.not_found')
-                ], 404);
-            }
-
-            // Check if move amount is valid
-            if ($validated['move_amount'] > $sourceItem->amount) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('order.amount_cannot_exceed') . ': ' . $sourceItem->amount
-                ], 422);
-            }
-
-            // Check if target supplier is different from current
-            if ($validated['to_supplier_id'] == $sourceOrder->supplier_id) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'به عین تهیه کننده انتقال نمیکند'
-                ], 422);
-            }
-
-            /**
-             * Analyze
-             * 1: جنس که میخواهد انتقال نماید باید چک شود که آیا همین جنس از همین کتگوری مربوط همین یوزر در حالت جدید موجود است ؟
-             * 2: اگر موجود باشد باید مقدارش آپدیت شود و اگر نیست باید جدید ثبت شود 
-             * 3: از مقدار سفارش به تعداد انتقال شده باید کم شود و اگر صفر مانده بود باید حذف شود
-             */
-
-            // Check if target supplier already has an order with same category and state
-            $targetOrder = Order::where('supplier_id', $validated['to_supplier_id'])
-                ->where('category_id', $sourceOrder->category_id)
-                ->where('user_id', $this->userId)
-                // ->where('car_id', $sourceOrder->car_id)
-                ->where('state', 1) 
-                ->first();
-
-            if($targetOrder->count() > 0) // اگر قبلا نیز لیست خرید جدید داشته حالا باید آپدیت شود
-            {
-               // get prev order items to increase the amount 
-               $oldTargetOrderItem = OrderItem::where('order_id', $targetOrder->id)
-                ->where('category_id', $targetOrder->category_id)
-                ->where('pre_list_id', $sourceItem->pre_list_id)
-                ->where('unit_id', $sourceItem->unit_id)
-                ->first();
-
-                if($oldTargetOrderItem) // اگر از همان جنس در همان کتگوری در حالت جدید موجود باشد
-                {
-                    $oldTargetOrderItem->amount += $validated['move_amount'];
-                    $oldTargetOrderItem->save();
-                }
-                else // اگر موجود نباشد باید جنس جدید ثبت کند در آردر آیتم 
-                {
-                     OrderItem::create([
-                        'order_id' => $targetOrder->id,
-                        'pre_list_id' => $sourceItem->pre_list_id,
-                        'category_id' => $targetOrder->category_id,
-                        'unit_id' => $sourceItem->unit_id,
-                        'amount' => $validated['move_amount'],
-                    ]);
-                }
-
-                
-            }
-            else  // لیست خرید نداشته حالا باید سفارش جدید با آیتم هایش ایجاد شود
-            {
-                /**
-                 * ۱: ایجاد سفارش جدید در تیبل آردر
-                 * ۲: ایجاد آیتم های آردر
-                 */
-                // Create order for this category
-                $order = Order::create([
-                    'supplier_id' => $validated['to_supplier_id'],
-                    'category_id' => $sourceOrder->category_id,
-                    'idate' => $idate,
-                    'state' => 1,
-                    'car_id' => $sourceOrder->car_id,
-                    'user_id' => $this->userId,
-                    'user_name' => $this->userName,
-                    'times' => $times,
-                ]);
-
-                // Create order items for this order
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'pre_list_id' => $sourceItem->pre_list_id,
-                    'category_id' => $sourceItem->category_id,
-                    'unit_id' => $sourceItem->unit_id,
-                    'amount' => $validated['move_amount'],
-                ]);
-            }
-
-             // Update source item amount
-            $sourceItem->amount -= $validated['move_amount'];
-            
-            if ($sourceItem->amount == 0) {
-                $sourceItem->delete();
-                $remainingAmount = 0;
-                $isFullyMoved = true;
-            } else {
-                $sourceItem->save();
-                $remainingAmount = $sourceItem->amount;
-                $isFullyMoved = false;
-            }
-            
-            // Check if source order has no items left
-            $remainingItems = OrderItem::where('order_id', $sourceOrder->id)->count();
-            if ($remainingItems == 0) {
-                $sourceOrder->delete();
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => __('order.item_moved_successfully'),
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Move Item Error: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => __('common.error_occurred') . ': ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
     public function moveItem(Request $request)
     {
         /*
@@ -941,11 +784,18 @@ class OrderController extends Controller
             | - belong to the current user
             | - be in active/new state
             */
-            $sourceOrder = Order::where('id', $validated['order_id'])
+            if($this->isAdmin){
+                $sourceOrder = Order::where('id', $validated['order_id'])
+                ->where('state', 1)
+                ->first();
+            } 
+            else 
+            {
+                $sourceOrder = Order::where('id', $validated['order_id'])
                 ->where('user_id', $this->userId)
                 ->where('state', 1)
                 ->first();
-
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -1007,6 +857,13 @@ class OrderController extends Controller
             }
 
 
+            /**
+             * Analyze
+             * 1: جنس که میخواهد انتقال نماید باید چک شود که آیا همین جنس از همین کتگوری مربوط همین یوزر در حالت جدید موجود است ؟
+             * 2: اگر موجود باشد باید مقدارش آپدیت شود و اگر نیست باید جدید ثبت شود 
+             * 3: از مقدار سفارش به تعداد انتقال شده باید کم شود و اگر صفر مانده بود باید حذف شود
+             */
+
             /*
             |--------------------------------------------------------------------------
             | 6. Find Existing Target Order
@@ -1023,11 +880,23 @@ class OrderController extends Controller
             | If it exists, we will add the item to that order.
             | Otherwise, a new order will be created.
             */
-            $targetOrder = Order::where('supplier_id', $validated['to_supplier_id'])
-                ->where('category_id', $sourceOrder->category_id)
-                ->where('user_id', $this->userId)
-                ->where('state', 1)
-                ->first();
+
+             if($this->isAdmin)
+            {
+                $targetOrder = Order::where('supplier_id', $validated['to_supplier_id'])
+                    ->where('category_id', $sourceOrder->category_id)
+                    ->where('state', 1)
+                    ->first();
+            } 
+            else 
+            {
+                $targetOrder = Order::where('supplier_id', $validated['to_supplier_id'])
+                    ->where('category_id', $sourceOrder->category_id)
+                    ->where('user_id', $this->userId)
+                    ->where('state', 1)
+                    ->first();
+            }
+            
 
 
             /*
