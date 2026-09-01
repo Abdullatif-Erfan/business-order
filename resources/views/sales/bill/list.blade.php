@@ -369,16 +369,16 @@
                                         
                                         <!-- Receipt Header -->
                                         <div class="receipt-header">
-                                            <h3 class="receipt-title">{{ $orgbios[0]->name ?? 'Company Name' }}</h3>
-                                            <!-- <p style="margin: 2px 0;">{{ $orgbios[0]->address ?? '' }}</p> -->
+                                            <h3 class="receipt-title">تموینات هاني حسن ابو عبدالله للمواد الغذائية</h3>
+                                            <p style="margin: 2px 0;">لصاحبه: هاني حسن رضي آل أبو عبدالله</p>
                                             <!-- <p style="margin: 2px 0;">{{ $orgbios[0]->phone ?? '' }}</p> -->
                                             <!-- <p style="margin: 2px 0;">{{__('common.print_date')}} : {{ $todaysDate ?? '' }}</p> -->
                                             <!-- <div class="receipt-divider"></div> -->
 
                                             <table style="width:100%;">
                                             <tr>
-                                                <td style="width:50%;"><strong>شماره تماس: {{ $orgbios[0]->phone ?? '' }}</strong></td>
-                                                <td style="width:50%;"><strong>تاریخ چاپ: {{ $todaysDate ?? '' }}</strong></td>
+                                                <td style="width:50%;"><strong>فاتورة تسليم المواد الغذائية</strong></td>
+                                                <td style="width:50%;"><strong> تاريخ الطباعة: {{ $todaysDate ?? '' }}</strong></td>
                                             </tr>
                                             </table>
                                         </div>
@@ -387,12 +387,12 @@
                                         <div style="margin: 5px 0;">
                                             <table style="width:100%;">
                                                 <tr>
-                                                    <td style="width:50%;"><strong>{{__('sales.billno')}}:</strong> SALES_{{ $warehouseSales->first()->billno ?? '' }}</td>
-                                                    <td style="width:50%; text-align:left;"><strong>{{__('common.sales_date')}}:</strong> {{ $warehouseSales->first()->idate ?? '' }}</td>
+                                                    <td style="width:50%;"><strong>رقم فاتورة:</strong> S{{ str_pad($warehouseSales->first()->billno ?? 0, 3, '0', STR_PAD_LEFT) }}</td>
+                                                    <td style="width:50%; text-align:left;"><strong>تاريخ التسليم: </strong> {{ $warehouseSales->first()->idate ?? '' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td><strong>{{__('sales.customer')}}:</strong> {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
-                                                    <td style="text-align:left;"><strong>{{__('common.user')}}:</strong> {{ $warehouseSales->first()->user_name ?? '' }}</td>
+                                                    <td><strong>المکرم: </strong> {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
+                                                    <td style="text-align:left;"><strong> المستخدم: </strong> {{ $warehouseSales->first()->user_name ?? '' }}</td>
                                                 </tr>
                                                 @if(($warehouseSales->first()->factor ?? ''))
                                                 <tr>
@@ -409,7 +409,7 @@
                                             <thead>
                                                 <tr style="border-bottom: 1px dashed #000;">
                                                     <th style="text-align:center; padding:2px;">#</th>
-                                                    <th style="text-align:right; padding:2px;">{{__('sales.item')}}</th>
+                                                    <th style="text-align:right; padding:2px;">الأصناف</th>
                                                     <th style="text-align:center; padding:2px;">Qty</th>
                                                     <th style="text-align:left; padding:2px;">Price {{ $saved_with_tax ? ' VAT ' : '' }} </th>
                                                     <th style="text-align:left; padding:2px;">Total {{ $saved_with_tax ? ' VAT ' : '' }}</th>
@@ -435,23 +435,23 @@
                                         <!-- Totals -->
                                         <table style="width:100%;">
                                             <tr>
-                                                <td style="width:65%;"><strong>{{__('buy.total_bill_price')}}</strong></td>
+                                                <td style="width:65%;"><strong>الإجمالي: </strong></td>
                                                 <td style="width:35%; text-align:left;"><strong>{{ number_format($warehouseSales->first()->total,2) }} {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}</strong></td>
                                             </tr>
                                             <tr>
-                                                <td>{{__('buy.cur_pay_yet')}}</td>
+                                                <td>المدفوعات: </td>
                                                 <td style="text-align:left;">{{ number_format($warehouseSales->first()->cur_pay,2) }} {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}</td>
                                             </tr>
                                             <tr>
-                                                <td><strong>{{__('buy.remained')}}</strong></td>
+                                                <td><strong>المتبقي: </strong></td>
                                                 <td style="text-align:left;"><strong>{{ number_format($warehouseSales->first()->remained,2) }} {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}</strong></td>
                                             </tr>
                                             <tr>
-                                                <td>{{__('buy.old_remained')}}</td>
+                                                <td>المتبقي من السابق: </td>
                                                 <td style="text-align:left;">{{ number_format($previousBalance,2) }} {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}</td>
                                             </tr>
                                             <tr style="border-top: 1px dashed #000;">
-                                                <td><strong>{{__('buy.balance')}}</strong></td>
+                                                <td><strong>الرصيد:</strong></td>
                                                 <td style="text-align:left;"><strong>{{ number_format($netCustomerBalance, 2) }} {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}</strong></td>
                                             </tr>
                                         </table>
@@ -464,8 +464,8 @@
                                             <thead>
                                                 <tr style="border-bottom: 1px dashed #000;">
                                                     <th style="text-align:center; padding:2px;">#</th>
-                                                    <th style="text-align:right; padding:2px;">{{__('common.total_payment')}}</th>
-                                                    <th style="text-align:right; padding:2px;">{{__('common.date')}}</th>
+                                                    <th style="text-align:right; padding:2px;">المبلغ المدفوع:</th>
+                                                    <th style="text-align:right; padding:2px;">تاریخ الدفع</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -481,7 +481,7 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr style="border-top: 1px dashed #000;">
-                                                    <td style="padding:2px;"><strong>{{__('common.total')}}</strong></td>
+                                                    <td style="padding:2px;"><strong>الإجمالي:</strong></td>
                                                     <td style="padding:2px; text-align:right;"><strong>{{ number_format($receiptPaymentsTotal, 2) }}</strong></td>
                                                     <td style="padding:2px;"></td>
                                                 </tr>

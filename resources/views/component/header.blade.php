@@ -6,6 +6,10 @@
    .logo-header{
        background: linear-gradient(90deg, #18afed 10%, #007aab 50%);
    }
+   .select2-container--default .select2-results>.select2-results__options {
+    max-height: 420px !important;
+    overflow-y: auto !important;
+}
    </style>
 
 <script>

@@ -90,6 +90,10 @@ function fetchList() {
         preListTable.DataTable({
             serverSide: true,
             processing: true,
+            lengthMenu: [
+                    [25, 50, 100, 200,  -1],
+                    [25, 50, 100, 200, 'همه']
+                ],
             ajax: {
                 url: '{{ route("backups.data") }}',
             },

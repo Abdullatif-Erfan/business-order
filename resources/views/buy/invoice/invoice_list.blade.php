@@ -54,9 +54,9 @@ function fetchInvoices() {
         processing: true,
         pageLength: 10,
         lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'همه']
-        ],
+                    [25, 50, 100, 200,  -1],
+                    [25, 50, 100, 200, 'همه']
+                ],
         responsive: true,
         autoWidth: false,
         ajax: {

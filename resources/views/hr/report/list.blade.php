@@ -150,12 +150,11 @@ $(document).on('click', '.datepicker-icon', function(e) {
     $(document).ready(function() {
         let table = $('#employeeSalaryTable').DataTable({
             processing: true,
-            serverSide: true,
-            pageLength: 10,   
+            serverSide: true,  
             lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, 'همه']
-            ],
+                    [25, 50, 100, 200,  -1],
+                    [25, 50, 100, 200, 'همه']
+                ],
             ajax: {
                 url: '{{ route("salary.report.data") }}',
                 data: function (d) {

@@ -185,10 +185,9 @@
         let table = $('#expenseTable').DataTable({
             processing: true,
             serverSide: true,
-            pageLength: 10,   // 👈 IMPORTANT
             lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'همه']
+                    [25, 50, 100, 200,  -1],
+                    [25, 50, 100, 200, 'همه']
                 ],
             ajax: {
                 url: '{{ route("expense.data") }}',

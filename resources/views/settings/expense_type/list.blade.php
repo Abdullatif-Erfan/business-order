@@ -228,8 +228,8 @@ function fetchExpenseTypeList() {
             serverSide: true,
             processing: true,
             lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'همه']
+                    [25, 50, 100, 200,  -1],
+                    [25, 50, 100, 200, 'همه']
                 ],
             ajax: {
                 url: '{{ route("etype.list") }}',
