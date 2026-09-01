@@ -50,6 +50,18 @@
                                 @csrf
                                 @method('PATCH')
 
+
+
+                                @if ($errors->any())
+                                    <div class="alert alert-danger">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
                                 <div class="row">
                                     <!-- User Type -->
                                     <div class="col-md-4 col-sm-6 col-xs-12">
@@ -184,7 +196,7 @@
                                             <label for="account_id">{{ __('journal.select_account') }} <span class="text-danger" id="accountRequired">*</span></label>
                                             <select class="form-control select2 @error('account_id') is-invalid @enderror" 
                                                 name="account_id" id="account_id" style="width:100%">
-                                                <option value="0">--- {{ __('journal.other_account_selection') }} ---</option>
+                                                <option value="">--- {{ __('journal.other_account_selection') }} ---</option>
                                                 @foreach($accounts as $account)
                                                     @php
                                                         $selected = old('account_id', $userAccount->id ?? 0) == $account->id;
@@ -432,6 +444,8 @@ $(document).ready(function() {
             return false;
         }
         
+        // Force Select2 to update hidden inputs
+        $('#car_ids, #customer_ids, #account_id').trigger('change');
         return true;
     });
 

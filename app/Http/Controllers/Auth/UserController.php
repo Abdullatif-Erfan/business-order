@@ -293,6 +293,7 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // return $request->all();
         $user = User::findOrFail($id);
         
         // Build validation rules conditionally
@@ -314,12 +315,12 @@ class UserController extends Controller
             $rules['car_ids.*'] = 'exists:cars,id';
             $rules['customer_ids'] = 'required|array|min:1';
             $rules['customer_ids.*'] = 'exists:accounts,id';
-        } else {
+        } else {  // Belongs to Admin 
             $rules['account_id'] = 'nullable|exists:accounts,id';
             $rules['car_ids'] = 'nullable|array';
-            $rules['car_ids.*'] = 'exists:cars,id';
+            $rules['car_ids.*'] = 'nullable|exists:cars,id';
             $rules['customer_ids'] = 'nullable|array';
-            $rules['customer_ids.*'] = 'exists:accounts,id';
+            $rules['customer_ids.*'] = 'nullable|exists:accounts,id';
         }
 
         // Validate the request
