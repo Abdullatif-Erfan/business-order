@@ -83,8 +83,7 @@
                                                         @endforeach
                                                     </select>
                                                     </td>
-                                                <td> {{__('common.date')}}  : {{ $warehouseSales->first()->idate ?? '' }}</td>
-                                                <td> {{__('common.bill')}}  : <input type="text" class="form-control" name="billno" required value="{{ $warehouseSales->first()->billno ?? '' }}" readonly></td>
+                                                <td class="hidden-xs"> {{__('common.bill')}}  : <input type="text" class="form-control" name="billno" required value="{{ $warehouseSales->first()->billno ?? '' }}" readonly></td>
 
                                                 <td> {{__('common.factor')}}  : <input type="text" class="form-control" name="factor"  value="{{ $warehouseSales->first()->factor ?? '' }}" ></td>
 
@@ -224,8 +223,8 @@
 </div>
 
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
             <form action="{{ route('sales.updateSalesAndWarehouseItems')}}" method="POST">
             @csrf
             <div class="modal-header">
@@ -252,8 +251,8 @@
 
 <!-- delete modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
             <form action="" method="POST">
             @csrf
             <div class="modal-header">

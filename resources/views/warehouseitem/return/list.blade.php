@@ -126,7 +126,7 @@
 
 <!-- View Return Modal -->
 <div class="modal fade" id="viewReturnModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width:800px !important">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> <i class="fas fa-eye"></i> {{ __('buy.return_details') }} </h5>
@@ -149,7 +149,7 @@
 
 <!-- Edit Return Modal -->
 <div class="modal fade" id="editReturnModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="width:800px !important">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <form id="returnForm" action="{{ route('return.updateReturn') }}" method="POST">
         @csrf
         <div class="modal-content">

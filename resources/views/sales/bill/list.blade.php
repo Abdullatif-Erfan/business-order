@@ -127,6 +127,10 @@
         margin: 3px 0 !important;
     }
     
+     body.print-receipt .receipt-price {
+        font-size: 17px !important;
+    }
+
     body.print-receipt .receipt-logo {
         max-width: 60mm !important;
         height: auto !important;
@@ -420,11 +424,11 @@
                                                 <tr>
                                                     <td style="text-align:center; padding:2px;">{{ $loop->iteration }}</td>
                                                     <td style="text-align:right; padding:2px;">{{ $detail->preListRelation->name ?? ' '}}</td>
-                                                    <td style="text-align:center; padding:2px;">{{ $detail->amount }}</td>
-                                                    <td style="text-align:left; padding:2px;">
+                                                    <td style="text-align:center; padding:2px;font-size: 13px !important">{{ $detail->amount }}</td>
+                                                    <td style="text-align:left; padding:2px;font-size: 13px !important">
                                                         {{ number_format($detail->sell_up,2) }}
                                                     </td>
-                                                    <td style="text-align:left; padding:2px;">{{ number_format($detail->total,2) }}</td>
+                                                    <td style="text-align:left; padding:2px;font-size: 13px !important">{{ number_format($detail->total,2) }}</td>
                                                 </tr>
                                                 @endforeach
                                             </tbody>
@@ -453,6 +457,12 @@
                                             <tr style="border-top: 1px dashed #000;">
                                                 <td><strong>الرصيد:</strong></td>
                                                 <td style="text-align:left;"><strong>{{ number_format($netCustomerBalance, 2) }} {{ $warehouseSales->first()->currencyRelation->symbols ?? '' }}</strong></td>
+                                            </tr>
+                                             <tr style="border-top: 1px dashed #000;">
+                                                 <td colspan="2"><br /> استلمت البضاعة سلیمة و کاملة و هي قابلة للارجاع </td>
+                                            </tr>
+                                            <tr>
+                                                <td></td>
                                             </tr>
                                         </table>
 

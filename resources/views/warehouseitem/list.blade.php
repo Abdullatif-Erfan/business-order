@@ -131,8 +131,8 @@
 
 
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
+    <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
             <!-- <form action="{{ route('warehousesList.updateTransfer')}}" method="POST">
             @csrf -->
             <div class="modal-header">
@@ -160,8 +160,8 @@
 
 <!-- Return Modal -->
 <div class="modal fade" id="returnModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
+   <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{__('common.edit')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -186,8 +186,8 @@
 
 <!-- View Items Modal -->
  <div class="modal fade" id="viewModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
+        <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{__('common.view')}} </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">

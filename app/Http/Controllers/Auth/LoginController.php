@@ -31,8 +31,23 @@ class LoginController extends Controller
         // Middleware can be added for authentication checks
     }
 
+    // public function login()
+    // {
+    //     return view('login.login');
+    // }
     public function login()
     {
+        // If the user is already authenticated (via remember cookie
+        // OR an active session), send them straight to the home page.
+        if (Auth::guard('web')->check()) {
+            return redirect()->route('home');
+        }
+
+        // Also cover your legacy session flag, in case it's set
+        if (Session::has('isLoggedIn') && Session::get('isLoggedIn')) {
+            return redirect()->route('home');
+        }
+
         return view('login.login');
     }
 
@@ -54,7 +69,7 @@ class LoginController extends Controller
     public function loginMe(Request $request)
     {
         // Add debug logging
-    //    \Log::debug('Session ID at start: ' . session()->getId());
+        // \Log::debug('Session ID at start: ' . session()->getId());
 
         $request->validate([
             'user_name' => 'required|string',
@@ -67,6 +82,7 @@ class LoginController extends Controller
 
         $user_name = $request->input('user_name');
         $password = $request->input('password');
+        $remember = $request->boolean('remember');
 
     
         $user = User::with(['roleRelationName' => function($query) {
@@ -105,24 +121,6 @@ class LoginController extends Controller
             $assignedCarIds = $user->car_ids ?? [];
             $assignedCustomerIds = $user->customer_ids ?? [];
             
-            // Optionally load the actual models for quick access
-            // $assignedCars = [];
-            // $assignedCustomers = [];
-            
-            // if (!empty($assignedCarIds) && is_array($assignedCarIds)) {
-            //     $assignedCars = Car::whereIn('id', $assignedCarIds)
-            //         ->select('id', 'name')
-            //         ->get()
-            //         ->toArray();
-            // }
-            
-            // if (!empty($assignedCustomerIds) && is_array($assignedCustomerIds)) {
-            //     $assignedCustomers = Account::whereIn('id', $assignedCustomerIds)
-            //         ->where('account_type_id', 3)
-            //         ->select('id', 'name')
-            //         ->get()
-            //         ->toArray();
-            // }
 
             Session::put([
                 'userId' => $user->id,
@@ -135,10 +133,6 @@ class LoginController extends Controller
                 'isLoggedIn' => true,
                 'carIds' => $assignedCarIds,
                 'customerIds' => $assignedCustomerIds,
-                // 'assigned_cars' => $assignedCars,
-                // 'assigned_customers' => $assignedCustomers,
-                // 'has_car_access' => !empty($assignedCarIds),
-                // 'has_customer_access' => !empty($assignedCustomerIds),
             ]);
 
             // Session::put('lang', 'dr');
@@ -148,7 +142,7 @@ class LoginController extends Controller
             // \Log::debug('Session data after put:', session()->all());
             session()->save();
             // \Log::debug('Session saved, ID: ' . session()->getId());
-            Auth::guard('web')->login($user);
+            Auth::guard('web')->login($user, $remember);
             return redirect()->route('home');
         } else {
             Session::flash('failed', 'failed');
@@ -350,6 +344,7 @@ class LoginController extends Controller
         Session::flush();
 
         // Regenerate session token
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         // Redirect to login page with a success message

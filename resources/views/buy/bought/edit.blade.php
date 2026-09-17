@@ -49,7 +49,6 @@
                                 </div>
                                 @endif
                             </div>
-
                             <form action="{{ route('boughtList.update') }}"  method="POST">
                              @csrf
                              <input type="hidden" name="times" value="{{ $boughtItems->first()->times }}">
@@ -88,8 +87,8 @@
                                                         @endforeach
                                                     </select>
                                                     </td>
-                                                <td> {{__('common.save_date')}} : {{ $boughtItems->first()->idate ?? '' }}</td>
-                                                <td> {{__('common.bill')}} : <input type="text" class="form-control" name="billno" required value="{{ $boughtItems->first()->billno ?? '' }}" readonly></td>
+                                                
+                                                <td class="hidden-xs"> {{__('common.bill')}} : <input type="text" class="form-control" name="billno" required value="{{ $boughtItems->first()->billno ?? '' }}" readonly></td>
                                             </tr>
                                         </table>
                                         <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
@@ -235,7 +234,7 @@
 
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
-        <div class="modal-content" style="width:800px !important">
+        <div class="modal-content" role="document" style="width: 900px !important; max-width: 95vw !important;">
             <form action="{{ route('boughtList.updateItemAndWarehouseItems')}}" method="POST">
             @csrf
             <div class="modal-header">

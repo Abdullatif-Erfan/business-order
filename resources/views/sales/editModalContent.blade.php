@@ -21,7 +21,7 @@
         value="{{ $salesDetails->warehouse_id ?? 0 }}">
 
         <input class="form-control" name="max_available_amount" id="max_available_amount" type="hidden"  
-        value="{{ $warehouseAmount->available_amount ?? 0 }}">
+        value="{{ $curAmount ?? $warehouseAmount->available_amount }}">
         
         <input class="form-control" name="saved_with_tax"  type="hidden"  
             value="{{ $saved_with_tax ? 1 : 0 }}">
@@ -52,7 +52,7 @@
     </div>
 
     <div class="col-md-4 col-sm-4 col-xs-6">
-        <label for="amount"> {{__('common.unit')}} </label>
+        <label for="amount"> {{__('common.unit')}}</label>
         <select class="form-control select2" style="width: 100%; background-color:#ddd;" name="unit_id" id="unit_id">
             <option value="{{$salesDetails->unit_id}}">{{$salesDetails->unitRelation->name ?? ''}}</option>
         </select>

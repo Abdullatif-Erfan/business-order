@@ -67,14 +67,16 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> {{__('sales.customer')}} : {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
-                                            <td> {{__('common.unit')}}: {{ $warehouseSales->first()->currencyRelation->name ?? '' }}</td>
-                                            <td> {{__('common.sales_date')}} : {{ $warehouseSales->first()->idate ?? '' }}</td>
-                                            <td> {{__('common.bill')}}  : {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}
-                                                <br/>
-                                               {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}
+                                            <td> {{__('sales.customer')}} : <br/> {{ $warehouseSales->first()->accountRelation->name ?? '' }}</td>
+                                            <td> {{__('common.unit')}}: <br/>{{ $warehouseSales->first()->currencyRelation->name ?? '' }}</td>
+                                            <td> {{__('common.sales_date')}} : <br/> {{ $warehouseSales->first()->idate ?? '' }}</td>
+                                            <td> {{__('common.bill')}}  : <br/> {{ 'SALES_' . ($warehouseSales->first()->billno ?? '') }}
+                                                <span class="hidden-xs">
+                                                    <br/>
+                                                    {{__('common.factor')}} : {{ ($warehouseSales->first()->factor ?? '') }}
+                                                </span>
                                             </td>
-                                            <td> {{__('common.journal_code')}} :  {{$warehouseSales->first()->journal_code ?? ''}}
+                                            <td> {{__('common.journal_code')}} :  <br/> {{$warehouseSales->first()->journal_code ?? ''}}
                                                 </td>
                                         </tr>
                                     </table>

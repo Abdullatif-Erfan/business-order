@@ -21,7 +21,7 @@
         value="{{ $salesDetails->warehouse_id ?? 0 }}">
 
         <input class="form-control" name="max_available_amount" id="max_available_amount" type="hidden"  
-        value="{{ $warehouseAmount->available_amount ?? 0 }}">
+       value="{{ $curAmount ?? $warehouseAmount->available_amount }}">
 
         <input class="form-control" name="buy_tax_per"  type="hidden"  
             value="{{ $warehouseAmount->sell_tax_per ?? 0 }}" id="buy_tax_per_hidden">

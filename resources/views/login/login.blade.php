@@ -23,6 +23,19 @@
     <link href="{{ asset('assets/css/animate.css') }}" rel="stylesheet" />
     <link href="{{ asset('assets/css/style_login.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/plugin/css/bootstrap.css') }}" rel="stylesheet">
+    <style>
+        .login-box .form-group label {
+                font-size: 14px;
+                color: #555;
+            }
+
+            .login-box input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+                accent-color: #e91e63; /* matches bg-pink button */
+                cursor: pointer;
+            }
+    </style>
 </head>
 
 <body class="login-page">
@@ -38,72 +51,45 @@
                 <form action="{{ route('loginMe') }}" method="POST">
                     @csrf
                     <center><h4>ورود به سیســتم</h4></center>
-                    <div class="input-group">
-                        <span class="input-group-addon">
-                            <i class="fa fa-user"></i>
-                        </span>
-                        <div class="form-line">
-                            <input type="text" class="form-control" name="user_name" placeholder="نام کاربری" required autofocus>
-                        </div>
-                          @error('user_name')
-                            <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-addon">
-                            <i class="fa fa-lock"></i>
-                        </span>
-                        <div class="form-line">
-                            <input type="password"  class="form-control" name="password" placeholder="رمز عبور" required>
-                        </div>
 
-                        @error('password')
-                        <small class="text-danger">{{ $message }}</small>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                        <div class="form-line">
+                            <input type="text" class="form-control" name="user_name"
+                                placeholder="نام کاربری" value="{{ old('user_name') }}"
+                                required autofocus>
+                        </div>
+                        @error('user_name')
+                            <small class="text-danger">{{ $message }}</small>
                         @enderror
                     </div>
 
-                    <div class="col-md-12 col-sm-12 col-xs-12">
-                        @if(session('empty'))
-                            <h4 style="text-align:center;color:red;border:1px solid #999;padding:8px;">
-                                بدون رمز عبور داخل شده نمیتوانید
-                            </h4>
-                        @elseif(session('failed'))
-                            <h4 style="text-align:center;color:red;border:1px solid #999;padding:8px;">
-                                آیدی و یا رمز عبور اشتباه میباشد
-                            </h4>
-                        @elseif(session('login_first'))
-                            <h4 style="text-align:center;color:red;border:1px solid #999;padding:8px;">
-                                باید با آیدی داخل شوید
-                            </h4>
-                        @elseif(session('not_exist'))
-                            <h4 style="text-align:center;color:red;border:1px solid #999;padding:8px;">
-                                این کاربر بدون رول میباشد ویا غیر فعال میباشد
-                            </h4>
-                        @endif
-
-                        @if(Session::has('expired'))
-                            <div class="alert alert-danger">
-                                <p>
-                                مشتری محترم <br/>
-                                هاست و دامین شما نیاز به تمدید دارد. هرچه عاجلتر اقدام نمایید
-                                <br/>
-                                از هاست شما {{ Session::get('expired') }} روز گذشته است.
-                                </p>
-                            </div>
-                        @endif
-
-                        @if(Session::has('nearExpired'))
-                            <div class="alert alert-warning">
-                                سیستم شما تا {{ Session::get('nearExpired') }} روز دیگر منقضی می‌شود
-                                <br />
-                                لطفا هرچه عاجلتر اقدام نمایید. 
-                            </div>
-                        @endif
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                        <div class="form-line">
+                            <input type="password" class="form-control" name="password"
+                                placeholder="رمز عبور" required>
+                        </div>
+                        @error('password')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
+
+                    {{-- Remember Me --}}
+                    <div class="form-group" style="margin: 10px 0 15px 0;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;">
+                            <input type="checkbox" name="remember" id="remember" value="1"
+                                {{ old('remember') ? 'checked' : '' }}>
+                            <span>مرا به خاطر بسپار</span>
+                        </label>
+                    </div>
+
 
                     <div class="row">
                         <div class="col-xs-12">
-                            <button class="btn btn-block bg-pink waves-effect" type="submit">ورود به سیستم</button>
+                            <button class="btn btn-block bg-pink waves-effect" type="submit">
+                                ورود به سیستم
+                            </button>
                         </div>
                     </div>
                 </form>

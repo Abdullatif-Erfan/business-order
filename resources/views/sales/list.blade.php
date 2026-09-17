@@ -285,7 +285,7 @@ table.dataTable tbody td {
 
 <!-- Show List of items in modal -->
 <div class="modal fade" id="itemListModal" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+     <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{ __('common.sold_item_list') }} </h5>
@@ -308,7 +308,7 @@ table.dataTable tbody td {
 
 <!-- Show Bill Payment -->
 <div class="modal fade" id="billPaymentModal" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
+     <div class="modal-dialog" role="document" style="width: 900px !important; max-width: 95vw !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"> {{ __('sales.bill_payment') }} </h5>

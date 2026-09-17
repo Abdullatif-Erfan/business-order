@@ -43,10 +43,10 @@ $currency_name = $boughtItems->first()->currencyRelation->symbols ?? '';
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td> {{__('common.account_payer')}}: {{ $boughtItems->first()->account->name ?? '' }}</td>
-                                            <td>   {{__('common.currency')}}: {{ $boughtItems->first()->currencyRelation->name ?? '' }}</td>
-                                            <td> {{__('common.save_date')}} : {{ $boughtItems->first()->idate ?? '' }}</td>
-                                            <td> {{__('common.bill')}} : {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
+                                            <td> {{__('common.account_payer')}}: <br/> {{ $boughtItems->first()->account->name ?? '' }}</td>
+                                            <td> {{__('common.currency')}}: <br/> {{ $boughtItems->first()->currencyRelation->name ?? '' }}</td>
+                                            <td> {{__('common.save_date')}} : <br/> {{ $boughtItems->first()->idate ?? '' }}</td>
+                                            <td> {{__('common.bill')}} : <br/> {{ 'BUY_' . ($boughtItems->first()->billno ?? '') }}</td>
                                         </tr>
                                     </table>
                                     <hr class="hidden-print" style="margin-bottom:20px; padding-bottom:20px;" />
